@@ -7,8 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase/client';
+import { sendPhoneOTP, confirmPhoneOTP, resetPhoneAuth } from '@/lib/firebase/phone-auth';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Constellation, TokenGlyph } from '@/components/ui/decorative';
@@ -44,8 +43,6 @@ function SignUpContent() {
   }, [searchParams]);
 
   const recaptchaRef = useRef<HTMLDivElement>(null);
-  const verifierRef = useRef<RecaptchaVerifier | null>(null);
-  const confirmationRef = useRef<ConfirmationResult | null>(null);
 
   const handleSendOTP = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -55,16 +52,12 @@ function SignUpContent() {
     }
     setLoading(true);
     try {
-      const auth = getFirebaseAuth();
-      if (!verifierRef.current) {
-        verifierRef.current = new RecaptchaVerifier(auth, recaptchaRef.current!, { size: 'invisible' });
-      }
-      confirmationRef.current = await signInWithPhoneNumber(auth, normalisePhone(digits), verifierRef.current);
+      await sendPhoneOTP(normalisePhone(digits), recaptchaRef.current);
       setOtpSent(true);
       toast.success('OTP sent!');
     } catch (e: unknown) {
       toast.error((e as Error).message ?? 'Failed to send OTP');
-      verifierRef.current = null;
+      resetPhoneAuth();
     } finally {
       setLoading(false);
     }
@@ -72,11 +65,9 @@ function SignUpContent() {
 
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) { toast.error('Enter the 6-digit OTP'); return; }
-    if (!confirmationRef.current) { toast.error('Session expired. Please resend OTP.'); return; }
     setLoading(true);
     try {
-      const credential = await confirmationRef.current.confirm(otp);
-      const idToken = await credential.user.getIdToken();
+      const { idToken } = await confirmPhoneOTP(otp);
 
       const trimmedCode = referralCode.trim();
       const refPayload = /^\d{6}$/.test(trimmedCode) ? { referralCode: trimmedCode } : {};
@@ -257,7 +248,7 @@ function SignUpContent() {
                   {loading ? 'Verifying…' : 'Verify & Create account'}
                 </button>
                 <button
-                  onClick={() => { setOtpSent(false); setOtp(''); verifierRef.current = null; }}
+                  onClick={() => { setOtpSent(false); setOtp(''); resetPhoneAuth(); }}
                   className="w-full mt-2 text-xs text-text-muted/70 hover:text-text-muted underline cursor-pointer bg-transparent border-0"
                 >
                   Change number / Resend OTP

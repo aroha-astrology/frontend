@@ -90,6 +90,9 @@ importers:
       '@capacitor-community/text-to-speech':
         specifier: 5.1.0
         version: 5.1.0(@capacitor/core@6.2.1)
+      '@capacitor-firebase/authentication':
+        specifier: ^6.0.0
+        version: 6.3.1(@capacitor/core@6.2.1)(firebase@12.13.0)
       '@capacitor/app':
         specifier: ^6.0.0
         version: 6.0.3(@capacitor/core@6.2.1)
@@ -189,6 +192,15 @@ packages:
     resolution: {integrity: sha512-Pe8i2M6bSlTPR83UeP7H7SouCdvQ6cAMq+nMatCuXKAd9rdRmyzdkurNj7EsM0FyjfAmGInhv9yhmVd3jNWzQQ==}
     peerDependencies:
       '@capacitor/core': ^6.0.0
+
+  '@capacitor-firebase/authentication@6.3.1':
+    resolution: {integrity: sha512-Bv0UMwvzK7nEEFBx8hfrolZ3ueLXcCGvtu0RaJo4sOJuVJD39wu0u9OlZIIkkAMY8h3RdMNo2n4kal3Fl8aIAA==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
+      firebase: ^10.9.0 || ^11.0.0
+    peerDependenciesMeta:
+      firebase:
+        optional: true
 
   '@capacitor/app@6.0.3':
     resolution: {integrity: sha512-4gFUCbcVz0N/YYN32OBFerocWXslIv3Nc90gDiRsBkJc0plwK6kIUT6PKa5WtW2kfhteUeCVXQbvArH2fH+0Ug==}
@@ -2321,6 +2333,12 @@ snapshots:
   '@capacitor-community/text-to-speech@5.1.0(@capacitor/core@6.2.1)':
     dependencies:
       '@capacitor/core': 6.2.1
+
+  '@capacitor-firebase/authentication@6.3.1(@capacitor/core@6.2.1)(firebase@12.13.0)':
+    dependencies:
+      '@capacitor/core': 6.2.1
+    optionalDependencies:
+      firebase: 12.13.0
 
   '@capacitor/app@6.0.3(@capacitor/core@6.2.1)':
     dependencies:

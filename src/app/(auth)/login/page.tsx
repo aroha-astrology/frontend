@@ -5,8 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase/client';
+import { sendPhoneOTP, confirmPhoneOTP, resetPhoneAuth } from '@/lib/firebase/phone-auth';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Constellation } from '@/components/ui/decorative';
@@ -22,8 +21,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const recaptchaRef = useRef<HTMLDivElement>(null);
-  const verifierRef = useRef<RecaptchaVerifier | null>(null);
-  const confirmationRef = useRef<ConfirmationResult | null>(null);
 
   const handleSendOTP = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -33,16 +30,12 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const auth = getFirebaseAuth();
-      if (!verifierRef.current) {
-        verifierRef.current = new RecaptchaVerifier(auth, recaptchaRef.current!, { size: 'invisible' });
-      }
-      confirmationRef.current = await signInWithPhoneNumber(auth, normalisePhone(digits), verifierRef.current);
+      await sendPhoneOTP(normalisePhone(digits), recaptchaRef.current);
       setOtpSent(true);
       toast.success('OTP sent!');
     } catch (e: any) {
       toast.error(e.message ?? 'Failed to send OTP');
-      verifierRef.current = null;
+      resetPhoneAuth();
     } finally {
       setLoading(false);
     }
@@ -50,11 +43,9 @@ export default function LoginPage() {
 
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) { toast.error('Enter the 6-digit OTP'); return; }
-    if (!confirmationRef.current) { toast.error('Session expired. Please resend OTP.'); return; }
     setLoading(true);
     try {
-      const credential = await confirmationRef.current.confirm(otp);
-      const idToken = await credential.user.getIdToken();
+      const { idToken } = await confirmPhoneOTP(otp);
 
       const res = await fetch('/api/auth/phone-signin', {
         method: 'POST',
@@ -175,7 +166,7 @@ export default function LoginPage() {
                   {loading ? 'Verifying…' : 'Verify & Sign In'}
                 </button>
                 <button
-                  onClick={() => { setOtpSent(false); setOtp(''); verifierRef.current = null; }}
+                  onClick={() => { setOtpSent(false); setOtp(''); resetPhoneAuth(); }}
                   className="w-full mt-2 text-xs text-text-muted/70 hover:text-text-muted underline cursor-pointer bg-transparent border-0"
                 >
                   Change number / Resend OTP

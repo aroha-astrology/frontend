@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
-    "build": "next build",
+    "build:packages": "pnpm --filter @aroha-astrology/shared build && pnpm --filter @aroha-astrology/astro-engine build",
+    "build": "pnpm build:packages && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",

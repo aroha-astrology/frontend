@@ -1,0 +1,47 @@
+# dependencies
+node_modules
+.pnpm-debug.log
+pnpm-lock.yaml.bak
+
+# next.js / build
+.next/
+out/
+.turbo/
+dist/
+build/
+*.tsbuildinfo
+
+# env — block all variants on public repo
+.env
+.env.*
+!.env.example
+
+# secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.gpg
+*credential*
+*secret*
+*service-account*.json
+*service_account*.json
+.vercel/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# logs / coverage / test
+*.log
+coverage/
+playwright-report/
+test-results/
+
+# misc
+.claude/
+*.pdf

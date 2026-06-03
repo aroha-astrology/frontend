@@ -2,7 +2,6 @@
 
 import { type ButtonHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ButtonSkeleton } from './skeleton';
 
@@ -74,15 +73,13 @@ function Button({
   ...props
 }: ButtonProps) {
   return (
-    <motion.button
+    <button
       className={cn(buttonVariants({ variant, size, className }))}
       disabled={disabled || isLoading}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.1 }}
-      {...(props as any)}
+      {...props}
     >
       {isLoading ? <ButtonSkeleton width={52} height={13} /> : children}
-    </motion.button>
+    </button>
   );
 }
 Button.displayName = 'Button';

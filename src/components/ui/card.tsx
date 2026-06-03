@@ -1,8 +1,7 @@
 'use client';
 
-import { type HTMLAttributes, useRef } from 'react';
+import { type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const cardVariants = cva(
@@ -49,44 +48,10 @@ export interface CardProps
   tilt3d?: boolean;
 }
 
-function Card({ className, glass, hover, tone, tilt3d, children, ...props }: CardProps) {
-  if (!tilt3d) {
-    return <div className={cn(cardVariants({ glass, hover, tone, className }))} {...props}>{children}</div>;
-  }
-  return <Tilt3DCard className={cn(cardVariants({ glass, hover, tone, className }))} {...props}>{children}</Tilt3DCard>;
+function Card({ className, glass, hover, tone, tilt3d: _tilt3d, children, ...props }: CardProps) {
+  return <div className={cn(cardVariants({ glass, hover, tone, className }))} {...props}>{children}</div>;
 }
 Card.displayName = 'Card';
-
-function Tilt3DCard({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 18 });
-  const sy = useSpring(y, { stiffness: 200, damping: 18 });
-  const rotateX = useTransform(sy, [-0.5, 0.5], [6, -6]);
-  const rotateY = useTransform(sx, [-0.5, 0.5], [-6, 6]);
-
-  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = ref.current; if (!el) return;
-    const r = el.getBoundingClientRect();
-    x.set((e.clientX - r.left) / r.width - 0.5);
-    y.set((e.clientY - r.top) / r.height - 0.5);
-  };
-  const onLeave = () => { x.set(0); y.set(0); };
-
-  return (
-    <motion.div
-      ref={ref}
-      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 1000 }}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      className={className}
-      {...(props as any)}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('flex flex-col gap-1 pb-4', className)} {...props} />;

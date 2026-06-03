@@ -3,7 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
-    const { idToken } = await request.json() as { idToken: string };
+    const text = await request.text();
+    let idToken: string | undefined;
+    try {
+      const body = JSON.parse(text);
+      // body may be an object or a JSON-encoded string containing an object
+      const obj = typeof body === 'string' ? JSON.parse(body) : body;
+      idToken = obj?.idToken;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
     if (!idToken) {
       return NextResponse.json({ error: 'idToken required' }, { status: 400 });
     }

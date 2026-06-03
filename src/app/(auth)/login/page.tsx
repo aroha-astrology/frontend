@@ -60,11 +60,7 @@ export default function LoginPage() {
       if (error) throw error;
 
       // Check if user has a birth profile; if not, send to onboarding
-      const { data: profiles } = await supabase
-        .from('birth_profiles')
-        .select('id')
-        .limit(1);
-      const hasProfile = Array.isArray(profiles) && profiles.length > 0;
+      const hasProfile = !!localStorage.getItem('birth_profile');
 
       window.location.href = hasProfile ? '/home' : '/onboarding';
     } catch (e: unknown) {

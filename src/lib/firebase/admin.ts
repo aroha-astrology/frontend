@@ -1,10 +1,16 @@
-// firebase-admin stub — full implementation pending firebase-admin package installation
-// This file exists so that API routes importing it compile without errors.
+import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
 
-export function getFirebaseAdminAuth(): {
-  verifyIdToken: (token: string) => Promise<{ phone_number?: string; uid: string }>;
-} {
-  throw new Error(
-    'Firebase Admin is not configured. Set FIREBASE_AUTH_SERVICE_ACCOUNT_JSON and install firebase-admin.',
-  );
+function getAdminApp(): App {
+  if (getApps().length > 0) return getApps()[0]!;
+
+  const raw = process.env.FIREBASE_AUTH_SERVICE_ACCOUNT_JSON;
+  if (!raw) throw new Error('FIREBASE_AUTH_SERVICE_ACCOUNT_JSON env var is not set');
+
+  const serviceAccount = JSON.parse(raw);
+  return initializeApp({ credential: cert(serviceAccount) });
+}
+
+export function getFirebaseAdminAuth(): Auth {
+  return getAuth(getAdminApp());
 }

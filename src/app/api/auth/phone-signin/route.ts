@@ -19,8 +19,13 @@ export async function POST(request: Request) {
     }
 
     // Verify Firebase ID token using Firebase Admin
-    const { getFirebaseAdminAuth } = await import('@/lib/firebase/admin');
-    const decoded = await getFirebaseAdminAuth().verifyIdToken(idToken);
+    let decoded: { phone_number?: string };
+    try {
+      const { getFirebaseAdminAuth } = await import('@/lib/firebase/admin');
+      decoded = await getFirebaseAdminAuth().verifyIdToken(idToken);
+    } catch (e) {
+      return NextResponse.json({ error: `Firebase verify failed: ${(e as Error).message}` }, { status: 500 });
+    }
     const phone = decoded.phone_number;
     if (!phone) {
       return NextResponse.json({ error: 'No phone number in token' }, { status: 400 });

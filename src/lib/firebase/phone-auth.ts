@@ -31,10 +31,12 @@ export async function sendPhoneOTP(
     throw new Error('reCAPTCHA container element is required on web');
   }
   const auth = getFirebaseAuth();
-  const verifier =
-    state?.kind === 'web' && state.verifier
-      ? state.verifier
-      : new RecaptchaVerifier(auth, recaptchaContainer, { size: 'invisible' });
+  // Always clear any existing verifier before creating a new one
+  if (state?.kind === 'web') {
+    try { state.verifier.clear(); } catch { /* ignore */ }
+    state = null;
+  }
+  const verifier = new RecaptchaVerifier(auth, recaptchaContainer, { size: 'invisible' });
   const confirmation = await signInWithPhoneNumber(auth, phone, verifier);
   state = { kind: 'web', verifier, confirmation };
 }
@@ -60,6 +62,9 @@ export async function confirmPhoneOTP(code: string): Promise<{ idToken: string }
 }
 
 export function resetPhoneAuth(): void {
+  if (state?.kind === 'web') {
+    try { state.verifier.clear(); } catch { /* ignore */ }
+  }
   state = null;
 }
 

@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { INDIAN_CITIES } from '@aroha-astrology/shared';
-import { AnimatePresence, motion } from 'framer-motion';
+import { INDIAN_CITIES, type CityData } from '@/lib/cities';
 import { useStore } from '@/store/useStore';
 import { usePlaceSearch, dedupeApiAgainstCities } from '@/hooks/usePlaceSearch';
 
@@ -19,7 +18,6 @@ const WA_BORDER = 'rgba(248,249,250,0.10)';
 const WA_INPUT  = 'rgba(29,31,38,0.9)';
 const WA_USER_BORDER = 'rgba(212,175,55,0.28)';
 
-type CityData = (typeof INDIAN_CITIES)[0];
 type Message = { id: number; from: 'bot' | 'user'; text: string; time: string };
 type UserDetails = {
   language: string;
@@ -581,33 +579,27 @@ export default function OnboardingPage() {
                     }}
                   />
                 )}
-                <AnimatePresence>
-                  {showCityDropdown && (cityMatches.length > 0 || apiResults.length > 0) && (
-                    <motion.div
-                      className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden shadow-2xl z-50 max-h-64 overflow-y-auto"
-                      style={{ backgroundColor: WA_HEADER, border: `1px solid ${WA_BORDER}` }}
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.18 }}
-                    >
-                      {(isPincode ? apiResults : [...cityMatches, ...extraApiResults]).map((city, idx) => (
-                        <button
-                          key={`cf-${idx}-${city.name}-${city.state}`}
-                          type="button"
-                          onClick={() => handleConfirmPlaceSelect(city)}
-                          className="flex w-full items-center justify-between px-3 py-2.5 text-left transition-colors"
-                          style={{ borderBottom: `1px solid ${WA_BORDER}`, color: WA_TEXT, backgroundColor: 'transparent' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = WA_BOT)}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          <span className="text-sm font-medium">{city.name}</span>
-                          <span className="text-xs" style={{ color: WA_SUB }}>{city.state}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {showCityDropdown && (cityMatches.length > 0 || apiResults.length > 0) && (
+                  <div
+                    className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden shadow-2xl z-50 max-h-64 overflow-y-auto"
+                    style={{ backgroundColor: WA_HEADER, border: `1px solid ${WA_BORDER}` }}
+                  >
+                    {(isPincode ? apiResults : [...cityMatches, ...extraApiResults]).map((city, idx) => (
+                      <button
+                        key={`cf-${idx}-${city.name}-${city.state}`}
+                        type="button"
+                        onClick={() => handleConfirmPlaceSelect(city)}
+                        className="flex w-full items-center justify-between px-3 py-2.5 text-left transition-colors"
+                        style={{ borderBottom: `1px solid ${WA_BORDER}`, color: WA_TEXT, backgroundColor: 'transparent' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = WA_BOT)}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <span className="text-sm font-medium">{city.name}</span>
+                        <span className="text-xs" style={{ color: WA_SUB }}>{city.state}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => { setEditingPlace(false); setCityQuery(''); setShowCityDropdown(false); }}
@@ -715,12 +707,9 @@ export default function OnboardingPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5" style={{ background: WA_BG }}>
         {messages.map((msg) => (
-          <motion.div
+          <div
             key={msg.id}
             className={`flex items-end gap-1.5 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22 }}
           >
             {msg.from === 'bot' && (
               <div
@@ -744,42 +733,32 @@ export default function OnboardingPage() {
                 {msg.time}
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
         {/* Typing indicator */}
-        <AnimatePresence>
-          {botTyping && (
-            <motion.div
-              className="flex items-end gap-1.5"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.2 }}
+        {botTyping && (
+          <div className="flex items-end gap-1.5">
+            <div
+              className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs"
+              style={{ background: 'linear-gradient(135deg,#7A96AB,#3D5A6E)' }}
             >
-              <div
-                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs"
-                style={{ background: 'linear-gradient(135deg,#7A96AB,#3D5A6E)' }}
-              >
-                ✦
-              </div>
-              <div
-                className="px-4 py-3 flex items-center gap-1"
-                style={{ backgroundColor: WA_BOT, borderRadius: '12px 12px 12px 3px' }}
-              >
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: WA_SUB }}
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 0.55, repeat: Infinity, delay: i * 0.18 }}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ✦
+            </div>
+            <div
+              className="px-4 py-3 flex items-center gap-1"
+              style={{ backgroundColor: WA_BOT, borderRadius: '12px 12px 12px 3px' }}
+            >
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: WA_SUB, animation: `pulse 1.4s ease-in-out ${i * 0.18}s infinite` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div ref={bottomRef} />
       </div>
@@ -841,16 +820,11 @@ export default function OnboardingPage() {
                   style={{ borderWidth: 2, borderStyle: 'solid', borderColor: 'rgba(255,255,255,0.15)', borderTopColor: WA_GREEN, animation: 'spin 0.8s linear infinite' }}
                 />
               )}
-              <AnimatePresence>
-                {showCityDropdown && (cityMatches.length > 0 || apiResults.length > 0) && (
-                  <motion.div
-                    className="absolute bottom-full left-0 right-0 mb-2 rounded-2xl overflow-hidden shadow-2xl z-50 max-h-64 overflow-y-auto"
-                    style={{ backgroundColor: WA_HEADER, border: `1px solid ${WA_BORDER}` }}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.18 }}
-                  >
+              {showCityDropdown && (cityMatches.length > 0 || apiResults.length > 0) && (
+                <div
+                  className="absolute bottom-full left-0 right-0 mb-2 rounded-2xl overflow-hidden shadow-2xl z-50 max-h-64 overflow-y-auto"
+                  style={{ backgroundColor: WA_HEADER, border: `1px solid ${WA_BORDER}` }}
+                >
                     {isPincode ? (
                       apiResults.map((city) => (
                         <button
@@ -906,9 +880,8 @@ export default function OnboardingPage() {
                         ))}
                       </>
                     )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -7,8 +7,6 @@ export async function onRequestError(
   request: { path: string; method: string; headers: { [key: string]: string } },
   _context: { routerKind: string; routePath: string; routeType: string }
 ): Promise<void> {
-  // Catches server-side errors that are NOT caught by route handlers (unhandled throws).
-  // For handled errors in catch blocks, use serverError() from lib/telegram.ts instead.
-  const { notifyBackendError } = await import('@/lib/telegram');
-  await notifyBackendError(`${request.method} ${request.path}`, error);
+  // Server-side error reporting hook — logging only for now.
+  console.error(`[onRequestError] ${request.method} ${request.path}`, error);
 }

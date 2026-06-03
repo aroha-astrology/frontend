@@ -1,9 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { startPayment } from '@/lib/payments';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -93,11 +91,9 @@ export function TokenToastProvider({ children }: { children: React.ReactNode }) 
 function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
   return (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
-      <AnimatePresence>
-        {toasts.map(toast => (
-          <ToastItem key={toast.id} toast={toast} onDismiss={() => onDismiss(toast.id)} />
-        ))}
-      </AnimatePresence>
+      {toasts.map(toast => (
+        <ToastItem key={toast.id} toast={toast} onDismiss={() => onDismiss(toast.id)} />
+      ))}
     </div>
   );
 }
@@ -113,11 +109,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   const c = colors[toast.type];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 60, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 60, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+    <div
       className="pointer-events-auto w-[300px] rounded-xl p-4"
       style={{ background: c.bg, border: `1px solid ${c.border}`, backdropFilter: 'blur(12px)' }}
     >
@@ -145,11 +137,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
             <button
               onClick={() => {
                 onDismiss();
-                if (toast.action!.href === '/credits') {
-                  startPayment('tokens');
-                } else {
-                  router.push(toast.action!.href);
-                }
+                router.push(toast.action!.href);
               }}
               className="mt-2 rounded-lg px-3 py-1 text-xs font-bold transition-opacity hover:opacity-80"
               style={{ background: 'var(--primary)', color: '#fff' }}
@@ -168,101 +156,85 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           ✕
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 // ─── Insufficient Tokens Modal ──────────────────────────────────────────────
 
 function InsufficientTokensModal({ open, onDismiss }: { open: boolean; onDismiss: () => void }) {
+  if (!open) return null;
+
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+        onClick={onDismiss}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="pointer-events-auto w-full max-w-sm rounded-2xl p-6 relative"
+          style={{
+            background: 'rgba(15,10,30,0.95)',
+            border: '1px solid rgba(245,158,11,0.35)',
+            boxShadow: '0 0 40px rgba(245,158,11,0.12), 0 8px 32px rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
+          {/* Dismiss button */}
+          <button
             onClick={onDismiss}
-          />
-
-          {/* Modal */}
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+            className="absolute top-3 right-3 text-text-secondary hover:text-text transition-colors p-1"
+            aria-label="Dismiss"
           >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="1" y1="1" x2="13" y2="13" />
+              <line x1="13" y1="1" x2="1" y2="13" />
+            </svg>
+          </button>
+
+          {/* Icon */}
+          <div className="flex justify-center mb-4">
             <div
-              className="pointer-events-auto w-full max-w-sm rounded-2xl p-6 relative"
-              style={{
-                background: 'rgba(15,10,30,0.95)',
-                border: '1px solid rgba(245,158,11,0.35)',
-                boxShadow: '0 0 40px rgba(245,158,11,0.12), 0 8px 32px rgba(0,0,0,0.6)',
-                backdropFilter: 'blur(20px)',
-              }}
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}
             >
-              {/* Dismiss button */}
-              <button
-                onClick={onDismiss}
-                className="absolute top-3 right-3 text-text-secondary hover:text-text transition-colors p-1"
-                aria-label="Dismiss"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <line x1="1" y1="1" x2="13" y2="13" />
-                  <line x1="13" y1="1" x2="1" y2="13" />
-                </svg>
-              </button>
-
-              {/* Icon */}
-              <div className="flex justify-center mb-4">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}
-                >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <circle cx="12" cy="16" r="0.5" fill="#F59E0B" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Text */}
-              <h3 className="text-center text-lg font-bold text-text mb-2">Out of Dhanam</h3>
-              <p className="text-center text-sm text-text-secondary leading-relaxed mb-6">
-                You need more Dhanam to unlock this feature. Add Dhanam to continue your cosmic journey.
-              </p>
-
-              {/* Actions */}
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => {
-                    onDismiss();
-                    startPayment('tokens');
-                  }}
-                  className="w-full rounded-xl py-3 text-sm font-bold transition-opacity hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0f0a1e' }}
-                >
-                  Add Dhanam
-                </button>
-                <button
-                  onClick={onDismiss}
-                  className="w-full rounded-xl py-2.5 text-sm font-medium text-text-secondary hover:text-text transition-colors"
-                >
-                  Maybe Later
-                </button>
-              </div>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <circle cx="12" cy="16" r="0.5" fill="#F59E0B" />
+              </svg>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+
+          {/* Text */}
+          <h3 className="text-center text-lg font-bold text-text mb-2">Out of Dhanam</h3>
+          <p className="text-center text-sm text-text-secondary leading-relaxed mb-6">
+            You need more Dhanam to unlock this feature. Add Dhanam to continue your cosmic journey.
+          </p>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onDismiss}
+              className="w-full rounded-xl py-3 text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0f0a1e' }}
+            >
+              Add Dhanam
+            </button>
+            <button
+              onClick={onDismiss}
+              className="w-full rounded-xl py-2.5 text-sm font-medium text-text-secondary hover:text-text transition-colors"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 /* ── Pill toggle (used in KundliDesktop, LifeJourney, etc.) ─────── */
@@ -44,11 +43,9 @@ export function PillTabs({ tabs, active, onChange, className, layoutId = 'pillTa
             )}
           >
             {isActive && (
-              <motion.div
-                layoutId={layoutId}
+              <div
                 className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,#D4AF37,#B8893F)] shadow-[0_0_14px_rgba(212,175,55,0.45)]"
                 style={{ zIndex: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
             <span className="relative" style={{ zIndex: 1 }}>{tab.label}</span>
@@ -101,10 +98,8 @@ export function UnderlineTabs({ tabs, active, onChange, className }: UnderlineTa
             {tab.icon}
             {tab.label}
             {isActive && (
-              <motion.div
-                layoutId="underlineTabActive"
+              <div
                 className="absolute bottom-0 left-0 right-0 h-[2px] bg-[linear-gradient(90deg,transparent,#F2CA50,transparent)] rounded-t-sm shadow-[0_0_10px_rgba(242,202,80,0.6)]"
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
           </button>

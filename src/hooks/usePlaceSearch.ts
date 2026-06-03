@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { INDIAN_CITIES, type CityData } from '@aroha-astrology/shared';
+import { INDIAN_CITIES, type CityData } from '@/lib/cities';
 
 const NAME_DEBOUNCE_MS = 350;
 const MIN_NAME_CHARS = 3;

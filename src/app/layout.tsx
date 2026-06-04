@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cinzel, Inter, JetBrains_Mono, Noto_Sans_Devanagari, Playfair_Display } from 'next/font/google';
+import { Cinzel, Inter, JetBrains_Mono, Noto_Sans_Devanagari, Playfair_Display, Lato } from 'next/font/google';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { Toaster } from 'sonner';
@@ -41,6 +41,13 @@ const playfair = Playfair_Display({
   style: ['normal', 'italic'],
 });
 
+const lato = Lato({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-lato',
+  weight: ['300', '400', '700'],
+});
+
 const notoDevanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
   display: 'swap',
@@ -66,7 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${cinzel.variable} ${playfair.variable} ${jetBrainsMono.variable} ${notoDevanagari.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cinzel.variable} ${playfair.variable} ${lato.variable} ${jetBrainsMono.variable} ${notoDevanagari.variable} font-sans antialiased`}
       >
         <ThemeProvider>
           <AuthProvider>

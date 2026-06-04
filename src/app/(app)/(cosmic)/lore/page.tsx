@@ -42,9 +42,9 @@ export default function LorePage() {
             className="shrink-0 text-[10px] font-semibold tracking-wide px-3 py-1.5 rounded-full border transition-all duration-150"
             style={{
               WebkitTapHighlightColor: 'transparent',
-              background: category === cat ? 'var(--accent)' : 'var(--glass-3-bg)',
-              color: category === cat ? 'var(--bg)' : 'var(--text-muted)',
-              borderColor: category === cat ? 'var(--accent)' : 'var(--border)',
+              background: category === cat ? '#7B5FCA' : 'rgba(15,16,32,0.75)',
+              color: category === cat ? '#fff' : 'rgba(106,106,138,0.80)',
+              borderColor: category === cat ? '#7B5FCA' : 'rgba(123,95,202,0.20)',
             }}
           >
             {cat}

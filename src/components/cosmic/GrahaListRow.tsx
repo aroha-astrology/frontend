@@ -16,13 +16,13 @@ export function GrahaListRow({ planetKey, isSelected, onClick }: GrahaListRowPro
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200 text-left',
-        isSelected
-          ? 'border-accent/40 bg-accent/8 shadow-[0_0_16px_rgba(212,175,55,0.18)]'
-          : 'border-border/40 bg-surface/40 hover:border-border hover:bg-surface/70',
-      )}
-      style={{ WebkitTapHighlightColor: 'transparent' }}
+      className={cn('w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200 text-left')}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        background: isSelected ? 'rgba(123,95,202,0.12)' : 'rgba(15,16,32,0.60)',
+        borderColor: isSelected ? 'rgba(123,95,202,0.45)' : 'rgba(123,95,202,0.15)',
+        boxShadow: isSelected ? '0 0 18px rgba(123,95,202,0.20)' : 'none',
+      }}
     >
       {/* Planet orb thumbnail (CSS — no WebGL per row) */}
       <div
@@ -43,7 +43,7 @@ export function GrahaListRow({ planetKey, isSelected, onClick }: GrahaListRowPro
         </p>
         <p
           className="text-xs font-medium mt-0.5"
-          style={{ color: isSelected ? 'var(--accent)' : 'var(--text-muted)', fontFamily: 'var(--font-body)' }}
+          style={{ color: isSelected ? '#9B7FE8' : 'rgba(106,106,138,0.80)', fontFamily: 'var(--font-body)' }}
         >
           {g.nameHi}
         </p>

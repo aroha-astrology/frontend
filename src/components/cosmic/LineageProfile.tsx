@@ -24,16 +24,16 @@ export function LineageProfile({ profile }: LineageProfileProps) {
 
   return (
     <section className="px-4 mt-5">
-      <p className="text-[10px] font-semibold tracking-[0.2em] text-primary/70 uppercase mb-3">
+      <p className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: 'rgba(155,127,232,0.70)' }}>
         Lineage &amp; Profile
       </p>
 
       {/* Birth details card */}
       <div
-        className="rounded-2xl border border-border/50 p-4 mb-3 backdrop-blur-sm"
-        style={{ background: 'var(--glass-3-bg)' }}
+        className="rounded-2xl p-4 mb-3 backdrop-blur-sm"
+        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
       >
-        <p className="font-[family-name:var(--font-serif)] text-base font-bold text-text mb-3 j-text-gold">
+        <p className="text-base font-bold mb-3" style={{ color: '#F0F0FF' }}>
           {birth.name}
         </p>
         <div className="space-y-1.5">
@@ -47,10 +47,10 @@ export function LineageProfile({ profile }: LineageProfileProps) {
 
       {/* Dasha span */}
       <div
-        className="rounded-2xl border border-border/50 p-4 mb-3 backdrop-blur-sm"
-        style={{ background: 'var(--glass-3-bg)' }}
+        className="rounded-2xl p-4 mb-3 backdrop-blur-sm"
+        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
       >
-        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-primary/60 mb-2">
+        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase mb-2" style={{ color: 'rgba(155,127,232,0.65)' }}>
           Current Planetary Period
         </p>
         <div className="space-y-1.5">
@@ -67,10 +67,10 @@ export function LineageProfile({ profile }: LineageProfileProps) {
 
       {/* Narrative */}
       <div
-        className="rounded-2xl border border-border/50 p-4 backdrop-blur-sm"
-        style={{ background: 'var(--glass-3-bg)' }}
+        className="rounded-2xl p-4 backdrop-blur-sm"
+        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
       >
-        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-primary/60 mb-2">
+        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase mb-2" style={{ color: 'rgba(155,127,232,0.65)' }}>
           Astrological Narrative
         </p>
         <p className="text-[11px] text-text-secondary leading-relaxed">{profile.narrative}</p>

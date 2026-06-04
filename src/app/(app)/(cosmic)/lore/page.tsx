@@ -27,13 +27,13 @@ export default function LorePage() {
   }, [query, category]);
 
   return (
-    <MotionPage className="pb-6">
-      <CosmicHeader eyebrow="Vedic Astrology" title="Forbidden Lore" />
+    <MotionPage className="pb-8">
+      <CosmicHeader title="Forbidden Lore" />
 
       <LoreSearchBar value={query} onChange={setQuery} />
 
       {/* Category filter pills */}
-      <div className="flex gap-2 px-4 mt-3 overflow-x-auto hide-scrollbar pb-1">
+      <div className="flex gap-2 px-6 mb-5 overflow-x-auto hide-scrollbar pb-1">
         {CATEGORIES.map(cat => (
           <button
             key={cat}
@@ -42,9 +42,9 @@ export default function LorePage() {
             className="shrink-0 text-[10px] font-semibold tracking-wide px-3 py-1.5 rounded-full border transition-all duration-150"
             style={{
               WebkitTapHighlightColor: 'transparent',
-              background: category === cat ? '#7B5FCA' : 'rgba(15,16,32,0.75)',
-              color: category === cat ? '#fff' : 'rgba(106,106,138,0.80)',
-              borderColor: category === cat ? '#7B5FCA' : 'rgba(123,95,202,0.20)',
+              background: category === cat ? '#e5c100' : 'rgba(26,28,28,0.80)',
+              color: category === cat ? '#121414' : 'rgba(168,168,168,0.80)',
+              borderColor: category === cat ? '#e5c100' : '#37393a',
             }}
           >
             {cat}
@@ -53,14 +53,14 @@ export default function LorePage() {
       </div>
 
       {/* Results */}
-      <div className="px-4 mt-4">
+      <div className="px-6">
         {filtered.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-2xl mb-2">✦</p>
-            <p className="text-sm text-text-secondary">No lore found for &ldquo;{query}&rdquo;</p>
+            <p className="text-2xl mb-2" style={{ color: '#e5c100' }}>✦</p>
+            <p className="text-sm" style={{ color: '#a8a8a8' }}>No lore found for &ldquo;{query}&rdquo;</p>
           </div>
         ) : (
-          <StaggerList className="space-y-3">
+          <StaggerList className="flex flex-col gap-4">
             {filtered.map(article => (
               <StaggerItem key={article.slug}>
                 <LoreResultCard article={article} />

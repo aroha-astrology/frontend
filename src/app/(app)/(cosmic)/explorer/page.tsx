@@ -6,10 +6,12 @@ import { GrahaExplorer } from '@/components/cosmic/GrahaExplorer';
 
 export default function ExplorerPage() {
   return (
-    <MotionPage>
+    <MotionPage className="flex flex-col min-h-[100dvh]">
       <CosmicHeader
-        eyebrow="Vedic Astrology"
+        eyebrow="Planetary System"
         title="Graha Explorer"
+        pillLabel="System Map"
+        pillHref="/lore"
       />
       <GrahaExplorer />
     </MotionPage>

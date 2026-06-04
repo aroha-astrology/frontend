@@ -19,8 +19,12 @@ export function CosmicTabBar() {
       style={{ width: 'calc(100% - 32px)', maxWidth: 448 }}
     >
       <div
-        className="flex items-center justify-around px-2.5 py-2 rounded-full border border-border shadow-[0_0_18px_rgba(212,175,55,0.30),0_-4px_24px_rgba(0,0,0,0.55)] backdrop-blur-[14px]"
-        style={{ background: 'var(--glass-3-bg)' }}
+        className="flex items-center justify-around px-2.5 py-2 rounded-full border backdrop-blur-[14px]"
+        style={{
+          background: 'rgba(8,9,20,0.85)',
+          borderColor: 'rgba(123,95,202,0.30)',
+          boxShadow: '0 0 18px rgba(123,95,202,0.25), 0 -4px 24px rgba(0,0,0,0.55)',
+        }}
       >
         {TABS.map((tab) => {
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
@@ -36,13 +40,16 @@ export function CosmicTabBar() {
                   {isActive && (
                     <motion.div
                       layoutId="cosmicTabPill"
-                      className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,#D4AF37,#B8893F)] shadow-[0_0_14px_rgba(242,202,80,0.55)]"
+                      style={{
+                        position: 'absolute', inset: 0, borderRadius: 9999,
+                        background: '#7B5FCA', boxShadow: '0 0 14px rgba(123,95,202,0.55)',
+                      }}
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
                   <span
                     className="relative z-10 text-base leading-none select-none"
-                    style={{ color: isActive ? 'var(--bg)' : 'var(--text-muted)' }}
+                    style={{ color: isActive ? '#fff' : 'rgba(106,106,138,0.80)' }}
                   >
                     {tab.glyph}
                   </span>
@@ -51,7 +58,7 @@ export function CosmicTabBar() {
                   className="text-[9px] tracking-[0.02em] whitespace-nowrap"
                   style={{
                     fontWeight: isActive ? 700 : 500,
-                    color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                    color: isActive ? '#9B7FE8' : 'rgba(106,106,138,0.80)',
                   }}
                 >
                   {tab.label}

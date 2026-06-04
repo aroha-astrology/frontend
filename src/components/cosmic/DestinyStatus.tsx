@@ -1,4 +1,3 @@
-import { StaggerList, StaggerItem } from '@/components/ui/motion-primitives';
 import { buildDestinyChips, type DestinyChip } from '@/data/cosmic/profile';
 import type { CosmicProfile } from '@/data/cosmic/types';
 import { StatusChip } from './StatusChip';
@@ -12,16 +11,17 @@ export function DestinyStatus({ profile }: DestinyStatusProps) {
 
   return (
     <section className="px-4 mt-4">
-      <p className="text-[10px] font-semibold tracking-[0.2em] text-primary/70 uppercase mb-3">
+      <p
+        className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-3"
+        style={{ color: 'rgba(155,127,232,0.70)' }}
+      >
         Destiny Status
       </p>
-      <StaggerList className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {chips.map((chip, i) => (
-          <StaggerItem key={i}>
-            <StatusChip chip={chip} />
-          </StaggerItem>
+          <StatusChip key={i} chip={chip} />
         ))}
-      </StaggerList>
+      </div>
     </section>
   );
 }

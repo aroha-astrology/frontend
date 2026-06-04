@@ -20,8 +20,8 @@ export function GrahaDetailPanel({ planet }: GrahaDetailPanelProps) {
 
   return (
     <div
-      className="mx-4 mt-3 rounded-2xl border border-border/50 p-4 backdrop-blur-sm"
-      style={{ background: 'var(--glass-3-bg)' }}
+      className="mx-4 mt-3 rounded-2xl p-4 backdrop-blur-sm"
+      style={{ background: 'rgba(15,16,32,0.75)', border: '1px solid rgba(123,95,202,0.20)' }}
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">

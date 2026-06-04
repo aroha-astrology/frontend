@@ -1,52 +1,52 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { PlanetKey } from '@/components/3d/planet-registry';
 import { GRAHA_ORDER } from '@/data/cosmic/grahas';
-import { GrahaHero } from './GrahaHero';
 import { GrahaListRow } from './GrahaListRow';
-import { GrahaDetailPanel } from './GrahaDetailPanel';
-import { StaggerList, StaggerItem } from '@/components/ui/motion-primitives';
 
 export function GrahaExplorer() {
   const [selected, setSelected] = useState<PlanetKey>('Sun');
-  const heroRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
 
-  function handleSelect(key: PlanetKey) {
-    setSelected(key);
-    heroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  useEffect(() => {
+    const line = lineRef.current;
+    if (!line) return;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) { line.style.height = '100%'; return; }
+    line.style.height = '0';
+    const t = setTimeout(() => {
+      line.style.transition = 'height 1.5s ease-out';
+      line.style.height = '100%';
+    }, 150);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <div>
-      {/* 3D Hero */}
-      <div ref={heroRef}>
-        <GrahaHero planet={selected} height={260} />
+    <main className="flex-1 px-4 pb-6 relative overflow-y-auto hide-scrollbar">
+      {/* Central gold connector line */}
+      <div className="absolute top-4 bottom-4 z-0" style={{ left: 40 }}>
+        <div
+          ref={lineRef}
+          className="w-px"
+          style={{
+            height: 0,
+            background: 'linear-gradient(to bottom, rgba(229,193,0,0), rgba(229,193,0,0.50) 15%, rgba(229,193,0,0.50) 85%, rgba(229,193,0,0))',
+          }}
+        />
       </div>
 
-      {/* Detail panel for selected graha */}
-      <GrahaDetailPanel planet={selected} />
-
-      {/* Divider */}
-      <div className="mx-4 my-4 border-t border-border/30" />
-
-      {/* Graha list */}
-      <div className="px-4 pb-4">
-        <p className="text-[10px] font-semibold tracking-[0.2em] text-primary/70 uppercase mb-3">
-          Navagraha
-        </p>
-        <StaggerList className="space-y-2">
-          {GRAHA_ORDER.map((key) => (
-            <StaggerItem key={key}>
-              <GrahaListRow
-                planetKey={key}
-                isSelected={selected === key}
-                onClick={() => handleSelect(key)}
-              />
-            </StaggerItem>
-          ))}
-        </StaggerList>
+      <div className="flex flex-col gap-6 relative z-10 pt-4">
+        {GRAHA_ORDER.map((key, i) => (
+          <GrahaListRow
+            key={key}
+            planetKey={key}
+            isSelected={selected === key}
+            onClick={() => setSelected(key)}
+            delay={i * 80}
+          />
+        ))}
       </div>
-    </div>
+    </main>
   );
 }

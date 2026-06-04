@@ -4,76 +4,38 @@ interface LineageProfileProps {
   profile: CosmicProfile;
 }
 
-function BirthRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between items-baseline gap-2">
-      <span className="text-[10px] text-text-secondary shrink-0">{label}</span>
-      <span className="text-[10px] font-medium text-text text-right">{value}</span>
-    </div>
-  );
-}
-
 export function LineageProfile({ profile }: LineageProfileProps) {
   const { birth } = profile;
 
   const dobDisplay = new Intl.DateTimeFormat('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    day: 'numeric', month: 'long', year: 'numeric',
   }).format(new Date(birth.dob));
 
   return (
-    <section className="px-4 mt-5">
-      <p className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: 'rgba(155,127,232,0.70)' }}>
-        Lineage &amp; Profile
-      </p>
-
-      {/* Birth details card */}
-      <div
-        className="rounded-2xl p-4 mb-3 backdrop-blur-sm"
-        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
+    <section className="w-full cd-glass-card cd-shimmer px-6 py-6 mx-4 mb-6" style={{ width: 'calc(100% - 2rem)' }}>
+      <h2
+        className="text-lg font-medium mb-4"
+        style={{ color: '#e5c100' }}
       >
-        <p className="text-base font-bold mb-3" style={{ color: '#F0F0FF' }}>
-          {birth.name}
-        </p>
-        <div className="space-y-1.5">
-          <BirthRow label="Date of Birth" value={dobDisplay} />
-          <BirthRow label="Time of Birth" value={birth.tob} />
-          <BirthRow label="Place of Birth" value={birth.pob} />
-          <BirthRow label="Timezone" value={birth.timezone} />
-          <BirthRow label="Coordinates" value={`${birth.lat.toFixed(4)}°N, ${birth.lng.toFixed(4)}°E`} />
+        Lineage and Exploits
+      </h2>
+      <div className="text-sm leading-relaxed space-y-3 text-justify" style={{ color: '#c4c7c5', fontWeight: 300 }}>
+        <p>{profile.narrative}</p>
+        <div className="pt-3 border-t space-y-2" style={{ borderColor: 'rgba(229,193,0,0.10)' }}>
+          {[
+            ['Name', birth.name],
+            ['Date of Birth', dobDisplay],
+            ['Time of Birth', birth.tob],
+            ['Place of Birth', birth.pob],
+            ['Mahadasha', `${profile.currentMahadasha.planet} (${profile.currentMahadasha.startDate.slice(0,4)}–${profile.currentMahadasha.endDate.slice(0,4)})`],
+            ['Antardasha', `${profile.currentAntardasha.planet} → ${profile.currentAntardasha.endDate.slice(0,7)}`],
+          ].map(([label, value]) => (
+            <div key={label} className="flex justify-between items-baseline gap-3">
+              <span className="text-[10px] uppercase tracking-wide shrink-0" style={{ color: 'rgba(196,199,197,0.55)' }}>{label}</span>
+              <span className="text-xs font-medium text-right" style={{ color: '#e2e2e2' }}>{value}</span>
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* Dasha span */}
-      <div
-        className="rounded-2xl p-4 mb-3 backdrop-blur-sm"
-        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
-      >
-        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase mb-2" style={{ color: 'rgba(155,127,232,0.65)' }}>
-          Current Planetary Period
-        </p>
-        <div className="space-y-1.5">
-          <BirthRow
-            label="Mahadasha"
-            value={`${profile.currentMahadasha.planet} (${profile.currentMahadasha.startDate.slice(0, 4)}–${profile.currentMahadasha.endDate.slice(0, 4)})`}
-          />
-          <BirthRow
-            label="Antardasha"
-            value={`${profile.currentAntardasha.planet} (${profile.currentAntardasha.startDate.slice(0, 7)} → ${profile.currentAntardasha.endDate.slice(0, 7)})`}
-          />
-        </div>
-      </div>
-
-      {/* Narrative */}
-      <div
-        className="rounded-2xl p-4 backdrop-blur-sm"
-        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)' }}
-      >
-        <p className="text-[10px] font-semibold tracking-[0.15em] uppercase mb-2" style={{ color: 'rgba(155,127,232,0.65)' }}>
-          Astrological Narrative
-        </p>
-        <p className="text-[11px] text-text-secondary leading-relaxed">{profile.narrative}</p>
       </div>
     </section>
   );

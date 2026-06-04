@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { Telescope, ScrollText, User } from 'lucide-react';
 
 const TABS = [
-  { label: 'Explorer', href: '/explorer',       glyph: '◎' },
-  { label: 'Lore',     href: '/lore',            glyph: '✦' },
-  { label: 'Profile',  href: '/cosmic-profile',  glyph: '⬡' },
+  { label: 'Explorer', href: '/explorer',      Icon: Telescope },
+  { label: 'Lore',     href: '/lore',           Icon: ScrollText },
+  { label: 'Profile',  href: '/cosmic-profile', Icon: User },
 ] as const;
 
 export function CosmicTabBar() {
@@ -15,58 +15,52 @@ export function CosmicTabBar() {
 
   return (
     <nav
-      className="fixed bottom-[max(16px,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-[52] md:hidden"
-      style={{ width: 'calc(100% - 32px)', maxWidth: 448 }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[52] w-full"
+      style={{ maxWidth: 480 }}
     >
       <div
-        className="flex items-center justify-around px-2.5 py-2 rounded-full border backdrop-blur-[14px]"
+        className="flex justify-around items-center h-20 px-2 border-t backdrop-blur-lg"
         style={{
-          background: 'rgba(8,9,20,0.85)',
-          borderColor: 'rgba(123,95,202,0.30)',
-          boxShadow: '0 0 18px rgba(123,95,202,0.25), 0 -4px 24px rgba(0,0,0,0.55)',
+          background: 'rgba(18,20,20,0.92)',
+          borderColor: 'rgba(55,57,58,1)',
         }}
       >
-        {TABS.map((tab) => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
+        {TABS.map(({ label, href, Icon }) => {
+          const isActive = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link
-              key={tab.href}
-              href={tab.href}
-              className="flex flex-1 justify-center no-underline"
+              key={href}
+              href={href}
+              className="flex flex-col items-center justify-center flex-1 gap-1 no-underline pb-2"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <div className="flex flex-col items-center gap-0.5 flex-1 py-0.5">
-                <div className="relative flex h-10 w-12 items-center justify-center rounded-full transition-all duration-200">
-                  {isActive && (
-                    <motion.div
-                      layoutId="cosmicTabPill"
-                      style={{
-                        position: 'absolute', inset: 0, borderRadius: 9999,
-                        background: '#7B5FCA', boxShadow: '0 0 14px rgba(123,95,202,0.55)',
-                      }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span
-                    className="relative z-10 text-base leading-none select-none"
-                    style={{ color: isActive ? '#fff' : 'rgba(106,106,138,0.80)' }}
-                  >
-                    {tab.glyph}
-                  </span>
-                </div>
-                <span
-                  className="text-[9px] tracking-[0.02em] whitespace-nowrap"
-                  style={{
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#9B7FE8' : 'rgba(106,106,138,0.80)',
-                  }}
-                >
-                  {tab.label}
-                </span>
-              </div>
+              <Icon
+                size={22}
+                strokeWidth={isActive ? 2.2 : 1.5}
+                style={{ color: isActive ? '#e5c100' : 'rgba(161,161,170,0.70)' }}
+              />
+              <span
+                className="text-[10px] font-medium tracking-wide"
+                style={{ color: isActive ? '#e5c100' : 'rgba(161,161,170,0.60)' }}
+              >
+                {label}
+              </span>
+              {isActive && (
+                <div
+                  className="absolute bottom-0 w-12 h-0.5 rounded-full"
+                  style={{ background: '#e5c100', boxShadow: '0 0 8px rgba(229,193,0,0.6)' }}
+                />
+              )}
             </Link>
           );
         })}
+      </div>
+      {/* iOS home indicator */}
+      <div
+        className="flex justify-center pb-2"
+        style={{ background: 'rgba(18,20,20,0.92)' }}
+      >
+        <div className="w-1/3 h-1 bg-white/30 rounded-full" />
       </div>
     </nav>
   );

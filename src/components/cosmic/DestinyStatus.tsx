@@ -1,4 +1,4 @@
-import { buildDestinyChips, type DestinyChip } from '@/data/cosmic/profile';
+import { buildDestinyChips } from '@/data/cosmic/profile';
 import type { CosmicProfile } from '@/data/cosmic/types';
 import { StatusChip } from './StatusChip';
 
@@ -7,17 +7,14 @@ interface DestinyStatusProps {
 }
 
 export function DestinyStatus({ profile }: DestinyStatusProps) {
-  const chips: DestinyChip[] = buildDestinyChips(profile);
+  const chips = buildDestinyChips(profile);
 
   return (
-    <section className="px-4 mt-4">
-      <p
-        className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-3"
-        style={{ color: 'rgba(155,127,232,0.70)' }}
-      >
+    <section className="w-full cd-glass-card cd-shimmer px-5 py-5 mb-5 mx-4" style={{ width: 'calc(100% - 2rem)' }}>
+      <h2 className="text-base font-medium mb-4" style={{ color: '#e2e2e2' }}>
         Destiny Status
-      </p>
-      <div className="grid grid-cols-2 gap-2">
+      </h2>
+      <div className="grid grid-cols-2 gap-3">
         {chips.map((chip, i) => (
           <StatusChip key={i} chip={chip} />
         ))}

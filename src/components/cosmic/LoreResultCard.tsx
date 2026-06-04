@@ -1,23 +1,22 @@
 import Link from 'next/link';
-import { PLANET_VISUAL } from '@/components/3d/planet-registry';
+import { BookOpen, Swords, ScrollText, Sparkles, Flame, Star, Orbit } from 'lucide-react';
 import type { LoreArticle } from '@/data/cosmic/types';
 
 interface LoreResultCardProps {
   article: LoreArticle;
 }
 
-const CATEGORY_COLOR: Record<string, string> = {
-  Doshas:    '#FF6B55',
-  Dashas:    '#F2CA50',
-  Nakshatras:'#C0C8D8',
-  Yogas:     '#5DD4A4',
-  Grahas:    '#F091B8',
-  Basics:    '#9CA8BC',
+const CATEGORY_ICON: Record<string, React.ElementType> = {
+  Doshas:    Flame,
+  Dashas:    Orbit,
+  Nakshatras: Star,
+  Yogas:     Sparkles,
+  Grahas:    Swords,
+  Basics:    BookOpen,
 };
 
 export function LoreResultCard({ article }: LoreResultCardProps) {
-  const v = PLANET_VISUAL[article.heroPlanet];
-  const catColor = CATEGORY_COLOR[article.category] ?? 'var(--accent)';
+  const Icon = CATEGORY_ICON[article.category] ?? ScrollText;
 
   return (
     <Link
@@ -25,39 +24,34 @@ export function LoreResultCard({ article }: LoreResultCardProps) {
       className="block no-underline"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      <div
-        className="flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
-        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)', backdropFilter: 'blur(8px)' }}
+      <article
+        className="cd-glass-card flex gap-4 items-start p-4 transition-all active:scale-[0.98]"
+        style={{ borderRadius: '1rem' }}
       >
-        {/* Icon orb */}
+        {/* Gold icon box */}
         <div
-          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+          className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
           style={{
-            background: `radial-gradient(circle at 35% 30%, ${v.color}55 0%, ${v.color}22 100%)`,
-            border: `1px solid ${v.color}44`,
+            background: 'rgba(18,20,20,0.50)',
+            border: '1px solid #37393a',
+            color: '#e5c100',
           }}
         >
-          {article.icon}
+          <Icon size={20} strokeWidth={1.5} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className="text-sm font-semibold text-text truncate">{article.title}</p>
-          </div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full"
-              style={{ color: catColor, background: `${catColor}18`, border: `1px solid ${catColor}33` }}
-            >
-              {article.category}
-            </span>
-            <span className="text-[9px] text-text-muted">{article.readMinutes} min read</span>
-          </div>
-          <p className="text-[11px] text-text-secondary leading-relaxed line-clamp-2">{article.excerpt}</p>
+          <h2
+            className="text-base font-semibold mb-1 leading-snug"
+            style={{ color: '#f4f4f4', fontFamily: 'var(--font-playfair, var(--font-cinzel, serif))' }}
+          >
+            {article.title}
+          </h2>
+          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#a8a8a8' }}>
+            {article.excerpt}
+          </p>
         </div>
-
-        <span className="shrink-0 text-text-muted text-xs self-center">›</span>
-      </div>
+      </article>
     </Link>
   );
 }

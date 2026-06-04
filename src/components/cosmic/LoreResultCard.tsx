@@ -26,8 +26,8 @@ export function LoreResultCard({ article }: LoreResultCardProps) {
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       <div
-        className="flex items-start gap-3 p-4 rounded-2xl border border-border/40 transition-all duration-200 hover:border-accent/30 active:scale-[0.98]"
-        style={{ background: 'var(--glass-3-bg)', backdropFilter: 'blur(8px)' }}
+        className="flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
+        style={{ background: 'rgba(15,16,32,0.70)', border: '1px solid rgba(123,95,202,0.18)', backdropFilter: 'blur(8px)' }}
       >
         {/* Icon orb */}
         <div

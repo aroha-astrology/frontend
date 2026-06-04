@@ -25,17 +25,18 @@ export function CosmicHeader({
           {backHref && (
             <Link
               href={backHref}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.15em] text-accent/60 uppercase mb-1 no-underline hover:text-accent transition-colors"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.15em] uppercase mb-1 no-underline transition-colors"
+              style={{ color: 'rgba(155,127,232,0.70)' }}
             >
               ‹ {backLabel ?? 'Back'}
             </Link>
           )}
           {eyebrow && !backHref && (
-            <p className="text-[10px] font-semibold tracking-[0.2em] text-primary/70 uppercase mb-0.5">
+            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-0.5" style={{ color: 'rgba(155,127,232,0.70)' }}>
               {eyebrow}
             </p>
           )}
-          <h1 className="font-[family-name:var(--font-serif)] text-xl font-bold text-text tracking-wide truncate j-text-gold">
+          <h1 className="text-xl font-bold tracking-wide truncate" style={{ color: '#F0F0FF' }}>
             {title}
           </h1>
         </div>

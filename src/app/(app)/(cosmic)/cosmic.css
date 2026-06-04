@@ -1,0 +1,18 @@
+.cosmic-theme {
+  --bg: #080910;
+  --surface: #0f1020;
+  --surface-2: #141528;
+  --surface-3: #1a1b35;
+  --accent: #7B5FCA;
+  --primary: #9B7FE8;
+  --glow: rgba(123, 95, 202, 0.40);
+  --glow-soft: rgba(123, 95, 202, 0.15);
+  --glow-bright: rgba(155, 127, 232, 0.60);
+  --border: rgba(123, 95, 202, 0.22);
+  --border-strong: rgba(123, 95, 202, 0.40);
+  --text: #F0F0FF;
+  --text-secondary: #A8A8C8;
+  --text-muted: #6A6A8A;
+  --glass-3-bg: rgba(8, 9, 20, 0.78);
+  --glass-2-bg: rgba(12, 13, 28, 0.65);
+}

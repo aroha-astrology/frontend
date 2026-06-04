@@ -1,140 +1,156 @@
 'use client';
 
-import Link from 'next/link';
-import { Telescope, ScrollText, User } from 'lucide-react';
-import { Stardust } from '@/components/cosmic/Stardust';
-import { Planet3DHero } from '@/components/3d/Planet3DHero';
+import './cosmic-app.css';
+import { useState } from 'react';
+import { MessageCircle, Heart, User, Send } from 'lucide-react';
+import { CosmicBg } from '@/components/cosmic-app/CosmicBg';
+import { CardCarousel } from '@/components/cosmic-app/CardCarousel';
+import { FeatureList } from '@/components/cosmic-app/FeatureList';
+import { AppNav, type TabId } from '@/components/cosmic-app/AppNav';
 
-const NAV_CARDS = [
-  {
-    href: '/explorer',
-    icon: Telescope,
-    title: 'Graha Explorer',
-    desc: 'Journey through the nine sacred planets',
-  },
-  {
-    href: '/lore',
-    icon: ScrollText,
-    title: 'Forbidden Lore',
-    desc: 'Ancient knowledge, decoded',
-  },
-  {
-    href: '/cosmic-profile',
-    icon: User,
-    title: 'Astro Profile',
-    desc: 'Your destiny, charted',
-  },
-] as const;
+// ─── Chat Tab ─────────────────────────────────────────────
+function ChatTab() {
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'bot' as const, text: 'Namaste! Ask the cosmos anything about your chart, transit, or daily energies.' },
+  ]);
 
+  const send = () => {
+    if (!input.trim()) return;
+    const userMsg = { id: Date.now(), sender: 'user' as const, text: input.trim() };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: 'The stars are contemplating your question… 🌟',
+      }]);
+    }, 900);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col h-full overflow-hidden pb-24">
+      {/* Chat header */}
+      <div className="glass-panel px-4 py-3 flex items-center z-10">
+        <div className="w-9 h-9 rounded-full flex items-center justify-center border border-yellow-500/30"
+          style={{ background: 'linear-gradient(135deg,#6d28d9,#3730a3)' }}>
+          <span className="text-yellow-200 text-base">✦</span>
+        </div>
+        <div className="ml-3">
+          <p className="text-white text-sm cinzel-font font-bold leading-tight">Cosmic Guide</p>
+          <p className="text-[10px] text-green-400 leading-tight">Online</p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4">
+        {messages.map(msg => (
+          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-3 text-sm shadow-lg ${msg.sender === 'user' ? 'chat-bubble-sent text-white' : 'chat-bubble-received text-blue-50'}`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Input */}
+      <div className="px-4 pb-4">
+        <div className="glass-panel rounded-full flex items-center px-4 py-2 gap-3">
+          <input
+            className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-500"
+            placeholder="Ask the cosmos…"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && send()}
+          />
+          <button
+            onClick={send}
+            disabled={!input.trim()}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-blue-300 disabled:opacity-40"
+            style={{ background: 'rgba(37,99,235,0.25)' }}
+          >
+            <Send size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Match Tab ─────────────────────────────────────────────
+function MatchTab() {
+  return (
+    <div className="flex-1 flex items-center justify-center px-6 pb-24">
+      <div className="glass-panel rounded-3xl p-8 w-full text-center border border-pink-500/20">
+        <Heart size={48} className="mx-auto text-pink-400 mb-4 opacity-60" />
+        <h2 className="cinzel-font text-xl mb-2 text-white">Kundli Milan</h2>
+        <p className="text-gray-400 text-sm mb-6 font-light leading-relaxed">
+          Check compatibility based on ancient Vedic principles.
+        </p>
+        <button className="btn-gradient w-full py-3 rounded-full font-semibold text-sm uppercase tracking-wider border-pink-500/40">
+          Enter Partner Details
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Home Tab ──────────────────────────────────────────────
+function HomeTab({ name }: { name: string }) {
+  return (
+    <div className="flex-1 overflow-y-auto hide-scrollbar pb-24">
+      <CardCarousel />
+
+      {/* Visual separator */}
+      <div className="my-4 px-8 relative flex justify-center items-center">
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent" />
+        <div className="absolute w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+      </div>
+
+      <FeatureList />
+    </div>
+  );
+}
+
+// ─── Main Page ─────────────────────────────────────────────
 export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<TabId>('home');
+
   return (
     <>
-      {/* Stardust background */}
-      <Stardust />
+      <CosmicBg />
 
-      {/* Page content */}
       <div
-        className="relative min-h-screen flex flex-col items-center overflow-y-auto"
-        style={{
-          background: 'radial-gradient(circle at top right, #1a1c1c, #121414)',
-          zIndex: 1,
-          color: '#e2e2e2',
-          fontFamily: 'Inter, sans-serif',
-          maxWidth: 480,
-          margin: '0 auto',
-        }}
+        className="relative w-full min-h-screen max-w-md mx-auto flex flex-col overflow-hidden"
+        style={{ background: 'transparent', color: '#e0e5ff', zIndex: 1, fontFamily: 'var(--font-lato, var(--font-inter, sans-serif))' }}
       >
-        {/* Status bar placeholder */}
-        <div className="w-full flex justify-between items-center px-6 pt-12 pb-0 text-xs font-semibold" style={{ color: '#e2e2e2' }}>
-          <span>9:41</span>
-        </div>
-
-        {/* Hero section */}
-        <section className="w-full px-6 pt-6 pb-4 flex flex-col items-start">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-2 italic" style={{ color: 'rgba(229,193,0,0.70)' }}>
-            Vedic Astrology · AI-Powered
-          </p>
-          <h1
-            className="text-5xl font-bold leading-none mb-3"
-            style={{ fontFamily: 'var(--font-playfair, var(--font-cinzel, serif))', color: '#fff' }}
-          >
-            Aroha
-          </h1>
-          <p className="text-base leading-relaxed mb-8" style={{ color: '#a1a1aa', fontWeight: 300 }}>
-            Ancient wisdom meets modern insight. Your personal Jyotish companion.
-          </p>
-        </section>
-
-        {/* Hero planet */}
-        <div className="w-full flex justify-center mb-6" style={{ height: 220 }}>
-          <div className="w-full max-w-[320px]">
-            <Planet3DHero planet="Jupiter" height={220} withStars />
-          </div>
-        </div>
-
-        {/* CTAs */}
-        <section className="w-full px-6 flex flex-col gap-3 mb-8">
-          <Link
-            href="/explorer"
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full text-sm font-semibold no-underline transition-all active:scale-[0.97]"
-            style={{
-              background: '#e5c100',
-              color: '#3a3000',
-              boxShadow: '0 0 24px rgba(229,193,0,0.30)',
-            }}
-          >
-            <Telescope size={18} strokeWidth={2} />
-            Enter the Cosmos
-          </Link>
-          <Link
-            href="/lore"
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full text-sm font-semibold no-underline transition-all active:scale-[0.97]"
-            style={{
-              background: 'rgba(229,193,0,0.08)',
-              color: '#e5c100',
-              border: '1px solid rgba(229,193,0,0.30)',
-            }}
-          >
-            <ScrollText size={18} strokeWidth={1.5} />
-            Explore Lore
-          </Link>
-        </section>
-
-        {/* Nav cards */}
-        <section className="w-full px-6 pb-24">
-          <p className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-4" style={{ color: 'rgba(229,193,0,0.60)' }}>
-            Quick Access
-          </p>
-          <div className="flex flex-col gap-3">
-            {NAV_CARDS.map(({ href, icon: Icon, title, desc }) => (
-              <Link
-                key={href}
-                href={href}
-                className="no-underline flex items-center gap-4 p-4 rounded-2xl transition-all active:scale-[0.98]"
-                style={{
-                  background: 'rgba(55,57,58,0.40)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(229,193,0,0.12)',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
+        {/* Top Header */}
+        <div className="pt-12 px-6 pb-2 shrink-0">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-400 font-light">Welcome back,</p>
+              <h1
+                className="cinzel-font text-2xl font-bold text-transparent bg-clip-text"
+                style={{ backgroundImage: 'linear-gradient(to right, #fff, #9ca3af)' }}
               >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(229,193,0,0.10)', border: '1px solid rgba(229,193,0,0.20)', color: '#e5c100' }}
-                >
-                  <Icon size={20} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: '#f4f4f4', fontFamily: 'var(--font-playfair, var(--font-cinzel, serif))' }}>
-                    {title}
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: '#a1a1aa' }}>{desc}</p>
-                </div>
-                <span className="ml-auto" style={{ color: '#a1a1aa', fontSize: 14 }}>›</span>
-              </Link>
-            ))}
+                Seeker
+              </h1>
+            </div>
+            <div className="w-10 h-10 rounded-full border border-yellow-500/30 glass-panel flex items-center justify-center">
+              <User size={20} className="text-gray-300" />
+            </div>
           </div>
-        </section>
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {activeTab === 'home' && <HomeTab name="Seeker" />}
+          {activeTab === 'chat' && <ChatTab />}
+          {activeTab === 'match' && <MatchTab />}
+        </div>
+
+        <AppNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </>
   );

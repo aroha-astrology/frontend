@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const protectedRoutes = ['/home', '/onboarding'];
+  const protectedRoutes = ['/home', '/onboarding', '/explorer', '/lore', '/cosmic-profile'];
   const authRoutes = ['/login', '/signup'];
 
   // Unauthenticated user hitting a protected route → /login

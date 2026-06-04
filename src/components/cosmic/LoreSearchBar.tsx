@@ -1,3 +1,5 @@
+import { Search } from 'lucide-react';
+
 interface LoreSearchBarProps {
   value: string;
   onChange: (v: string) => void;
@@ -5,28 +7,30 @@ interface LoreSearchBarProps {
 
 export function LoreSearchBar({ value, onChange }: LoreSearchBarProps) {
   return (
-    <div className="relative mx-4 mt-3">
-      <span
-        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none select-none font-bold"
-        style={{ color: 'rgba(155,127,232,0.60)' }}
-      >
-        |
-      </span>
+    <div className="relative mx-6 mb-5">
       <input
         type="search"
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder="Search forbidden lore…"
-        className="w-full pl-8 pr-4 py-3 rounded-2xl text-sm outline-none transition-all font-mono"
+        placeholder="Forbidden Lore…"
+        className="w-full rounded-xl py-3 pl-4 pr-10 text-sm outline-none transition-all"
         style={{
-          background: 'rgba(15,16,32,0.75)',
-          border: '1px solid rgba(123,95,202,0.25)',
-          color: '#F0F0FF',
-          caretColor: '#9B7FE8',
+          background: 'rgba(26,28,28,0.80)',
+          border: '1px solid #37393a',
+          color: '#f4f4f4',
+          caretColor: '#e5c100',
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(123,95,202,0.55)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(123,95,202,0.25)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = '#e5c100'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(229,193,0,0.30)'; }}
+        onBlur={e => { e.currentTarget.style.borderColor = '#37393a'; e.currentTarget.style.boxShadow = 'none'; }}
       />
+      <button
+        className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+        style={{ color: 'rgba(168,168,168,0.80)' }}
+        type="button"
+        aria-label="Search"
+      >
+        <Search size={16} />
+      </button>
     </div>
   );
 }

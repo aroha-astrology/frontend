@@ -1,66 +1,93 @@
+'use client';
+
+import { useRef, useEffect } from 'react';
 import { PLANET_VISUAL, type PlanetKey } from '@/components/3d/planet-registry';
 import { GRAHA_DATA } from '@/data/cosmic/grahas';
-import { cn } from '@/lib/utils';
 
 interface GrahaListRowProps {
   planetKey: PlanetKey;
-  isSelected: boolean;
-  onClick: () => void;
+  isSelected?: boolean;
+  onClick?: () => void;
+  delay?: number;
 }
 
-export function GrahaListRow({ planetKey, isSelected, onClick }: GrahaListRowProps) {
+export function GrahaListRow({ planetKey, isSelected, onClick, delay = 0 }: GrahaListRowProps) {
   const v = PLANET_VISUAL[planetKey];
   const g = GRAHA_DATA[planetKey];
+  const rowRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) { el.style.opacity = '1'; el.style.transform = 'none'; return; }
+
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    const t = setTimeout(() => {
+      el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, delay);
+    return () => clearTimeout(t);
+  }, [delay]);
 
   return (
-    <button
-      type="button"
+    <article
+      ref={rowRef}
+      className="flex gap-4 items-center group cursor-pointer p-2 rounded-xl transition-colors"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
       onClick={onClick}
-      className={cn('w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200 text-left')}
-      style={{
-        WebkitTapHighlightColor: 'transparent',
-        background: isSelected ? 'rgba(123,95,202,0.12)' : 'rgba(15,16,32,0.60)',
-        borderColor: isSelected ? 'rgba(123,95,202,0.45)' : 'rgba(123,95,202,0.15)',
-        boxShadow: isSelected ? '0 0 18px rgba(123,95,202,0.20)' : 'none',
-      }}
     >
-      {/* Planet orb thumbnail (CSS — no WebGL per row) */}
-      <div
-        className="shrink-0 rounded-full j-glow-pulse"
-        style={{
-          width: 40,
-          height: 40,
-          background: `radial-gradient(circle at 35% 30%, ${v.color} 0%, ${v.color}99 50%, ${v.color}33 100%)`,
-          boxShadow: isSelected ? `0 0 16px ${v.glow}` : `0 0 8px ${v.glow}55`,
-        }}
-      />
-
-      {/* Names */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text leading-tight truncate">
-          {g.nameEn}
-          <span className="ml-1.5 text-[10px] font-normal text-text-secondary">{g.nameSa}</span>
-        </p>
-        <p
-          className="text-xs font-medium mt-0.5"
-          style={{ color: isSelected ? '#9B7FE8' : 'rgba(106,106,138,0.80)', fontFamily: 'var(--font-body)' }}
-        >
-          {g.nameHi}
-        </p>
-        <p className="text-[10px] text-text-secondary mt-0.5 truncate">{g.descriptor}</p>
+      {/* Orbital icon: connector dot + circular planet orb */}
+      <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center">
+        {/* Gold dot on the connector line */}
+        <div
+          className="absolute -left-[19px] w-2 h-2 rounded-full"
+          style={{ background: '#e5c100', boxShadow: '0 0 8px rgba(229,193,0,0.80)' }}
+        />
+        {/* Planet orb */}
+        <div
+          className="w-10 h-10 rounded-full border flex-shrink-0"
+          style={{
+            background: `radial-gradient(circle at 35% 30%, ${v.color} 0%, ${v.color}99 50%, ${v.color}33 100%)`,
+            borderColor: 'rgba(229,193,0,0.30)',
+            boxShadow: isSelected
+              ? `0 0 18px rgba(229,193,0,0.45)`
+              : `0 0 15px ${v.glow}`,
+          }}
+        />
       </div>
 
-      {/* Element badge */}
+      {/* Glass info panel */}
       <div
-        className="shrink-0 text-[9px] font-semibold tracking-wide px-2 py-0.5 rounded-full border"
+        className="flex-1 cd-glass-card p-4 relative overflow-hidden"
         style={{
-          color: v.color,
-          borderColor: `${v.color}55`,
-          background: `${v.color}14`,
+          background: isSelected ? 'rgba(55,57,58,0.65)' : 'rgba(26,28,28,0.80)',
+          borderColor: isSelected ? 'rgba(229,193,0,0.30)' : 'rgba(229,193,0,0.12)',
         }}
       >
-        {g.element}
+        {/* Shimmer sweep */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.04), transparent)',
+            transform: 'translateX(-100%)',
+          }}
+        />
+        <h3
+          className="text-base font-bold text-white mb-0.5 relative z-10"
+          style={{ fontFamily: 'var(--font-cinzel, serif)' }}
+        >
+          {g.nameEn}
+          <span className="ml-2 text-[10px] font-normal" style={{ color: '#a1a1aa' }}>
+            {g.nameSa}
+          </span>
+        </h3>
+        <p className="text-xs leading-relaxed line-clamp-3 relative z-10" style={{ color: '#a1a1aa' }}>
+          {g.signification}
+        </p>
       </div>
-    </button>
+    </article>
   );
 }

@@ -7,7 +7,9 @@ interface CosmicHeaderProps {
   backHref?: string;
   backLabel?: string;
   className?: string;
-  action?: React.ReactNode;
+  pillLabel?: string;
+  pillHref?: string;
+  pillStyle?: 'gold' | 'purple';
 }
 
 export function CosmicHeader({
@@ -16,31 +18,48 @@ export function CosmicHeader({
   backHref,
   backLabel,
   className,
-  action,
+  pillLabel,
+  pillHref,
+  pillStyle = 'gold',
 }: CosmicHeaderProps) {
+  const pillClass =
+    pillStyle === 'purple'
+      ? 'bg-[#8b5cf6]/20 border border-[#8b5cf6]/40 text-[#a78bfa]'
+      : 'bg-[#e5c100]/10 border border-[#e5c100]/30 text-[#e5c100]';
+
   return (
-    <header className={cn('px-4 pt-4 pb-2', className)}>
-      <div className="flex items-center justify-between gap-2">
+    <header className={cn('px-6 pt-12 pb-4', className)}>
+      {backHref && (
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.15em] uppercase mb-2 no-underline transition-colors"
+          style={{ color: 'rgba(229,193,0,0.60)' }}
+        >
+          ‹ {backLabel ?? 'Back'}
+        </Link>
+      )}
+      <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          {backHref && (
-            <Link
-              href={backHref}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.15em] uppercase mb-1 no-underline transition-colors"
-              style={{ color: 'rgba(155,127,232,0.70)' }}
-            >
-              ‹ {backLabel ?? 'Back'}
-            </Link>
-          )}
           {eyebrow && !backHref && (
-            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-0.5" style={{ color: 'rgba(155,127,232,0.70)' }}>
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-1 italic"
+              style={{ color: 'rgba(229,193,0,0.70)' }}>
               {eyebrow}
             </p>
           )}
-          <h1 className="text-xl font-bold tracking-wide truncate" style={{ color: '#F0F0FF' }}>
+          <h1
+            className="text-3xl font-bold leading-tight tracking-wide truncate"
+            style={{ fontFamily: 'var(--font-playfair, var(--font-cinzel, serif))', color: '#fff' }}
+          >
             {title}
           </h1>
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        <div className="flex items-center gap-3 shrink-0">
+          {pillLabel && (
+            pillHref
+              ? <Link href={pillHref} className={cn('px-3 py-1 text-xs rounded-full font-semibold uppercase tracking-wider no-underline backdrop-blur-sm', pillClass)}>{pillLabel}</Link>
+              : <span className={cn('px-3 py-1 text-xs rounded-full font-semibold uppercase tracking-wider backdrop-blur-sm', pillClass)}>{pillLabel}</span>
+          )}
+        </div>
       </div>
     </header>
   );

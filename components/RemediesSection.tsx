@@ -1,83 +1,40 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  LoveIcon,
-  CareerIcon,
-  HealthIcon,
-  PeaceIcon,
-} from "@/components/icons/RemedyIcons";
+import { Heart, Activity, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import Card from "@/components/ui/Card";
 
-const categories = [
-  {
-    icon: LoveIcon,
-    label: "Love &\nRelationships",
-    href: "/remedies/love",
-  },
-  {
-    icon: CareerIcon,
-    label: "Career &\nSuccess",
-    href: "/remedies/career",
-  },
-  {
-    icon: HealthIcon,
-    label: "Health &\nWellness",
-    href: "/remedies/health",
-  },
-  {
-    icon: PeaceIcon,
-    label: "Peace &\nPositivity",
-    href: "/remedies/peace",
-  },
-] as const;
+const remedies = [
+  { icon: Heart, key: "remedies.love" },
+  { icon: Sparkles, key: "remedies.career" },
+  { icon: Activity, key: "remedies.health" },
+  { icon: Sparkles, key: "remedies.peace" },
+];
 
 export default function RemediesSection() {
+  const { t } = useTranslation();
   return (
-    <section className="px-4 py-2">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-base font-semibold text-white tracking-wide">
-          Remedies For You
-        </h2>
-        <Link
-          href="/remedies"
-          className="text-xs font-body"
-          style={{ color: "var(--gold)" }}
-        >
-          View All
-        </Link>
-      </div>
-
-      {/* 2×2 grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {categories.map(({ icon: Icon, label, href }, i) => (
-          <motion.div
-            key={label}
+    <div className="grid grid-cols-4 gap-3">
+      {remedies.map((remedy, i) => {
+        const Icon = remedy.icon;
+        return (
+          <Card
+            key={i}
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: i * 0.08 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="flex flex-col items-center p-3 rounded-2xl border-gold/10 hover:border-gold/30 cursor-pointer"
           >
-            <Link href={href} className="block">
-              <div
-                className="rounded-2xl border p-4 flex flex-col items-center gap-2 transition-colors active:scale-[0.97]"
-                style={{
-                  background: "var(--surface)",
-                  borderColor: "var(--border)",
-                }}
-              >
-                <Icon size={44} color="var(--gold)" />
-                <span
-                  className="text-xs text-center leading-snug font-body whitespace-pre-line"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {label}
-                </span>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
-    </section>
+            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gold">
+              <Icon size={24} strokeWidth={1.5} />
+            </div>
+            <p className="text-[10px] text-foreground/90 text-center whitespace-pre-line leading-tight font-medium">
+              {t(remedy.key)}
+            </p>
+          </Card>
+        );
+      })}
+    </div>
   );
 }

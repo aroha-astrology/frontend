@@ -4,146 +4,89 @@
 
 /* ── Dark theme (default) ── */
 :root {
-  --background: #05060A;
+  --background: #000000;
   --foreground: #E1E2EB;
-  --surface: #11131B;
-  --surface-2: rgba(21, 24, 34, 0.6);
+  --surface: #0a0a0c;
+  --surface-2: #141416;
+  --card: #111316;
+  --fab: #1a150c;
 
-  --gold: #D4AF37;
-  --gold-light: #F2CA50;
-  --gold-dark: #9F6B00;
+  --gold: #dfb564;
+  --gold-light: #fbe09b;
+  --gold-dark: #a67c00;
 
-  --border: rgba(212, 175, 55, 0.2);
-  --secondary: #1A1C26;
+  --border: rgba(223, 181, 100, 0.4);
+  --border-faint: rgba(223, 181, 100, 0.15);
+  --secondary: #121316;
 
-  --text-muted: #9CA3AF;
-
-  --font-editorial: var(--font-display-editorial), 'Cinzel', serif;
-  --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F4D675 50%, #D4AF37 100%);
+  --text-muted: #a1a1aa;
 }
 
-/* ── Light theme ── */
+/* ── Light theme — luxury editorial, ivory paper ── */
 .light {
-  --background: #FFFDF8;
-  --foreground: #1C1C1C;
+  --background: #FAF7F0;
+  --foreground: #1B1B1B;
   --surface: #FFFFFF;
-  --surface-2: rgba(248, 238, 214, 0.6);
+  --surface-2: #FFFFFF;
+  --card: #FFFFFF;
+  --fab: #FFFFFF;
 
-  --gold: #C58B2A;
-  --gold-light: #E6C980;
-  --gold-dark: #9F6B00;
+  --gold: #B8892D;
+  --gold-light: #D4A94E;
+  --gold-dark: #8A6420;
 
-  --border: #E8DCC5;
-  --secondary: #F8EED6;
+  --border: rgba(184, 137, 45, 0.30);
+  --border-faint: rgba(184, 137, 45, 0.12);
+  --secondary: #F3EEE3;
 
-  --text-muted: #6B6052;
+  --text-muted: #6E6358;
 }
 
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
   }
 
   body {
-    background: var(--background);
-    color: var(--foreground);
+    @apply bg-background text-foreground;
     font-family: var(--font-body, Inter, sans-serif);
-    -webkit-font-smoothing: antialiased;
+    background-color: var(--background);
   }
 
-  h1 {
-    font-family: var(--font-editorial, 'Cinzel', serif);
-  }
-
-  h2, h3, h4 {
+  h1, h2, h3, h4 {
     font-family: var(--font-display, Cinzel, serif);
   }
 }
 
 /* ── Hero gradient ── */
 .hero-bg {
-  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.07) 0%, transparent 65%);
+  background: radial-gradient(circle at top, rgba(223, 181, 100, 0.05) 0%, transparent 60%);
 }
 
 .light .hero-bg {
   background: radial-gradient(circle at top, #FFF5E6 0%, #FFFDF8 60%);
 }
 
-/* ── Gold text utility ── */
-.text-gold { color: var(--gold); }
-.border-gold { border-color: var(--border); }
-.font-editorial { font-family: var(--font-editorial); }
-
-/* ═══════════════════════════════════════════
-   ANIMATIONS
-═══════════════════════════════════════════ */
-
-/* Gold shimmer sweep */
-@keyframes shimmer {
-  0%   { background-position: 200% center; }
-  100% { background-position: -200% center; }
+/* ── Hide scrollbar (horizontal sliders) ── */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
-.shimmer-text {
-  background: linear-gradient(
-    90deg,
-    var(--gold) 0%,
-    rgba(255,255,255,0.85) 40%,
-    var(--gold) 60%
-  );
-  background-size: 200% auto;
+/* ── Gold text utility ── */
+.text-gold {
+  color: var(--gold);
+}
+
+.border-gold {
+  border-color: var(--border);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to right, var(--gold-light), var(--gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 4s linear infinite;
 }
-
-/* Button shimmer overlay */
-.shimmer-btn {
-  position: relative;
-  overflow: hidden;
-}
-.shimmer-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.22) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-/* ── Om glow ── */
-.glow-om {
-  text-shadow:
-    0 0 20px rgba(255, 165, 0, 0.95),
-    0 0 50px rgba(255, 140, 0, 0.65),
-    0 0 100px rgba(212, 175, 55, 0.4);
-  filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.85));
-}
-
-/* ── Live dot ── */
-.live-pulse {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22c55e;
-  flex-shrink: 0;
-  animation: live-blink 1.5s ease-in-out infinite;
-}
-@keyframes live-blink {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
-  50%       { opacity: 0.4; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
-}
-
-/* ── Hide scrollbar ── */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

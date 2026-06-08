@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
+import IconButton from "@/components/ui/IconButton";
 
 export default function ThemeSwitch() {
   const { theme, setTheme } = useTheme();
@@ -13,12 +14,11 @@ export default function ThemeSwitch() {
   if (!mounted) return null;
 
   return (
-    <button
+    <IconButton
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-full border border-[var(--border)] text-[var(--text-muted)] hover:text-gold transition-colors"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-    </button>
+    </IconButton>
   );
 }

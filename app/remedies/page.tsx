@@ -1,20 +1,35 @@
+"use client";
+
 import { remedies } from "@/data/remedies";
-import SectionTitle from "@/components/SectionTitle";
+import { motion } from "framer-motion";
 
 export default function RemediesPage() {
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen pb-28"
+      style={{ background: "var(--background)" }}
+    >
       <div className="px-5 pt-10">
-        <SectionTitle
-          title="🪔 Daily Remedies"
-          subtitle="Vedic remedies to harmonise your planetary energies"
-        />
+        <h1 className="text-3xl font-bold text-center text-gold font-display mb-2">
+          🪔 Daily Remedies
+        </h1>
+        <p className="text-center text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+          Vedic remedies to harmonise your planetary energies
+        </p>
 
-        <div className="mt-2 space-y-4">
-          {remedies.map((item) => (
-            <div
+        <div className="space-y-4">
+          {remedies.map((item, i) => (
+            <motion.div
               key={item.title}
-              className="p-5 rounded-3xl border transition-colors"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.4 }}
+              className="p-5 rounded-3xl border"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
               <div className="flex items-center gap-3 mb-2">
@@ -24,10 +39,10 @@ export default function RemediesPage() {
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                 {item.remedy}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
-    </main>
+    </motion.main>
   );
 }

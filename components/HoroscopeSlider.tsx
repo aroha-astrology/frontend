@@ -6,42 +6,39 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 export default function HoroscopeSlider() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [active, setActive] = useState<string | null>(null);
 
   return (
-    <div>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {zodiac.map((sign) => (
+    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-4">
+      {zodiac.map((sign) => {
+        const isActive = sign.name === active;
+        return (
           <motion.div
             key={sign.name}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setSelected(sign.name === selected ? null : sign.name)}
-            className="min-w-[200px] rounded-3xl p-4 cursor-pointer border transition-all"
+            whileTap={{ scale: 1.05 }}
+            onClick={() => setActive(isActive ? null : sign.name)}
+            className="min-w-[155px] rounded-2xl p-3 cursor-pointer border transition-all flex-shrink-0"
             style={{
-              background: "var(--surface)",
-              borderColor: sign.name === selected ? "var(--gold)" : "var(--border)",
+              background: isActive
+                ? "linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))"
+                : "var(--surface)",
+              borderColor: isActive ? "var(--gold)" : "var(--border)",
+              boxShadow: isActive ? "0 0 16px rgba(212,175,55,0.25)" : "none",
+              transition: "box-shadow 0.3s, border-color 0.3s",
             }}
           >
-            <div className="text-2xl mb-1">{sign.symbol}</div>
-            <h3 className="text-gold font-semibold">{sign.name}</h3>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">{sign.dates}</p>
-            {sign.name === selected && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="mt-3 text-sm text-foreground/80 leading-relaxed"
-              >
-                {horoscopes[sign.name]}
-              </motion.p>
-            )}
+            <div className="text-xl mb-1">{sign.symbol}</div>
+            <p className="font-semibold text-xs text-gold">{sign.name}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{sign.dates}</p>
+            <p
+              className="text-[11px] mt-1.5 leading-relaxed line-clamp-2"
+              style={{ color: "var(--text-muted)", opacity: 0.85 }}
+            >
+              {horoscopes[sign.name]}
+            </p>
           </motion.div>
-        ))}
-      </div>
-      {!selected && (
-        <p className="text-xs text-[var(--text-muted)] mt-2 text-center">
-          Tap a sign to reveal today's reading
-        </p>
-      )}
+        );
+      })}
     </div>
   );
 }

@@ -17,8 +17,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Aroha Astrology",
-  description: "Vedic Astrology & AI Astrologer",
+  title: "Aroho Astrology",
+  description: "Divine Guidance. AI-Powered Vedic Insights.",
   manifest: "/manifest.json",
 };
 

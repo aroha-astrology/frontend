@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAIResponse } from "@/data/aiResponses";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  streaming?: boolean;
 }
 
 const suggestions = [
@@ -18,15 +21,17 @@ const suggestions = [
   "Health guidance",
 ];
 
-export default function AIChatPage() {
+function AIChatContent() {
+  const searchParams = useSearchParams();
+  const initialQ = searchParams.get("q") ?? "";
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Namaste 🙏 I am Yogi Baba, your AI Vedic Astrologer. Ask me about career, marriage, wealth, health, or your lucky gemstone.",
+      content: "Namaste 🙏 I am Yogi Baba, your AI Vedic Astrologer. Ask me about career, marriage, wealth, health, or your lucky gemstone.",
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQ);
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -34,9 +39,39 @@ export default function AIChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
-  const sendMessage = async (text?: string) => {
+  /* Character-by-character streaming */
+  const streamReply = useCallback((fullText: string) => {
+    const STREAM_LIMIT = 400;
+    const text = fullText.length > STREAM_LIMIT ? fullText.slice(0, STREAM_LIMIT) + "…" : fullText;
+    let idx = 0;
+    setMessages((prev) => [...prev, { role: "assistant", content: "", streaming: true }]);
+
+    const tick = () => {
+      idx++;
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last?.streaming) {
+          next[next.length - 1] = { ...last, content: text.slice(0, idx) };
+        }
+        return next;
+      });
+      if (idx < text.length) setTimeout(tick, 18);
+      else {
+        setMessages((prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
+          return next;
+        });
+      }
+    };
+    setTimeout(tick, 18);
+  }, []);
+
+  const sendMessage = useCallback(async (text?: string) => {
     const msg = text ?? input;
-    if (!msg.trim()) return;
+    if (!msg.trim() || typing) return;
 
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setInput("");
@@ -46,28 +81,37 @@ export default function AIChatPage() {
 
     const reply = getAIResponse(msg);
     setTyping(false);
-    setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-  };
+    streamReply(reply);
+  }, [input, typing, streamReply]);
 
   return (
-    <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen pb-32 flex flex-col"
+      style={{ background: "var(--background)" }}
+    >
       {/* Header */}
       <div className="px-5 pt-10 pb-4 text-center border-b" style={{ borderColor: "var(--border)" }}>
         <h1 className="text-3xl font-bold text-gold font-display">🔮 AI Astrologer</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Yogi Baba · Vedic wisdom</p>
+        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Yogi Baba · Vedic wisdom</p>
       </div>
 
       {/* Suggestion chips */}
-      <div className="flex gap-2 px-4 py-3 overflow-x-auto">
+      <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
         {suggestions.map((s) => (
-          <button
+          <motion.button
             key={s}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => sendMessage(s)}
-            className="px-4 py-2 rounded-full text-sm whitespace-nowrap border transition-colors hover:border-yellow-500/50"
+            className="px-4 py-2 rounded-full text-sm whitespace-nowrap border"
             style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}
           >
             {s}
-          </button>
+          </motion.button>
         ))}
       </div>
 
@@ -77,8 +121,8 @@ export default function AIChatPage() {
           {messages.map((msg, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={msg.role === "user" ? { opacity: 0, x: 30 } : { opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
               className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
@@ -100,6 +144,9 @@ export default function AIChatPage() {
                 }
               >
                 {msg.content}
+                {msg.streaming && (
+                  <span className="inline-block w-0.5 h-4 bg-yellow-500 ml-0.5 animate-pulse align-middle" />
+                )}
               </div>
             </motion.div>
           ))}
@@ -107,11 +154,7 @@ export default function AIChatPage() {
 
         {/* Typing indicator */}
         {typing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-start"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
             <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0">
               🔮
             </div>
@@ -119,18 +162,17 @@ export default function AIChatPage() {
               className="rounded-3xl rounded-bl-md px-4 py-3 border flex gap-1 items-center"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
-              {[0, 1, 2].map((i) => (
+              {[0, 1, 2].map((j) => (
                 <motion.span
-                  key={i}
+                  key={j}
                   animate={{ y: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
+                  transition={{ repeat: Infinity, duration: 0.8, delay: j * 0.15 }}
                   className="w-1.5 h-1.5 rounded-full bg-yellow-500 block"
                 />
               ))}
             </div>
           </motion.div>
         )}
-
         <div ref={bottomRef} />
       </div>
 
@@ -143,11 +185,7 @@ export default function AIChatPage() {
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Ask your astrologer..."
             className="flex-1 h-14 rounded-full px-5 outline-none border text-sm"
-            style={{
-              background: "var(--surface)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
           />
           <button
             onClick={() => sendMessage()}
@@ -158,6 +196,14 @@ export default function AIChatPage() {
           </button>
         </div>
       </div>
-    </main>
+    </motion.main>
+  );
+}
+
+export default function AIChatPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" style={{ background: "var(--background)" }} />}>
+      <AIChatContent />
+    </Suspense>
   );
 }

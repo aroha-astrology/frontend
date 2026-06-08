@@ -6,81 +6,123 @@ import { ScrollText, MessageCircle } from "lucide-react";
 import { MoonGlyph } from "@/components/icons/MoonGlyph";
 import { LotusIcon } from "@/components/icons/LotusIcon";
 import { MandalaRing } from "@/components/icons/MandalaRing";
-import { MOON_FLOAT } from "@/lib/animations";
 
 export default function Hero() {
   return (
-    <section className="relative hero-bg overflow-hidden pt-16 pb-8 px-5 min-h-[520px] flex flex-col items-center">
+    <section className="relative overflow-hidden pt-10 pb-14 px-6 min-h-[610px] flex flex-col items-center">
 
-      {/* Moon — large, positioned top-left, partially off-screen */}
+      {/* Moon — 310px, dramatically bleeds off-screen top-left */}
       <motion.div
-        {...MOON_FLOAT}
-        className="absolute -left-16 top-4 pointer-events-none"
-        style={{ opacity: 0.85 }}
+        animate={{ y: [0, -14, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -left-24 -top-6 pointer-events-none"
+        style={{ opacity: 0.9 }}
       >
-        <MoonGlyph size={220} color="#D4AF37" />
+        <MoonGlyph size={310} color="#D4AF37" />
       </motion.div>
 
-      {/* Lotus decoration — top-right */}
-      <div className="absolute -right-8 top-8 pointer-events-none" style={{ opacity: 0.12 }}>
-        <LotusIcon size={160} color="#D4AF37" />
+      {/* Lotus — top right, bleeds off-screen */}
+      <motion.div
+        animate={{ rotate: [0, 3, 0, -3, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -right-10 top-4 pointer-events-none"
+        style={{ opacity: 0.11 }}
+      >
+        <LotusIcon size={230} color="#D4AF37" />
+      </motion.div>
+
+      {/* Mandala ring — very faint full background */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        style={{ opacity: 0.025 }}
+      >
+        <MandalaRing size={500} color="#D4AF37" />
       </div>
 
-      {/* Mandala ring — background center */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.04 }}>
-        <MandalaRing size={400} color="#D4AF37" />
-      </div>
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center text-center mt-28">
 
-      {/* Content — centered, above decorations */}
-      <div className="relative z-10 flex flex-col items-center text-center mt-16">
-
-        {/* Brand */}
+        {/* Editorial headline — large and dominant */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-2"
+          transition={{ duration: 0.85, delay: 0.2 }}
         >
-          <p className="font-display text-[10px] tracking-[0.4em] text-[var(--text-muted)] uppercase">
-            ✦ Aroho ✦
-          </p>
-        </motion.div>
-
-        {/* Main headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="mb-1"
-        >
-          <h1 className="font-display text-4xl font-bold text-white tracking-wide leading-tight">
-            AI Powered
+          <h1
+            className="font-display font-bold text-white tracking-widest leading-tight"
+            style={{ fontSize: "2.1rem", letterSpacing: "0.14em" }}
+          >
+            AI POWERED
           </h1>
           <h1
-            className="font-editorial text-5xl font-semibold leading-tight"
-            style={{ color: "var(--gold)", fontStyle: "italic" }}
+            className="font-editorial"
+            style={{
+              color: "var(--gold)",
+              fontStyle: "italic",
+              fontSize: "4.6rem",
+              lineHeight: 0.95,
+              letterSpacing: "-0.02em",
+              fontWeight: 600,
+            }}
           >
             Vedic Guidance
           </h1>
         </motion.div>
 
+        {/* Gold ornament divider */}
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0.4 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.7, delay: 0.55 }}
+          className="flex items-center gap-3 mt-6 mb-6"
+        >
+          <span
+            style={{
+              display: "block",
+              height: 1,
+              width: 44,
+              background: "rgba(212,175,55,0.3)",
+            }}
+          />
+          <span
+            className="font-display uppercase"
+            style={{
+              fontSize: "0.55rem",
+              letterSpacing: "0.55em",
+              color: "rgba(212,175,55,0.55)",
+            }}
+          >
+            Aroho
+          </span>
+          <span
+            style={{
+              display: "block",
+              height: 1,
+              width: 44,
+              background: "rgba(212,175,55,0.3)",
+            }}
+          />
+        </motion.div>
+
         {/* Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-xs leading-relaxed text-center mt-3 max-w-[260px]"
-          style={{ color: "var(--text-muted)" }}
+          transition={{ duration: 0.6, delay: 0.65 }}
+          className="text-xs text-center max-w-[230px]"
+          style={{ color: "var(--text-muted)", lineHeight: 1.85 }}
         >
-          Ancient Wisdom. Modern Intelligence.{"\n"}Guidance that aligns your destiny.
+          Ancient Wisdom. Modern Intelligence.
+          <br />
+          Guidance that aligns your destiny.
         </motion.p>
 
         {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.65 }}
-          className="flex gap-3 mt-6"
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="flex gap-3 mt-9"
         >
           <Link href="/kundli">
             <button

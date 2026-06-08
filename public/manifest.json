@@ -1,47 +1,8 @@
 {
   "name": "Aroha Astrology",
   "short_name": "Aroha",
-  "description": "Vedic astrology powered by AI — Kundli, horoscope, matchmaking & remedies",
-  "start_url": "/",
-  "scope": "/",
+  "theme_color": "#05060A",
+  "background_color": "#05060A",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#11131A",
-  "background_color": "#11131A",
-  "categories": ["lifestyle", "utilities"],
-  "lang": "en",
-  "screenshots": [
-    {
-      "src": "/screenshots/screen-mobile-1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Kundli chart"
-    },
-    {
-      "src": "/screenshots/screen-mobile-2.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "AI horoscope"
-    }
-  ],
-  "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ]
+  "start_url": "/"
 }

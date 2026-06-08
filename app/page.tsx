@@ -1,62 +1,66 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Hero from "@/components/Hero";
-import AIChatPreview from "@/components/AIChatPreview";
-import KundliCard from "@/components/KundliCard";
+import ZodiacWheel from "@/components/ZodiacWheel";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
-import MatchCard from "@/components/MatchCard";
+import AIChatPreview from "@/components/AIChatPreview";
+import SectionTitle from "@/components/SectionTitle";
+import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
-import AppHeader from "@/components/AppHeader";
-import Link from "next/link";
+import ThemeSwitch from "@/components/ThemeSwitch";
 
 export default function HomePage() {
   return (
-    <motion.main
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-screen pb-28 relative"
-      style={{ background: "var(--background)" }}
-    >
+    <main className="min-h-screen pb-28 relative">
       <ParticleBackground />
+      <MoonBackground />
       <SplashScreen />
-      <AppHeader />
 
-      {/* Hero (moon + zodiac wheel + shimmer title + CTA) */}
-      <div className="pt-14">
-        <Hero />
+      {/* Top bar */}
+      <div className="flex justify-end px-5 pt-4">
+        <ThemeSwitch />
       </div>
 
-      {/* AI Astrologer card */}
-      <div className="mt-5">
-        <AIChatPreview />
+      {/* Hero */}
+      <Hero />
+
+      {/* Zodiac Wheel */}
+      <div className="px-5 mt-2">
+        <SectionTitle title="✨ Cosmic Wheel" subtitle="Tap a sign for your reading below" />
+        <ZodiacWheel />
       </div>
 
-      {/* Kundli Generator card */}
-      <div className="mt-3">
-        <KundliCard />
-      </div>
-
-      {/* Today's Horoscope */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between px-4 mb-3">
-          <h2 className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>
-            Today&apos;s Horoscope
-          </h2>
-          <Link href="/horoscope" className="text-xs text-gold">
-            View all
-          </Link>
-        </div>
+      {/* Daily Horoscopes */}
+      <div className="px-5 mt-8">
+        <SectionTitle title="🌟 Daily Horoscopes" subtitle="Your star sign speaks today" />
         <HoroscopeSlider />
       </div>
 
-      {/* Match Making card */}
-      <div className="mt-4 mb-4">
-        <MatchCard />
+      {/* AI Chat Preview */}
+      <div className="px-5 mt-8">
+        <SectionTitle title="🔮 AI Astrologer" subtitle="Ask anything about your destiny" />
+        <AIChatPreview />
       </div>
-    </motion.main>
+
+      {/* Feature cards */}
+      <div className="px-5 mt-8 grid grid-cols-2 gap-4 mb-4">
+        {[
+          { emoji: "📜", title: "Kundli", desc: "Generate your birth chart", href: "/kundli" },
+          { emoji: "❤️", title: "Compatibility", desc: "Kundli matching", href: "/compatibility" },
+          { emoji: "🪔", title: "Remedies", desc: "Vedic remedies", href: "/remedies" },
+          { emoji: "📖", title: "Onboarding", desc: "Learn how it works", href: "/onboarding" },
+        ].map((card) => (
+          <a
+            key={card.title}
+            href={card.href}
+            className="rounded-3xl p-4 border transition-colors hover:border-yellow-500/40"
+            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+          >
+            <div className="text-3xl mb-2">{card.emoji}</div>
+            <h3 className="font-semibold text-sm text-gold">{card.title}</h3>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{card.desc}</p>
+          </a>
+        ))}
+      </div>
+    </main>
   );
 }

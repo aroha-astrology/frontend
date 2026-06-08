@@ -2,81 +2,114 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import ZodiacWheel from "./ZodiacWheel";
-
-const btnVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 1.0 + i * 0.15, duration: 0.4 },
-  }),
-};
+import { ScrollText, MessageCircle } from "lucide-react";
+import { MoonGlyph } from "@/components/icons/MoonGlyph";
+import { LotusIcon } from "@/components/icons/LotusIcon";
+import { MandalaRing } from "@/components/icons/MandalaRing";
+import { MOON_FLOAT } from "@/lib/animations";
 
 export default function Hero() {
   return (
-    <div className="hero-bg flex flex-col items-center pt-6 pb-4 px-5">
+    <section className="relative hero-bg overflow-hidden pt-16 pb-8 px-5 min-h-[520px] flex flex-col items-center">
 
-      {/* Floating moon */}
+      {/* Moon — large, positioned top-left, partially off-screen */}
       <motion.div
-        animate={{ y: [-15, 15, -15] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="text-3xl mb-2 select-none"
-        style={{ filter: "drop-shadow(0 0 10px rgba(212,175,55,0.5))" }}
+        {...MOON_FLOAT}
+        className="absolute -left-16 top-4 pointer-events-none"
+        style={{ opacity: 0.85 }}
       >
-        🌙
+        <MoonGlyph size={220} color="#D4AF37" />
       </motion.div>
 
-      {/* 3-layer Zodiac Wheel (starts rotating immediately, no delay) */}
-      <ZodiacWheel />
-
-      {/* AROHO heading — shimmer gold */}
-      <motion.h1
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="shimmer-text font-display text-5xl font-bold tracking-widest mt-4"
-      >
-        AROHO
-      </motion.h1>
-
-      {/* Subtitle */}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.75 }}
-        className="text-xs tracking-[0.25em] text-[var(--text-muted)] uppercase mt-2 text-center"
-      >
-        Divine Guidance · AI-Powered Insights
-      </motion.p>
-
-      {/* CTA buttons */}
-      <div className="flex gap-3 mt-6">
-        {[
-          { label: "Generate Kundli", href: "/kundli" },
-          { label: "Talk To AI", href: "/ai-chat" },
-        ].map(({ label, href }, i) => (
-          <motion.div
-            key={label}
-            custom={i}
-            variants={btnVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Link href={href}>
-              <button
-                className={`shimmer-btn h-12 px-5 rounded-full font-semibold text-sm transition-opacity active:opacity-75 ${
-                  i === 0
-                    ? "bg-gradient-to-r from-yellow-400 to-yellow-600 text-black"
-                    : "border border-[var(--border)] text-gold bg-transparent"
-                }`}
-              >
-                {label}
-              </button>
-            </Link>
-          </motion.div>
-        ))}
+      {/* Lotus decoration — top-right */}
+      <div className="absolute -right-8 top-8 pointer-events-none" style={{ opacity: 0.12 }}>
+        <LotusIcon size={160} color="#D4AF37" />
       </div>
-    </div>
+
+      {/* Mandala ring — background center */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.04 }}>
+        <MandalaRing size={400} color="#D4AF37" />
+      </div>
+
+      {/* Content — centered, above decorations */}
+      <div className="relative z-10 flex flex-col items-center text-center mt-16">
+
+        {/* Brand */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-2"
+        >
+          <p className="font-display text-[10px] tracking-[0.4em] text-[var(--text-muted)] uppercase">
+            ✦ Aroho ✦
+          </p>
+        </motion.div>
+
+        {/* Main headline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="mb-1"
+        >
+          <h1 className="font-display text-4xl font-bold text-white tracking-wide leading-tight">
+            AI Powered
+          </h1>
+          <h1
+            className="font-editorial text-5xl font-semibold leading-tight"
+            style={{ color: "var(--gold)", fontStyle: "italic" }}
+          >
+            Vedic Guidance
+          </h1>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-xs leading-relaxed text-center mt-3 max-w-[260px]"
+          style={{ color: "var(--text-muted)" }}
+        >
+          Ancient Wisdom. Modern Intelligence.{"\n"}Guidance that aligns your destiny.
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.65 }}
+          className="flex gap-3 mt-6"
+        >
+          <Link href="/kundli">
+            <button
+              className="shimmer-btn flex items-center gap-2 h-12 px-5 rounded-full text-sm font-semibold border transition-all active:scale-95"
+              style={{
+                borderColor: "var(--gold)",
+                color: "var(--gold)",
+                background: "rgba(212,175,55,0.08)",
+              }}
+            >
+              <ScrollText size={15} />
+              Generate Kundli
+            </button>
+          </Link>
+          <Link href="/ai-chat">
+            <button
+              className="shimmer-btn flex items-center gap-2 h-12 px-5 rounded-full text-sm font-semibold border transition-all active:scale-95"
+              style={{
+                borderColor: "rgba(212,175,55,0.4)",
+                color: "var(--foreground)",
+                background: "rgba(255,255,255,0.04)",
+              }}
+            >
+              <MessageCircle size={15} />
+              Talk To AI
+            </button>
+          </Link>
+        </motion.div>
+      </div>
+    </section>
   );
 }

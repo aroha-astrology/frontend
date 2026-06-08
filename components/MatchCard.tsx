@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function MatchCard() {
@@ -9,38 +9,77 @@ export default function MatchCard() {
     <Link href="/compatibility" className="block mx-4">
       <motion.div
         whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-4 rounded-2xl border p-4"
-        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+        className="rounded-3xl overflow-hidden border"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(17,19,27,0.95), rgba(11,13,18,0.9))",
+          borderColor: "rgba(212,175,55,0.25)",
+        }}
       >
-        {/* Pulsing heart icon */}
-        <div
-          className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center"
-          style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
-        >
-          <motion.div
-            animate={{ scale: [1, 1.12, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        <div className="flex items-center justify-between p-5">
+          {/* Left: Overlapping silhouette circles */}
+          <div className="relative w-16 h-12 flex-shrink-0">
+            {/* Female circle */}
+            <div
+              className="absolute top-0 left-0 w-11 h-11 rounded-full flex items-center justify-center text-xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06))",
+                border: "1.5px solid rgba(212,175,55,0.45)",
+              }}
+            >
+              👩
+            </div>
+            {/* Male circle — overlaps */}
+            <div
+              className="absolute top-1 left-6 w-11 h-11 rounded-full flex items-center justify-center text-xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(212,175,55,0.04))",
+                border: "1.5px solid rgba(212,175,55,0.35)",
+              }}
+            >
+              👨
+            </div>
+            {/* Connecting glow between circles */}
+            <div
+              className="absolute"
+              style={{
+                width: 20,
+                height: 20,
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle, rgba(212,175,55,0.25), transparent)",
+              }}
+            />
+          </div>
+
+          {/* Center text */}
+          <div className="flex-1 min-w-0 px-3">
+            <p className="font-editorial text-xl text-gold leading-tight">
+              Match Making
+            </p>
+            <p
+              className="text-xs mt-1 leading-relaxed font-body"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Discover compatibility based on Vedic astrology.
+            </p>
+          </div>
+
+          {/* Right: Arrow circle */}
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              background: "rgba(212,175,55,0.1)",
+              border: "1px solid rgba(212,175,55,0.3)",
+            }}
           >
-            <Heart size={26} fill="rgba(239,68,68,0.8)" style={{ color: "rgba(239,68,68,0.9)" }} />
-          </motion.div>
-        </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>
-            Match Making
-          </p>
-          <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            Find your perfect cosmic match with advanced compatibility analysis
-          </p>
-        </div>
-
-        {/* Arrow */}
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(212,175,55,0.1)", border: "1px solid var(--border)" }}
-        >
-          <ChevronRight size={16} style={{ color: "var(--gold)" }} />
+            <ChevronRight size={16} style={{ color: "var(--gold)" }} />
+          </div>
         </div>
       </motion.div>
     </Link>

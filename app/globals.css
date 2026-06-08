@@ -17,6 +17,9 @@
   --secondary: #1A1C26;
 
   --text-muted: #9CA3AF;
+
+  --font-editorial: var(--font-display-editorial), 'Cinzel', serif;
+  --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F4D675 50%, #D4AF37 100%);
 }
 
 /* ── Light theme ── */
@@ -49,7 +52,11 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1 {
+    font-family: var(--font-editorial, 'Cinzel', serif);
+  }
+
+  h2, h3, h4 {
     font-family: var(--font-display, Cinzel, serif);
   }
 }
@@ -66,6 +73,7 @@
 /* ── Gold text utility ── */
 .text-gold { color: var(--gold); }
 .border-gold { border-color: var(--border); }
+.font-editorial { font-family: var(--font-editorial); }
 
 /* ═══════════════════════════════════════════
    ANIMATIONS

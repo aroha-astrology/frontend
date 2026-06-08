@@ -3,14 +3,12 @@
 import { motion } from "framer-motion";
 import Hero from "@/components/Hero";
 import AIChatPreview from "@/components/AIChatPreview";
-import KundliCard from "@/components/KundliCard";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
 import MatchCard from "@/components/MatchCard";
 import CosmicWheel from "@/components/CosmicWheel";
 import RemediesSection from "@/components/RemediesSection";
 import SplashScreen from "@/components/SplashScreen";
 import AppHeader from "@/components/AppHeader";
-import WhyChooseSection from "@/components/WhyChooseSection";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import CTASection from "@/components/CTASection";
 import Link from "next/link";
@@ -28,28 +26,38 @@ export default function HomePage() {
       <SplashScreen />
       <AppHeader />
 
-      {/* Hero (moon + zodiac wheel + shimmer title + CTA) */}
+      {/* Hero */}
       <div className="pt-14">
         <Hero />
       </div>
 
       {/* AI Astrologer card */}
-      <div className="mt-5">
+      <div className="mt-8">
         <AIChatPreview />
       </div>
 
-      {/* Kundli Generator card */}
-      <div className="mt-3">
-        <KundliCard />
-      </div>
-
       {/* Daily Horoscope */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between px-4 mb-3">
-          <h2 className="font-display text-base font-semibold tracking-wide" style={{ color: "var(--foreground)" }}>
-            Daily Horoscope
-          </h2>
-          <Link href="/horoscope" className="text-xs text-gold">
+      <div className="mt-12">
+        <div className="flex items-center justify-between px-5 mb-5">
+          <div>
+            <p
+              className="font-display uppercase mb-1"
+              style={{ fontSize: "0.6rem", letterSpacing: "0.5em", color: "rgba(212,175,55,0.5)" }}
+            >
+              Today&apos;s Reading
+            </p>
+            <h2
+              className="font-display font-semibold text-white tracking-wide"
+              style={{ fontSize: "1rem" }}
+            >
+              Daily Horoscope
+            </h2>
+          </div>
+          <Link
+            href="/horoscope"
+            className="text-xs"
+            style={{ color: "rgba(212,175,55,0.7)" }}
+          >
             See All →
           </Link>
         </div>
@@ -57,27 +65,24 @@ export default function HomePage() {
       </div>
 
       {/* Cosmic Wheel */}
-      <div className="mt-2">
+      <div className="mt-8">
         <CosmicWheel />
       </div>
 
       {/* Match Making card */}
-      <div className="mt-4">
+      <div className="mt-10">
         <MatchCard />
       </div>
 
       {/* Remedies Section */}
-      <div className="mt-2">
+      <div className="mt-10">
         <RemediesSection />
       </div>
 
-      {/* Section 4 — Why Choose Aroho */}
-      <WhyChooseSection />
-
-      {/* Section 5 — Testimonials */}
+      {/* Testimonials */}
       <TestimonialsCarousel />
 
-      {/* Section 6 — CTA */}
+      {/* CTA */}
       <CTASection />
     </motion.main>
   );

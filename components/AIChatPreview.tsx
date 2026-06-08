@@ -1,62 +1,71 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const previewMessages = [
-  { role: "user", content: "What does my career hold this year?" },
-  {
-    role: "assistant",
-    content:
-      "Jupiter's transit through your 10th house indicates remarkable professional growth. Bold decisions in the next quarter will shape your trajectory for years to come.",
-  },
-];
+const chips = ["Career guidance", "Love life", "2026 Prediction"];
 
 export default function AIChatPreview() {
+  const router = useRouter();
+
   return (
-    <div className="rounded-3xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm">
-          🔮
+    <div
+      className="rounded-3xl border p-4 mx-4"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+    >
+      {/* Header row */}
+      <div className="flex items-center gap-3 mb-3">
+        {/* Sage avatar */}
+        <div
+          className="w-14 h-14 rounded-full border-2 flex items-center justify-center text-2xl flex-shrink-0"
+          style={{
+            borderColor: "var(--gold)",
+            background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05))",
+          }}
+        >
+          🧙
         </div>
-        <div>
-          <p className="text-sm font-semibold text-gold">AI Astrologer</p>
-          <p className="text-[10px] text-[var(--text-muted)]">Online · Vedic wisdom</p>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-gold text-sm">AI Astrologer</span>
+            <span className="live-pulse" />
+            <span className="text-[10px] text-green-400">Live</span>
+          </div>
+          <motion.p
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="text-xs mt-1 leading-relaxed"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Namaste! I&apos;m your AI Astrologer. How can I guide you today?
+          </motion.p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {previewMessages.map((msg, i) => (
-          <motion.div
-            key={i}
+      {/* Quick-action chips */}
+      <div className="flex gap-2 flex-wrap">
+        {chips.map((chip, i) => (
+          <motion.button
+            key={chip}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.2 }}
-            className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
+            transition={{ delay: 0.5 + i * 0.1 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => router.push(`/ai-chat?q=${encodeURIComponent(chip)}`)}
+            className="px-3 py-1.5 rounded-full text-xs border transition-colors"
+            style={{
+              background: "rgba(212,175,55,0.08)",
+              borderColor: "rgba(212,175,55,0.3)",
+              color: "var(--gold)",
+            }}
           >
-            <div
-              className={
-                msg.role === "user"
-                  ? "bg-yellow-500 text-black rounded-3xl rounded-br-md px-4 py-2.5 max-w-[85%] text-sm"
-                  : "rounded-3xl rounded-bl-md px-4 py-2.5 max-w-[85%] text-sm border"
-              }
-              style={
-                msg.role !== "user"
-                  ? { background: "var(--surface-2, var(--secondary))", borderColor: "var(--border)" }
-                  : {}
-              }
-            >
-              {msg.content}
-            </div>
-          </motion.div>
+            {chip}
+          </motion.button>
         ))}
       </div>
-
-      <Link href="/ai-chat">
-        <button className="mt-4 w-full h-11 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold">
-          Start Your Reading →
-        </button>
-      </Link>
     </div>
   );
 }

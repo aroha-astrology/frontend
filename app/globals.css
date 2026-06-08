@@ -16,7 +16,7 @@
   --border: rgba(212, 175, 55, 0.2);
   --secondary: #1A1C26;
 
-  --text-muted: #A39E8A;
+  --text-muted: #9CA3AF;
 }
 
 /* ── Light theme ── */
@@ -39,11 +39,14 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-body, Inter, sans-serif);
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4 {
@@ -53,7 +56,7 @@
 
 /* ── Hero gradient ── */
 .hero-bg {
-  background: radial-gradient(circle at top, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.07) 0%, transparent 65%);
 }
 
 .light .hero-bg {
@@ -61,10 +64,78 @@
 }
 
 /* ── Gold text utility ── */
-.text-gold {
-  color: var(--gold);
+.text-gold { color: var(--gold); }
+.border-gold { border-color: var(--border); }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+
+/* Gold shimmer sweep */
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 
-.border-gold {
-  border-color: var(--border);
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--gold) 0%,
+    rgba(255,255,255,0.85) 40%,
+    var(--gold) 60%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
 }
+
+/* Button shimmer overlay */
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── Om glow ── */
+.glow-om {
+  text-shadow:
+    0 0 20px rgba(255, 165, 0, 0.95),
+    0 0 50px rgba(255, 140, 0, 0.65),
+    0 0 100px rgba(212, 175, 55, 0.4);
+  filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.85));
+}
+
+/* ── Live dot ── */
+.live-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  animation: live-blink 1.5s ease-in-out infinite;
+}
+@keyframes live-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  50%       { opacity: 0.4; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+/* ── Hide scrollbar ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

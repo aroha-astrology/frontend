@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Dark theme (default) ── */
+:root {
+  --background: #05060A;
+  --foreground: #E1E2EB;
+  --surface: #11131B;
+  --surface-2: rgba(21, 24, 34, 0.6);
+
+  --gold: #D4AF37;
+  --gold-light: #F2CA50;
+  --gold-dark: #9F6B00;
+
+  --border: rgba(212, 175, 55, 0.2);
+  --secondary: #1A1C26;
+
+  --text-muted: #A39E8A;
+}
+
+/* ── Light theme ── */
+.light {
+  --background: #FFFDF8;
+  --foreground: #1C1C1C;
+  --surface: #FFFFFF;
+  --surface-2: rgba(248, 238, 214, 0.6);
+
+  --gold: #C58B2A;
+  --gold-light: #E6C980;
+  --gold-dark: #9F6B00;
+
+  --border: #E8DCC5;
+  --secondary: #F8EED6;
+
+  --text-muted: #6B6052;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body, Inter, sans-serif);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display, Cinzel, serif);
+  }
+}
+
+/* ── Hero gradient ── */
+.hero-bg {
+  background: radial-gradient(circle at top, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+}
+
+.light .hero-bg {
+  background: radial-gradient(circle at top, #FFF5E6 0%, #FFFDF8 60%);
+}
+
+/* ── Gold text utility ── */
+.text-gold {
+  color: var(--gold);
+}
+
+.border-gold {
+  border-color: var(--border);
+}

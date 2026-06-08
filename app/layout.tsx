@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Cinzel, Cormorant_Garamond, Inter } from "next/font/google";
+import { Cinzel, Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { LanguageProvider } from "@/providers/language-provider";
 import BottomNavigation from "@/components/BottomNavigation";
-import GlobalBackground from "@/components/GlobalBackground";
-import PageTransitionWrapper from "@/components/PageTransitionWrapper";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -12,12 +11,17 @@ const cinzel = Cinzel({
   display: "swap",
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  weight: ["300", "400", "500", "600"],
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-display-editorial",
-  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-serif-alt",
+  display: "swap",
+  weight: "400",
 });
 
 const inter = Inter({
@@ -27,8 +31,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Aroho Astrology",
-  description: "Divine Guidance. AI-Powered Vedic Insights.",
+  title: "Aroha Astrology",
+  description: "Vedic Astrology & AI Astrologer",
   manifest: "/manifest.json",
 };
 
@@ -43,13 +47,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${cormorantGaramond.variable} ${inter.variable}`}>
+      <body className={`${cinzel.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <GlobalBackground />
-          <PageTransitionWrapper>
+          <LanguageProvider>
             {children}
-          </PageTransitionWrapper>
-          <BottomNavigation />
+            <BottomNavigation />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

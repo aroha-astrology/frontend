@@ -1,0 +1,208 @@
+// Translation resources for English + the 6 supported Indian languages.
+// Keys are grouped by area. Brand names (ARCHO / AROHA) are intentionally not translated.
+
+export const resources = {
+  en: {
+    translation: {
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now" },
+      hero: {
+        astrology: "Astrology",
+        aiPowered: "AI Powered",
+        vedicGuidance: "Vedic Guidance",
+        tagline1: "Ancient Wisdom. Modern Intelligence.",
+        tagline2: "Guidance that aligns your destiny.",
+        generateKundli: "Generate Kundli",
+        talkToAI: "Talk To AI",
+      },
+      home: {
+        yourPersonal: "Your Personal",
+        aiAstrologer: "AI Astrologer",
+        dailyHoroscope: "Daily Horoscope",
+        matchMaking: "Match Making",
+        matchMakingDesc: "Discover compatibility based on Vedic astrology.",
+        remediesForYou: "Remedies For You",
+      },
+      nav: { home: "Home", kundli: "Kundli", askAI: "Ask AI", horoscope: "Horoscope", remedies: "Remedies" },
+      remedies: {
+        love: "Love &\nRelationships",
+        career: "Career &\nSuccess",
+        health: "Health &\nWellness",
+        peace: "Peace &\nPositivity",
+      },
+    },
+  },
+  hi: {
+    translation: {
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें" },
+      hero: {
+        astrology: "ज्योतिष",
+        aiPowered: "AI संचालित",
+        vedicGuidance: "वैदिक मार्गदर्शन",
+        tagline1: "प्राचीन ज्ञान। आधुनिक बुद्धिमत्ता।",
+        tagline2: "मार्गदर्शन जो आपके भाग्य को संवारे।",
+        generateKundli: "कुंडली बनाएं",
+        talkToAI: "AI से बात करें",
+      },
+      home: {
+        yourPersonal: "आपका निजी",
+        aiAstrologer: "AI ज्योतिषी",
+        dailyHoroscope: "दैनिक राशिफल",
+        matchMaking: "कुंडली मिलान",
+        matchMakingDesc: "वैदिक ज्योतिष के आधार पर अनुकूलता जानें।",
+        remediesForYou: "आपके लिए उपाय",
+      },
+      nav: { home: "होम", kundli: "कुंडली", askAI: "AI पूछें", horoscope: "राशिफल", remedies: "उपाय" },
+      remedies: {
+        love: "प्रेम और\nरिश्ते",
+        career: "करियर और\nसफलता",
+        health: "स्वास्थ्य और\nकल्याण",
+        peace: "शांति और\nसकारात्मकता",
+      },
+    },
+  },
+  bn: {
+    translation: {
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন" },
+      hero: {
+        astrology: "জ্যোতিষ",
+        aiPowered: "AI চালিত",
+        vedicGuidance: "বৈদিক দিকনির্দেশনা",
+        tagline1: "প্রাচীন জ্ঞান। আধুনিক বুদ্ধিমত্তা।",
+        tagline2: "যে দিকনির্দেশনা আপনার ভাগ্যকে সাজায়।",
+        generateKundli: "কুণ্ডলী তৈরি করুন",
+        talkToAI: "AI-এর সাথে কথা বলুন",
+      },
+      home: {
+        yourPersonal: "আপনার ব্যক্তিগত",
+        aiAstrologer: "AI জ্যোতিষী",
+        dailyHoroscope: "দৈনিক রাশিফল",
+        matchMaking: "কুণ্ডলী মিলান",
+        matchMakingDesc: "বৈদিক জ্যোতিষের ভিত্তিতে সামঞ্জস্য আবিষ্কার করুন।",
+        remediesForYou: "আপনার জন্য প্রতিকার",
+      },
+      nav: { home: "হোম", kundli: "কুণ্ডলী", askAI: "AI জিজ্ঞাসা", horoscope: "রাশিফল", remedies: "প্রতিকার" },
+      remedies: {
+        love: "প্রেম ও\nসম্পর্ক",
+        career: "ক্যারিয়ার ও\nসাফল্য",
+        health: "স্বাস্থ্য ও\nসুস্থতা",
+        peace: "শান্তি ও\nইতিবাচকতা",
+      },
+    },
+  },
+  mr: {
+    translation: {
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा" },
+      hero: {
+        astrology: "ज्योतिष",
+        aiPowered: "AI संचालित",
+        vedicGuidance: "वैदिक मार्गदर्शन",
+        tagline1: "प्राचीन ज्ञान. आधुनिक बुद्धिमत्ता.",
+        tagline2: "तुमचे भाग्य घडवणारे मार्गदर्शन.",
+        generateKundli: "कुंडली तयार करा",
+        talkToAI: "AI शी बोला",
+      },
+      home: {
+        yourPersonal: "तुमचा वैयक्तिक",
+        aiAstrologer: "AI ज्योतिषी",
+        dailyHoroscope: "दैनिक राशीभविष्य",
+        matchMaking: "कुंडली जुळवणी",
+        matchMakingDesc: "वैदिक ज्योतिषावर आधारित सुसंगतता शोधा.",
+        remediesForYou: "तुमच्यासाठी उपाय",
+      },
+      nav: { home: "होम", kundli: "कुंडली", askAI: "AI विचारा", horoscope: "राशीभविष्य", remedies: "उपाय" },
+      remedies: {
+        love: "प्रेम आणि\nनाती",
+        career: "करिअर आणि\nयश",
+        health: "आरोग्य आणि\nस्वास्थ्य",
+        peace: "शांती आणि\nसकारात्मकता",
+      },
+    },
+  },
+  te: {
+    translation: {
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి" },
+      hero: {
+        astrology: "జ్యోతిషం",
+        aiPowered: "AI ఆధారిత",
+        vedicGuidance: "వేద మార్గదర్శనం",
+        tagline1: "ప్రాచీన జ్ఞానం. ఆధునిక మేధస్సు.",
+        tagline2: "మీ విధిని తీర్చిదిద్దే మార్గదర్శనం.",
+        generateKundli: "కుండలి తయారు చేయండి",
+        talkToAI: "AI తో మాట్లాడండి",
+      },
+      home: {
+        yourPersonal: "మీ వ్యక్తిగత",
+        aiAstrologer: "AI జ్యోతిష్కుడు",
+        dailyHoroscope: "దైనిక రాశిఫలం",
+        matchMaking: "జాతక పొంతన",
+        matchMakingDesc: "వేద జ్యోతిషం ఆధారంగా అనుకూలతను కనుగొనండి.",
+        remediesForYou: "మీ కోసం పరిహారాలు",
+      },
+      nav: { home: "హోమ్", kundli: "కుండలి", askAI: "AI అడగండి", horoscope: "రాశిఫలం", remedies: "పరిహారాలు" },
+      remedies: {
+        love: "ప్రేమ &\nసంబంధాలు",
+        career: "కెరీర్ &\nవిజయం",
+        health: "ఆరోగ్యం &\nసంక్షేమం",
+        peace: "శాంతి &\nసానుకూలత",
+      },
+    },
+  },
+  ta: {
+    translation: {
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை" },
+      hero: {
+        astrology: "ஜோதிடம்",
+        aiPowered: "AI இயக்கம்",
+        vedicGuidance: "வேத வழிகாட்டுதல்",
+        tagline1: "பழமையான ஞானம். நவீன அறிவு.",
+        tagline2: "உங்கள் விதியை வடிவமைக்கும் வழிகாட்டுதல்.",
+        generateKundli: "ஜாதகம் உருவாக்கு",
+        talkToAI: "AI உடன் பேசு",
+      },
+      home: {
+        yourPersonal: "உங்கள் தனிப்பட்ட",
+        aiAstrologer: "AI ஜோதிடர்",
+        dailyHoroscope: "தினசரி ராசிபலன்",
+        matchMaking: "ஜாதகப் பொருத்தம்",
+        matchMakingDesc: "வேத ஜோதிடத்தின் அடிப்படையில் பொருத்தத்தை கண்டறியுங்கள்.",
+        remediesForYou: "உங்களுக்கான பரிகாரங்கள்",
+      },
+      nav: { home: "முகப்பு", kundli: "ஜாதகம்", askAI: "AI கேள்", horoscope: "ராசிபலன்", remedies: "பரிகாரம்" },
+      remedies: {
+        love: "காதல் &\nஉறவுகள்",
+        career: "தொழில் &\nவெற்றி",
+        health: "ஆரோக்கியம் &\nநலன்",
+        peace: "அமைதி &\nநேர்மறை",
+      },
+    },
+  },
+  gu: {
+    translation: {
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો" },
+      hero: {
+        astrology: "જ્યોતિષ",
+        aiPowered: "AI સંચાલિત",
+        vedicGuidance: "વૈદિક માર્ગદર્શન",
+        tagline1: "પ્રાચીન જ્ઞાન. આધુનિક બુદ્ધિમત્તા.",
+        tagline2: "તમારા ભાગ્યને ઘડતું માર્ગદર્શન.",
+        generateKundli: "કુંડળી બનાવો",
+        talkToAI: "AI સાથે વાત કરો",
+      },
+      home: {
+        yourPersonal: "તમારું વ્યક્તિગત",
+        aiAstrologer: "AI જ્યોતિષી",
+        dailyHoroscope: "દૈનિક રાશિફળ",
+        matchMaking: "કુંડળી મેળાપ",
+        matchMakingDesc: "વૈદિક જ્યોતિષના આધારે સુસંગતતા શોધો.",
+        remediesForYou: "તમારા માટે ઉપાય",
+      },
+      nav: { home: "હોમ", kundli: "કુંડળી", askAI: "AI પૂછો", horoscope: "રાશિફળ", remedies: "ઉપાય" },
+      remedies: {
+        love: "પ્રેમ અને\nસંબંધો",
+        career: "કારકિર્દી અને\nસફળતા",
+        health: "આરોગ્ય અને\nસુખાકારી",
+        peace: "શાંતિ અને\nસકારાત્મકતા",
+      },
+    },
+  },
+} as const;

@@ -1,95 +1,61 @@
 "use client";
 
-import React from "react";
-import { zodiac } from "@/data/zodiac";
-import { horoscopes } from "@/data/horoscopes";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import {
-  Aries, Taurus, Gemini, Cancer, Leo, Virgo,
-  Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces,
-} from "@/components/icons/ZodiacIcons";
+import { Star } from "lucide-react";
+import { GiAries, GiTaurus, GiAquarius } from "react-icons/gi";
+import Card from "@/components/ui/Card";
 
-type ZodiacFC = React.FC<{ size?: number; color?: string; className?: string }>;
-
-const ZODIAC_ICON_MAP: Record<string, ZodiacFC> = {
-  Aries, Taurus, Gemini, Cancer, Leo, Virgo,
-  Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces,
+// Map zodiac names directly to highly-detailed solid vector silhouettes from react-icons!
+const getZodiacIcon = (name: string) => {
+  if (name === "Aries") return <GiAries className="w-7 h-7" />;
+  if (name === "Taurus") return <GiTaurus className="w-7 h-7" />;
+  if (name === "Aquarius") return <GiAquarius className="w-7 h-7" />;
+  return <Star className="w-6 h-6" />; // fallback
 };
 
-const STARS_TOTAL = 5;
-const STARS_FILLED = 4;
-
-function StarRating() {
-  return (
-    <div className="flex gap-0.5 mt-1.5">
-      {Array.from({ length: STARS_TOTAL }, (_, i) => (
-        <span
-          key={i}
-          className="text-[10px] leading-none"
-          style={{
-            color: i < STARS_FILLED ? "var(--gold)" : "rgba(212,175,55,0.2)",
-          }}
-        >
-          ★
-        </span>
-      ))}
-    </div>
-  );
-}
+const mockHoroscopes = [
+  { name: "Aries", dates: "Mar 21 - Apr 19", rating: 4, text: "A day of new beginnings and positive energy." },
+  { name: "Taurus", dates: "Apr 20 - May 20", rating: 4, text: "Focus on stability and long-term growth." },
+  { name: "Aquarius", dates: "Jan 20 - Feb 18", rating: 5, text: "Innovation flows naturally today. Trust your visions." },
+];
 
 export default function HoroscopeSlider() {
-  const [active, setActive] = useState<string | null>(null);
+  const displayCards = mockHoroscopes;
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-4">
-      {zodiac.map((sign) => {
-        const isActive = sign.name === active;
-        const ZodiacIcon = ZODIAC_ICON_MAP[sign.name];
-
-        return (
-          <motion.div
-            key={sign.name}
-            whileTap={{ scale: 1.04 }}
-            onClick={() => setActive(isActive ? null : sign.name)}
-            className="min-w-[168px] max-w-[168px] rounded-2xl p-4 cursor-pointer border flex-shrink-0 transition-all"
-            style={{
-              background: isActive
-                ? "linear-gradient(135deg, rgba(212,175,55,0.11), rgba(212,175,55,0.04))"
-                : "rgba(14,15,21,0.7)",
-              borderColor: isActive
-                ? "rgba(212,175,55,0.7)"
-                : "rgba(212,175,55,0.1)",
-              boxShadow: isActive
-                ? "0 0 22px rgba(212,175,55,0.18)"
-                : "none",
-              transition: "box-shadow 0.3s, border-color 0.3s, background 0.3s",
-            }}
-          >
-            {/* Gold SVG zodiac icon */}
-            <div className="h-9 flex items-center mb-2">
-              {ZodiacIcon && <ZodiacIcon size={30} color="#D4AF37" />}
+    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
+      {displayCards.map((sign, index) => (
+        <Card
+          key={sign.name}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="min-w-[160px] max-w-[160px] p-4 border-gold/10 hover:border-gold/30 flex-shrink-0"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center text-gold drop-shadow-[0_0_5px_rgba(223,181,100,0.3)]">
+              {getZodiacIcon(sign.name)}
             </div>
-
-            <p className="font-display font-semibold text-xs" style={{ color: "var(--gold)", letterSpacing: "0.04em" }}>
-              {sign.name}
-            </p>
-            <p
-              className="text-[10px] mt-0.5"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {sign.dates}
-            </p>
-            <StarRating />
-            <p
-              className="text-[11px] mt-2 leading-relaxed line-clamp-2"
-              style={{ color: "var(--text-muted)", opacity: 0.82 }}
-            >
-              {horoscopes[sign.name]}
-            </p>
-          </motion.div>
-        );
-      })}
+            <div>
+              <h3 className="text-foreground text-sm font-semibold tracking-wide font-display">{sign.name}</h3>
+              <p className="text-[9px] text-muted leading-tight">{sign.dates}</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-0.5 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={10}
+                className={i < (sign.rating || 4) ? "fill-gold text-gold" : "text-gold/20"}
+              />
+            ))}
+          </div>
+          
+          <p className="text-xs text-muted leading-relaxed">
+            {sign.text}
+          </p>
+        </Card>
+      ))}
     </div>
   );
 }

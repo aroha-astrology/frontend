@@ -2,119 +2,47 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ScrollText, Star, User, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Home, LayoutGrid, Sparkles, Moon, Flame } from "lucide-react";
 import { clsx } from "clsx";
-
-const regularTabs = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/kundli", icon: ScrollText, label: "Kundli" },
-  { href: "/horoscope", icon: Star, label: "Horoscope" },
-  { href: "/profile", icon: User, label: "Profile" },
-];
 
 export default function BottomNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-4 px-4">
-      <div
-        className="max-w-sm mx-auto flex items-center justify-between px-2 h-16 rounded-2xl"
-        style={{
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          background: "rgba(11, 13, 18, 0.85)",
-          border: "1px solid rgba(212, 175, 55, 0.15)",
-          boxShadow:
-            "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.05)",
-        }}
-      >
-        {/* Home & Kundli */}
-        {regularTabs.slice(0, 2).map(({ href, icon: Icon, label }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex flex-col items-center justify-center gap-0.5 w-14 relative"
-              style={{ color: active ? "var(--gold)" : "var(--text-muted)" }}
-            >
-              {active && (
-                <motion.div
-                  layoutId="nav-pill"
-                  className="absolute w-14 h-12 rounded-xl"
-                  style={{
-                    background: "rgba(212, 175, 55, 0.12)",
-                    top: "50%",
-                    left: "50%",
-                    x: "-50%",
-                    y: "-50%",
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                />
-              )}
-              <Icon size={20} />
-              <span className="text-[10px]">{label}</span>
-            </Link>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-[#0a0a0c]/95 backdrop-blur-xl h-20 rounded-t-[2.5rem]">
+      <div className="relative grid grid-cols-5 h-full max-w-lg mx-auto items-center">
 
-        {/* Ask AI — center special button */}
-        <Link
-          href="/ai-chat"
-          className="flex flex-col items-center justify-center gap-0.5"
-        >
-          <motion.div
-            className="flex items-center justify-center w-14 h-14 rounded-full"
-            style={{
-              background:
-                "linear-gradient(135deg, #D4AF37 0%, #F4D675 50%, #D4AF37 100%)",
-              boxShadow:
-                "0 0 24px rgba(212,175,55,0.5), 0 4px 12px rgba(0,0,0,0.4)",
-              marginTop: -24,
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Sparkles size={22} color="#05060A" />
-          </motion.div>
-          <span
-            className="text-[9px]"
-            style={{ color: "var(--text-muted)", marginTop: 2 }}
-          >
-            Ask AI
-          </span>
+        <Link href="/" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/" ? "text-gold" : "text-[#A39E8A]")}>
+          <Home size={22} className={pathname === "/" ? "fill-gold" : ""} />
+          <span className="text-[10px] font-medium">Home</span>
         </Link>
 
-        {/* Horoscope & Profile */}
-        {regularTabs.slice(2).map(({ href, icon: Icon, label }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex flex-col items-center justify-center gap-0.5 w-14 relative"
-              style={{ color: active ? "var(--gold)" : "var(--text-muted)" }}
-            >
-              {active && (
-                <motion.div
-                  layoutId="nav-pill"
-                  className="absolute w-14 h-12 rounded-xl"
-                  style={{
-                    background: "rgba(212, 175, 55, 0.12)",
-                    top: "50%",
-                    left: "50%",
-                    x: "-50%",
-                    y: "-50%",
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                />
-              )}
-              <Icon size={20} />
-              <span className="text-[10px]">{label}</span>
-            </Link>
-          );
-        })}
+        <Link href="/kundli" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/kundli" ? "text-gold" : "text-[#A39E8A]")}>
+          <LayoutGrid size={22} />
+          <span className="text-[10px] font-medium">Kundli</span>
+        </Link>
+
+        {/* Central Ask AI button */}
+        <div className="flex justify-center -mt-8">
+          <Link href="/ai-chat" className="relative">
+            <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl scale-150" />
+            <div className="relative w-16 h-16 rounded-full border border-gold/50 bg-[#1a150c] flex items-center justify-center text-gold shadow-[0_0_20px_rgba(223,181,100,0.3)]">
+              <Sparkles size={24} />
+            </div>
+            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-gold whitespace-nowrap">Ask AI</span>
+          </Link>
+        </div>
+
+        <Link href="/horoscope" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/horoscope" ? "text-gold" : "text-[#A39E8A]")}>
+          <Moon size={22} />
+          <span className="text-[10px] font-medium">Horoscope</span>
+        </Link>
+
+        <Link href="/remedies" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/remedies" ? "text-gold" : "text-[#A39E8A]")}>
+          <Flame size={22} />
+          <span className="text-[10px] font-medium">Remedies</span>
+        </Link>
+
       </div>
     </nav>
   );

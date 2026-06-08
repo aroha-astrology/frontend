@@ -1,89 +1,75 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import Hero from "@/components/Hero";
-import AIChatPreview from "@/components/AIChatPreview";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
-import MatchCard from "@/components/MatchCard";
-import CosmicWheel from "@/components/CosmicWheel";
+import AIChatPreview from "@/components/AIChatPreview";
+import SectionTitle from "@/components/SectionTitle";
 import RemediesSection from "@/components/RemediesSection";
+import MatchMakingCard from "@/components/MatchMakingCard";
+import MoonBackground from "@/components/MoonBackground";
+import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
-import AppHeader from "@/components/AppHeader";
-import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-import CTASection from "@/components/CTASection";
-import Link from "next/link";
+import ThemeSwitch from "@/components/ThemeSwitch";
+import LanguagePicker from "@/components/LanguagePicker";
+import IconButton from "@/components/ui/IconButton";
+import { Menu, Bell } from "lucide-react";
 
 export default function HomePage() {
+  const { t } = useTranslation();
   return (
-    <motion.main
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-screen pb-28 relative"
-      style={{ background: "var(--background)" }}
-    >
+    <main className="min-h-screen pb-28 relative overflow-hidden bg-background text-foreground">
+      {/* Backgrounds */}
+      <ParticleBackground />
+      <MoonBackground />
       <SplashScreen />
-      <AppHeader />
 
-      {/* Hero */}
-      <div className="pt-14">
-        <Hero />
-      </div>
-
-      {/* AI Astrologer card */}
-      <div className="mt-8">
-        <AIChatPreview />
-      </div>
-
-      {/* Daily Horoscope */}
-      <div className="mt-12">
-        <div className="flex items-center justify-between px-5 mb-5">
-          <div>
-            <p
-              className="font-display uppercase mb-1"
-              style={{ fontSize: "0.6rem", letterSpacing: "0.5em", color: "rgba(212,175,55,0.5)" }}
-            >
-              Today&apos;s Reading
-            </p>
-            <h2
-              className="font-display font-semibold text-white tracking-wide"
-              style={{ fontSize: "1rem" }}
-            >
-              Daily Horoscope
-            </h2>
+      <div className="relative z-10">
+        {/* Top bar */}
+        <div className="flex justify-between items-center px-5 pt-8 pb-4">
+          <IconButton aria-label="Menu">
+            <Menu size={20} />
+          </IconButton>
+          <div className="flex items-center gap-2">
+            <LanguagePicker />
+            <ThemeSwitch />
+            <IconButton aria-label="Notifications">
+              <Bell size={20} />
+            </IconButton>
           </div>
-          <Link
-            href="/horoscope"
-            className="text-xs"
-            style={{ color: "rgba(212,175,55,0.7)" }}
-          >
-            See All →
-          </Link>
         </div>
-        <HoroscopeSlider />
+
+        {/* Hero Section */}
+        <Hero />
+
+        {/* AI Astrologer Card */}
+        <div className="px-5 mt-6">
+          <AIChatPreview />
+        </div>
+
+        {/* Daily Horoscopes */}
+        <div className="pl-5 pr-0 mt-8">
+          <div className="flex justify-between items-center pr-5 mb-4">
+            <h2 className="text-lg font-display text-foreground">{t("home.dailyHoroscope")}</h2>
+            <button className="text-gold text-sm flex items-center gap-1">{t("common.seeAll")} <span className="text-[10px]">▶</span></button>
+          </div>
+          <HoroscopeSlider />
+        </div>
+
+        {/* Match Making */}
+        <div className="px-5 mt-8">
+          <MatchMakingCard />
+        </div>
+
+        {/* Remedies For You */}
+        <div className="px-5 mt-8 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-display text-foreground">{t("home.remediesForYou")}</h2>
+            <button className="text-gold text-sm">{t("common.viewAll")}</button>
+          </div>
+          <RemediesSection />
+        </div>
       </div>
-
-      {/* Cosmic Wheel */}
-      <div className="mt-8">
-        <CosmicWheel />
-      </div>
-
-      {/* Match Making card */}
-      <div className="mt-10">
-        <MatchCard />
-      </div>
-
-      {/* Remedies Section */}
-      <div className="mt-10">
-        <RemediesSection />
-      </div>
-
-      {/* Testimonials */}
-      <TestimonialsCarousel />
-
-      {/* CTA */}
-      <CTASection />
-    </motion.main>
+    </main>
   );
 }

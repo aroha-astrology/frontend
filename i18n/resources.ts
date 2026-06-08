@@ -1,5 +1,5 @@
 // Translation resources for English + the 6 supported Indian languages.
-// Keys are grouped by area. Brand names (ARCHO / AROHA) are intentionally not translated.
+// Keys are grouped by area. Brand names (AROHA / AROHA) are intentionally not translated.
 
 export const resources = {
   en: {

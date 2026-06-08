@@ -21,7 +21,7 @@ export default function Hero() {
         <div className="mb-16 flex flex-col items-center">
           <GiLotusFlower className="w-14 h-14 text-gold mb-2 drop-shadow-[0_0_8px_rgba(223,181,100,0.4)]" />
           <h1 className="text-[28px] font-normal tracking-[0.25em] text-gold font-display leading-none mt-2">
-            ARCHO
+            AROHA
           </h1>
           <p className="text-[10px] tracking-[0.45em] text-foreground/70 uppercase mt-3 font-light">
             {t("hero.astrology")}

@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
-import { Cinzel, Inter } from "next/font/google";
+import { Cinzel, Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import BottomNavigation from "@/components/BottomNavigation";
+import GlobalBackground from "@/components/GlobalBackground";
+import PageTransitionWrapper from "@/components/PageTransitionWrapper";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
   variable: "--font-display",
+  display: "swap",
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  weight: ["300", "400", "500", "600"],
+  subsets: ["latin"],
+  variable: "--font-display-editorial",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -33,9 +43,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${inter.variable}`}>
+      <body className={`${cinzel.variable} ${cormorantGaramond.variable} ${inter.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          {children}
+          <GlobalBackground />
+          <PageTransitionWrapper>
+            {children}
+          </PageTransitionWrapper>
           <BottomNavigation />
         </ThemeProvider>
       </body>

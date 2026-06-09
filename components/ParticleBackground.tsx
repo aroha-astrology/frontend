@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 interface Particle {
   x: number;
@@ -13,6 +14,7 @@ interface Particle {
 
 export default function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,7 +50,10 @@ export default function ParticleBackground() {
         if (p.y > canvas.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
+        // Dark: bright gold stars. Light: soft amber dust (lower opacity).
+        const [r, g, b] = resolvedTheme === "light" ? [180, 130, 40] : [212, 175, 55];
+        const opacityScale = resolvedTheme === "light" ? 0.45 : 1;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity * opacityScale})`;
         ctx.fill();
       });
       raf = requestAnimationFrame(draw);
@@ -59,7 +64,7 @@ export default function ParticleBackground() {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [resolvedTheme]);
 
   return (
     <canvas

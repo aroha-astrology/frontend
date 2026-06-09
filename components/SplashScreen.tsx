@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { GiLotusFlower } from "react-icons/gi";
 import ZodiacSilhouette from "./ZodiacSilhouette";
+import BrandLogo from "./ui/BrandLogo";
 
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
@@ -37,35 +37,15 @@ export default function SplashScreen() {
 
           {/* Central Logo and Branding */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* Pulsing Lotus Icon */}
+            {/* Pulsing Logo */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="mb-4 z-20"
+              className="z-20"
             >
-              <GiLotusFlower className="w-16 h-16 text-gold drop-shadow-[0_0_20px_rgba(223,181,100,0.6)]" />
+              <BrandLogo size={250} priority className="drop-shadow-[0_0_20px_rgba(223,181,100,0.6)]" />
             </motion.div>
-
-            {/* AROHA Text Fade In */}
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-              className="text-[32px] font-normal tracking-[0.3em] text-gold font-display leading-none"
-            >
-              AROHA
-            </motion.h1>
-
-            {/* Subtitle Fade In */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
-              className="mt-3 text-[10px] tracking-[0.5em] text-white/70 uppercase font-light"
-            >
-              Astrology
-            </motion.p>
           </div>
 
           {/* Ambient Glows to create depth */}

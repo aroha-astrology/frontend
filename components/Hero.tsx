@@ -23,10 +23,10 @@ export default function Hero() {
           <BrandLogo size={200} priority className="drop-shadow-[0_0_15px_rgba(223,181,100,0.4)]" />
         </div>
 
-        {/* Brand wordmark — Cinzel (--font-display), the project's celestial display serif.
+        {/* Brand wordmark — Cinzel Decorative for the sweeping-crossbar "A".
             Kept as a literal wordmark (brand name, not translated). */}
         <div className="mb-10 flex flex-col items-center select-none">
-          <h1 className="font-display text-gold text-[32px] leading-none tracking-[0.3em] pl-[0.3em] drop-shadow-[0_0_14px_rgba(212,175,55,0.35)]">
+          <h1 className="font-display-decorative text-gold text-[36px] font-normal leading-none tracking-[0.25em] pl-[0.25em] drop-shadow-[0_0_18px_rgba(212,175,55,0.4)]">
             AROHA
           </h1>
           <div className="mt-3 flex items-center gap-3">

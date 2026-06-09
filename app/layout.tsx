@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -9,6 +9,13 @@ const cinzel = Cinzel({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+});
+
+const cinzelDecorative = Cinzel_Decorative({
+  subsets: ["latin"],
+  variable: "--font-display-decorative",
+  display: "swap",
+  weight: ["400", "700", "900"],
 });
 
 const playfair = Playfair_Display({
@@ -47,7 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
+      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <LanguageProvider>
             {children}

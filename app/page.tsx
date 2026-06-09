@@ -18,7 +18,7 @@ import { Menu, Bell } from "lucide-react";
 export default function HomePage() {
   const { t } = useTranslation();
   return (
-    <main className="min-h-screen pb-28 relative overflow-hidden bg-background text-foreground">
+    <main className="cosmic-bg min-h-screen pb-28 relative overflow-hidden text-foreground">
       {/* Backgrounds */}
       <ParticleBackground />
       <MoonBackground />

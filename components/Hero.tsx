@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { MessageSquareText } from "lucide-react";
-import { GiLotusFlower, GiMagicPortal } from "react-icons/gi";
+import { GiMagicPortal } from "react-icons/gi";
 import { useTranslation } from "react-i18next";
 import OutlineButton from "@/components/ui/OutlineButton";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 export default function Hero() {
   const { t } = useTranslation();
@@ -18,14 +19,23 @@ export default function Hero() {
         className="flex flex-col items-center"
       >
         {/* Logo Section */}
-        <div className="mb-16 flex flex-col items-center">
-          <GiLotusFlower className="w-14 h-14 text-gold mb-2 drop-shadow-[0_0_8px_rgba(223,181,100,0.4)]" />
-          <h1 className="text-[28px] font-normal tracking-[0.25em] text-gold font-display leading-none mt-2">
+        <div className="mb-6 flex flex-col items-center">
+          <BrandLogo size={200} priority className="drop-shadow-[0_0_15px_rgba(223,181,100,0.4)]" />
+        </div>
+
+        {/* Brand wordmark — Cinzel Decorative for the sweeping-crossbar "A".
+            Kept as a literal wordmark (brand name, not translated). */}
+        <div className="mb-10 flex flex-col items-center select-none">
+          <h1 className="font-display-decorative text-gold text-[36px] font-normal leading-none tracking-[0.25em] pl-[0.25em] drop-shadow-[0_0_18px_rgba(212,175,55,0.4)]">
             AROHA
           </h1>
-          <p className="text-[10px] tracking-[0.45em] text-foreground/70 uppercase mt-3 font-light">
-            {t("hero.astrology")}
-          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <span className="h-px w-9 bg-gold/30" />
+            <span className="font-display text-[10px] tracking-[0.5em] pl-[0.5em] text-gold/70">
+              ASTROLOGY
+            </span>
+            <span className="h-px w-9 bg-gold/30" />
+          </div>
         </div>
 
         {/* Main Title */}

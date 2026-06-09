@@ -2,6 +2,7 @@
 
 import { zodiac } from "@/data/zodiac";
 import { motion } from "framer-motion";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 export default function ZodiacWheel() {
   const radius = 110;
@@ -17,9 +18,8 @@ export default function ZodiacWheel() {
 
         {/* Center label */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl">🕉️</div>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1 font-display">AROHA</p>
+          <div className="text-center flex flex-col items-center">
+            <BrandLogo size={60} className="drop-shadow-[0_0_8px_rgba(223,181,100,0.4)]" />
           </div>
         </div>
 

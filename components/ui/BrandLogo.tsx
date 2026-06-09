@@ -26,7 +26,7 @@ export default function BrandLogo({
 
   const src =
     mounted && resolvedTheme === "light"
-      ? "/logo_dark_transparent.png"
+      ? "/logo.jpeg"
       : "/logo_transparent.png";
 
   return (

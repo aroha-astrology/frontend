@@ -10,6 +10,9 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { t } = useTranslation();
 
+  const hidden = ["/onboarding", "/sign-in", "/sign-up"].some((p) => pathname.startsWith(p));
+  if (hidden) return null;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-20 rounded-t-[2.5rem]">
       <div className="relative grid grid-cols-5 h-full max-w-lg mx-auto items-center">

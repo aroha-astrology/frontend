@@ -30,6 +30,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
+        "display-decorative": ["var(--font-display-decorative)", "serif"],
         serif: ["var(--font-serif-alt)", "serif"],
         body: ["var(--font-body)", "sans-serif"],
       },

@@ -47,18 +47,29 @@
     @apply border-border;
   }
 
-  /* ── Dark mode: deep-space gradient fixed behind all content ── */
+  /* ── Ensure the html root is always themed (covers overscroll areas) ── */
+  html {
+    background-color: #07060f;
+  }
+  html.light {
+    background-color: #faf7f0;
+  }
+
+  /* ── Dark mode: deep-space cosmic ── */
   body {
     @apply text-foreground;
     font-family: var(--font-body, Inter, sans-serif);
-    background: linear-gradient(160deg, #0c0b18 0%, #07060f 35%, #05060a 65%, #080610 100%);
-    background-attachment: fixed;
+    background-color: #07060f;
+    background-image: radial-gradient(ellipse 120% 60% at 50% 0%, #161030 0%, transparent 65%),
+                      linear-gradient(180deg, #0c0b18 0%, #07060f 40%, #050609 100%);
+    min-height: 100dvh;
   }
 
   /* ── Light mode: warm ivory dawn ── */
   .light body {
-    background: linear-gradient(160deg, #fffaf2 0%, #faf7f0 40%, #f3ece0 100%);
-    background-attachment: fixed;
+    background-color: #faf7f0;
+    background-image: radial-gradient(ellipse 120% 60% at 50% 0%, #fff3e0 0%, transparent 65%),
+                      linear-gradient(180deg, #fffaf2 0%, #faf7f0 50%, #f0e8dc 100%);
   }
 
   h1, h2, h3, h4 {

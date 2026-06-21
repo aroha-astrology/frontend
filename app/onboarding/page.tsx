@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Send, Check, ChevronRight, Loader2 } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
@@ -9,6 +10,8 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
 import ParticleBackground from "@/components/ParticleBackground";
 import { LANGUAGES, useLanguage, type LangCode } from "@/providers/language-provider";
+import { api, type Gender, type UpdateMeBody } from "@/lib/api";
+import { geocodePlace } from "@/lib/geocode";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -113,6 +116,8 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<Partial<Answers>>({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState("");
+  const router = useRouter();
 
   const msgId = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -251,9 +256,36 @@ export default function OnboardingPage() {
     }, 800);
   };
 
-  const handleConfirm = () => {
+  // Map the collected answers to the backend's UpdateMeBody and persist them.
+  // `language`, `timeSource` and `status` have no backend field yet, so they
+  // stay local. `placeOfBirth` requires lat/lon/tz, resolved by geocoding.
+  const handleConfirm = async () => {
+    setSubmitErr("");
     setSubmitting(true);
-    setTimeout(() => { window.location.href = "/"; }, 1800);
+    try {
+      const place = answers.place ? await geocodePlace(answers.place) : null;
+      if (answers.place && !place) {
+        setSubmitErr(t("onboarding.placeNotFound"));
+        setSubmitting(false);
+        return;
+      }
+
+      const body: UpdateMeBody = {};
+      if (answers.name) body.displayName = answers.name;
+      if (answers.gender) body.gender = answers.gender as Gender;
+      if (answers.dob) {
+        const [d, m, y] = answers.dob.split("/");
+        body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
+      }
+      if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
+      if (place) body.placeOfBirth = place;
+
+      await api.updateMe(body);
+      router.replace("/");
+    } catch {
+      setSubmitErr(t("onboarding.submitError"));
+      setSubmitting(false);
+    }
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -454,6 +486,10 @@ export default function OnboardingPage() {
                 </div>
               ) : null)}
             </div>
+
+            {submitErr && (
+              <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>
+            )}
 
             <button
               onClick={handleConfirm}

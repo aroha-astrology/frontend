@@ -3,6 +3,7 @@ import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond 
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
+import { AuthProvider } from "@/providers/auth-provider";
 import BottomNavigation from "@/components/BottomNavigation";
 
 const cinzel = Cinzel({
@@ -57,8 +58,10 @@ export default function RootLayout({
       <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <LanguageProvider>
-            {children}
-            <BottomNavigation />
+            <AuthProvider>
+              {children}
+              <BottomNavigation />
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

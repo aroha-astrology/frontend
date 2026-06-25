@@ -111,7 +111,7 @@ export default function PlaceAutocomplete({
       {open && (suggestions.length > 0 || loading || showEmpty) && (
         <ul
           ref={listRef}
-          className="absolute left-0 right-0 top-full mt-1 z-50 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-gold/20 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+          className="absolute left-0 right-0 bottom-full mb-1 z-50 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-gold/20 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
         >
           {loading && (
             <li className="flex items-center gap-2 px-4 py-3 text-sm text-muted">

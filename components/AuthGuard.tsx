@@ -7,26 +7,28 @@ import { useAuth } from "@/providers/auth-provider";
 const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { firebaseUser, loading } = useAuth();
+  const { firebaseUser, user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isOnboarding = pathname === "/onboarding";
 
   useEffect(() => {
     if (loading) return;
+
     if (!firebaseUser && !isPublic) {
       router.replace("/sign-in");
+      return;
     }
-  }, [firebaseUser, loading, isPublic, router]);
 
-  if (loading) {
-    return null;
-  }
+    if (firebaseUser && user && !user.profileCompletedAt && !isOnboarding && !isPublic) {
+      router.replace("/onboarding");
+    }
+  }, [firebaseUser, user, loading, isPublic, isOnboarding, router]);
 
-  if (!firebaseUser && !isPublic) {
-    return null;
-  }
+  if (loading) return null;
+  if (!firebaseUser && !isPublic) return null;
 
   return <>{children}</>;
 }

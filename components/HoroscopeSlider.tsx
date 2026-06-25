@@ -5,6 +5,7 @@ import { Star, X, Moon, Sparkles, Palette, Hash, ArrowRight } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import { zodiac } from "@/data/zodiac";
 import { api } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 import Card from "@/components/ui/Card";
 
 interface KeyTransit {
@@ -233,11 +234,13 @@ function SkeletonCard() {
 }
 
 export default function HoroscopeSlider() {
+  const { firebaseUser, loading: authLoading } = useAuth();
   const [forecasts, setForecasts] = useState<SignForecast[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
 
   useEffect(() => {
+    if (authLoading || !firebaseUser) return;
     let cancelled = false;
 
     async function fetchAll() {
@@ -290,7 +293,7 @@ export default function HoroscopeSlider() {
 
     fetchAll();
     return () => { cancelled = true; };
-  }, []);
+  }, [authLoading, firebaseUser]);
 
   const selectedForecast = selected !== null ? forecasts[selected] : null;
 

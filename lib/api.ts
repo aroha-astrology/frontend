@@ -133,6 +133,15 @@ function safeJson(text: string): unknown {
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
+// ─── Public forecast types ───────────────────────────────────────────────────
+
+export interface RemedyItem {
+  planet: string;
+  title: string;
+  icon: string;
+  remedy: string;
+}
+
 export const api = {
   /** Public liveness probe. */
   health: () => request<{ status: string; uptimeSeconds: number }>("/healthz"),
@@ -157,4 +166,38 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** Public moon-sign daily forecast for a given sign index (0-11). */
+  moonSignForecast: (signIndex: number) =>
+    request<{ forecast: unknown }>(`/v1/forecast/moon-sign/${signIndex}`),
+
+  /** Public panchang data. */
+  panchang: (lat?: number, lon?: number, date?: string) => {
+    const params = new URLSearchParams();
+    if (lat != null) params.set("lat", String(lat));
+    if (lon != null) params.set("lon", String(lon));
+    if (date) params.set("date", date);
+    const qs = params.toString();
+    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`);
+  },
+
+  /** Public remedies (optionally chart-based). */
+  remedies: (birthData?: {
+    birthDate: string;
+    birthTime?: string;
+    lat: number;
+    lon: number;
+    timezone?: string;
+  }) => {
+    const params = new URLSearchParams();
+    if (birthData) {
+      params.set("birthDate", birthData.birthDate);
+      if (birthData.birthTime) params.set("birthTime", birthData.birthTime);
+      params.set("lat", String(birthData.lat));
+      params.set("lon", String(birthData.lon));
+      if (birthData.timezone) params.set("timezone", birthData.timezone);
+    }
+    const qs = params.toString();
+    return request<{ remedies: RemedyItem[] }>(`/v1/remedies${qs ? `?${qs}` : ""}`);
+  },
 };

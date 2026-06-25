@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import AuthGuard from "@/components/AuthGuard";
 import BottomNavigation from "@/components/BottomNavigation";
 
 const cinzel = Cinzel({
@@ -59,8 +60,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <LanguageProvider>
             <AuthProvider>
-              {children}
-              <BottomNavigation />
+              <AuthGuard>
+                {children}
+                <BottomNavigation />
+              </AuthGuard>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

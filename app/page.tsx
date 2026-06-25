@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Hero from "@/components/Hero";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
@@ -12,22 +13,27 @@ import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
+import KundliSummary from "@/components/KundliSummary";
+import SidebarMenu from "@/components/SidebarMenu";
 import IconButton from "@/components/ui/IconButton";
 import { Menu, Bell } from "lucide-react";
 
 export default function HomePage() {
   const { t } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <main className="cosmic-bg min-h-screen pb-28 relative overflow-hidden text-foreground">
       {/* Backgrounds */}
       <ParticleBackground />
       <MoonBackground />
       <SplashScreen />
+      <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div className="relative z-10">
         {/* Top bar */}
         <div className="flex justify-between items-center px-5 pt-8 pb-4">
-          <IconButton aria-label="Menu">
+          <IconButton aria-label="Menu" onClick={() => setMenuOpen(true)}>
             <Menu size={20} />
           </IconButton>
           <div className="flex items-center gap-2">
@@ -45,6 +51,11 @@ export default function HomePage() {
         {/* AI Astrologer Card */}
         <div className="px-5 mt-6">
           <AIChatPreview />
+        </div>
+
+        {/* Kundli Summary */}
+        <div className="px-5 mt-6">
+          <KundliSummary />
         </div>
 
         {/* Daily Horoscopes */}

@@ -23,6 +23,17 @@ export const resources = {
         remediesForYou: "Remedies For You",
       },
       nav: { home: "Home", kundli: "Kundli", askAI: "Ask AI", horoscope: "Horoscope", remedies: "Remedies" },
+      kundli: {
+        yourKundli: "Your Kundli",
+        ascendant: "Ascendant",
+        dasha: "Dasha",
+      },
+      menu: {
+        profile: "Profile Settings",
+        settings: "Settings",
+        logout: "Logout",
+        guest: "Guest",
+      },
       remedies: {
         love: "Love &\nRelationships",
         career: "Career &\nSuccess",
@@ -123,6 +134,17 @@ export const resources = {
         remediesForYou: "आपके लिए उपाय",
       },
       nav: { home: "होम", kundli: "कुंडली", askAI: "AI पूछें", horoscope: "राशिफल", remedies: "उपाय" },
+      kundli: {
+        yourKundli: "आपकी कुंडली",
+        ascendant: "लग्न",
+        dasha: "दशा",
+      },
+      menu: {
+        profile: "प्रोफ़ाइल सेटिंग्स",
+        settings: "सेटिंग्स",
+        logout: "लॉग आउट",
+        guest: "अतिथि",
+      },
       remedies: {
         love: "प्रेम और\nरिश्ते",
         career: "करियर और\nसफलता",
@@ -223,6 +245,17 @@ export const resources = {
         remediesForYou: "আপনার জন্য প্রতিকার",
       },
       nav: { home: "হোম", kundli: "কুণ্ডলী", askAI: "AI জিজ্ঞাসা", horoscope: "রাশিফল", remedies: "প্রতিকার" },
+      kundli: {
+        yourKundli: "আপনার কুণ্ডলী",
+        ascendant: "লগ্ন",
+        dasha: "দশা",
+      },
+      menu: {
+        profile: "প্রোফাইল সেটিংস",
+        settings: "সেটিংস",
+        logout: "লগ আউট",
+        guest: "অতিথি",
+      },
       remedies: {
         love: "প্রেম ও\nসম্পর্ক",
         career: "ক্যারিয়ার ও\nসাফল্য",
@@ -323,6 +356,17 @@ export const resources = {
         remediesForYou: "तुमच्यासाठी उपाय",
       },
       nav: { home: "होम", kundli: "कुंडली", askAI: "AI विचारा", horoscope: "राशीभविष्य", remedies: "उपाय" },
+      kundli: {
+        yourKundli: "तुमची कुंडली",
+        ascendant: "लग्न",
+        dasha: "दशा",
+      },
+      menu: {
+        profile: "प्रोफाइल सेटिंग्ज",
+        settings: "सेटिंग्ज",
+        logout: "लॉग आउट",
+        guest: "पाहुणा",
+      },
       remedies: {
         love: "प्रेम आणि\nनाती",
         career: "करिअर आणि\nयश",
@@ -423,6 +467,17 @@ export const resources = {
         remediesForYou: "మీ కోసం పరిహారాలు",
       },
       nav: { home: "హోమ్", kundli: "కుండలి", askAI: "AI అడగండి", horoscope: "రాశిఫలం", remedies: "పరిహారాలు" },
+      kundli: {
+        yourKundli: "మీ కుండలి",
+        ascendant: "లగ్నం",
+        dasha: "దశ",
+      },
+      menu: {
+        profile: "ప్రొఫైల్ సెట్టింగ్‌లు",
+        settings: "సెట్టింగ్‌లు",
+        logout: "లాగ్ అవుట్",
+        guest: "అతిథి",
+      },
       remedies: {
         love: "ప్రేమ &\nసంబంధాలు",
         career: "కెరీర్ &\nవిజయం",
@@ -523,6 +578,17 @@ export const resources = {
         remediesForYou: "உங்களுக்கான பரிகாரங்கள்",
       },
       nav: { home: "முகப்பு", kundli: "ஜாதகம்", askAI: "AI கேள்", horoscope: "ராசிபலன்", remedies: "பரிகாரம்" },
+      kundli: {
+        yourKundli: "உங்கள் ஜாதகம்",
+        ascendant: "லக்னம்",
+        dasha: "தசை",
+      },
+      menu: {
+        profile: "சுயவிவர அமைப்புகள்",
+        settings: "அமைப்புகள்",
+        logout: "வெளியேறு",
+        guest: "விருந்தினர்",
+      },
       remedies: {
         love: "காதல் &\nஉறவுகள்",
         career: "தொழில் &\nவெற்றி",
@@ -623,6 +689,17 @@ export const resources = {
         remediesForYou: "તમારા માટે ઉપાય",
       },
       nav: { home: "હોમ", kundli: "કુંડળી", askAI: "AI પૂછો", horoscope: "રાશિફળ", remedies: "ઉપાય" },
+      kundli: {
+        yourKundli: "તમારી કુંડળી",
+        ascendant: "લગ્ન",
+        dasha: "દશા",
+      },
+      menu: {
+        profile: "પ્રોફાઇલ સેટિંગ્સ",
+        settings: "સેટિંગ્સ",
+        logout: "લૉગ આઉટ",
+        guest: "મહેમાન",
+      },
       remedies: {
         love: "પ્રેમ અને\nસંબંધો",
         career: "કારકિર્દી અને\nસફળતા",

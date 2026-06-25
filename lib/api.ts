@@ -49,6 +49,10 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
+  locale?: string;
+  birthTimeSource?: string;
+  relationshipStatus?: string;
+  onboardingStatus?: string;
 }
 
 // ─── Error type ──────────────────────────────────────────────────────────────

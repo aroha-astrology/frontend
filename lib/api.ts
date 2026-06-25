@@ -1,5 +1,5 @@
 // Typed client for the Aroha Astrology Backend (v0.1.0).
-// Spec: http://13.232.179.137:3000/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
+// Spec: https://api.arohaastrology.in/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
 //
 // Auth model: the backend verifies a Firebase ID token passed as
 // `Authorization: Bearer <token>`. Authed calls pull a fresh token from the
@@ -232,21 +232,21 @@ export const api = {
     throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
   },
 
-  /** Public moon-sign daily forecast for a given sign index (0-11). */
+  /** Moon-sign daily forecast for a given sign index (0-11). */
   moonSignForecast: (signIndex: number) =>
-    request<{ forecast: unknown }>(`/v1/forecast/moon-sign/${signIndex}`),
+    request<{ forecast: unknown }>(`/v1/forecast/moon-sign/${signIndex}`, { auth: true }),
 
-  /** Public panchang data. */
+  /** Panchang data. */
   panchang: (lat?: number, lon?: number, date?: string) => {
     const params = new URLSearchParams();
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
     if (date) params.set("date", date);
     const qs = params.toString();
-    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`);
+    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
   },
 
-  /** Public remedies (optionally chart-based). */
+  /** Remedies (optionally chart-based). */
   remedies: (birthData?: {
     birthDate: string;
     birthTime?: string;
@@ -263,6 +263,6 @@ export const api = {
       if (birthData.timezone) params.set("timezone", birthData.timezone);
     }
     const qs = params.toString();
-    return request<{ remedies: RemedyItem[] }>(`/v1/remedies${qs ? `?${qs}` : ""}`);
+    return request<{ remedies: RemedyItem[] }>(`/v1/remedies${qs ? `?${qs}` : ""}`, { auth: true });
   },
 };

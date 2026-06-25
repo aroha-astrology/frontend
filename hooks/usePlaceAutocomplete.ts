@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { PlaceOfBirth } from '@/lib/api';
 
-interface Suggestion { placeId: string; description: string; }
+export interface PlaceSuggestion {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+  pincode: string;
+  description: string;
+}
 
 export function usePlaceAutocomplete() {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceOfBirth | null>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -17,7 +24,7 @@ export function usePlaceAutocomplete() {
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/places/search?input=${encodeURIComponent(query)}`);
         const data = await res.json();
         setSuggestions(data);
       } catch { setSuggestions([]); }
@@ -27,11 +34,19 @@ export function usePlaceAutocomplete() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
-  const select = useCallback(async (placeId: string) => {
+  const select = useCallback(async (suggestion: PlaceSuggestion) => {
     try {
-      const res = await fetch(`/api/places/resolve?placeId=${encodeURIComponent(placeId)}`);
-      const place = await res.json();
-      if (place) {
+      const res = await fetch(
+        `/api/places/geocode?city=${encodeURIComponent(suggestion.name)}&state=${encodeURIComponent(suggestion.state)}&district=${encodeURIComponent(suggestion.district)}`
+      );
+      const data = await res.json();
+      if (data) {
+        const place: PlaceOfBirth = {
+          name: `${suggestion.name}, ${suggestion.district}, ${suggestion.state}`,
+          lat: data.lat,
+          lon: data.lon,
+          tz: 'Asia/Kolkata',
+        };
         setSelectedPlace(place);
         setQuery(place.name);
         setSuggestions([]);

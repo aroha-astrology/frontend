@@ -257,8 +257,6 @@ export default function OnboardingPage() {
   };
 
   // Map the collected answers to the backend's UpdateMeBody and persist them.
-  // `language`, `timeSource` and `status` have no backend field yet, so they
-  // stay local. `placeOfBirth` requires lat/lon/tz, resolved by geocoding.
   const handleConfirm = async () => {
     setSubmitErr("");
     setSubmitting(true);
@@ -279,6 +277,10 @@ export default function OnboardingPage() {
       }
       if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
       if (place) body.placeOfBirth = place;
+      if (answers.language) body.locale = answers.language;
+      if (answers.timeSource) body.birthTimeSource = answers.timeSource;
+      if (answers.status) body.relationshipStatus = answers.status;
+      body.onboardingStatus = "completed";
 
       await api.updateMe(body);
       router.replace("/");

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { onboarding, type OnboardingResponse, type BirthInput } from "@/lib/swarm-api";
-import { geocodePlace } from "@/lib/geocode";
+import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import type { PlaceOfBirth } from "@/lib/api";
 
 interface FormData {
   name: string;
@@ -14,6 +15,7 @@ interface FormData {
 
 export default function KundliPage() {
   const [form, setForm] = useState<FormData>({ name: "", date: "", time: "", place: "" });
+  const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OnboardingResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +28,7 @@ export default function KundliPage() {
     setResult(null);
 
     try {
-      // Geocode the place to get lat/lon/tz
-      const geo = await geocodePlace(form.place || "New Delhi");
-      if (!geo) {
-        setError("Could not find that place. Please enter a valid city name.");
-        setLoading(false);
-        return;
-      }
+      const geo = resolvedPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
 
       const birth: BirthInput = {
         date: form.date,
@@ -101,12 +97,14 @@ export default function KundliPage() {
               style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
             />
           </div>
-          <input
+          <PlaceAutocomplete
             placeholder="Birth Place (City, Country)"
-            value={form.place}
-            onChange={(e) => setForm({ ...form, place: e.target.value })}
-            className={inputClass}
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+            inputClassName={inputClass}
+            inputStyle={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+            onSelect={(place) => {
+              setResolvedPlace(place);
+              setForm((f) => ({ ...f, place: place.name }));
+            }}
           />
 
           <button

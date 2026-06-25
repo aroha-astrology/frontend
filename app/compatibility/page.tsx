@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
-import { geocodePlace } from "@/lib/geocode";
+import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import type { PlaceOfBirth } from "@/lib/api";
 
 interface PersonForm {
   name: string;
@@ -24,6 +25,8 @@ export default function CompatibilityPage() {
     boy: { ...emptyPerson },
     girl: { ...emptyPerson },
   });
+  const [resolvedBoyPlace, setResolvedBoyPlace] = useState<PlaceOfBirth | null>(null);
+  const [resolvedGirlPlace, setResolvedGirlPlace] = useState<PlaceOfBirth | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MatchmakingResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,17 +46,8 @@ export default function CompatibilityPage() {
     setResult(null);
 
     try {
-      // Geocode both places
-      const [geo1, geo2] = await Promise.all([
-        geocodePlace(form.boy.place || "New Delhi"),
-        geocodePlace(form.girl.place || "New Delhi"),
-      ]);
-
-      if (!geo1 || !geo2) {
-        setError("Could not geocode one or both birth places. Please enter valid city names.");
-        setLoading(false);
-        return;
-      }
+      const geo1 = resolvedBoyPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
+      const geo2 = resolvedGirlPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
 
       const person1: BirthInput = {
         date: form.boy.dob,
@@ -124,12 +118,15 @@ export default function CompatibilityPage() {
           style={style}
         />
       </div>
-      <input
+      <PlaceAutocomplete
         placeholder="Birth Place (City)"
-        value={form[who].place}
-        onChange={(e) => updatePerson(who, "place", e.target.value)}
-        className={inputClass}
-        style={style}
+        inputClassName={inputClass}
+        inputStyle={style}
+        onSelect={(place) => {
+          updatePerson(who, "place", place.name);
+          if (who === "boy") setResolvedBoyPlace(place);
+          else setResolvedGirlPlace(place);
+        }}
       />
     </div>
   );

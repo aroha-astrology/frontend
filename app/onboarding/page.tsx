@@ -10,8 +10,8 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
 import ParticleBackground from "@/components/ParticleBackground";
 import { LANGUAGES, useLanguage, type LangCode } from "@/providers/language-provider";
-import { api, type Gender, type UpdateMeBody } from "@/lib/api";
-import { geocodePlace } from "@/lib/geocode";
+import { api, type Gender, type UpdateMeBody, type PlaceOfBirth } from "@/lib/api";
+import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -117,6 +117,7 @@ export default function OnboardingPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
+  const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const router = useRouter();
 
   const msgId = useRef(0);
@@ -192,8 +193,6 @@ export default function OnboardingPage() {
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
       await advance({ tob: val }, val, Q[4]);
-    } else if (step === 6) { // place
-      await advance({ place: val }, val, Q[6]);
     }
 
     setTextInput("");
@@ -261,13 +260,6 @@ export default function OnboardingPage() {
     setSubmitErr("");
     setSubmitting(true);
     try {
-      const place = answers.place ? await geocodePlace(answers.place) : null;
-      if (answers.place && !place) {
-        setSubmitErr(t("onboarding.placeNotFound"));
-        setSubmitting(false);
-        return;
-      }
-
       const body: UpdateMeBody = {};
       if (answers.name) body.displayName = answers.name;
       if (answers.gender) body.gender = answers.gender as Gender;
@@ -276,7 +268,7 @@ export default function OnboardingPage() {
         body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
       }
       if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
-      if (place) body.placeOfBirth = place;
+      if (resolvedPlace) body.placeOfBirth = resolvedPlace;
       if (answers.language) body.locale = answers.language;
       if (answers.timeSource) {
         const sourceMap: Record<string, string> = {
@@ -384,8 +376,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Steps 2, 3, 4, 6: text input */}
-          {(step === 2 || step === 3 || step === 4 || step === 6) && (
+          {/* Steps 2, 3, 4: text input */}
+          {(step === 2 || step === 3 || step === 4) && (
             <div className="flex flex-col gap-1.5">
               {inputErr && <p className="text-[12px] text-red-400 pl-1">{inputErr}</p>}
               <div className="flex items-center gap-2 rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md px-4 py-1 focus-within:border-gold/45 transition-colors">
@@ -403,8 +395,7 @@ export default function OnboardingPage() {
                   placeholder={
                     step === 2 ? t("onboarding.step2hint") :
                     step === 3 ? t("onboarding.step3hint") :
-                    step === 4 ? t("onboarding.step4hint") :
-                    t("onboarding.step6hint")
+                    t("onboarding.step4hint")
                   }
                   className="flex-1 bg-transparent py-3 text-[15px] text-foreground placeholder:text-muted/40 outline-none"
                   autoFocus
@@ -418,6 +409,20 @@ export default function OnboardingPage() {
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Step 6: place autocomplete */}
+          {step === 6 && (
+            <PlaceAutocomplete
+              placeholder={t("onboarding.step6hint")}
+              inputClassName="w-full bg-transparent py-3 px-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
+              onSelect={(place) => {
+                setResolvedPlace(place);
+                setAnswers((a) => ({ ...a, place: place.name }));
+                userSay(place.name);
+                botSay(Q[6]).then(() => setStep(7));
+              }}
+            />
           )}
 
           {/* Step 5: time source */}

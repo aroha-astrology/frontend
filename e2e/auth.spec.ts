@@ -21,11 +21,11 @@ test.describe('Auth Guard', () => {
 
   test('sign-in page is accessible without auth', async ({ page }) => {
     await page.goto('/sign-in');
-    await expect(page.locator('text=Verify')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('text=Send OTP')).toBeVisible({ timeout: 10_000 });
   });
 
   test('sign-up page is accessible without auth', async ({ page }) => {
     await page.goto('/sign-up');
-    await expect(page.locator('text=Verify')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('text=Send OTP')).toBeVisible({ timeout: 10_000 });
   });
 });

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { streamChat, type ChatStreamEvent } from "@/lib/swarm-api";
+import { streamChat } from "@/lib/swarm-api";
 
 interface Message {
   role: "user" | "assistant";
@@ -30,7 +30,6 @@ export default function AIChatPage() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -118,7 +117,7 @@ export default function AIChatPage() {
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, messages.length]);
+  }, [input, streaming]);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>

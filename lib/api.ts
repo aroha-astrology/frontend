@@ -131,6 +131,34 @@ function safeJson(text: string): unknown {
   }
 }
 
+// ─── Kundli types ────────────────────────────────────────────────────────────
+
+export interface Kundli {
+  status: "ready";
+  id: string;
+  timeKnown: boolean | null;
+  ayanamsa: string | null;
+  houseSystem: string | null;
+  chart: Record<string, unknown> | null;
+  dasha: Record<string, unknown> | null;
+  yogas: Record<string, unknown> | null;
+  doshas: Record<string, unknown> | null;
+  generatedAt: string | null;
+}
+
+export interface KundliStatus {
+  status: "pending" | "generating" | "failed";
+  message?: string;
+}
+
+export interface KundliMissingParams {
+  status: "missing_parameters";
+  missing: string[];
+  message: string;
+}
+
+export type KundliResponse = Kundli | KundliStatus | KundliMissingParams;
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 // ─── Public forecast types ───────────────────────────────────────────────────
@@ -166,6 +194,43 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** Current user's natal kundli. Returns the raw response so callers can distinguish 200/202/422. */
+  getKundli: async (): Promise<KundliResponse> => {
+    const headers = await authHeader();
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/v1/kundli`, { headers });
+    } catch {
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    if (res.status === 200 || res.status === 202 || res.status === 422) {
+      return data as KundliResponse;
+    }
+    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
+    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
+  },
+
+  /** Force-regenerate the current user's kundli. */
+  regenerateKundli: async (): Promise<KundliResponse> => {
+    const headers = await authHeader();
+    headers["Content-Type"] = "application/json";
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/v1/kundli/regenerate`, { method: "POST", headers });
+    } catch {
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    if (res.status === 200 || res.status === 202 || res.status === 422) {
+      return data as KundliResponse;
+    }
+    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
+    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
+  },
 
   /** Public moon-sign daily forecast for a given sign index (0-11). */
   moonSignForecast: (signIndex: number) =>

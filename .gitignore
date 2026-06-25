@@ -1,14 +1,20 @@
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
+
+# subproject folders (opened separately, not part of this repo)
+backend/
+frontend/
+landing/
+mobile/
 
 # production
 /build

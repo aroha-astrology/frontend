@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, Loader2 } from "lucide-react";
-import { usePlaceAutocomplete } from "@/hooks/usePlaceAutocomplete";
+import { usePlaceAutocomplete, type PlaceSuggestion } from "@/hooks/usePlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
 
 interface PlaceAutocompleteProps {
@@ -77,7 +77,7 @@ export default function PlaceAutocomplete({
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (highlightIdx >= 0 && highlightIdx < suggestions.length) {
-          select(suggestions[highlightIdx].placeId);
+          select(suggestions[highlightIdx]);
         }
       } else if (e.key === "Escape") {
         setOpen(false);
@@ -124,10 +124,10 @@ export default function PlaceAutocomplete({
           )}
           {suggestions.map((s, i) => (
             <li
-              key={s.placeId}
+              key={s.id}
               role="option"
               aria-selected={i === highlightIdx}
-              onClick={() => select(s.placeId)}
+              onClick={() => select(s)}
               onMouseEnter={() => setHighlightIdx(i)}
               className={`flex items-center gap-2.5 px-4 py-3 text-sm cursor-pointer transition-colors ${
                 i === highlightIdx ? "bg-gold/10" : "hover:bg-gold/10"

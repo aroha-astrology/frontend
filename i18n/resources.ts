@@ -4,7 +4,7 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close" },
       hero: {
         astrology: "Astrology",
         aiPowered: "AI Powered",
@@ -109,6 +109,30 @@ export const resources = {
         labelPlace: "Place of Birth",
         labelGender: "Gender",
         labelStatus: "Relationship",
+      },
+      kundli: {
+        title: "Your Kundli",
+        subtitle: "Natal Birth Chart",
+        pending: "Casting your chart…",
+        failed: "Couldn't generate your chart.",
+        retry: "Try again",
+        completeProfile: "Complete your profile",
+        missingNeeded: "We still need",
+        viewFull: "View full kundli",
+        ascendant: "Ascendant",
+        moonSign: "Moon Sign",
+        sunSign: "Sun Sign",
+        dasha: "Current Dasha",
+        timeUnknown: "Birth time unknown — showing a sign-level reading",
+        readyNoPreview: "Your kundli is ready.",
+        errorGeneric: "Something went wrong loading your kundli.",
+      },
+      menu: {
+        title: "Menu",
+        guest: "Guest",
+        profile: "Profile",
+        settings: "Settings",
+        signOut: "Sign Out",
       },
     },
   },

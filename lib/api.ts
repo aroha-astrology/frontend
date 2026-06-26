@@ -49,6 +49,10 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
+  locale?: string;
+  birthTimeSource?: string;
+  relationshipStatus?: string;
+  onboardingStatus?: string;
 }
 
 // ─── Kundli ──────────────────────────────────────────────────────────────────
@@ -81,6 +85,9 @@ export interface KundliMissing {
 
 /** Unified surface returned by `api.getKundli()` — caller branches on `status`. */
 export type KundliResult = KundliReady | KundliPending | KundliMissing;
+
+export type Kundli = KundliReady;
+export type KundliResponse = KundliResult;
 
 // ─── Error type ──────────────────────────────────────────────────────────────
 
@@ -158,6 +165,18 @@ function safeJson(text: string): unknown {
   }
 }
 
+// ─── Remedies ───────────────────────────────────────────────────────────────
+
+export interface RemedyItem {
+  id: string;
+  title: string;
+  description: string;
+  remedy: string;
+  category: string;
+  icon: string;
+  planet?: string;
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -184,6 +203,14 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** Remedies for the user based on chart. */
+  remedies: () => request<{ remedies: RemedyItem[] }>("/v1/remedies", { auth: true }),
+
+  /** Moon-sign daily forecast for a zodiac sign (0-11). */
+  moonSignForecast: (signIndex: number) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}`, { auth: true }),
 
   /**
    * Current user's natal kundli. Returns a discriminated union — caller must

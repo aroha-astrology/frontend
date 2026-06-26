@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { swarmApi, type BirthInput, type OnboardingResponse } from "@/lib/swarm-api";
+import { useKundli } from "@/hooks/useKundli";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
 import Card from "@/components/ui/Card";
@@ -24,20 +25,46 @@ interface FormData {
   place: string;
 }
 
+// Normalize chart data from either the REST /v1/kundli or the swarm /v1/onboarding response
+function normalizeChart(source: Record<string, any>): {
+  planets: any[];
+  houses: any[];
+  ascendant: Record<string, any> | null;
+  dasha: any | null;
+  divisionalCharts: Record<string, any>;
+  findings: any[];
+} {
+  // Swarm onboarding format: metrology at top level
+  // REST kundli format: chart object with nested data
+  const chart = source.metrology ?? source.chart ?? source;
+  return {
+    planets: chart.planets ?? [],
+    houses: chart.houses ?? [],
+    ascendant: chart.ascendant ?? null,
+    dasha: chart.vimshottariDasha ?? chart.dasha ?? null,
+    divisionalCharts: chart.divisionalCharts ?? {},
+    findings: source.findings ?? [],
+  };
+}
+
 export default function KundliPage() {
+  // Try to load existing kundli first
+  const { kundli, loading: kundliLoading, error: kundliError } = useKundli();
+
+  // Form state (fallback for fresh generation)
   const [form, setForm] = useState<FormData>({ name: "", date: "", time: "", place: "" });
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<OnboardingResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [freshResult, setFreshResult] = useState<OnboardingResponse | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
+  const [showForm, setShowForm] = useState(false);
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
+    setGenerating(true);
+    setFormError(null);
+    setFreshResult(null);
     try {
       const geo = resolvedPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
       const birth: BirthInput = {
@@ -48,123 +75,81 @@ export default function KundliPage() {
         timezone: geo.tz,
       };
       const response = await swarmApi.onboarding(birth);
-      setResult(response);
+      setFreshResult(response);
+      setShowForm(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate kundli.");
+      setFormError(err instanceof Error ? err.message : "Failed to generate kundli.");
     } finally {
-      setLoading(false);
+      setGenerating(false);
     }
   };
 
-  const metrology = result?.metrology as Record<string, any> | null;
-  const planets = (metrology?.planets ?? []) as any[];
-  const houses = (metrology?.houses ?? []) as any[];
-  const ascendant = metrology?.ascendant as Record<string, any> | null;
-  const dasha = metrology?.vimshottariDasha as any | null;
-  const divisionalCharts = (metrology?.divisionalCharts ?? {}) as Record<string, any>;
-  const findings = (result?.findings ?? []) as any[];
+  // Determine which data source to use
+  const hasExisting = kundli?.status === "ready" && kundli.chart;
+  const hasFresh = freshResult?.metrology;
+  const hasData = hasExisting || hasFresh;
+
+  const chartData = hasExisting
+    ? normalizeChart(kundli as any)
+    : hasFresh
+      ? normalizeChart(freshResult as any)
+      : null;
+
+  const { planets, houses, ascendant, dasha, divisionalCharts, findings } = chartData ?? {
+    planets: [], houses: [], ascendant: null, dasha: null, divisionalCharts: {}, findings: [],
+  };
+
   const yogas = findings.filter((f: any) => f.kind === "yoga");
   const doshas = findings.filter((f: any) => f.kind === "dosha");
 
   const inputClass =
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm transition-colors focus:border-yellow-500/60";
 
+  // Loading state
+  if (kundliLoading && !hasFresh) {
+    return (
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+            className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent mx-auto"
+          />
+          <p className="text-sm text-[var(--text-muted)] mt-4">Loading your kundli...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // No existing kundli — show form
+  if (!hasData && !showForm) {
+    // Auto-show form if no data
+  }
+
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10 max-w-lg mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-center text-gold font-display"
-        >
-          Generate Kundli
-        </motion.h1>
-        <p className="text-center text-sm text-[var(--text-muted)] mt-2">
-          Enter your birth details for your Vedic birth chart
-        </p>
 
-        {/* Form */}
-        <div className="mt-8 space-y-4">
-          <input
-            placeholder="Full Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={inputClass}
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
-          />
-          <div>
-            <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Date of Birth</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className={inputClass}
-              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Time of Birth</label>
-            <input
-              type="time"
-              value={form.time}
-              onChange={(e) => setForm({ ...form, time: e.target.value })}
-              className={inputClass}
-              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
-            />
-          </div>
-          <PlaceAutocomplete
-            placeholder="Birth Place (City, Country)"
-            inputClassName={inputClass}
-            inputStyle={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
-            onSelect={(place) => {
-              setResolvedPlace(place);
-              setForm((f) => ({ ...f, place: place.name }));
-            }}
-          />
-          <button
-            onClick={handleGenerate}
-            disabled={!form.name || !form.date || loading}
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
-          >
-            {loading ? "Computing..." : "Generate Kundli"}
-          </button>
-        </div>
-
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 p-4 rounded-2xl border border-red-500/30 text-red-400 text-sm"
-            style={{ background: "var(--surface)" }}
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {loading && (
-          <div className="mt-8 flex justify-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-              className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent"
-            />
-          </div>
-        )}
-
-        {/* ── RESULTS ── */}
-        {result && metrology && (
+        {/* ── CHART VIEW (when data exists) ── */}
+        {hasData && chartData && !showForm && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 space-y-4"
+            className="space-y-4"
           >
-            {/* Birth details header */}
-            <Card className="p-4">
-              <h2 className="text-lg font-bold text-gold font-display">{form.name}</h2>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                {form.date} {form.time && `· ${form.time}`} {form.place && `· ${form.place}`}
-              </p>
-            </Card>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gold font-display">Your Kundli</h1>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Natal Birth Chart</p>
+              </div>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary/60 hover:bg-primary/20 transition-colors"
+              >
+                New Chart
+              </button>
+            </div>
 
             {/* Chart toggle + chart */}
             <Card className="p-4">
@@ -186,19 +171,11 @@ export default function KundliPage() {
                   South Indian
                 </button>
               </div>
-
               <div className="max-w-[380px] mx-auto">
                 {chartStyle === "north" ? (
-                  <NorthIndianChart
-                    chartData={{ houses, planets }}
-                    title="Rashi Chart (D1)"
-                    showMeanings
-                  />
+                  <NorthIndianChart chartData={{ houses, planets }} title="Rashi Chart (D1)" showMeanings />
                 ) : (
-                  <SouthIndianChart
-                    chartData={{ houses, planets }}
-                    title="Rashi Chart (D1)"
-                  />
+                  <SouthIndianChart chartData={{ houses, planets }} title="Rashi Chart (D1)" />
                 )}
               </div>
             </Card>
@@ -214,7 +191,7 @@ export default function KundliPage() {
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <span className="text-text-secondary">Ascendant</span>
-                    <p className="text-primary font-semibold">{ascendant.ascendantSign}</p>
+                    <p className="text-primary font-semibold">{ascendant.ascendantSign ?? ascendant.sign}</p>
                   </div>
                   <div>
                     <span className="text-text-secondary">Moon Sign</span>
@@ -238,43 +215,105 @@ export default function KundliPage() {
               </Card>
             )}
 
-            {/* Planets table */}
             {planets.length > 0 && <PlanetsTable planets={planets} />}
-
-            {/* House details */}
             {houses.length > 0 && <HouseDetails houses={houses} />}
-
-            {/* Dasha timeline */}
             {dasha && <DashaTimeline dasha={dasha} />}
+            {yogas.length > 0 && <Card className="p-4"><YogaCard yogas={yogas} /></Card>}
+            {doshas.length > 0 && <Card className="p-4"><DoshaCard doshas={doshas} /></Card>}
+            {Object.keys(divisionalCharts).length > 0 && <VargaChartTabs divisionalCharts={divisionalCharts} />}
+          </motion.div>
+        )}
 
-            {/* Yogas */}
-            {yogas.length > 0 && (
-              <Card className="p-4">
-                <YogaCard yogas={yogas} />
-              </Card>
+        {/* ── FORM (when no data or user taps "New Chart") ── */}
+        {(!hasData || showForm) && (
+          <>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-bold text-center text-gold font-display"
+            >
+              Generate Kundli
+            </motion.h1>
+            <p className="text-center text-sm text-[var(--text-muted)] mt-2">
+              Enter your birth details for your Vedic birth chart
+            </p>
+
+            {hasData && (
+              <button
+                onClick={() => setShowForm(false)}
+                className="mt-3 w-full text-center text-xs text-primary/60 underline"
+              >
+                Back to my chart
+              </button>
             )}
 
-            {/* Doshas */}
-            {doshas.length > 0 && (
-              <Card className="p-4">
-                <DoshaCard doshas={doshas} />
-              </Card>
+            <div className="mt-8 space-y-4">
+              <input
+                placeholder="Full Name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className={inputClass}
+                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+              />
+              <div>
+                <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Date of Birth</label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  className={inputClass}
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Time of Birth</label>
+                <input
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className={inputClass}
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                />
+              </div>
+              <PlaceAutocomplete
+                placeholder="Birth Place (City, Country)"
+                inputClassName={inputClass}
+                inputStyle={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                onSelect={(place) => {
+                  setResolvedPlace(place);
+                  setForm((f) => ({ ...f, place: place.name }));
+                }}
+              />
+              <button
+                onClick={handleGenerate}
+                disabled={!form.name || !form.date || generating}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
+              >
+                {generating ? "Computing..." : "Generate Kundli"}
+              </button>
+            </div>
+
+            {formError && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-4 rounded-2xl border border-red-500/30 text-red-400 text-sm"
+                style={{ background: "var(--surface)" }}
+              >
+                {formError}
+              </motion.div>
             )}
 
-            {/* Divisional charts */}
-            {Object.keys(divisionalCharts).length > 0 && (
-              <VargaChartTabs divisionalCharts={divisionalCharts} />
-            )}
-
-            {/* Warnings */}
-            {result.warnings.length > 0 && (
-              <div className="text-xs text-yellow-500 space-y-1">
-                {result.warnings.map((w, i) => (
-                  <p key={i}>⚠ {w}</p>
-                ))}
+            {generating && (
+              <div className="mt-8 flex justify-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                  className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent"
+                />
               </div>
             )}
-          </motion.div>
+          </>
         )}
       </div>
     </main>

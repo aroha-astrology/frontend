@@ -179,7 +179,7 @@ function DetailModal({ forecast, sign, onClose }: { forecast: ForecastData; sign
           </div>
 
           {/* Key Transits */}
-          {forecast.keyTransits.length > 0 && (
+          {forecast.keyTransits?.length > 0 && (
             <div>
               <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-3">
                 <ArrowRight size={14} />

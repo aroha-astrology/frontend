@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Hero from "@/components/Hero";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
 import AIChatPreview from "@/components/AIChatPreview";
-import SectionTitle from "@/components/SectionTitle";
+import KundliCard from "@/components/KundliCard";
 import RemediesSection from "@/components/RemediesSection";
 import MatchMakingCard from "@/components/MatchMakingCard";
 import MoonBackground from "@/components/MoonBackground";
@@ -13,9 +13,8 @@ import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
-import KundliSummary from "@/components/KundliSummary";
-import SidebarMenu from "@/components/SidebarMenu";
 import IconButton from "@/components/ui/IconButton";
+import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { Menu, Bell } from "lucide-react";
 
 export default function HomePage() {
@@ -28,12 +27,11 @@ export default function HomePage() {
       <ParticleBackground />
       <MoonBackground />
       <SplashScreen />
-      <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div className="relative z-10">
         {/* Top bar */}
         <div className="flex justify-between items-center px-5 pt-8 pb-4">
-          <IconButton aria-label="Menu" onClick={() => setMenuOpen(true)}>
+          <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
             <Menu size={20} />
           </IconButton>
           <div className="flex items-center gap-2">
@@ -53,9 +51,9 @@ export default function HomePage() {
           <AIChatPreview />
         </div>
 
-        {/* Kundli Summary */}
+        {/* Natal Kundli — fetched after onboarding, polls /v1/kundli (202 → retry every 2s) */}
         <div className="px-5 mt-6">
-          <KundliSummary />
+          <KundliCard />
         </div>
 
         {/* Daily Horoscopes */}
@@ -81,6 +79,9 @@ export default function HomePage() {
           <RemediesSection />
         </div>
       </div>
+
+      {/* Slide-in menu (profile / settings / sign out) */}
+      <AppMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </main>
   );
 }

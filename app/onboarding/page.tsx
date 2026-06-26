@@ -283,6 +283,10 @@ export default function OnboardingPage() {
       body.onboardingStatus = "completed";
 
       await api.updateMe(body);
+      // Fire-and-forget kundli warm-up: the home page polls /v1/kundli on
+      // mount, but kicking the regenerate here means the result is usually
+      // ready by the time the user lands there.
+      api.regenerateKundli().catch(() => {});
       router.replace("/");
     } catch {
       setSubmitErr(t("onboarding.submitError"));

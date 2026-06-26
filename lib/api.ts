@@ -1,5 +1,5 @@
 // Typed client for the Aroha Astrology Backend (v0.1.0).
-// Spec: https://api.arohaastrology.in/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
+// Spec: http://13.232.179.137:3000/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
 //
 // Auth model: the backend verifies a Firebase ID token passed as
 // `Authorization: Bearer <token>`. Authed calls pull a fresh token from the
@@ -49,11 +49,38 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
-  locale?: string;
-  birthTimeSource?: string;
-  relationshipStatus?: string;
-  onboardingStatus?: string;
 }
+
+// ─── Kundli ──────────────────────────────────────────────────────────────────
+
+export interface KundliReady {
+  status: "ready";
+  id: string;
+  timeKnown: boolean | null;
+  ayanamsa: string | null;
+  houseSystem: string | null;
+  chart: Record<string, unknown> | null;
+  dasha: Record<string, unknown> | null;
+  yogas: Record<string, unknown> | null;
+  doshas: Record<string, unknown> | null;
+  generatedAt: string | null;
+}
+
+/** 202 body: kundli generation pending/in-progress (poll again). */
+export interface KundliPending {
+  status: "pending" | "generating" | "failed";
+  message?: string;
+}
+
+/** 422 body: birth params absent — frontend must collect them. */
+export interface KundliMissing {
+  status: "missing_parameters";
+  missing: string[]; // e.g. ["timeOfBirth", "placeOfBirth"]
+  message: string;
+}
+
+/** Unified surface returned by `api.getKundli()` — caller branches on `status`. */
+export type KundliResult = KundliReady | KundliPending | KundliMissing;
 
 // ─── Error type ──────────────────────────────────────────────────────────────
 
@@ -131,44 +158,7 @@ function safeJson(text: string): unknown {
   }
 }
 
-// ─── Kundli types ────────────────────────────────────────────────────────────
-
-export interface Kundli {
-  status: "ready";
-  id: string;
-  timeKnown: boolean | null;
-  ayanamsa: string | null;
-  houseSystem: string | null;
-  chart: Record<string, unknown> | null;
-  dasha: Record<string, unknown> | null;
-  yogas: Record<string, unknown> | null;
-  doshas: Record<string, unknown> | null;
-  generatedAt: string | null;
-}
-
-export interface KundliStatus {
-  status: "pending" | "generating" | "failed";
-  message?: string;
-}
-
-export interface KundliMissingParams {
-  status: "missing_parameters";
-  missing: string[];
-  message: string;
-}
-
-export type KundliResponse = Kundli | KundliStatus | KundliMissingParams;
-
 // ─── Endpoints ────────────────────────────────────────────────────────────────
-
-// ─── Public forecast types ───────────────────────────────────────────────────
-
-export interface RemedyItem {
-  planet: string;
-  title: string;
-  icon: string;
-  remedy: string;
-}
 
 export const api = {
   /** Public liveness probe. */
@@ -195,74 +185,67 @@ export const api = {
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
 
-  /** Current user's natal kundli. Returns the raw response so callers can distinguish 200/202/422. */
-  getKundli: async (): Promise<KundliResponse> => {
-    const headers = await authHeader();
-    let res: Response;
-    try {
-      res = await fetch(`${BASE_URL}/v1/kundli`, { headers });
-    } catch {
-      throw new ApiError(0, "network_error", "Could not reach the server");
-    }
-    const text = await res.text();
-    const data = text ? safeJson(text) : null;
-    if (res.status === 200 || res.status === 202 || res.status === 422) {
-      return data as KundliResponse;
-    }
-    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
-    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
-  },
+  /**
+   * Current user's natal kundli. Returns a discriminated union — caller must
+   * branch on `result.status`:
+   *   - "ready"              → 200, full Kundli payload
+   *   - "pending"/"generating"/"failed" → 202, still computing (caller polls)
+   *   - "missing_parameters" → 422, birth fields absent
+   * Unexpected status codes still throw `ApiError`.
+   */
+  getKundli: () => kundliRequest("GET", "/v1/kundli"),
 
-  /** Force-regenerate the current user's kundli. */
-  regenerateKundli: async (): Promise<KundliResponse> => {
-    const headers = await authHeader();
-    headers["Content-Type"] = "application/json";
-    let res: Response;
-    try {
-      res = await fetch(`${BASE_URL}/v1/kundli/regenerate`, { method: "POST", headers });
-    } catch {
-      throw new ApiError(0, "network_error", "Could not reach the server");
-    }
-    const text = await res.text();
-    const data = text ? safeJson(text) : null;
-    if (res.status === 200 || res.status === 202 || res.status === 422) {
-      return data as KundliResponse;
-    }
-    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
-    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
-  },
+  /**
+   * Force-regenerate the kundli (synchronous on the backend). Same union as
+   * `getKundli()`. 202 here means another regenerate run is already active.
+   */
+  regenerateKundli: () => kundliRequest("POST", "/v1/kundli/regenerate"),
 
-  /** Moon-sign daily forecast for a given sign index (0-11). */
-  moonSignForecast: (signIndex: number) =>
-    request<{ forecast: unknown }>(`/v1/forecast/moon-sign/${signIndex}`, { auth: true }),
-
-  /** Panchang data. */
-  panchang: (lat?: number, lon?: number, date?: string) => {
-    const params = new URLSearchParams();
-    if (lat != null) params.set("lat", String(lat));
-    if (lon != null) params.set("lon", String(lon));
-    if (date) params.set("date", date);
-    const qs = params.toString();
-    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
-  },
-
-  /** Remedies (optionally chart-based). */
-  remedies: (birthData?: {
-    birthDate: string;
-    birthTime?: string;
-    lat: number;
-    lon: number;
-    timezone?: string;
-  }) => {
-    const params = new URLSearchParams();
-    if (birthData) {
-      params.set("birthDate", birthData.birthDate);
-      if (birthData.birthTime) params.set("birthTime", birthData.birthTime);
-      params.set("lat", String(birthData.lat));
-      params.set("lon", String(birthData.lon));
-      if (birthData.timezone) params.set("timezone", birthData.timezone);
-    }
-    const qs = params.toString();
-    return request<{ remedies: RemedyItem[] }>(`/v1/remedies${qs ? `?${qs}` : ""}`, { auth: true });
-  },
+  /**
+   * Poll `getKundli()` until it returns a non-pending state or `timeoutMs`
+   * elapses. Retries on 202 every `intervalMs` (default 2 s, matches the
+   * swagger guidance). 422 (missing parameters) is returned immediately — no
+   * point polling, the user has to complete their profile first.
+   */
+  pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
+    pollKundli(opts),
 };
+
+// ─── Kundli helpers ──────────────────────────────────────────────────────────
+
+async function kundliRequest(method: "GET" | "POST", path: string): Promise<KundliResult> {
+  const headers: Record<string, string> = { ...(await authHeader()) };
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { method, headers });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (res.status === 200 || res.status === 202 || res.status === 422) {
+    return data as KundliResult;
+  }
+  const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+    ?.error;
+  throw new ApiError(
+    res.status,
+    err?.code ?? "http_error",
+    err?.message ?? `Request failed (${res.status})`,
+    err?.requestId,
+  );
+}
+
+async function pollKundli(
+  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+): Promise<KundliResult> {
+  const interval = opts.intervalMs ?? 2000;
+  const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  while (true) {
+    if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
+    const r = await kundliRequest("GET", "/v1/kundli");
+    if (r.status !== "pending" && r.status !== "generating") return r;
+    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, interval));
+  }
+}

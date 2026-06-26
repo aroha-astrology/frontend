@@ -2,9 +2,20 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { onboarding, type OnboardingResponse, type BirthInput } from "@/lib/swarm-api";
+import { swarmApi, type BirthInput, type OnboardingResponse } from "@/lib/swarm-api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
+import Card from "@/components/ui/Card";
+import NorthIndianChart from "@/components/ui/NorthIndianChart";
+import SouthIndianChart from "@/components/ui/SouthIndianChart";
+import PlanetsTable from "@/components/ui/PlanetsTable";
+import HouseDetails from "@/components/ui/HouseDetails";
+import DashaTimeline from "@/components/ui/DashaTimeline";
+import YogaCard from "@/components/ui/YogaCard";
+import DoshaCard from "@/components/ui/DoshaCard";
+import VargaChartTabs from "@/components/ui/VargaChartTabs";
+
+type ChartStyle = "north" | "south";
 
 interface FormData {
   name: string;
@@ -19,17 +30,16 @@ export default function KundliPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OnboardingResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
-
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
       const geo = resolvedPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
-
       const birth: BirthInput = {
         date: form.date,
         time: form.time || "12:00",
@@ -37,38 +47,43 @@ export default function KundliPage() {
         longitude: geo.lon,
         timezone: geo.tz,
       };
-
-      const response = await onboarding(birth);
+      const response = await swarmApi.onboarding(birth);
       setResult(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate kundli. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to generate kundli.");
     } finally {
       setLoading(false);
     }
   };
 
+  const metrology = result?.metrology as Record<string, any> | null;
+  const planets = (metrology?.planets ?? []) as any[];
+  const houses = (metrology?.houses ?? []) as any[];
+  const ascendant = metrology?.ascendant as Record<string, any> | null;
+  const dasha = metrology?.vimshottariDasha as any | null;
+  const divisionalCharts = (metrology?.divisionalCharts ?? {}) as Record<string, any>;
+  const findings = (result?.findings ?? []) as any[];
+  const yogas = findings.filter((f: any) => f.kind === "yoga");
+  const doshas = findings.filter((f: any) => f.kind === "dosha");
+
   const inputClass =
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm transition-colors focus:border-yellow-500/60";
 
-  const metrology = result?.metrology;
-  const planets = metrology?.planets ?? [];
-  const ascendant = metrology?.ascendant;
-  const dasha = metrology?.vimshottariDasha;
-
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-10">
+      <div className="px-5 pt-10 max-w-lg mx-auto">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl font-bold text-center text-gold font-display"
         >
-          📜 Generate Kundli
+          Generate Kundli
         </motion.h1>
         <p className="text-center text-sm text-[var(--text-muted)] mt-2">
           Enter your birth details for your Vedic birth chart
         </p>
 
+        {/* Form */}
         <div className="mt-8 space-y-4">
           <input
             placeholder="Full Name"
@@ -106,7 +121,6 @@ export default function KundliPage() {
               setForm((f) => ({ ...f, place: place.name }));
             }}
           />
-
           <button
             onClick={handleGenerate}
             disabled={!form.name || !form.date || loading}
@@ -116,7 +130,6 @@ export default function KundliPage() {
           </button>
         </div>
 
-        {/* Error */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -128,7 +141,6 @@ export default function KundliPage() {
           </motion.div>
         )}
 
-        {/* Loading spinner */}
         {loading && (
           <div className="mt-8 flex justify-center">
             <motion.div
@@ -139,88 +151,124 @@ export default function KundliPage() {
           </div>
         )}
 
-        {/* Results */}
+        {/* ── RESULTS ── */}
         {result && metrology && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 p-6 rounded-3xl border"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            className="mt-8 space-y-4"
           >
-            <h3 className="text-xl font-semibold text-gold font-display">
-              Kundli Report — {form.name}
-            </h3>
-            <p className="text-xs text-[var(--text-muted)] mt-1">
-              {form.date} {form.time && `· ${form.time}`} {form.place && `· ${form.place}`}
-            </p>
+            {/* Birth details header */}
+            <Card className="p-4">
+              <h2 className="text-lg font-bold text-gold font-display">{form.name}</h2>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                {form.date} {form.time && `· ${form.time}`} {form.place && `· ${form.place}`}
+              </p>
+            </Card>
 
-            {/* Ascendant */}
-            {ascendant && (
-              <div className="mt-5 mb-4">
-                <div className="flex justify-between text-sm" style={{ color: "var(--text-muted)" }}>
-                  <span>🪐 Ascendant (Lagna)</span>
-                  <span className="text-gold font-medium">
-                    {ascendant.ascendantSign} ({ascendant.ascendantDegree.toFixed(1)}°)
-                  </span>
-                </div>
+            {/* Chart toggle + chart */}
+            <Card className="p-4">
+              <div className="flex justify-center gap-2 mb-4">
+                <button
+                  onClick={() => setChartStyle("north")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    chartStyle === "north" ? "bg-primary text-black" : "bg-primary/10 text-primary/60"
+                  }`}
+                >
+                  North Indian
+                </button>
+                <button
+                  onClick={() => setChartStyle("south")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    chartStyle === "south" ? "bg-primary text-black" : "bg-primary/10 text-primary/60"
+                  }`}
+                >
+                  South Indian
+                </button>
               </div>
+
+              <div className="max-w-[380px] mx-auto">
+                {chartStyle === "north" ? (
+                  <NorthIndianChart
+                    chartData={{ houses, planets }}
+                    title="Rashi Chart (D1)"
+                    showMeanings
+                  />
+                ) : (
+                  <SouthIndianChart
+                    chartData={{ houses, planets }}
+                    title="Rashi Chart (D1)"
+                  />
+                )}
+              </div>
+            </Card>
+
+            {/* Basic details */}
+            {ascendant && (
+              <Card className="p-4">
+                <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-primary mb-3 flex items-center gap-2">
+                  <span className="text-accent text-xs">✦</span>
+                  Basic Details
+                  <span className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+                </h3>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-text-secondary">Ascendant</span>
+                    <p className="text-primary font-semibold">{ascendant.ascendantSign}</p>
+                  </div>
+                  <div>
+                    <span className="text-text-secondary">Moon Sign</span>
+                    <p className="text-primary font-semibold">
+                      {planets.find((p: any) => p.planet === "Moon")?.sign ?? "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-text-secondary">Sun Sign</span>
+                    <p className="text-primary font-semibold">
+                      {planets.find((p: any) => p.planet === "Sun")?.sign ?? "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-text-secondary">Nakshatra</span>
+                    <p className="text-primary font-semibold">
+                      {planets.find((p: any) => p.planet === "Moon")?.nakshatra ?? "—"}
+                    </p>
+                  </div>
+                </div>
+              </Card>
             )}
 
-            {/* Planet positions */}
-            <div className="space-y-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mt-2">
-                Planet Positions
-              </p>
-              {planets.map((p) => (
-                <div key={p.planet} className="flex justify-between">
-                  <span>
-                    {p.planet}
-                    {p.isRetrograde && <span className="text-red-400 text-xs ml-1">(R)</span>}
-                  </span>
-                  <span className="text-gold font-medium">
-                    {p.sign} · House {p.house}
-                    <span className="text-[var(--text-muted)] ml-1 text-xs">
-                      ({p.nakshatra} {p.nakshatraPada})
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </div>
+            {/* Planets table */}
+            {planets.length > 0 && <PlanetsTable planets={planets} />}
 
-            {/* Current Dasha */}
-            {dasha && (
-              <div className="mt-5 space-y-3 text-sm" style={{ color: "var(--text-muted)" }}>
-                <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                  Current Dasha Period
-                </p>
-                {dasha.currentMahadasha && (
-                  <div className="flex justify-between">
-                    <span>Mahadasha</span>
-                    <span className="text-gold font-medium">
-                      {dasha.currentMahadasha.planet}
-                      <span className="text-[var(--text-muted)] ml-1 text-xs">
-                        ({dasha.currentMahadasha.start} to {dasha.currentMahadasha.end})
-                      </span>
-                    </span>
-                  </div>
-                )}
-                {dasha.currentAntardasha && (
-                  <div className="flex justify-between">
-                    <span>Antardasha</span>
-                    <span className="text-gold font-medium">
-                      {dasha.currentAntardasha.planet}
-                      <span className="text-[var(--text-muted)] ml-1 text-xs">
-                        ({dasha.currentAntardasha.start} to {dasha.currentAntardasha.end})
-                      </span>
-                    </span>
-                  </div>
-                )}
-              </div>
+            {/* House details */}
+            {houses.length > 0 && <HouseDetails houses={houses} />}
+
+            {/* Dasha timeline */}
+            {dasha && <DashaTimeline dasha={dasha} />}
+
+            {/* Yogas */}
+            {yogas.length > 0 && (
+              <Card className="p-4">
+                <YogaCard yogas={yogas} />
+              </Card>
+            )}
+
+            {/* Doshas */}
+            {doshas.length > 0 && (
+              <Card className="p-4">
+                <DoshaCard doshas={doshas} />
+              </Card>
+            )}
+
+            {/* Divisional charts */}
+            {Object.keys(divisionalCharts).length > 0 && (
+              <VargaChartTabs divisionalCharts={divisionalCharts} />
             )}
 
             {/* Warnings */}
             {result.warnings.length > 0 && (
-              <div className="mt-4 text-xs text-yellow-500">
+              <div className="text-xs text-yellow-500 space-y-1">
                 {result.warnings.map((w, i) => (
                   <p key={i}>⚠ {w}</p>
                 ))}

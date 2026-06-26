@@ -27,7 +27,15 @@ interface NorthIndianChartProps {
   ascendantHouse?: number;
   title?: string;
   instant?: boolean;
+  showMeanings?: boolean;
 }
+
+const HOUSE_MEANINGS: Record<number, string> = {
+  1: 'Self / Body', 2: 'Wealth / Family', 3: 'Siblings / Courage',
+  4: 'Mother / Property', 5: 'Children / Study', 6: 'Enemies / Health',
+  7: 'Marriage / Partner', 8: 'Longevity / Age', 9: 'Luck / Religion',
+  10: 'Career / Work', 11: 'Gains / Benefits', 12: 'Losses / Foreign',
+};
 
 const PLANET_GLYPHS: Record<Planet, string> = {
   Sun: '☉', Moon: '☾', Mars: '♂', Mercury: '☿',
@@ -75,6 +83,7 @@ export default function NorthIndianChart({
   ascendantHouse = 1,
   title = 'Rashi Chart',
   instant = false,
+  showMeanings = false,
 }: NorthIndianChartProps) {
   const { houses, planets } = chartData;
   const skip = instant;
@@ -212,6 +221,12 @@ export default function NorthIndianChart({
                 {label}
               </motion.text>
             ))}
+            {showMeanings && HOUSE_MEANINGS[house.house] && (
+              <text x={pos.numberX} y={pos.numberY + 24} textAnchor="middle"
+                fill="rgba(60,72,88,0.40)" fontSize="7" fontFamily="DM Sans, sans-serif">
+                {HOUSE_MEANINGS[house.house]}
+              </text>
+            )}
           </motion.g>
         );
       })}

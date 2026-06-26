@@ -1,5 +1,5 @@
 // Typed client for the Aroha Astrology Backend (v0.1.0).
-// Spec: http://13.232.179.137:3000/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
+// Spec: https://api.arohaastrology.in/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
 //
 // Auth model: the backend verifies a Firebase ID token passed as
 // `Authorization: Bearer <token>`. Authed calls pull a fresh token from the
@@ -49,6 +49,10 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
+  locale?: string;
+  birthTimeSource?: string;
+  relationshipStatus?: string;
+  onboardingStatus?: string;
 }
 
 // ─── Error type ──────────────────────────────────────────────────────────────
@@ -127,7 +131,44 @@ function safeJson(text: string): unknown {
   }
 }
 
+// ─── Kundli types ────────────────────────────────────────────────────────────
+
+export interface Kundli {
+  status: "ready";
+  id: string;
+  timeKnown: boolean | null;
+  ayanamsa: string | null;
+  houseSystem: string | null;
+  chart: Record<string, unknown> | null;
+  dasha: Record<string, unknown> | null;
+  yogas: Record<string, unknown> | null;
+  doshas: Record<string, unknown> | null;
+  generatedAt: string | null;
+}
+
+export interface KundliStatus {
+  status: "pending" | "generating" | "failed";
+  message?: string;
+}
+
+export interface KundliMissingParams {
+  status: "missing_parameters";
+  missing: string[];
+  message: string;
+}
+
+export type KundliResponse = Kundli | KundliStatus | KundliMissingParams;
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
+
+// ─── Public forecast types ───────────────────────────────────────────────────
+
+export interface RemedyItem {
+  planet: string;
+  title: string;
+  icon: string;
+  remedy: string;
+}
 
 export const api = {
   /** Public liveness probe. */
@@ -153,4 +194,75 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** Current user's natal kundli. Returns the raw response so callers can distinguish 200/202/422. */
+  getKundli: async (): Promise<KundliResponse> => {
+    const headers = await authHeader();
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/v1/kundli`, { headers });
+    } catch {
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    if (res.status === 200 || res.status === 202 || res.status === 422) {
+      return data as KundliResponse;
+    }
+    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
+    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
+  },
+
+  /** Force-regenerate the current user's kundli. */
+  regenerateKundli: async (): Promise<KundliResponse> => {
+    const headers = await authHeader();
+    headers["Content-Type"] = "application/json";
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/v1/kundli/regenerate`, { method: "POST", headers });
+    } catch {
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    if (res.status === 200 || res.status === 202 || res.status === 422) {
+      return data as KundliResponse;
+    }
+    const err = (data as { error?: { code?: string; message?: string } } | null)?.error;
+    throw new ApiError(res.status, err?.code ?? "http_error", err?.message ?? `Request failed (${res.status})`);
+  },
+
+  /** Moon-sign daily forecast for a given sign index (0-11). */
+  moonSignForecast: (signIndex: number) =>
+    request<{ forecast: unknown }>(`/v1/forecast/moon-sign/${signIndex}`, { auth: true }),
+
+  /** Panchang data. */
+  panchang: (lat?: number, lon?: number, date?: string) => {
+    const params = new URLSearchParams();
+    if (lat != null) params.set("lat", String(lat));
+    if (lon != null) params.set("lon", String(lon));
+    if (date) params.set("date", date);
+    const qs = params.toString();
+    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
+  },
+
+  /** Remedies (optionally chart-based). */
+  remedies: (birthData?: {
+    birthDate: string;
+    birthTime?: string;
+    lat: number;
+    lon: number;
+    timezone?: string;
+  }) => {
+    const params = new URLSearchParams();
+    if (birthData) {
+      params.set("birthDate", birthData.birthDate);
+      if (birthData.birthTime) params.set("birthTime", birthData.birthTime);
+      params.set("lat", String(birthData.lat));
+      params.set("lon", String(birthData.lon));
+      if (birthData.timezone) params.set("timezone", birthData.timezone);
+    }
+    const qs = params.toString();
+    return request<{ remedies: RemedyItem[] }>(`/v1/remedies${qs ? `?${qs}` : ""}`, { auth: true });
+  },
 };

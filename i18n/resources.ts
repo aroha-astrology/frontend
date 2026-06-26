@@ -23,23 +23,6 @@ export const resources = {
         remediesForYou: "Remedies For You",
       },
       nav: { home: "Home", kundli: "Kundli", askAI: "Ask AI", horoscope: "Horoscope", remedies: "Remedies" },
-      kundli: {
-        yourKundli: "Your Kundli",
-        ascendant: "Ascendant",
-        dasha: "Dasha",
-      },
-      menu: {
-        profile: "Profile Settings",
-        settings: "Settings",
-        logout: "Logout",
-        guest: "Guest",
-      },
-      remedies: {
-        love: "Love &\nRelationships",
-        career: "Career &\nSuccess",
-        health: "Health &\nWellness",
-        peace: "Peace &\nPositivity",
-      },
       auth: {
         welcomeBack: "Welcome Back",
         beginJourney: "Begin Your Journey",

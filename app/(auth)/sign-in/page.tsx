@@ -141,7 +141,7 @@ export default function SignInPage() {
                 </p>
 
                 {/* 6-box OTP */}
-                <div className="flex gap-2 justify-between mb-3" onPaste={handleOtpPaste}>
+                <div className="grid grid-cols-6 gap-2 mb-3" onPaste={handleOtpPaste}>
                   {otp.map((d, i) => (
                     <input
                       key={i}
@@ -152,7 +152,7 @@ export default function SignInPage() {
                       value={d}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
-                      className="w-12 h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
+                      className="w-full h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
                     />
                   ))}
                 </div>

@@ -28,7 +28,7 @@ export default function BottomNavigation() {
         </Link>
         
         {/* Central Ask AI button */}
-        <div className="flex justify-center -mt-8">
+        <div className="flex justify-center -mt-8" data-tour="ask-ai">
           <Link href="/ai-chat" className="relative">
             <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl scale-150" />
             <div className="relative w-16 h-16 rounded-full border border-gold/50 bg-fab flex items-center justify-center text-gold shadow-[0_0_20px_rgba(223,181,100,0.3)]">
@@ -37,13 +37,13 @@ export default function BottomNavigation() {
             <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-gold whitespace-nowrap">{t("nav.askAI")}</span>
           </Link>
         </div>
-        
-        <Link href="/horoscope" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/horoscope" ? "text-gold" : "text-muted")}>
+
+        <Link href="/horoscope" data-tour="nav-horoscope" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/horoscope" ? "text-gold" : "text-muted")}>
           <Moon size={22} />
           <span className="text-[10px] font-medium">{t("nav.horoscope")}</span>
         </Link>
-        
-        <Link href="/remedies" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/remedies" ? "text-gold" : "text-muted")}>
+
+        <Link href="/remedies" data-tour="nav-remedies" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/remedies" ? "text-gold" : "text-muted")}>
           <Flame size={22} />
           <span className="text-[10px] font-medium">{t("nav.remedies")}</span>
         </Link>

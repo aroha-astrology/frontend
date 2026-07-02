@@ -283,7 +283,7 @@ export default function OnboardingPage() {
       body.onboardingStatus = "completed";
 
       await api.updateMe(body);
-      router.replace("/");
+      router.replace("/?tour=1");
     } catch {
       setSubmitErr(t("onboarding.submitError"));
       setSubmitting(false);

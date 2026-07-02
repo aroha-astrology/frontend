@@ -18,6 +18,7 @@ export const resources = {
         yourPersonal: "Your Personal",
         aiAstrologer: "AI Astrologer",
         dailyHoroscope: "Daily Horoscope",
+        moonSignHoroscope: "Moon Sign Horoscope",
         matchMaking: "Match Making",
         matchMakingDesc: "Discover compatibility based on Vedic astrology.",
         remediesForYou: "Remedies For You",
@@ -50,6 +51,15 @@ export const resources = {
         currentDasha: "Current Dasha Period",
         mahadasha: "Mahadasha",
         antardasha: "Antardasha",
+      },
+      horoscope: {
+        title: "Horoscope",
+        tab: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" },
+        comingSoon: "Soon",
+        personalizedTitle: "Your Personalized Horoscope",
+        personalizedEmpty: "Your personalized horoscope will appear here once today's reading is generated.",
+        moonSignSection: "Moon Sign Horoscope",
+        moonSignSectionHint: "General forecasts by Moon sign — not personalized to your full birth chart.",
       },
       menu: {
         profile: "Profile Settings",

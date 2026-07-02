@@ -1,0 +1,181 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { Sparkles, Star } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
+import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
+import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
+import Card from "@/components/ui/Card";
+
+type Timescale = "daily" | "weekly" | "monthly" | "yearly";
+
+interface PersonalizedHoroscope {
+  forDate: string;
+  summary: string;
+  generatedAt: string;
+}
+
+function PersonalizedCard() {
+  const { t } = useTranslation();
+  const { firebaseUser, loading: authLoading } = useAuth();
+  const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [data, setData] = useState<PersonalizedHoroscope | null>(null);
+
+  useEffect(() => {
+    if (authLoading || !firebaseUser) return;
+    let cancelled = false;
+
+    api
+      .horoscope()
+      .then((res) => {
+        if (cancelled) return;
+        setData(res);
+        setState("ready");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) setState("empty");
+        else setState("error");
+      });
+
+    return () => { cancelled = true; };
+  }, [authLoading, firebaseUser]);
+
+  if (state === "loading") {
+    return (
+      <Card className="p-5 border-gold/10 animate-pulse">
+        <div className="h-4 w-40 rounded bg-gold/10 mb-3" />
+        <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
+        <div className="h-3 w-3/4 rounded bg-gold/5" />
+      </Card>
+    );
+  }
+
+  if (state === "empty") {
+    return (
+      <Card className="p-5 border-gold/10 text-center text-sm text-muted">
+        {t("horoscope.personalizedEmpty")}
+      </Card>
+    );
+  }
+
+  if (state === "error" || !data) return null;
+
+  return (
+    <Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 border-gold/20 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
+        <Sparkles size={14} />
+        {t("horoscope.personalizedTitle")}
+      </div>
+      <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+      <p className="text-[10px] text-muted mt-3">{data.forDate}</p>
+    </Card>
+  );
+}
+
+const TIMESCALES: Timescale[] = ["daily", "weekly", "monthly", "yearly"];
+
+export default function HoroscopePage() {
+  const { t } = useTranslation();
+  const [timescale, setTimescale] = useState<Timescale>("daily");
+  const { forecasts, loading } = useMoonSignForecasts();
+  const [selected, setSelected] = useState<number | null>(null);
+
+  const selectedForecast = selected !== null ? forecasts[selected] : null;
+
+  return (
+    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+      <div className="px-5 pt-10">
+        <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
+
+        {/* Timescale tabs */}
+        <div className="mt-6 grid grid-cols-4 gap-2">
+          {TIMESCALES.map((ts) => {
+            const disabled = ts !== "daily";
+            return (
+              <button
+                key={ts}
+                disabled={disabled}
+                onClick={() => setTimescale(ts)}
+                className={`relative py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                  timescale === ts
+                    ? "border-gold/50 bg-gold/10 text-gold"
+                    : "border-gold/10 text-muted"
+                } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:border-gold/30"}`}
+              >
+                {t(`horoscope.tab.${ts}`)}
+                {disabled && (
+                  <span className="absolute -top-1.5 -right-1.5 text-[8px] px-1 py-0.5 rounded-full bg-surface border border-gold/20 text-muted">
+                    {t("horoscope.comingSoon")}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Personalized horoscope */}
+        <div className="mt-6">
+          <PersonalizedCard />
+        </div>
+
+        {/* Moon-sign section */}
+        <div className="mt-8">
+          <h2 className="text-lg font-display text-foreground mb-1">{t("horoscope.moonSignSection")}</h2>
+          <p className="text-xs text-muted mb-4">{t("horoscope.moonSignSectionHint")}</p>
+
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="p-4 border-gold/10 animate-pulse">
+                  <div className="h-8 w-8 rounded-full bg-gold/10 mb-2" />
+                  <div className="h-3 w-16 rounded bg-gold/10" />
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {forecasts.map((sign, index) => (
+                <Card
+                  key={sign.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="p-4 border-gold/10 hover:border-gold/30 cursor-pointer active:scale-95 transition-transform"
+                  onClick={() => setSelected(index)}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-9 h-9 rounded-full border border-gold/40 flex items-center justify-center text-gold text-base">
+                      {sign.symbol}
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground font-display">{sign.name}</h3>
+                  </div>
+                  <div className="flex gap-0.5 mb-1.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={9} className={i < sign.rating ? "fill-gold text-gold" : "text-gold/20"} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed line-clamp-2">{sign.text}</p>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {selectedForecast?.raw && (
+          <ForecastDetailModal
+            forecast={selectedForecast.raw}
+            sign={{ name: selectedForecast.name, symbol: selectedForecast.symbol, dates: selectedForecast.dates }}
+            onClose={() => setSelected(null)}
+          />
+        )}
+      </AnimatePresence>
+    </main>
+  );
+}

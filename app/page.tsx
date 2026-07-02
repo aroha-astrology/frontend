@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import Hero from "@/components/Hero";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
@@ -58,11 +59,13 @@ export default function HomePage() {
           <KundliSummary />
         </div>
 
-        {/* Daily Horoscopes */}
+        {/* Daily Horoscopes — Moon-sign (rashi-only), distinct from the personalized kundli horoscope */}
         <div className="pl-5 pr-0 mt-8">
           <div className="flex justify-between items-center pr-5 mb-4">
-            <h2 className="text-lg font-display text-foreground">{t("home.dailyHoroscope")}</h2>
-            <button className="text-gold text-sm flex items-center gap-1">{t("common.seeAll")} <span className="text-[10px]">▶</span></button>
+            <h2 className="text-lg font-display text-foreground">{t("home.moonSignHoroscope")}</h2>
+            <Link href="/horoscope" className="text-gold text-sm flex items-center gap-1">
+              {t("common.seeAll")} <span className="text-[10px]">▶</span>
+            </Link>
           </div>
           <HoroscopeSlider />
         </div>

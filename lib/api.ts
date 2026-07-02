@@ -207,10 +207,13 @@ export const api = {
   /** Remedies for the user based on chart. */
   remedies: () => request<{ remedies: RemedyItem[] }>("/v1/remedies", { auth: true }),
 
-  /** Moon-sign daily forecast for a zodiac sign (0-11). */
-  moonSignForecast: (signIndex: number) =>
+  /**
+   * Moon-sign forecast for a zodiac sign (0-11). `period` defaults to daily;
+   * weekly/monthly/yearly are aggregates of the daily engine output.
+   */
+  moonSignForecast: (signIndex: number, period: "daily" | "weekly" | "monthly" | "yearly" = "daily") =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}`, { auth: true }),
+    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}?period=${period}`, { auth: true }),
 
   /**
    * Current user's natal kundli. Returns a discriminated union — caller must

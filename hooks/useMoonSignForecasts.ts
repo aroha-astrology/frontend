@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { zodiac } from "@/data/zodiac";
 import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
-import { forecastToRating, forecastToText, type ForecastData, type SignForecast } from "@/components/horoscope/types";
+import { forecastToRating, forecastToText, type ForecastData, type SignForecast, type Timescale } from "@/components/horoscope/types";
 
 const FALLBACK_TEXT = "Cosmic energies align for you today.";
 
@@ -19,8 +19,8 @@ function fallbackForecasts(): SignForecast[] {
   }));
 }
 
-/** Fetches all 12 moon-sign daily forecasts, shared by the home slider and the /horoscope page. */
-export function useMoonSignForecasts() {
+/** Fetches all 12 moon-sign forecasts for a given timescale, shared by the home slider and the /horoscope page. */
+export function useMoonSignForecasts(period: Timescale = "daily") {
   const { firebaseUser, loading: authLoading } = useAuth();
   const [forecasts, setForecasts] = useState<SignForecast[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +28,12 @@ export function useMoonSignForecasts() {
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
+    setLoading(true);
 
     async function fetchAll() {
       try {
         const results = await Promise.allSettled(
-          zodiac.map((sign) => api.moonSignForecast(sign.index)),
+          zodiac.map((sign) => api.moonSignForecast(sign.index, period)),
         );
 
         if (cancelled) return;
@@ -70,7 +71,7 @@ export function useMoonSignForecasts() {
 
     fetchAll();
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser]);
+  }, [authLoading, firebaseUser, period]);
 
   return { forecasts, loading };
 }

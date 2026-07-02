@@ -1,9 +1,12 @@
 "use client";
 
-import { Star, X, Moon, Sparkles, Palette, Hash, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Star, X, Moon, Sparkles, Palette, Hash, ArrowRight, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { type ForecastData, PLANET_EMOJI, QUALITY_BADGE_KEYS } from "./types";
+import { isDaily, type ForecastData, PLANET_EMOJI, QUALITY_BADGE_KEYS } from "./types";
+
+type ViewMode = "plain" | "technical";
 
 export default function ForecastDetailModal({
   forecast,
@@ -15,7 +18,9 @@ export default function ForecastDetailModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const [view, setView] = useState<ViewMode>("plain");
   const badgeKey = QUALITY_BADGE_KEYS[forecast.quality] ?? QUALITY_BADGE_KEYS.moderate;
+  const daily = isDaily(forecast);
 
   return (
     <motion.div
@@ -35,23 +40,42 @@ export default function ForecastDetailModal({
       >
         {/* Header */}
         <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-gold/10 px-5 py-4 flex items-center justify-between z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full border-2 border-gold/40 flex items-center justify-center text-2xl">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 rounded-full border-2 border-gold/40 flex items-center justify-center text-2xl shrink-0">
               {sign.symbol}
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold font-display text-foreground">{sign.name}</h2>
-              <p className="text-xs text-muted">{forecast.date} &middot; {sign.dates}</p>
+              <p className="text-xs text-muted truncate">
+                {daily ? forecast.date : `${forecast.periodStart} – ${forecast.periodEnd}`} &middot; {sign.dates}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-muted hover:text-foreground transition-colors">
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-muted hover:text-foreground transition-colors shrink-0">
             <X size={16} />
           </button>
         </div>
 
+        {/* Technical / Plain toggle — same underlying data, two renderers */}
+        <div className="px-5 pt-4">
+          <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
+            {(["plain", "technical"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setView(mode)}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                  view === mode ? "bg-gold text-[#1a0e00]" : "text-muted"
+                }`}
+              >
+                {t(`horoscope.toggle.${mode}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="px-5 py-4 space-y-5">
-          {/* Score + Quality */}
-          <div className="flex items-center justify-between">
+          {/* Score + Quality — shown in both views */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={18} className={i < forecast.score ? "fill-gold text-gold" : "text-gold/20"} />
@@ -62,82 +86,118 @@ export default function ForecastDetailModal({
             </span>
           </div>
 
-          {/* Description */}
-          <p className="text-sm text-foreground/90 leading-relaxed">{forecast.description}</p>
+          {view === "plain" ? (
+            <>
+              {/* Hook — the one-line lead, spec 4.1 */}
+              <p className="text-base text-gold font-semibold leading-snug">{forecast.hook}</p>
 
-          {/* Moon Transit */}
-          <div className="bg-surface/50 border border-gold/10 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider">
-              <Moon size={14} />
-              {t("horoscope.detail.moonTransit")}
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-muted text-xs">{t("horoscope.detail.transitSign")}</p>
-                <p className="text-foreground font-medium">{forecast.transitMoonSign}</p>
-              </div>
-              <div>
-                <p className="text-muted text-xs">{t("horoscope.detail.nakshatra")}</p>
-                <p className="text-foreground font-medium">{forecast.transitMoonNakshatra ?? "—"}</p>
-              </div>
-              <div>
-                <p className="text-muted text-xs">{t("horoscope.detail.houseFromSign")}</p>
-                <p className="text-foreground font-medium">{t("horoscope.detail.nthHouse", { n: forecast.houseFromSign })}</p>
-              </div>
-              <div>
-                <p className="text-muted text-xs">{t("horoscope.detail.ashtamaChandra")}</p>
-                <p className={`font-medium ${forecast.isAshtamaChandra ? "text-red-400" : "text-emerald-400"}`}>
-                  {forecast.isAshtamaChandra ? `${t("common.yes")} ⚠️` : `${t("common.no")} ✓`}
-                </p>
-              </div>
-            </div>
-          </div>
+              {/* Supporting explanation */}
+              <p className="text-sm text-foreground/90 leading-relaxed">{forecast.description}</p>
 
-          {/* Lucky Elements */}
-          <div className="flex gap-3">
-            <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-              <Palette size={16} className="text-gold mx-auto mb-1" />
-              <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
-              <p className="text-sm text-foreground font-medium">{forecast.luckyColor}</p>
-            </div>
-            <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-              <Hash size={16} className="text-gold mx-auto mb-1" />
-              <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
-              <p className="text-sm text-foreground font-medium">{forecast.luckyNumber}</p>
-            </div>
-          </div>
-
-          {/* Advice */}
-          <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
-            <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
-              <Sparkles size={14} />
-              {t("horoscope.detail.todaysAdvice")}
-            </div>
-            <p className="text-sm text-foreground/90 leading-relaxed">{forecast.advice}</p>
-          </div>
-
-          {/* Key Transits */}
-          {forecast.keyTransits?.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-3">
-                <ArrowRight size={14} />
-                {t("horoscope.detail.keyTransits")}
+              {/* Advice */}
+              <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
+                  <Sparkles size={14} />
+                  {t("horoscope.detail.todaysAdvice")}
+                </div>
+                <p className="text-sm text-foreground/90 leading-relaxed">{forecast.advice}</p>
               </div>
-              <div className="space-y-2">
-                {forecast.keyTransits.map((transit) => (
-                  <div key={transit.planet} className="flex items-center gap-3 bg-surface/30 border border-gold/5 rounded-lg px-3 py-2.5">
-                    <span className="text-lg">{PLANET_EMOJI[transit.planet] ?? "🪐"}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground font-medium">
-                        {t("horoscope.detail.planetInSign", { planet: transit.planet, sign: transit.sign })}
-                        <span className="text-muted font-normal"> · {t("horoscope.detail.nthHouse", { n: transit.house })}</span>
+
+              {/* Lucky Elements — light, low-stakes addition per spec 1.3 */}
+              <div className="flex gap-3">
+                <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
+                  <Palette size={16} className="text-gold mx-auto mb-1" />
+                  <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
+                  <p className="text-sm text-foreground font-medium">{forecast.luckyColor}</p>
+                </div>
+                <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
+                  <Hash size={16} className="text-gold mx-auto mb-1" />
+                  <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
+                  <p className="text-sm text-foreground font-medium">{forecast.luckyNumber}</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Technical facts — traceable to the calculation, never invented */}
+              {daily ? (
+                <div className="bg-surface/50 border border-gold/10 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider">
+                    <Moon size={14} />
+                    {t("horoscope.detail.moonTransit")}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted text-xs">{t("horoscope.detail.transitSign")}</p>
+                      <p className="text-foreground font-medium">{forecast.transitMoonSign}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted text-xs">{t("horoscope.detail.nakshatra")}</p>
+                      <p className="text-foreground font-medium">{forecast.transitMoonNakshatra ?? "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted text-xs">{t("horoscope.detail.houseFromSign")}</p>
+                      <p className="text-foreground font-medium">{t("horoscope.detail.nthHouse", { n: forecast.houseFromSign })}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted text-xs">{t("horoscope.detail.ashtamaChandra")}</p>
+                      <p className={`font-medium ${forecast.isAshtamaChandra ? "text-red-400" : "text-emerald-400"}`}>
+                        {forecast.isAshtamaChandra ? `${t("common.yes")} ⚠️` : `${t("common.no")} ✓`}
                       </p>
-                      <p className="text-xs text-muted truncate">{transit.influence}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              ) : (
+                <div className="bg-surface/50 border border-gold/10 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider">
+                    <Calendar size={14} />
+                    {t("horoscope.detail.periodSample")}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted text-xs">{t("horoscope.detail.favorableDays")}</p>
+                      <p className="text-foreground font-medium">{forecast.favorableDays} / {forecast.totalDaysSampled}</p>
+                    </div>
+                    {forecast.bestDay && (
+                      <div>
+                        <p className="text-muted text-xs">{t("horoscope.detail.bestDay")}</p>
+                        <p className="text-emerald-400 font-medium">{forecast.bestDay.date} ({forecast.bestDay.score}/5)</p>
+                      </div>
+                    )}
+                    {forecast.worstDay && (
+                      <div>
+                        <p className="text-muted text-xs">{t("horoscope.detail.worstDay")}</p>
+                        <p className="text-amber-400 font-medium">{forecast.worstDay.date} ({forecast.worstDay.score}/5)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Key Transits */}
+              {forecast.keyTransits?.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-3">
+                    <ArrowRight size={14} />
+                    {t("horoscope.detail.keyTransits")}
+                  </div>
+                  <div className="space-y-2">
+                    {forecast.keyTransits.map((transit) => (
+                      <div key={transit.planet} className="flex items-center gap-3 bg-surface/30 border border-gold/5 rounded-lg px-3 py-2.5">
+                        <span className="text-lg">{PLANET_EMOJI[transit.planet] ?? "🪐"}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground font-medium">
+                            {t("horoscope.detail.planetInSign", { planet: transit.planet, sign: transit.sign })}
+                            <span className="text-muted font-normal"> · {t("horoscope.detail.nthHouse", { n: transit.house })}</span>
+                          </p>
+                          <p className="text-xs text-muted truncate">{transit.influence}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

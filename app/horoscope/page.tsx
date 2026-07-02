@@ -8,9 +8,9 @@ import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
+import PanchangStrip from "@/components/horoscope/PanchangStrip";
 import Card from "@/components/ui/Card";
-
-type Timescale = "daily" | "weekly" | "monthly" | "yearly";
+import type { Timescale } from "@/components/horoscope/types";
 
 interface PersonalizedHoroscope {
   forDate: string;
@@ -82,7 +82,7 @@ const TIMESCALES: Timescale[] = ["daily", "weekly", "monthly", "yearly"];
 export default function HoroscopePage() {
   const { t } = useTranslation();
   const [timescale, setTimescale] = useState<Timescale>("daily");
-  const { forecasts, loading } = useMoonSignForecasts();
+  const { forecasts, loading } = useMoonSignForecasts(timescale);
   const [selected, setSelected] = useState<number | null>(null);
 
   const selectedForecast = selected !== null ? forecasts[selected] : null;
@@ -94,34 +94,37 @@ export default function HoroscopePage() {
 
         {/* Timescale tabs */}
         <div className="mt-6 grid grid-cols-4 gap-2 items-stretch">
-          {TIMESCALES.map((ts) => {
-            const disabled = ts !== "daily";
-            return (
-              <button
-                key={ts}
-                disabled={disabled}
-                onClick={() => setTimescale(ts)}
-                className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 rounded-xl text-xs font-medium border text-center transition-colors ${
-                  timescale === ts
-                    ? "border-gold/50 bg-gold/10 text-gold"
-                    : "border-gold/10 text-muted"
-                } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:border-gold/30"}`}
-              >
-                <span className="leading-tight">{t(`horoscope.tab.${ts}`)}</span>
-                {disabled && (
-                  <span className="text-[9px] leading-none px-1.5 py-0.5 rounded-full bg-surface border border-gold/20">
-                    {t("horoscope.comingSoon")}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {TIMESCALES.map((ts) => (
+            <button
+              key={ts}
+              onClick={() => {
+                setTimescale(ts);
+                setSelected(null);
+              }}
+              className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 rounded-xl text-xs font-medium border text-center transition-colors ${
+                timescale === ts
+                  ? "border-gold/50 bg-gold/10 text-gold"
+                  : "border-gold/10 text-muted hover:border-gold/30"
+              }`}
+            >
+              <span className="leading-tight">{t(`horoscope.tab.${ts}`)}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Personalized horoscope */}
+        {/* Panchang strip — same across all timescales/chart styles (spec 3.1) */}
         <div className="mt-6">
-          <PersonalizedCard />
+          <PanchangStrip />
         </div>
+
+        {/* Personalized horoscope — daily only for now (weekly/monthly/yearly
+            personalized readings aren't generated yet, only the moon-sign
+            section below supports all four timescales) */}
+        {timescale === "daily" && (
+          <div className="mt-4">
+            <PersonalizedCard />
+          </div>
+        )}
 
         {/* Moon-sign section */}
         <div className="mt-8">

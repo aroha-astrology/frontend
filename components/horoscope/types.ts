@@ -1,6 +1,8 @@
 // Shared types + parsing helpers for moon-sign forecast cards, used by both
 // the home-page slider and the full /horoscope page so the two never drift.
 
+export type Timescale = "daily" | "weekly" | "monthly" | "yearly";
+
 export interface KeyTransit {
   planet: string;
   sign: string;
@@ -8,7 +10,9 @@ export interface KeyTransit {
   influence: string;
 }
 
-export interface ForecastData {
+/** Mirrors the backend's daily MoonSignPrediction. */
+export interface DailyForecastData {
+  period: "daily";
   sign: string;
   date: string;
   transitMoonSign: string;
@@ -18,11 +22,38 @@ export interface ForecastData {
   isAshtamaChandra: boolean;
   quality: string;
   score: number;
+  hook: string;
   description: string;
   advice: string;
   luckyColor: string;
   luckyNumber: number;
   keyTransits: KeyTransit[];
+}
+
+/** Mirrors the backend's PeriodicMoonSignPrediction (weekly/monthly/yearly). */
+export interface PeriodicForecastData {
+  period: "weekly" | "monthly" | "yearly";
+  sign: string;
+  periodStart: string;
+  periodEnd: string;
+  score: number;
+  quality: string;
+  favorableDays: number;
+  totalDaysSampled: number;
+  bestDay?: { date: string; score: number };
+  worstDay?: { date: string; score: number };
+  hook: string;
+  description: string;
+  advice: string;
+  luckyColor: string;
+  luckyNumber: number;
+  keyTransits: KeyTransit[];
+}
+
+export type ForecastData = DailyForecastData | PeriodicForecastData;
+
+export function isDaily(f: ForecastData): f is DailyForecastData {
+  return f.period === "daily";
 }
 
 export interface SignForecast {
@@ -51,6 +82,7 @@ export function forecastToText(forecast: unknown): string {
   if (forecast == null) return "Cosmic energies align for you today.";
   if (typeof forecast === "object" && forecast !== null) {
     const f = forecast as Record<string, unknown>;
+    if (typeof f.hook === "string") return f.hook;
     if (typeof f.description === "string") return f.description;
     if (typeof f.summary === "string") return f.summary;
   }

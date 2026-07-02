@@ -33,6 +33,8 @@ export interface User {
   timeOfBirth: string | null; // HH:mm[:ss]
   placeOfBirth: PlaceOfBirth | null;
   profileCompletedAt: string | null;
+  /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
+  dataProcessingConsentActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -104,6 +106,50 @@ export interface MonthlyBreakdownEntry {
   summary: string;
 }
 
+/** Mirrors the moon-sign forecast cards' shape so the personalized card can reuse the same Plain-view UI. */
+export interface StructuredHoroscope {
+  hook: string;
+  description: string;
+  advice: string;
+  quality: "good" | "moderate" | "challenging" | "avoid";
+  score: number; // 1-5
+  luckyColor: string;
+  luckyNumber: number;
+}
+
+// ─── Panchang ──────────────────────────────────────────────────────────────
+
+export interface PanchangTimeWindow {
+  start: string;
+  end: string;
+}
+
+export interface PanchangRegionalMonth {
+  region: "north" | "south" | "west" | "east";
+  calendar: string;
+  monthSystem: string;
+  monthIndex: number;
+  monthName: string;
+  paksha?: string;
+  year: number;
+}
+
+export interface PanchangData {
+  date: string;
+  tithi: { number: number; name: string; paksha: string; deity: string; isAuspicious: boolean } | null;
+  nakshatra: { index: number; name: string; lord: string; pada: number; deity: string } | null;
+  yoga: { index: number; name: string; isAuspicious: boolean } | null;
+  karana: { index: number; name: string; isFixed: boolean } | null;
+  vara?: string;
+  rahuKaal?: PanchangTimeWindow;
+  gulikaKaal?: PanchangTimeWindow;
+  yamagandaKaal?: PanchangTimeWindow;
+  abhijitMuhurta?: PanchangTimeWindow;
+  sunriseTime?: string;
+  sunsetTime?: string;
+  regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+}
+
 export interface PersonalizedHoroscope {
   forDate: string;
   period: PersonalizedHoroscopePeriod;
@@ -111,6 +157,8 @@ export interface PersonalizedHoroscope {
   summary: string;
   /** Only present when `period === "yearly"`. */
   monthlyBreakdown?: MonthlyBreakdownEntry[];
+  /** Only present for daily/weekly/monthly — the rich Plain-view fields. */
+  structured?: StructuredHoroscope;
   model: string | null;
   generatedAt: string;
 }
@@ -274,7 +322,7 @@ export const api = {
     if (lon != null) params.set("lon", String(lon));
     if (date) params.set("date", date);
     const qs = params.toString();
-    return request<Record<string, unknown>>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
+    return request<PanchangData>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
   },
 
   /**

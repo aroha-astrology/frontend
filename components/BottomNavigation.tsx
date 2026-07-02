@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, Sparkles, Moon, Flame } from "lucide-react";
+import { Home, LayoutGrid, Sparkles, Moon, CalendarDays } from "lucide-react";
 import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
 
@@ -43,9 +43,9 @@ export default function BottomNavigation() {
           <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.horoscope")}</span>
         </Link>
 
-        <Link href="/remedies" data-tour="nav-remedies" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/remedies" ? "text-gold" : "text-muted")}>
-          <Flame size={22} />
-          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.remedies")}</span>
+        <Link href="/panchang" data-tour="nav-panchang" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/panchang" ? "text-gold" : "text-muted")}>
+          <CalendarDays size={22} />
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.panchang")}</span>
         </Link>
         
       </div>

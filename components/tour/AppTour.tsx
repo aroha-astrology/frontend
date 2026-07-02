@@ -146,64 +146,74 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
   return createPortal(
     <>
       <div style={spotlightStyle} />
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step.id}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
-          style={tooltipStyle}
-          className="bg-card border border-gold/30 rounded-2xl shadow-2xl p-5"
-        >
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <h3 className="text-base font-semibold font-display text-foreground">{t(step.titleKey)}</h3>
-            <button
-              onClick={finish}
-              aria-label={t("tour.skip")}
-              className="w-7 h-7 shrink-0 rounded-full bg-surface flex items-center justify-center text-muted hover:text-foreground transition-colors"
-            >
-              <X size={14} />
-            </button>
-          </div>
-          <p className="text-sm text-muted leading-relaxed mb-4">{t(step.bodyKey)}</p>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex gap-1.5 shrink-0">
-              {TOUR_STEPS.map((s, i) => (
-                <div
-                  key={s.id}
-                  className="rounded-full transition-all duration-300"
-                  style={{
-                    width: i === stepIndex ? 16 : 6,
-                    height: 6,
-                    background: i <= stepIndex ? "var(--gold)" : "var(--border)",
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {stepIndex > 0 && (
-                <button
-                  onClick={goBack}
-                  className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center text-muted hover:text-foreground transition-colors"
-                  aria-label={t("tour.back")}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-              )}
+      {/*
+        Positioning lives on this plain div (translateX(-50%) centering,
+        width/maxHeight/scroll) — kept separate from the motion.div below.
+        framer-motion owns the `transform` CSS property outright once it's
+        animating `y` on an element, so a manual `translateX(-50%)` set via
+        the `style` prop on the SAME motion.div gets silently dropped after
+        the enter animation settles, leaving the card's left edge pinned at
+        50% instead of centered (and spilling off the right edge).
+      */}
+      <div style={tooltipStyle}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="bg-card border border-gold/30 rounded-2xl shadow-2xl p-5"
+          >
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h3 className="text-base font-semibold font-display text-foreground">{t(step.titleKey)}</h3>
               <button
-                onClick={goNext}
-                className="h-8 px-4 rounded-full bg-gold text-[#1a0e00] text-xs font-semibold flex items-center gap-1 whitespace-nowrap active:scale-95 transition-transform"
+                onClick={finish}
+                aria-label={t("tour.skip")}
+                className="w-7 h-7 shrink-0 rounded-full bg-surface flex items-center justify-center text-muted hover:text-foreground transition-colors"
               >
-                {stepIndex === TOUR_STEPS.length - 1 ? t("tour.done") : t("tour.next")}
-                {stepIndex !== TOUR_STEPS.length - 1 && <ChevronRight size={14} />}
+                <X size={14} />
               </button>
             </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+            <p className="text-sm text-muted leading-relaxed mb-4">{t(step.bodyKey)}</p>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-1.5 shrink-0">
+                {TOUR_STEPS.map((s, i) => (
+                  <div
+                    key={s.id}
+                    className="rounded-full transition-all duration-300"
+                    style={{
+                      width: i === stepIndex ? 16 : 6,
+                      height: 6,
+                      background: i <= stepIndex ? "var(--gold)" : "var(--border)",
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {stepIndex > 0 && (
+                  <button
+                    onClick={goBack}
+                    className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center text-muted hover:text-foreground transition-colors"
+                    aria-label={t("tour.back")}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                )}
+                <button
+                  onClick={goNext}
+                  className="h-8 px-4 rounded-full bg-gold text-[#1a0e00] text-xs font-semibold flex items-center gap-1 whitespace-nowrap active:scale-95 transition-transform"
+                >
+                  {stepIndex === TOUR_STEPS.length - 1 ? t("tour.done") : t("tour.next")}
+                  {stepIndex !== TOUR_STEPS.length - 1 && <ChevronRight size={14} />}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </>,
     document.body,
   );

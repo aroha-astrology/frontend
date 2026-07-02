@@ -12,7 +12,7 @@ export const TOUR_STEPS: TourStep[] = [
   { id: "kundli", target: "kundli-summary", titleKey: "tour.kundliTitle", bodyKey: "tour.kundliBody" },
   { id: "askai", target: "ask-ai", titleKey: "tour.askAiTitle", bodyKey: "tour.askAiBody" },
   { id: "horoscope-tab", target: "nav-horoscope", titleKey: "tour.horoscopeTabTitle", bodyKey: "tour.horoscopeTabBody" },
-  { id: "remedies", target: "nav-remedies", titleKey: "tour.remediesTitle", bodyKey: "tour.remediesBody" },
+  { id: "panchang", target: "nav-panchang", titleKey: "tour.panchangTitle", bodyKey: "tour.panchangBody" },
 ];
 
 /** localStorage key marking the tour as seen (skipped or completed). */

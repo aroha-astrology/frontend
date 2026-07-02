@@ -83,6 +83,7 @@ export default function PanchangStrip() {
 
   return (
     <Card initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 border-gold/10">
+      <p className="text-[10px] text-muted uppercase tracking-wider mb-2.5">{t("horoscope.panchang.todayTitle")}</p>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
         {facts.filter((f) => f.value).map((f) => (
           <div key={f.label} className="min-w-[84px] shrink-0 text-center">

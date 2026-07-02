@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Sparkles, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { api, ApiError, type KundliResult } from "@/lib/api";
+import { readNested, readString } from "@/lib/kundli-helpers";
 import { useAuth } from "@/providers/auth-provider";
 
 /**
@@ -201,23 +202,4 @@ function ReadyState({ kundli }: { kundli: Extract<KundliResult, { status: "ready
       </Link>
     </div>
   );
-}
-
-/* ---------- Defensive readers for the loose chart/dasha bags ---------- */
-
-function readString(obj: Record<string, unknown> | null, key: string): string | undefined {
-  const v = obj?.[key];
-  return typeof v === "string" ? v : undefined;
-}
-
-function readNested(obj: Record<string, unknown> | null, path: string[]): string | undefined {
-  let cur: unknown = obj;
-  for (const k of path) {
-    if (cur && typeof cur === "object" && k in (cur as Record<string, unknown>)) {
-      cur = (cur as Record<string, unknown>)[k];
-    } else {
-      return undefined;
-    }
-  }
-  return typeof cur === "string" ? cur : undefined;
 }

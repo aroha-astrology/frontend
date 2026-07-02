@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
@@ -7,11 +8,12 @@ import Card from "@/components/ui/Card";
 export default function MatchMakingCard() {
   const { t } = useTranslation();
   return (
+    <Link href="/compatibility">
     <Card
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="w-full overflow-hidden flex flex-row items-center justify-between p-5 hover:border-gold/40 cursor-pointer"
+      className="w-full overflow-hidden flex flex-row items-center justify-between p-5 hover:border-gold/40 cursor-pointer active:scale-[0.98] transition-transform"
     >
       <div className="flex items-center gap-4 flex-1">
         {/* Circle with two silhouettes */}
@@ -38,5 +40,6 @@ export default function MatchMakingCard() {
         <ChevronRight size={16} />
       </div>
     </Card>
+    </Link>
   );
 }

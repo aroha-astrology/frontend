@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Sparkles, Star } from "lucide-react";
+import { ChevronRight, Hash, Palette, Sparkles, Star } from "lucide-react";
 import { api, ApiError, type PersonalizedHoroscope } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
@@ -12,6 +12,7 @@ import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal"
 import PanchangStrip from "@/components/horoscope/PanchangStrip";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
+import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 
 function PersonalizedCard({ period }: { period: Timescale }) {
   const { t } = useTranslation();
@@ -64,16 +65,59 @@ function PersonalizedCard({ period }: { period: Timescale }) {
 
   const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
   const year = data.forDate.slice(0, 4);
+  const s = data.structured;
+  const badgeKey = s ? (QUALITY_BADGE_KEYS[s.quality] ?? QUALITY_BADGE_KEYS.moderate) : null;
 
   return (
     <>
       <Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 border-gold/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-24 h-24 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
+        <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-3">
           <Sparkles size={14} />
           {t("horoscope.personalizedTitle")}
         </div>
-        <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+
+        {s && badgeKey ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={16} className={i < s.score ? "fill-gold text-gold" : "text-gold/20"} />
+                ))}
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
+                {t(badgeKey.i18nKey)}
+              </span>
+            </div>
+
+            <p className="text-base text-gold font-semibold leading-snug">{s.hook}</p>
+            <p className="text-sm text-foreground/90 leading-relaxed">{s.description}</p>
+
+            <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
+                <Sparkles size={14} />
+                {t("horoscope.detail.todaysAdvice")}
+              </div>
+              <p className="text-sm text-foreground/90 leading-relaxed">{s.advice}</p>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
+                <Palette size={16} className="text-gold mx-auto mb-1" />
+                <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
+                <p className="text-sm text-foreground font-medium">{s.luckyColor}</p>
+              </div>
+              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
+                <Hash size={16} className="text-gold mx-auto mb-1" />
+                <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
+                <p className="text-sm text-foreground font-medium">{s.luckyNumber}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+        )}
+
         <div className="flex items-center justify-between mt-3">
           <p className="text-[10px] text-muted">{data.forDate}</p>
           {hasMonths && (

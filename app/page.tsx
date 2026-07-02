@@ -16,12 +16,14 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
 import KundliSummary from "@/components/KundliSummary";
 import SidebarMenu from "@/components/SidebarMenu";
+import NotificationsSheet from "@/components/NotificationsSheet";
 import IconButton from "@/components/ui/IconButton";
 import { Menu, Bell } from "lucide-react";
 
 export default function HomePage() {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
     <main className="cosmic-bg min-h-screen pb-28 relative overflow-hidden text-foreground">
@@ -30,6 +32,7 @@ export default function HomePage() {
       <MoonBackground />
       <SplashScreen />
       <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
       <div className="relative z-10">
         {/* Top bar */}
@@ -40,7 +43,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <LanguagePicker />
             <ThemeSwitch />
-            <IconButton aria-label="Notifications">
+            <IconButton aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>
               <Bell size={20} />
             </IconButton>
           </div>
@@ -79,7 +82,7 @@ export default function HomePage() {
         <div className="px-5 mt-8 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-display text-foreground">{t("home.remediesForYou")}</h2>
-            <button className="text-gold text-sm">{t("common.viewAll")}</button>
+            <Link href="/remedies" className="text-gold text-sm">{t("common.viewAll")}</Link>
           </div>
           <RemediesSection />
         </div>

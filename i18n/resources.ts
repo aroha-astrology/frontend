@@ -73,6 +73,15 @@ export const resources = {
         health: "Health &\nWellness",
         peace: "Peace &\nPositivity",
       },
+      remediesPage: {
+        title: "Daily Remedies",
+        subtitle: "Vedic remedies to harmonise your planetary energies",
+        loadError: "Unable to load remedies. Please try again later.",
+      },
+      notifications: {
+        title: "Notifications",
+        empty: "You're all caught up — no notifications yet.",
+      },
       auth: {
         welcomeBack: "Welcome Back",
         beginJourney: "Begin Your Journey",

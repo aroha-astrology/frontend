@@ -46,20 +46,31 @@ export interface BirthInput {
   timezone: string;   // IANA tz
 }
 
-// Onboarding
-export interface OnboardingResponse {
-  requestId: string;
-  intent: string;
-  metrology: Metrology | null;
-  findings: Record<string, unknown>[];
-  warnings: string[];
+// Onboarding (mirrors the deployed OnboardingResponse schema)
+export interface OnboardingCharts {
+  planets?: PlanetPosition[];
+  houses?: unknown[];
+  chart?: {
+    ascendant?: {
+      ascendantSign?: string;
+      sign?: string;
+      ascendantDegree?: number;
+      degree?: number;
+      signIndex?: number;
+    };
+  } & Record<string, unknown>;
+  dasha?: {
+    currentMahadasha?: DashaPeriod;
+    currentAntardasha?: DashaPeriod;
+    mahadashaSequence?: DashaPeriod[];
+  };
 }
 
-export interface Metrology {
-  planets: PlanetPosition[];
-  ascendant: AscendantInfo;
-  vimshottariDasha: VimshottariDasha;
-  divisionalCharts?: Record<string, unknown>;
+export interface OnboardingResponse {
+  profileId: string;
+  summary: string;
+  charts?: OnboardingCharts;
+  insights?: string[];
 }
 
 export interface PlanetPosition {
@@ -74,50 +85,54 @@ export interface PlanetPosition {
   isRetrograde: boolean;
 }
 
-export interface AscendantInfo {
-  ascendantSign: string;
-  ascendantSignIndex: number;
-  ascendantDegree: number;
-}
-
-export interface VimshottariDasha {
-  currentMahadasha: DashaPeriod;
-  currentAntardasha: DashaPeriod;
-  mahadashaSequence?: DashaPeriod[];
-}
-
 export interface DashaPeriod {
-  planet: string;
-  start: string;
-  end: string;
+  planet?: string;
+  /** Some engine versions emit `lord` instead of `planet`. */
+  lord?: string;
+  start?: string;
+  end?: string;
 }
 
-// Matchmaking
-export interface KootaScore {
-  koota: string;
-  maxScore: number;
-  score: number;
-  compatibility: string;
-}
-
-export interface MatchmakingCompatibility {
-  scores: KootaScore[];
-  totalScore: number;
-  maxTotal: number;
-  overallCompatibility: string;
+// Matchmaking (mirrors the deployed MatchmakingResponse schema)
+export interface KutaDetail {
+  name: string;
+  obtained: number;
+  maximum: number;
+  description?: string;
 }
 
 export interface MatchmakingResponse {
-  requestId: string;
-  compatibility: MatchmakingCompatibility | null;
-  findings?: Record<string, unknown>[];
-  warnings?: string[];
+  totalScore: number;
+  maxScore: number;
+  kutaDetails: KutaDetail[];
+  /** Overall verdict string, e.g. "Good", "Excellent". */
+  compatibility: string;
+  /** Deterministic, template-based summary built only from the computed scores/flags below. */
+  recommendation?: string;
+  /** Near-disqualifying red flags, checked independently of the 36-point total. */
+  flags?: { nadiDosha: boolean; bhakootDosha: boolean };
+  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system. */
+  mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
+}
+
+/** Which astrologer persona to chat with — determines which chart-fact slice the backend injects. */
+export type ChatPersona = "career" | "love" | "health" | "general";
+
+/** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
+export interface ChatHistoryTurn {
+  role: "user" | "assistant";
+  content: string;
 }
 
 // Chat SSE events
 export interface ChatTokenEvent {
   type: "token";
   data: { content: string };
+}
+
+export interface ChatSummaryEvent {
+  type: "summary";
+  data: { summary: string };
 }
 
 export interface ChatDoneEvent {
@@ -130,7 +145,7 @@ export interface ChatErrorEvent {
   data: { error: string };
 }
 
-export type ChatStreamEvent = ChatTokenEvent | ChatDoneEvent | ChatErrorEvent;
+export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent;
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
@@ -207,7 +222,14 @@ export async function matchmaking(
  */
 export async function* streamChat(
   message: string,
-  opts?: { locale?: string },
+  opts?: {
+    locale?: string;
+    persona?: ChatPersona;
+    /** Recent turns to carry forward; omit turns already folded into `summary`. */
+    history?: ChatHistoryTurn[];
+    /** Running summary returned by a prior turn's `summary` event. */
+    summary?: string;
+  },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
 
@@ -217,6 +239,9 @@ export async function* streamChat(
     body: JSON.stringify({
       message,
       locale: opts?.locale ?? "en",
+      persona: opts?.persona ?? "general",
+      history: opts?.history ?? [],
+      ...(opts?.summary ? { summary: opts.summary } : {}),
     }),
   });
 
@@ -268,6 +293,8 @@ export async function* streamChat(
 
           if (eventType === "token") {
             yield { type: "token", data: { content: data.content ?? "" } };
+          } else if (eventType === "summary") {
+            yield { type: "summary", data: { summary: data.summary ?? "" } };
           } else if (eventType === "done") {
             yield { type: "done", data: { status: data.status ?? "complete" } };
           } else if (eventType === "error") {

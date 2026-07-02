@@ -34,13 +34,15 @@ function normalizeChart(source: Record<string, any>): {
   divisionalCharts: Record<string, any>;
   findings: any[];
 } {
-  // Swarm onboarding format: metrology at top level
-  // REST kundli format: chart object with nested data
-  const chart = source.metrology ?? source.chart ?? source;
+  // Swarm onboarding format (deployed): planets/houses/dasha live under `charts`.
+  // REST kundli format: chart object with nested data. `metrology` is a legacy
+  // alias kept for any older/local swarm responses still using that shape.
+  const chart = source.charts ?? source.metrology ?? source.chart ?? source;
   return {
     planets: chart.planets ?? [],
     houses: chart.houses ?? [],
-    ascendant: chart.ascendant ?? null,
+    // Deployed onboarding response nests ascendant one level deeper (charts.chart.ascendant).
+    ascendant: chart.ascendant ?? chart.chart?.ascendant ?? null,
     dasha: chart.vimshottariDasha ?? chart.dasha ?? null,
     divisionalCharts: chart.divisionalCharts ?? {},
     findings: source.findings ?? [],
@@ -86,7 +88,7 @@ export default function KundliPage() {
 
   // Determine which data source to use
   const hasExisting = kundli?.status === "ready" && kundli.chart;
-  const hasFresh = freshResult?.metrology;
+  const hasFresh = freshResult?.charts;
   const hasData = hasExisting || hasFresh;
 
   const chartData = hasExisting

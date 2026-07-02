@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send } from "lucide-react";
+import { Send, Briefcase, Heart, Leaf, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { streamChat } from "@/lib/swarm-api";
+import { streamChat, type ChatPersona } from "@/lib/swarm-api";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,8 +12,16 @@ interface Message {
   isError?: boolean;
 }
 
+const PERSONAS: { key: ChatPersona; icon: typeof Sparkles; labelKey: string }[] = [
+  { key: "general", icon: Sparkles, labelKey: "aiChatPage.personaGeneral" },
+  { key: "career", icon: Briefcase, labelKey: "aiChatPage.personaCareer" },
+  { key: "love", icon: Heart, labelKey: "aiChatPage.personaLove" },
+  { key: "health", icon: Leaf, labelKey: "aiChatPage.personaHealth" },
+];
+
 export default function AIChatPage() {
   const { t } = useTranslation();
+  const [persona, setPersona] = useState<ChatPersona>("general");
   const suggestions = [
     t("aiChatPage.suggestion1"),
     t("aiChatPage.suggestion2"),
@@ -49,7 +57,7 @@ export default function AIChatPage() {
     setStreaming(true);
 
     try {
-      const stream = streamChat(msg);
+      const stream = streamChat(msg, { persona });
       let fullContent = "";
 
       for await (const event of stream) {
@@ -117,7 +125,7 @@ export default function AIChatPage() {
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming]);
+  }, [input, streaming, persona]);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
@@ -128,6 +136,24 @@ export default function AIChatPage() {
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed">
           {t("aiChatPage.disclosure")}
         </p>
+      </div>
+
+      {/* Persona selector */}
+      <div className="flex gap-2 px-4 pt-3 justify-center">
+        {PERSONAS.map(({ key, icon: Icon, labelKey }) => (
+          <button
+            key={key}
+            onClick={() => setPersona(key)}
+            disabled={streaming}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border transition-colors disabled:opacity-40 ${
+              persona === key ? "border-yellow-500 text-yellow-500 bg-yellow-500/10" : "border-transparent"
+            }`}
+            style={persona === key ? {} : { background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+          >
+            <Icon size={13} />
+            {t(labelKey)}
+          </button>
+        ))}
       </div>
 
       {/* Suggestion chips */}

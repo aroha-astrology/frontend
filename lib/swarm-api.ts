@@ -107,8 +107,16 @@ export interface MatchmakingResponse {
   kutaDetails: KutaDetail[];
   /** Overall verdict string, e.g. "Good", "Excellent". */
   compatibility: string;
+  /** Deterministic, template-based summary built only from the computed scores/flags below. */
   recommendation?: string;
+  /** Near-disqualifying red flags, checked independently of the 36-point total. */
+  flags?: { nadiDosha: boolean; bhakootDosha: boolean };
+  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system. */
+  mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
 }
+
+/** Which astrologer persona to chat with — determines which chart-fact slice the backend injects. */
+export type ChatPersona = "career" | "love" | "health" | "general";
 
 // Chat SSE events
 export interface ChatTokenEvent {
@@ -203,7 +211,7 @@ export async function matchmaking(
  */
 export async function* streamChat(
   message: string,
-  opts?: { locale?: string },
+  opts?: { locale?: string; persona?: ChatPersona },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
 
@@ -213,6 +221,7 @@ export async function* streamChat(
     body: JSON.stringify({
       message,
       locale: opts?.locale ?? "en",
+      persona: opts?.persona ?? "general",
     }),
   });
 

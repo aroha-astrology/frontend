@@ -32,6 +32,9 @@ export default function CompatibilityPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MatchmakingResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Matchmaking involves a second person's birth data, often entered without
+  // them present — require an explicit consent acknowledgement before submit.
+  const [consented, setConsented] = useState(false);
 
   const updatePerson = (who: "boy" | "girl", field: keyof PersonForm, value: string) => {
     setForm((prev) => ({
@@ -41,7 +44,7 @@ export default function CompatibilityPage() {
   };
 
   const check = async () => {
-    if (!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob) return;
+    if (!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || !consented) return;
 
     setLoading(true);
     setError(null);
@@ -80,9 +83,12 @@ export default function CompatibilityPage() {
   const maxTotal = result?.maxScore ?? 36;
   const pct = maxTotal > 0 ? Math.round((totalScore / maxTotal) * 100) : 0;
   // Nadi (0/8) and Bhakoot (0/7) doshas are near-disqualifying red flags in
-  // traditional matching — surface them before the total score.
+  // traditional matching — surface them before the total score. Prefer the
+  // backend's computed flags; fall back to deriving from kutaDetails.
   const redFlags = (result?.kutaDetails ?? []).filter(
-    (k) => (k.name === "Nadi" || k.name === "Bhakoot") && k.obtained === 0,
+    (k) =>
+      (k.name === "Nadi" && (result?.flags?.nadiDosha ?? k.obtained === 0)) ||
+      (k.name === "Bhakoot" && (result?.flags?.bhakootDosha ?? k.obtained === 0)),
   );
 
   const verdictColor =
@@ -157,9 +163,19 @@ export default function CompatibilityPage() {
             {renderPersonFields("girl", t("compatibilityPage.person2"))}
           </div>
 
+          <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer" style={{ color: "var(--text-muted)" }}>
+            <input
+              type="checkbox"
+              checked={consented}
+              onChange={(e) => setConsented(e.target.checked)}
+              className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
+            />
+            {t("compatibilityPage.consent")}
+          </label>
+
           <button
             onClick={check}
-            disabled={!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || loading}
+            disabled={!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || !consented || loading}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
           >
             {loading ? t("compatibilityPage.computing") : t("compatibilityPage.checkBtn")}
@@ -241,6 +257,19 @@ export default function CompatibilityPage() {
                 </div>
               ))}
             </div>
+
+            {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system */}
+            {result.mangalDosha && (
+              <div className="mt-4 flex justify-between items-center text-sm" style={{ color: "var(--text-muted)" }}>
+                <span>{t("compatibilityPage.mangalDosha")}</span>
+                <span className={`font-medium ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
+                  {t("compatibilityPage.mangalDoshaStatus", {
+                    p1: result.mangalDosha.person1 ? t("common.yes") : t("common.no"),
+                    p2: result.mangalDosha.person2 ? t("common.yes") : t("common.no"),
+                  })}
+                </span>
+              </div>
+            )}
 
             <p className="mt-4 text-sm text-[var(--text-muted)] leading-relaxed">
               {t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal })}

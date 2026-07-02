@@ -47,7 +47,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
             aria-hidden
           />
 
@@ -59,7 +59,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="fixed left-0 top-0 bottom-0 z-50 w-[84%] max-w-[340px] bg-card border-r border-gold/20 shadow-2xl flex flex-col"
+            className="fixed left-0 top-0 bottom-0 z-[70] w-[84%] max-w-[340px] bg-card border-r border-gold/20 shadow-2xl flex flex-col"
           >
             {/* Header */}
             <div className="flex items-start justify-between px-5 pt-6 pb-5 border-b border-gold/10">

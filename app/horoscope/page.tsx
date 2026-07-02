@@ -3,33 +3,31 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Sparkles, Star } from "lucide-react";
-import { api, ApiError } from "@/lib/api";
+import { ChevronRight, Sparkles, Star } from "lucide-react";
+import { api, ApiError, type PersonalizedHoroscope } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
+import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PanchangStrip from "@/components/horoscope/PanchangStrip";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
 
-interface PersonalizedHoroscope {
-  forDate: string;
-  summary: string;
-  generatedAt: string;
-}
-
-function PersonalizedCard() {
+function PersonalizedCard({ period }: { period: Timescale }) {
   const { t } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
+  const [showMonths, setShowMonths] = useState(false);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
+    setState("loading");
+    setShowMonths(false);
 
     api
-      .horoscope()
+      .horoscope(period)
       .then((res) => {
         if (cancelled) return;
         setData(res);
@@ -42,7 +40,7 @@ function PersonalizedCard() {
       });
 
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser]);
+  }, [authLoading, firebaseUser, period]);
 
   if (state === "loading") {
     return (
@@ -64,16 +62,43 @@ function PersonalizedCard() {
 
   if (state === "error" || !data) return null;
 
+  const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
+  const year = data.forDate.slice(0, 4);
+
   return (
-    <Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 border-gold/20 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
-        <Sparkles size={14} />
-        {t("horoscope.personalizedTitle")}
-      </div>
-      <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
-      <p className="text-[10px] text-muted mt-3">{data.forDate}</p>
-    </Card>
+    <>
+      <Card initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 border-gold/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
+          <Sparkles size={14} />
+          {t("horoscope.personalizedTitle")}
+        </div>
+        <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-[10px] text-muted">{data.forDate}</p>
+          {hasMonths && (
+            <button
+              onClick={() => setShowMonths(true)}
+              className="flex items-center gap-0.5 text-[11px] font-medium text-gold hover:text-gold-light transition-colors"
+            >
+              {t("horoscope.viewMonthByMonth")}
+              <ChevronRight size={12} />
+            </button>
+          )}
+        </div>
+      </Card>
+
+      <AnimatePresence>
+        {showMonths && hasMonths && (
+          <MonthlyBreakdownModal
+            year={year}
+            overview={data.summary}
+            months={data.monthlyBreakdown!}
+            onClose={() => setShowMonths(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -117,14 +142,13 @@ export default function HoroscopePage() {
           <PanchangStrip />
         </div>
 
-        {/* Personalized horoscope — daily only for now (weekly/monthly/yearly
-            personalized readings aren't generated yet, only the moon-sign
-            section below supports all four timescales) */}
-        {timescale === "daily" && (
-          <div className="mt-4">
-            <PersonalizedCard />
-          </div>
-        )}
+        {/* Personalized horoscope — grounded in the user's own chart, distinct
+            from the generic per-sign moon-sign section below. Available for
+            all four timescales; yearly additionally offers a month-by-month
+            detail view. */}
+        <div className="mt-4">
+          <PersonalizedCard period={timescale} />
+        </div>
 
         {/* Moon-sign section */}
         <div className="mt-8">

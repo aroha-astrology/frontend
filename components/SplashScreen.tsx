@@ -2,11 +2,18 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import ZodiacSilhouette from "./ZodiacSilhouette";
 import BrandLogo from "./ui/BrandLogo";
 
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  // Default to the dark splash until the theme resolves client-side, matching
+  // the app's default — avoids a flash of the wrong background on first paint.
+  const isLight = mounted && resolvedTheme === "light";
 
   useEffect(() => {
     // Increase duration slightly so the user can enjoy the premium loading animation
@@ -21,16 +28,21 @@ export default function SplashScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#05060A]"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden transition-colors duration-300"
+          style={{ backgroundColor: isLight ? "#FAF7F0" : "#05060A" }}
         >
           {/* Subtle star particle effect behind the wheel */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent opacity-50" />
 
-          {/* Massive rotating Zodiac Wheel in the background */}
+          {/* Massive rotating Zodiac Wheel in the background — screen-blend
+              brightens against the dark splash; on the light splash that blend
+              mode washes it out to nothing, so switch to multiply there. */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-            className="absolute flex items-center justify-center opacity-20 mix-blend-screen pointer-events-none"
+            className={`absolute flex items-center justify-center pointer-events-none ${
+              isLight ? "opacity-15 mix-blend-multiply" : "opacity-20 mix-blend-screen"
+            }`}
           >
             <ZodiacSilhouette src="/zodiac_wheel.png" className="w-[800px] h-[800px] text-gold drop-shadow-[0_0_15px_rgba(223,181,100,0.3)]" />
           </motion.div>

@@ -115,6 +115,7 @@ export default function OnboardingPage() {
   const [inputErr, setInputErr] = useState("");
   const [answers, setAnswers] = useState<Partial<Answers>>({});
   const [showConfirm, setShowConfirm] = useState(false);
+  const [consented, setConsented] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
@@ -257,6 +258,7 @@ export default function OnboardingPage() {
 
   // Map the collected answers to the backend's UpdateMeBody and persist them.
   const handleConfirm = async () => {
+    if (!consented) return;
     setSubmitErr("");
     setSubmitting(true);
     try {
@@ -281,6 +283,14 @@ export default function OnboardingPage() {
       }
       if (answers.status) body.relationshipStatus = answers.status;
       body.onboardingStatus = "completed";
+      // Gates chat/onboarding-analysis/forecast/matchmaking server-side
+      // (requireConsent middleware) — must be sent explicitly, the checkbox
+      // above is the only place this is ever granted.
+      body.consent = {
+        dataProcessing: true,
+        terms: { version: "1.0.0" },
+        privacy: { version: "1.0.0" },
+      };
 
       await api.updateMe(body);
       // Fire-and-forget kundli warm-up: the home page polls /v1/kundli on
@@ -506,13 +516,23 @@ export default function OnboardingPage() {
               ) : null)}
             </div>
 
+            <label className="flex items-start gap-2.5 mb-5 text-[12px] text-muted leading-relaxed cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consented}
+                onChange={(e) => setConsented(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-gold"
+              />
+              {t("onboarding.consentLabel")}
+            </label>
+
             {submitErr && (
               <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>
             )}
 
             <button
               onClick={handleConfirm}
-              disabled={submitting}
+              disabled={submitting || !consented}
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[#a67c00] via-[#D4AF37] to-[#f4d675] text-[#1a0e00] font-semibold text-[15px] tracking-wide flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(212,175,55,0.4)] disabled:opacity-50 active:scale-[0.98] transition-all"
             >
               {submitting ? (

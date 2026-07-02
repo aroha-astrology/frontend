@@ -1,11 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { MessageSquareText } from "lucide-react";
-import { GiMagicPortal } from "react-icons/gi";
 import { useTranslation } from "react-i18next";
-import OutlineButton from "@/components/ui/OutlineButton";
 import BrandLogo from "@/components/ui/BrandLogo";
 
 export default function Hero() {
@@ -47,26 +43,6 @@ export default function Hero() {
           {t("hero.tagline1")}<br />
           {t("hero.tagline2")}
         </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="mt-10 flex flex-row gap-4 justify-center w-full max-w-[340px] mx-auto"
-      >
-        <Link href="/kundli" className="flex-1">
-          <OutlineButton>
-            <GiMagicPortal size={18} className="text-gold" />
-            {t("hero.generateKundli")}
-          </OutlineButton>
-        </Link>
-        <Link href="/ai-chat" className="flex-1">
-          <OutlineButton>
-            <MessageSquareText size={16} className="text-gold" />
-            {t("hero.talkToAI")}
-          </OutlineButton>
-        </Link>
       </motion.div>
     </div>
   );

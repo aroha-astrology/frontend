@@ -88,39 +88,59 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
         pointerEvents: "none",
       };
 
-  // Tooltip placement: below the target if it's in the top half of the
-  // viewport, above it otherwise; centered when there's no target (welcome).
-  // Anchored via `top` (below) or `bottom` (above) rather than a guessed
-  // height, so it grows away from the target regardless of how long the
-  // translated title/body text is in a given language — never overlaps the
-  // spotlight and never needs a magic-number height estimate.
+  // Tooltip placement: whichever side (above/below the target) has more room,
+  // not just top-half/bottom-half of the viewport — on short mobile screens a
+  // target near vertical center can have plenty of room on one side and almost
+  // none on the other, and the old top-half heuristic could pick the cramped
+  // side. `maxHeight` is clamped to the *actual* space available on the chosen
+  // side (not a blanket 100vh) so the card scrolls internally instead of
+  // spilling off-screen; if neither side has enough room at all (very short
+  // viewport, tall target), fall back to the centered layout used for the
+  // no-target welcome step.
+  const MIN_TOOLTIP_SPACE = 160;
   let tooltipStyle: React.CSSProperties;
+  const centeredStyle: React.CSSProperties = {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "min(360px, calc(100vw - 32px))",
+    maxHeight: "calc(100vh - 32px)",
+    overflowY: "auto",
+    zIndex: 202,
+  };
   if (rect) {
     const viewportH = window.innerHeight;
-    const placeBelow = rect.top < viewportH / 2;
-    tooltipStyle = {
-      position: "fixed",
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "min(360px, calc(100vw - 32px))",
-      maxHeight: "calc(100vh - 32px)",
-      overflowY: "auto",
-      zIndex: 202,
-      ...(placeBelow
-        ? { top: rect.top + rect.height + PAD * 2 + 12 }
-        : { bottom: viewportH - rect.top + PAD * 2 + 12 }),
-    };
+    const gap = PAD * 2 + 12;
+    const spaceAbove = rect.top - gap - 16;
+    const spaceBelow = viewportH - (rect.top + rect.height) - gap - 16;
+    if (Math.max(spaceAbove, spaceBelow) < MIN_TOOLTIP_SPACE) {
+      tooltipStyle = centeredStyle;
+    } else if (spaceBelow >= spaceAbove) {
+      tooltipStyle = {
+        position: "fixed",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "min(360px, calc(100vw - 32px))",
+        top: rect.top + rect.height + gap,
+        maxHeight: Math.max(MIN_TOOLTIP_SPACE, spaceBelow),
+        overflowY: "auto",
+        zIndex: 202,
+      };
+    } else {
+      tooltipStyle = {
+        position: "fixed",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "min(360px, calc(100vw - 32px))",
+        bottom: viewportH - rect.top + gap,
+        maxHeight: Math.max(MIN_TOOLTIP_SPACE, spaceAbove),
+        overflowY: "auto",
+        zIndex: 202,
+      };
+    }
   } else {
-    tooltipStyle = {
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: "min(360px, calc(100vw - 32px))",
-      maxHeight: "calc(100vh - 32px)",
-      overflowY: "auto",
-      zIndex: 202,
-    };
+    tooltipStyle = centeredStyle;
   }
 
   return createPortal(

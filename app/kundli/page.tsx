@@ -60,7 +60,6 @@ export default function KundliPage() {
   const [freshResult, setFreshResult] = useState<OnboardingResponse | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
-  const [showForm, setShowForm] = useState(false);
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
@@ -78,7 +77,6 @@ export default function KundliPage() {
       };
       const response = await swarmApi.onboarding(birth);
       setFreshResult(response);
-      setShowForm(false);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to generate kundli.");
     } finally {
@@ -123,34 +121,21 @@ export default function KundliPage() {
     );
   }
 
-  // No existing kundli — show form
-  if (!hasData && !showForm) {
-    // Auto-show form if no data
-  }
-
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10 max-w-lg mx-auto">
 
         {/* ── CHART VIEW (when data exists) ── */}
-        {hasData && chartData && !showForm && (
+        {hasData && chartData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gold font-display">Your Kundli</h1>
-                <p className="text-xs text-[var(--text-muted)] mt-1">Natal Birth Chart</p>
-              </div>
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-3 py-1.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary/60 hover:bg-primary/20 transition-colors"
-              >
-                New Chart
-              </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gold font-display">Your Kundli</h1>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Natal Birth Chart</p>
             </div>
 
             {/* Chart toggle + chart */}
@@ -226,8 +211,8 @@ export default function KundliPage() {
           </motion.div>
         )}
 
-        {/* ── FORM (when no data or user taps "New Chart") ── */}
-        {(!hasData || showForm) && (
+        {/* ── FORM (fallback: only shown while there's no chart yet) ── */}
+        {!hasData && (
           <>
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
@@ -239,15 +224,6 @@ export default function KundliPage() {
             <p className="text-center text-sm text-[var(--text-muted)] mt-2">
               Enter your birth details for your Vedic birth chart
             </p>
-
-            {hasData && (
-              <button
-                onClick={() => setShowForm(false)}
-                className="mt-3 w-full text-center text-xs text-primary/60 underline"
-              >
-                Back to my chart
-              </button>
-            )}
 
             <div className="mt-8 space-y-4">
               <input

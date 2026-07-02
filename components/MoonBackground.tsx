@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { getPlanet, type PlanetId } from "./3d/planet-registry";
 import { useLowEndDevice } from "@/hooks/useLowEndDevice";
 
@@ -23,13 +25,24 @@ export default function MoonBackground({
 }) {
   const lowEnd = useLowEndDevice();
   const v = getPlanet(planet);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // The orb's shaded/dark side is drawn to blend into a black night sky (see
+  // CssOrb below) — on the light theme's ivory background that same shading
+  // reads as a stray dark ring around the orb (and behind the header logo,
+  // since the orb reaches into the top-center on narrow screens). Fading it
+  // down in light mode keeps the depth cue without the visible halo.
+  const isLight = mounted && resolvedTheme === "light";
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
       <motion.div
         animate={{ y: [-8, 8, -8] }}
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
-        className="absolute -top-[80px] -left-[160px] w-[460px] h-[460px] opacity-70"
+        className="absolute -top-[80px] -left-[160px] w-[460px] h-[460px] transition-opacity duration-300"
+        style={{ opacity: isLight ? 0.16 : 0.7 }}
       >
         {/* Atmospheric halo that bleeds into the night sky */}
         <div
@@ -60,7 +73,7 @@ export default function MoonBackground({
 
       {/* Ambient glow on the opposite side */}
       <motion.div
-        animate={{ opacity: [0.25, 0.45, 0.25] }}
+        animate={{ opacity: isLight ? [0.1, 0.18, 0.1] : [0.25, 0.45, 0.25] }}
         transition={{ repeat: Infinity, duration: 9, ease: "easeInOut" }}
         className="absolute top-24 right-[-100px] w-72 h-72 rounded-full bg-gold/5 blur-[90px]"
       />

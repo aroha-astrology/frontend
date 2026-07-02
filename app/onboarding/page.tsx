@@ -287,7 +287,7 @@ export default function OnboardingPage() {
       // mount, but kicking the regenerate here means the result is usually
       // ready by the time the user lands there.
       api.regenerateKundli().catch(() => {});
-      router.replace("/");
+      router.replace("/?tour=1");
     } catch {
       setSubmitErr(t("onboarding.submitError"));
       setSubmitting(false);

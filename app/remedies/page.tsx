@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, type RemedyItem } from "@/lib/api";
+import { REMEDIES_FALLBACK } from "@/data/remedies-fallback";
 import SectionTitle from "@/components/SectionTitle";
 
 /** Map icon names from the backend to emoji for display. */
@@ -46,6 +48,7 @@ function SkeletonCard() {
 }
 
 export default function RemediesPage() {
+  const { t } = useTranslation();
   const [remedies, setRemedies] = useState<RemedyItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +62,9 @@ export default function RemediesPage() {
           setRemedies(data.remedies);
         }
       } catch {
-        // Silently fail — show empty state
+        // Endpoint not deployed yet (or a network failure) — fall back to a
+        // static list so the page always renders content.
+        if (!cancelled) setRemedies(REMEDIES_FALLBACK);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -75,8 +80,8 @@ export default function RemediesPage() {
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10">
         <SectionTitle
-          title="Daily Remedies"
-          subtitle="Vedic remedies to harmonise your planetary energies"
+          title={t("remediesPage.title")}
+          subtitle={t("remediesPage.subtitle")}
         />
 
         <div className="mt-2 space-y-4">
@@ -88,7 +93,7 @@ export default function RemediesPage() {
             </>
           ) : remedies.length === 0 ? (
             <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>
-              Unable to load remedies. Please try again later.
+              {t("remediesPage.loadError")}
             </p>
           ) : (
             remedies.map((item) => (

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send } from "lucide-react";
+import { Send, Briefcase, Heart, Leaf, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { streamChat } from "@/lib/swarm-api";
+import { useTranslation } from "react-i18next";
+import { streamChat, type ChatPersona, type ChatHistoryTurn } from "@/lib/swarm-api";
 
 interface Message {
   role: "user" | "assistant";
@@ -11,25 +12,43 @@ interface Message {
   isError?: boolean;
 }
 
-const suggestions = [
-  "Career prediction",
-  "Marriage prediction",
-  "Financial future",
-  "Lucky gemstone",
-  "Health guidance",
+const PERSONAS: { key: ChatPersona; icon: typeof Sparkles; labelKey: string }[] = [
+  { key: "general", icon: Sparkles, labelKey: "aiChatPage.personaGeneral" },
+  { key: "career", icon: Briefcase, labelKey: "aiChatPage.personaCareer" },
+  { key: "love", icon: Heart, labelKey: "aiChatPage.personaLove" },
+  { key: "health", icon: Leaf, labelKey: "aiChatPage.personaHealth" },
 ];
 
 export default function AIChatPage() {
+  const { t } = useTranslation();
+  const [persona, setPersona] = useState<ChatPersona>("general");
+  const suggestions = [
+    t("aiChatPage.suggestion1"),
+    t("aiChatPage.suggestion2"),
+    t("aiChatPage.suggestion3"),
+    t("aiChatPage.suggestion4"),
+    t("aiChatPage.suggestion5"),
+  ];
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Namaste 🙏 I am Yogi Baba, your AI Vedic Astrologer. Ask me about career, marriage, wealth, health, or your lucky gemstone.",
+      content: t("aiChatPage.greeting"),
     },
   ]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Conversation memory sent to the backend on each turn. Refs (not state)
+  // because they're pure bookkeeping for the next request, not render input.
+  // The backend folds older turns into `summary` once the raw history gets
+  // long (see chat-compaction.ts) and tells us via a `summary` SSE event —
+  // when that happens we drop the folded turns from what we send next time,
+  // so the prompt (and therefore latency/timeout risk) stays bounded no
+  // matter how long the conversation runs. This is also how the assistant
+  // avoids re-asking things the user already answered earlier in the thread.
+  const historyRef = useRef<ChatHistoryTurn[]>([]);
+  const summaryRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,9 +67,19 @@ export default function AIChatPage() {
     setInput("");
     setStreaming(true);
 
+    const historyForThisTurn = historyRef.current;
+    const summaryForThisTurn = summaryRef.current;
+
     try {
-      const stream = streamChat(msg);
+      const stream = streamChat(msg, {
+        persona,
+        history: historyForThisTurn,
+        summary: summaryForThisTurn,
+      });
       let fullContent = "";
+      let hadError = false;
+      let newSummary = summaryForThisTurn;
+      let summaryChanged = false;
 
       for await (const event of stream) {
         if (event.type === "token") {
@@ -64,14 +93,18 @@ export default function AIChatPage() {
             }
             return next;
           });
+        } else if (event.type === "summary") {
+          newSummary = event.data.summary;
+          summaryChanged = true;
         } else if (event.type === "error") {
+          hadError = true;
           setMessages((prev) => {
             const next = [...prev];
             const last = next[next.length - 1];
             if (last && last.role === "assistant") {
               next[next.length - 1] = {
                 ...last,
-                content: `Something went wrong: ${event.data.error}`,
+                content: t("aiChatPage.errorPrefix", { error: event.data.error }),
                 isError: true,
               };
             }
@@ -85,21 +118,39 @@ export default function AIChatPage() {
 
       // If we got no content at all, show a fallback
       if (!fullContent) {
+        hadError = true;
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
           if (last && last.role === "assistant" && !last.content) {
             next[next.length - 1] = {
               ...last,
-              content: "I could not generate a response. Please try again.",
+              content: t("aiChatPage.noResponse"),
               isError: true,
             };
           }
           return next;
         });
       }
+
+      // Only remember a turn that actually completed — an error/fallback
+      // message isn't real conversation content and shouldn't be replayed
+      // back to the model as if the assistant said it.
+      if (!hadError && fullContent) {
+        summaryRef.current = newSummary;
+        historyRef.current = summaryChanged
+          ? [
+              { role: "user", content: msg },
+              { role: "assistant", content: fullContent },
+            ]
+          : [
+              ...historyForThisTurn,
+              { role: "user", content: msg },
+              { role: "assistant", content: fullContent },
+            ];
+      }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to connect to the astrologer";
+      const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
@@ -117,14 +168,35 @@ export default function AIChatPage() {
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming]);
+  }, [input, streaming, persona]);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header */}
       <div className="px-5 pt-10 pb-4 text-center border-b" style={{ borderColor: "var(--border)" }}>
-        <h1 className="text-3xl font-bold text-gold font-display">🔮 AI Astrologer</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Yogi Baba · Vedic wisdom</p>
+        <h1 className="text-3xl font-bold text-gold font-display">🔮 {t("aiChatPage.title")}</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">{t("aiChatPage.subtitle")}</p>
+        <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed">
+          {t("aiChatPage.disclosure")}
+        </p>
+      </div>
+
+      {/* Persona selector — wraps to a second row rather than overflowing on narrow screens */}
+      <div className="flex flex-wrap gap-2 px-4 pt-3 justify-center">
+        {PERSONAS.map(({ key, icon: Icon, labelKey }) => (
+          <button
+            key={key}
+            onClick={() => setPersona(key)}
+            disabled={streaming}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border whitespace-nowrap transition-colors disabled:opacity-40 ${
+              persona === key ? "border-yellow-500 text-yellow-500 bg-yellow-500/10" : "border-transparent"
+            }`}
+            style={persona === key ? {} : { background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+          >
+            <Icon size={13} />
+            {t(labelKey)}
+          </button>
+        ))}
       </div>
 
       {/* Suggestion chips */}
@@ -216,7 +288,7 @@ export default function AIChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Ask your astrologer..."
+            placeholder={t("aiChatPage.inputPlaceholder")}
             className="flex-1 h-14 rounded-full px-5 outline-none border text-sm"
             style={{
               background: "var(--surface)",

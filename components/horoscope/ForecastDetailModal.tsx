@@ -2,7 +2,8 @@
 
 import { Star, X, Moon, Sparkles, Palette, Hash, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { type ForecastData, PLANET_EMOJI, QUALITY_BADGE } from "./types";
+import { useTranslation } from "react-i18next";
+import { type ForecastData, PLANET_EMOJI, QUALITY_BADGE_KEYS } from "./types";
 
 export default function ForecastDetailModal({
   forecast,
@@ -13,7 +14,8 @@ export default function ForecastDetailModal({
   sign: { name: string; symbol: string; dates: string };
   onClose: () => void;
 }) {
-  const badge = QUALITY_BADGE[forecast.quality] ?? QUALITY_BADGE.moderate;
+  const { t } = useTranslation();
+  const badgeKey = QUALITY_BADGE_KEYS[forecast.quality] ?? QUALITY_BADGE_KEYS.moderate;
 
   return (
     <motion.div
@@ -55,8 +57,8 @@ export default function ForecastDetailModal({
                 <Star key={i} size={18} className={i < forecast.score ? "fill-gold text-gold" : "text-gold/20"} />
               ))}
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>
-              {badge.label}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeKey.bg} ${badgeKey.text}`}>
+              {t(badgeKey.i18nKey)}
             </span>
           </div>
 
@@ -67,25 +69,25 @@ export default function ForecastDetailModal({
           <div className="bg-surface/50 border border-gold/10 rounded-xl p-4 space-y-2">
             <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider">
               <Moon size={14} />
-              Moon Transit
+              {t("horoscope.detail.moonTransit")}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-muted text-xs">Transit Sign</p>
+                <p className="text-muted text-xs">{t("horoscope.detail.transitSign")}</p>
                 <p className="text-foreground font-medium">{forecast.transitMoonSign}</p>
               </div>
               <div>
-                <p className="text-muted text-xs">Nakshatra</p>
+                <p className="text-muted text-xs">{t("horoscope.detail.nakshatra")}</p>
                 <p className="text-foreground font-medium">{forecast.transitMoonNakshatra ?? "—"}</p>
               </div>
               <div>
-                <p className="text-muted text-xs">House from Sign</p>
-                <p className="text-foreground font-medium">{forecast.houseFromSign}th House</p>
+                <p className="text-muted text-xs">{t("horoscope.detail.houseFromSign")}</p>
+                <p className="text-foreground font-medium">{t("horoscope.detail.nthHouse", { n: forecast.houseFromSign })}</p>
               </div>
               <div>
-                <p className="text-muted text-xs">Ashtama Chandra</p>
+                <p className="text-muted text-xs">{t("horoscope.detail.ashtamaChandra")}</p>
                 <p className={`font-medium ${forecast.isAshtamaChandra ? "text-red-400" : "text-emerald-400"}`}>
-                  {forecast.isAshtamaChandra ? "Yes ⚠️" : "No ✓"}
+                  {forecast.isAshtamaChandra ? `${t("common.yes")} ⚠️` : `${t("common.no")} ✓`}
                 </p>
               </div>
             </div>
@@ -95,12 +97,12 @@ export default function ForecastDetailModal({
           <div className="flex gap-3">
             <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
               <Palette size={16} className="text-gold mx-auto mb-1" />
-              <p className="text-xs text-muted">Lucky Color</p>
+              <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
               <p className="text-sm text-foreground font-medium">{forecast.luckyColor}</p>
             </div>
             <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
               <Hash size={16} className="text-gold mx-auto mb-1" />
-              <p className="text-xs text-muted">Lucky Number</p>
+              <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
               <p className="text-sm text-foreground font-medium">{forecast.luckyNumber}</p>
             </div>
           </div>
@@ -109,7 +111,7 @@ export default function ForecastDetailModal({
           <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
             <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
               <Sparkles size={14} />
-              Today&apos;s Advice
+              {t("horoscope.detail.todaysAdvice")}
             </div>
             <p className="text-sm text-foreground/90 leading-relaxed">{forecast.advice}</p>
           </div>
@@ -119,18 +121,18 @@ export default function ForecastDetailModal({
             <div>
               <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-3">
                 <ArrowRight size={14} />
-                Key Planetary Transits
+                {t("horoscope.detail.keyTransits")}
               </div>
               <div className="space-y-2">
-                {forecast.keyTransits.map((t) => (
-                  <div key={t.planet} className="flex items-center gap-3 bg-surface/30 border border-gold/5 rounded-lg px-3 py-2.5">
-                    <span className="text-lg">{PLANET_EMOJI[t.planet] ?? "🪐"}</span>
+                {forecast.keyTransits.map((transit) => (
+                  <div key={transit.planet} className="flex items-center gap-3 bg-surface/30 border border-gold/5 rounded-lg px-3 py-2.5">
+                    <span className="text-lg">{PLANET_EMOJI[transit.planet] ?? "🪐"}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-foreground font-medium">
-                        {t.planet} in {t.sign}
-                        <span className="text-muted font-normal"> · {t.house}th House</span>
+                        {t("horoscope.detail.planetInSign", { planet: transit.planet, sign: transit.sign })}
+                        <span className="text-muted font-normal"> · {t("horoscope.detail.nthHouse", { n: transit.house })}</span>
                       </p>
-                      <p className="text-xs text-muted truncate">{t.influence}</p>
+                      <p className="text-xs text-muted truncate">{transit.influence}</p>
                     </div>
                   </div>
                 ))}

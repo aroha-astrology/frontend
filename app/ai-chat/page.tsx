@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { streamChat } from "@/lib/swarm-api";
 
 interface Message {
@@ -11,20 +12,19 @@ interface Message {
   isError?: boolean;
 }
 
-const suggestions = [
-  "Career prediction",
-  "Marriage prediction",
-  "Financial future",
-  "Lucky gemstone",
-  "Health guidance",
-];
-
 export default function AIChatPage() {
+  const { t } = useTranslation();
+  const suggestions = [
+    t("aiChatPage.suggestion1"),
+    t("aiChatPage.suggestion2"),
+    t("aiChatPage.suggestion3"),
+    t("aiChatPage.suggestion4"),
+    t("aiChatPage.suggestion5"),
+  ];
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Namaste 🙏 I am Yogi Baba, your AI Vedic Astrologer. Ask me about career, marriage, wealth, health, or your lucky gemstone.",
+      content: t("aiChatPage.greeting"),
     },
   ]);
   const [input, setInput] = useState("");
@@ -71,7 +71,7 @@ export default function AIChatPage() {
             if (last && last.role === "assistant") {
               next[next.length - 1] = {
                 ...last,
-                content: `Something went wrong: ${event.data.error}`,
+                content: t("aiChatPage.errorPrefix", { error: event.data.error }),
                 isError: true,
               };
             }
@@ -91,7 +91,7 @@ export default function AIChatPage() {
           if (last && last.role === "assistant" && !last.content) {
             next[next.length - 1] = {
               ...last,
-              content: "I could not generate a response. Please try again.",
+              content: t("aiChatPage.noResponse"),
               isError: true,
             };
           }
@@ -99,7 +99,7 @@ export default function AIChatPage() {
         });
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to connect to the astrologer";
+      const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
@@ -123,8 +123,11 @@ export default function AIChatPage() {
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header */}
       <div className="px-5 pt-10 pb-4 text-center border-b" style={{ borderColor: "var(--border)" }}>
-        <h1 className="text-3xl font-bold text-gold font-display">🔮 AI Astrologer</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Yogi Baba · Vedic wisdom</p>
+        <h1 className="text-3xl font-bold text-gold font-display">🔮 {t("aiChatPage.title")}</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">{t("aiChatPage.subtitle")}</p>
+        <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed">
+          {t("aiChatPage.disclosure")}
+        </p>
       </div>
 
       {/* Suggestion chips */}
@@ -216,7 +219,7 @@ export default function AIChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Ask your astrologer..."
+            placeholder={t("aiChatPage.inputPlaceholder")}
             className="flex-1 h-14 rounded-full px-5 outline-none border text-sm"
             style={{
               background: "var(--surface)",

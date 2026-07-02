@@ -62,9 +62,10 @@ export const PLANET_EMOJI: Record<string, string> = {
   Jupiter: "♃", Venus: "♀️", Saturn: "♄", Rahu: "🐉", Ketu: "🔥",
 };
 
-export const QUALITY_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  good: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "Favorable" },
-  challenging: { bg: "bg-amber-500/20", text: "text-amber-400", label: "Challenging" },
-  avoid: { bg: "bg-red-500/20", text: "text-red-400", label: "Unfavorable" },
-  moderate: { bg: "bg-blue-500/20", text: "text-blue-400", label: "Moderate" },
+/** Tailwind classes + i18n key per forecast quality — label text lives in i18n/resources.ts under horoscope.quality.*. */
+export const QUALITY_BADGE_KEYS: Record<string, { bg: string; text: string; i18nKey: string }> = {
+  good: { bg: "bg-emerald-500/20", text: "text-emerald-400", i18nKey: "horoscope.quality.favorable" },
+  challenging: { bg: "bg-amber-500/20", text: "text-amber-400", i18nKey: "horoscope.quality.challenging" },
+  avoid: { bg: "bg-red-500/20", text: "text-red-400", i18nKey: "horoscope.quality.unfavorable" },
+  moderate: { bg: "bg-blue-500/20", text: "text-blue-400", i18nKey: "horoscope.quality.moderate" },
 };

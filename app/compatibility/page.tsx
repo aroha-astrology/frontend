@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
@@ -21,6 +22,7 @@ interface CompatForm {
 const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
 
 export default function CompatibilityPage() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<CompatForm>({
     boy: { ...emptyPerson },
     girl: { ...emptyPerson },
@@ -68,7 +70,7 @@ export default function CompatibilityPage() {
       const response = await matchmaking(person1, person2);
       setResult(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to check compatibility. Please try again.");
+      setError(err instanceof Error ? err.message : t("compatibilityPage.checkError"));
     } finally {
       setLoading(false);
     }
@@ -86,7 +88,7 @@ export default function CompatibilityPage() {
   const verdictColor =
     pct >= 75 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
   const verdictLabel =
-    pct >= 75 ? "Excellent Match" : pct >= 50 ? "Good Match" : "Needs Attention";
+    pct >= 75 ? t("compatibilityPage.excellentMatch") : pct >= 50 ? t("compatibilityPage.goodMatch") : t("compatibilityPage.needsAttention");
 
   const inputClass =
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
@@ -96,14 +98,14 @@ export default function CompatibilityPage() {
     <div className="space-y-3">
       <p className="text-xs text-[var(--text-muted)] ml-1">{label}</p>
       <input
-        placeholder="Name"
+        placeholder={t("compatibilityPage.name")}
         value={form[who].name}
         onChange={(e) => updatePerson(who, "name", e.target.value)}
         className={inputClass}
         style={style}
       />
       <div>
-        <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Date of Birth</label>
+        <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">{t("compatibilityPage.dob")}</label>
         <input
           type="date"
           value={form[who].dob}
@@ -113,7 +115,7 @@ export default function CompatibilityPage() {
         />
       </div>
       <div>
-        <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">Time of Birth</label>
+        <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
         <input
           type="time"
           value={form[who].time}
@@ -123,7 +125,7 @@ export default function CompatibilityPage() {
         />
       </div>
       <PlaceAutocomplete
-        placeholder="Birth Place (City)"
+        placeholder={t("compatibilityPage.birthPlace")}
         inputClassName={inputClass}
         inputStyle={style}
         onSelect={(place) => {
@@ -143,16 +145,16 @@ export default function CompatibilityPage() {
           animate={{ opacity: 1 }}
           className="text-3xl font-bold text-center text-gold font-display"
         >
-          ❤️ Kundli Matching
+          ❤️ {t("compatibilityPage.title")}
         </motion.h1>
         <p className="text-center text-sm text-[var(--text-muted)] mt-2">
-          Find your cosmic compatibility score
+          {t("compatibilityPage.subtitle")}
         </p>
 
         <div className="mt-8 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            {renderPersonFields("boy", "Boy")}
-            {renderPersonFields("girl", "Girl")}
+            {renderPersonFields("boy", t("compatibilityPage.person1"))}
+            {renderPersonFields("girl", t("compatibilityPage.person2"))}
           </div>
 
           <button
@@ -160,7 +162,7 @@ export default function CompatibilityPage() {
             disabled={!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || loading}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
           >
-            {loading ? "Computing..." : "Check Compatibility"}
+            {loading ? t("compatibilityPage.computing") : t("compatibilityPage.checkBtn")}
           </button>
         </div>
 
@@ -201,15 +203,15 @@ export default function CompatibilityPage() {
                 key={k.name}
                 className="mb-4 p-3 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-sm"
               >
-                ⚠ {k.name} Dosha — {k.name} scored 0/{k.maximum}.{" "}
-                {k.description ?? "Traditionally considered a serious incompatibility; consult an astrologer."}
+                ⚠ {t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })}{" "}
+                {k.description ?? t("compatibilityPage.doshaFlagDefault")}
               </div>
             ))}
 
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-gold font-display">
-                  {totalScore} / {maxTotal} Gunas
+                  {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
                 </h2>
                 <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
                   {result.compatibility || verdictLabel}{" "}
@@ -241,7 +243,7 @@ export default function CompatibilityPage() {
             </div>
 
             <p className="mt-4 text-sm text-[var(--text-muted)] leading-relaxed">
-              {form.boy.name} and {form.girl.name} scored {totalScore} out of {maxTotal} Gunas in the Ashtakoota compatibility analysis.
+              {t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal })}
             </p>
 
             {result.recommendation && (

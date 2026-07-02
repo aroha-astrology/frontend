@@ -46,20 +46,31 @@ export interface BirthInput {
   timezone: string;   // IANA tz
 }
 
-// Onboarding
-export interface OnboardingResponse {
-  requestId: string;
-  intent: string;
-  metrology: Metrology | null;
-  findings: Record<string, unknown>[];
-  warnings: string[];
+// Onboarding (mirrors the deployed OnboardingResponse schema)
+export interface OnboardingCharts {
+  planets?: PlanetPosition[];
+  houses?: unknown[];
+  chart?: {
+    ascendant?: {
+      ascendantSign?: string;
+      sign?: string;
+      ascendantDegree?: number;
+      degree?: number;
+      signIndex?: number;
+    };
+  } & Record<string, unknown>;
+  dasha?: {
+    currentMahadasha?: DashaPeriod;
+    currentAntardasha?: DashaPeriod;
+    mahadashaSequence?: DashaPeriod[];
+  };
 }
 
-export interface Metrology {
-  planets: PlanetPosition[];
-  ascendant: AscendantInfo;
-  vimshottariDasha: VimshottariDasha;
-  divisionalCharts?: Record<string, unknown>;
+export interface OnboardingResponse {
+  profileId: string;
+  summary: string;
+  charts?: OnboardingCharts;
+  insights?: string[];
 }
 
 export interface PlanetPosition {
@@ -74,22 +85,12 @@ export interface PlanetPosition {
   isRetrograde: boolean;
 }
 
-export interface AscendantInfo {
-  ascendantSign: string;
-  ascendantSignIndex: number;
-  ascendantDegree: number;
-}
-
-export interface VimshottariDasha {
-  currentMahadasha: DashaPeriod;
-  currentAntardasha: DashaPeriod;
-  mahadashaSequence?: DashaPeriod[];
-}
-
 export interface DashaPeriod {
-  planet: string;
-  start: string;
-  end: string;
+  planet?: string;
+  /** Some engine versions emit `lord` instead of `planet`. */
+  lord?: string;
+  start?: string;
+  end?: string;
 }
 
 // Matchmaking (mirrors the deployed MatchmakingResponse schema)

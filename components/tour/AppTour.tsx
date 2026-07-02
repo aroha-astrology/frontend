@@ -90,6 +90,10 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
 
   // Tooltip placement: below the target if it's in the top half of the
   // viewport, above it otherwise; centered when there's no target (welcome).
+  // Anchored via `top` (below) or `bottom` (above) rather than a guessed
+  // height, so it grows away from the target regardless of how long the
+  // translated title/body text is in a given language — never overlaps the
+  // spotlight and never needs a magic-number height estimate.
   let tooltipStyle: React.CSSProperties;
   if (rect) {
     const viewportH = window.innerHeight;
@@ -99,10 +103,12 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
       left: "50%",
       transform: "translateX(-50%)",
       width: "min(360px, calc(100vw - 32px))",
+      maxHeight: "calc(100vh - 32px)",
+      overflowY: "auto",
       zIndex: 202,
       ...(placeBelow
-        ? { top: Math.min(rect.top + rect.height + PAD * 2 + 12, viewportH - 220) }
-        : { top: Math.max(rect.top - PAD * 2 - 12 - 200, 16), bottom: "auto" }),
+        ? { top: rect.top + rect.height + PAD * 2 + 12 }
+        : { bottom: viewportH - rect.top + PAD * 2 + 12 }),
     };
   } else {
     tooltipStyle = {
@@ -111,6 +117,8 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
       left: "50%",
       transform: "translate(-50%, -50%)",
       width: "min(360px, calc(100vw - 32px))",
+      maxHeight: "calc(100vh - 32px)",
+      overflowY: "auto",
       zIndex: 202,
     };
   }
@@ -140,8 +148,8 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
           </div>
           <p className="text-sm text-muted leading-relaxed mb-4">{t(step.bodyKey)}</p>
 
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex gap-1.5 shrink-0">
               {TOUR_STEPS.map((s, i) => (
                 <div
                   key={s.id}
@@ -167,7 +175,7 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
               )}
               <button
                 onClick={goNext}
-                className="h-8 px-4 rounded-full bg-gold text-[#1a0e00] text-xs font-semibold flex items-center gap-1 active:scale-95 transition-transform"
+                className="h-8 px-4 rounded-full bg-gold text-[#1a0e00] text-xs font-semibold flex items-center gap-1 whitespace-nowrap active:scale-95 transition-transform"
               >
                 {stepIndex === TOUR_STEPS.length - 1 ? t("tour.done") : t("tour.next")}
                 {stepIndex !== TOUR_STEPS.length - 1 && <ChevronRight size={14} />}

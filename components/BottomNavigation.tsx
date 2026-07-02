@@ -19,12 +19,12 @@ export default function BottomNavigation() {
         
         <Link href="/" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/" ? "text-gold" : "text-muted")}>
           <Home size={22} className={pathname === "/" ? "fill-gold" : ""} />
-          <span className="text-[10px] font-medium">{t("nav.home")}</span>
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.home")}</span>
         </Link>
         
         <Link href="/kundli" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/kundli" ? "text-gold" : "text-muted")}>
           <LayoutGrid size={22} />
-          <span className="text-[10px] font-medium">{t("nav.kundli")}</span>
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.kundli")}</span>
         </Link>
         
         {/* Central Ask AI button */}
@@ -40,12 +40,12 @@ export default function BottomNavigation() {
 
         <Link href="/horoscope" data-tour="nav-horoscope" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/horoscope" ? "text-gold" : "text-muted")}>
           <Moon size={22} />
-          <span className="text-[10px] font-medium">{t("nav.horoscope")}</span>
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.horoscope")}</span>
         </Link>
 
         <Link href="/remedies" data-tour="nav-remedies" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/remedies" ? "text-gold" : "text-muted")}>
           <Flame size={22} />
-          <span className="text-[10px] font-medium">{t("nav.remedies")}</span>
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.remedies")}</span>
         </Link>
         
       </div>

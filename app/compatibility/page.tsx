@@ -260,9 +260,9 @@ export default function CompatibilityPage() {
 
             {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system */}
             {result.mangalDosha && (
-              <div className="mt-4 flex justify-between items-center text-sm" style={{ color: "var(--text-muted)" }}>
+              <div className="mt-4 flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
                 <span>{t("compatibilityPage.mangalDosha")}</span>
-                <span className={`font-medium ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className={`font-medium whitespace-nowrap ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
                   {t("compatibilityPage.mangalDoshaStatus", {
                     p1: result.mangalDosha.person1 ? t("common.yes") : t("common.no"),
                     p2: result.mangalDosha.person2 ? t("common.yes") : t("common.no"),

@@ -93,7 +93,7 @@ export default function HoroscopePage() {
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
 
         {/* Timescale tabs */}
-        <div className="mt-6 grid grid-cols-4 gap-2">
+        <div className="mt-6 grid grid-cols-4 gap-2 items-stretch">
           {TIMESCALES.map((ts) => {
             const disabled = ts !== "daily";
             return (
@@ -101,15 +101,15 @@ export default function HoroscopePage() {
                 key={ts}
                 disabled={disabled}
                 onClick={() => setTimescale(ts)}
-                className={`relative py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 rounded-xl text-xs font-medium border text-center transition-colors ${
                   timescale === ts
                     ? "border-gold/50 bg-gold/10 text-gold"
                     : "border-gold/10 text-muted"
                 } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:border-gold/30"}`}
               >
-                {t(`horoscope.tab.${ts}`)}
+                <span className="leading-tight">{t(`horoscope.tab.${ts}`)}</span>
                 {disabled && (
-                  <span className="absolute -top-1.5 -right-1.5 text-[8px] px-1 py-0.5 rounded-full bg-surface border border-gold/20 text-muted">
+                  <span className="text-[9px] leading-none px-1.5 py-0.5 rounded-full bg-surface border border-gold/20">
                     {t("horoscope.comingSoon")}
                   </span>
                 )}

@@ -138,14 +138,14 @@ export default function AIChatPage() {
         </p>
       </div>
 
-      {/* Persona selector */}
-      <div className="flex gap-2 px-4 pt-3 justify-center">
+      {/* Persona selector — wraps to a second row rather than overflowing on narrow screens */}
+      <div className="flex flex-wrap gap-2 px-4 pt-3 justify-center">
         {PERSONAS.map(({ key, icon: Icon, labelKey }) => (
           <button
             key={key}
             onClick={() => setPersona(key)}
             disabled={streaming}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border transition-colors disabled:opacity-40 ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border whitespace-nowrap transition-colors disabled:opacity-40 ${
               persona === key ? "border-yellow-500 text-yellow-500 bg-yellow-500/10" : "border-transparent"
             }`}
             style={persona === key ? {} : { background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}

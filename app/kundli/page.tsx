@@ -315,7 +315,7 @@ function ResultCard({
 
       {ascendantSign && (
         <div className="mt-5 mb-4">
-          <div className="flex justify-between text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-sm" style={{ color: "var(--text-muted)" }}>
             <span>🪐 {t("kundliPage.ascendantLagna")}</span>
             <span className="text-gold font-medium">
               {ascendantSign}
@@ -331,12 +331,12 @@ function ResultCard({
             {t("kundliPage.planetPositions")}
           </p>
           {planets.map((p) => (
-            <div key={p.planet} className="flex justify-between">
+            <div key={p.planet} className="flex flex-wrap justify-between gap-x-2 gap-y-0.5">
               <span>
                 {p.planet}
                 {p.isRetrograde && <span className="text-red-400 text-xs ml-1">(R)</span>}
               </span>
-              <span className="text-gold font-medium">
+              <span className="text-gold font-medium text-right">
                 {p.sign} {p.house != null && `· ${t("kundliPage.house")} ${p.house}`}
                 {p.nakshatra && (
                   <span className="text-[var(--text-muted)] ml-1 text-xs">
@@ -355,18 +355,18 @@ function ResultCard({
             {t("kundliPage.currentDasha")}
           </p>
           {maha && (
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5">
               <span>{t("kundliPage.mahadasha")}</span>
-              <span className="text-gold font-medium">
+              <span className="text-gold font-medium text-right">
                 {maha.name}
                 {maha.range && <span className="text-[var(--text-muted)] ml-1 text-xs">({maha.range})</span>}
               </span>
             </div>
           )}
           {antar && (
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5">
               <span>{t("kundliPage.antardasha")}</span>
-              <span className="text-gold font-medium">
+              <span className="text-gold font-medium text-right">
                 {antar.name}
                 {antar.range && <span className="text-[var(--text-muted)] ml-1 text-xs">({antar.range})</span>}
               </span>

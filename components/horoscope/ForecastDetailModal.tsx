@@ -57,7 +57,7 @@ export default function ForecastDetailModal({
                 <Star key={i} size={18} className={i < forecast.score ? "fill-gold text-gold" : "text-gold/20"} />
               ))}
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeKey.bg} ${badgeKey.text}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
               {t(badgeKey.i18nKey)}
             </span>
           </div>

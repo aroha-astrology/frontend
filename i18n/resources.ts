@@ -287,7 +287,7 @@ export const resources = {
       horoscope: {
         title: "राशिफल",
         tab: { daily: "दैनिक", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
-        comingSoon: "जल्द आ रहा है",
+        comingSoon: "जल्द",
         personalizedTitle: "आपका व्यक्तिगत राशिफल",
         personalizedEmpty: "आज की रीडिंग तैयार होते ही आपका व्यक्तिगत राशिफल यहां दिखाई देगा।",
         moonSignSection: "चंद्र राशि राशिफल",
@@ -519,7 +519,7 @@ export const resources = {
       horoscope: {
         title: "রাশিফল",
         tab: { daily: "দৈনিক", weekly: "সাপ্তাহিক", monthly: "মাসিক", yearly: "বার্ষিক" },
-        comingSoon: "শীঘ্রই আসছে",
+        comingSoon: "শীঘ্রই",
         personalizedTitle: "আপনার ব্যক্তিগত রাশিফল",
         personalizedEmpty: "আজকের রিডিং তৈরি হলে আপনার ব্যক্তিগত রাশিফল এখানে দেখা যাবে।",
         moonSignSection: "চন্দ্র রাশি রাশিফল",
@@ -751,7 +751,7 @@ export const resources = {
       horoscope: {
         title: "राशीभविष्य",
         tab: { daily: "दैनिक", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
-        comingSoon: "लवकरच येत आहे",
+        comingSoon: "लवकरच",
         personalizedTitle: "तुमचे वैयक्तिक राशीभविष्य",
         personalizedEmpty: "आजचे वाचन तयार झाल्यावर तुमचे वैयक्तिक राशीभविष्य इथे दिसेल.",
         moonSignSection: "चंद्र राशी राशीभविष्य",
@@ -983,7 +983,7 @@ export const resources = {
       horoscope: {
         title: "రాశిఫలం",
         tab: { daily: "దైనిక", weekly: "వారపు", monthly: "నెలవారీ", yearly: "వార్షిక" },
-        comingSoon: "త్వరలో వస్తుంది",
+        comingSoon: "త్వరలో",
         personalizedTitle: "మీ వ్యక్తిగత రాశిఫలం",
         personalizedEmpty: "నేటి రీడింగ్ తయారైన తర్వాత మీ వ్యక్తిగత రాశిఫలం ఇక్కడ కనిపిస్తుంది.",
         moonSignSection: "చంద్ర రాశి రాశిఫలం",
@@ -1215,7 +1215,7 @@ export const resources = {
       horoscope: {
         title: "ராசிபலன்",
         tab: { daily: "தினசரி", weekly: "வாராந்திர", monthly: "மாதாந்திர", yearly: "ஆண்டு" },
-        comingSoon: "விரைவில் வருகிறது",
+        comingSoon: "விரைவில்",
         personalizedTitle: "உங்கள் தனிப்பயன் ராசிபலன்",
         personalizedEmpty: "இன்றைய வாசிப்பு உருவாக்கப்பட்டதும் உங்கள் தனிப்பயன் ராசிபலன் இங்கே தோன்றும்.",
         moonSignSection: "சந்திர ராசி ராசிபலன்",
@@ -1447,7 +1447,7 @@ export const resources = {
       horoscope: {
         title: "રાશિફળ",
         tab: { daily: "દૈનિક", weekly: "સાપ્તાહિક", monthly: "માસિક", yearly: "વાર્ષિક" },
-        comingSoon: "ટૂંક સમયમાં આવે છે",
+        comingSoon: "જલ્દી",
         personalizedTitle: "તમારું વ્યક્તિગત રાશિફળ",
         personalizedEmpty: "આજનું વાંચન તૈયાર થયા પછી તમારું વ્યક્તિગત રાશિફળ અહીં દેખાશે.",
         moonSignSection: "ચંદ્ર રાશિ રાશિફળ",

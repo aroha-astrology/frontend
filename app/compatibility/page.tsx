@@ -74,10 +74,14 @@ export default function CompatibilityPage() {
     }
   };
 
-  const compat = result?.compatibility;
-  const totalScore = compat?.totalScore ?? 0;
-  const maxTotal = compat?.maxTotal ?? 36;
+  const totalScore = result?.totalScore ?? 0;
+  const maxTotal = result?.maxScore ?? 36;
   const pct = maxTotal > 0 ? Math.round((totalScore / maxTotal) * 100) : 0;
+  // Nadi (0/8) and Bhakoot (0/7) doshas are near-disqualifying red flags in
+  // traditional matching — surface them before the total score.
+  const redFlags = (result?.kutaDetails ?? []).filter(
+    (k) => (k.name === "Nadi" || k.name === "Bhakoot") && k.obtained === 0,
+  );
 
   const verdictColor =
     pct >= 75 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
@@ -184,21 +188,32 @@ export default function CompatibilityPage() {
         )}
 
         {/* Results */}
-        {result && compat && (
+        {result && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-8 p-6 rounded-3xl border"
             style={{ background: "var(--surface)", borderColor: "var(--border)" }}
           >
+            {/* Dosha red flags come first — a practitioner would flag these before the total */}
+            {redFlags.map((k) => (
+              <div
+                key={k.name}
+                className="mb-4 p-3 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-sm"
+              >
+                ⚠ {k.name} Dosha — {k.name} scored 0/{k.maximum}.{" "}
+                {k.description ?? "Traditionally considered a serious incompatibility; consult an astrologer."}
+              </div>
+            ))}
+
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-gold font-display">
                   {totalScore} / {maxTotal} Gunas
                 </h2>
                 <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
-                  {compat.overallCompatibility || verdictLabel}{" "}
-                  {pct >= 50 ? "✓" : ""}
+                  {result.compatibility || verdictLabel}{" "}
+                  {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
                 </p>
               </div>
               <div className="text-4xl">💍</div>
@@ -215,16 +230,11 @@ export default function CompatibilityPage() {
 
             {/* Koota scores */}
             <div className="mt-5 space-y-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              {compat.scores.map((koota) => (
-                <div key={koota.koota} className="flex justify-between">
-                  <span>{koota.koota}</span>
-                  <span className="text-gold font-medium">
-                    {koota.score}/{koota.maxScore}
-                    {koota.compatibility && (
-                      <span className="text-[var(--text-muted)] ml-1 text-xs">
-                        ({koota.compatibility})
-                      </span>
-                    )}
+              {result.kutaDetails.map((koota) => (
+                <div key={koota.name} className="flex justify-between gap-3">
+                  <span>{koota.name}</span>
+                  <span className={`font-medium ${koota.obtained === 0 ? "text-red-400" : "text-gold"}`}>
+                    {koota.obtained}/{koota.maximum}
                   </span>
                 </div>
               ))}
@@ -234,13 +244,8 @@ export default function CompatibilityPage() {
               {form.boy.name} and {form.girl.name} scored {totalScore} out of {maxTotal} Gunas in the Ashtakoota compatibility analysis.
             </p>
 
-            {/* Warnings */}
-            {result.warnings && result.warnings.length > 0 && (
-              <div className="mt-3 text-xs text-yellow-500">
-                {result.warnings.map((w, i) => (
-                  <p key={i}>⚠ {w}</p>
-                ))}
-              </div>
+            {result.recommendation && (
+              <p className="mt-3 text-xs text-yellow-500 leading-relaxed">{result.recommendation}</p>
             )}
           </motion.div>
         )}

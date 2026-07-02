@@ -92,26 +92,21 @@ export interface DashaPeriod {
   end: string;
 }
 
-// Matchmaking
-export interface KootaScore {
-  koota: string;
-  maxScore: number;
-  score: number;
-  compatibility: string;
-}
-
-export interface MatchmakingCompatibility {
-  scores: KootaScore[];
-  totalScore: number;
-  maxTotal: number;
-  overallCompatibility: string;
+// Matchmaking (mirrors the deployed MatchmakingResponse schema)
+export interface KutaDetail {
+  name: string;
+  obtained: number;
+  maximum: number;
+  description?: string;
 }
 
 export interface MatchmakingResponse {
-  requestId: string;
-  compatibility: MatchmakingCompatibility | null;
-  findings?: Record<string, unknown>[];
-  warnings?: string[];
+  totalScore: number;
+  maxScore: number;
+  kutaDetails: KutaDetail[];
+  /** Overall verdict string, e.g. "Good", "Excellent". */
+  compatibility: string;
+  recommendation?: string;
 }
 
 // Chat SSE events

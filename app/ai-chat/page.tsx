@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Briefcase, Heart, Leaf, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { streamChat, type ChatPersona } from "@/lib/swarm-api";
+import { streamChat, type ChatPersona, type ChatHistoryTurn } from "@/lib/swarm-api";
 
 interface Message {
   role: "user" | "assistant";
@@ -39,6 +39,17 @@ export default function AIChatPage() {
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Conversation memory sent to the backend on each turn. Refs (not state)
+  // because they're pure bookkeeping for the next request, not render input.
+  // The backend folds older turns into `summary` once the raw history gets
+  // long (see chat-compaction.ts) and tells us via a `summary` SSE event —
+  // when that happens we drop the folded turns from what we send next time,
+  // so the prompt (and therefore latency/timeout risk) stays bounded no
+  // matter how long the conversation runs. This is also how the assistant
+  // avoids re-asking things the user already answered earlier in the thread.
+  const historyRef = useRef<ChatHistoryTurn[]>([]);
+  const summaryRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streaming]);
@@ -56,9 +67,19 @@ export default function AIChatPage() {
     setInput("");
     setStreaming(true);
 
+    const historyForThisTurn = historyRef.current;
+    const summaryForThisTurn = summaryRef.current;
+
     try {
-      const stream = streamChat(msg, { persona });
+      const stream = streamChat(msg, {
+        persona,
+        history: historyForThisTurn,
+        summary: summaryForThisTurn,
+      });
       let fullContent = "";
+      let hadError = false;
+      let newSummary = summaryForThisTurn;
+      let summaryChanged = false;
 
       for await (const event of stream) {
         if (event.type === "token") {
@@ -72,7 +93,11 @@ export default function AIChatPage() {
             }
             return next;
           });
+        } else if (event.type === "summary") {
+          newSummary = event.data.summary;
+          summaryChanged = true;
         } else if (event.type === "error") {
+          hadError = true;
           setMessages((prev) => {
             const next = [...prev];
             const last = next[next.length - 1];
@@ -93,6 +118,7 @@ export default function AIChatPage() {
 
       // If we got no content at all, show a fallback
       if (!fullContent) {
+        hadError = true;
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
@@ -105,6 +131,23 @@ export default function AIChatPage() {
           }
           return next;
         });
+      }
+
+      // Only remember a turn that actually completed — an error/fallback
+      // message isn't real conversation content and shouldn't be replayed
+      // back to the model as if the assistant said it.
+      if (!hadError && fullContent) {
+        summaryRef.current = newSummary;
+        historyRef.current = summaryChanged
+          ? [
+              { role: "user", content: msg },
+              { role: "assistant", content: fullContent },
+            ]
+          : [
+              ...historyForThisTurn,
+              { role: "user", content: msg },
+              { role: "assistant", content: fullContent },
+            ];
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");

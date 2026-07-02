@@ -118,10 +118,21 @@ export interface MatchmakingResponse {
 /** Which astrologer persona to chat with — determines which chart-fact slice the backend injects. */
 export type ChatPersona = "career" | "love" | "health" | "general";
 
+/** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
+export interface ChatHistoryTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 // Chat SSE events
 export interface ChatTokenEvent {
   type: "token";
   data: { content: string };
+}
+
+export interface ChatSummaryEvent {
+  type: "summary";
+  data: { summary: string };
 }
 
 export interface ChatDoneEvent {
@@ -134,7 +145,7 @@ export interface ChatErrorEvent {
   data: { error: string };
 }
 
-export type ChatStreamEvent = ChatTokenEvent | ChatDoneEvent | ChatErrorEvent;
+export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent;
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
@@ -211,7 +222,14 @@ export async function matchmaking(
  */
 export async function* streamChat(
   message: string,
-  opts?: { locale?: string; persona?: ChatPersona },
+  opts?: {
+    locale?: string;
+    persona?: ChatPersona;
+    /** Recent turns to carry forward; omit turns already folded into `summary`. */
+    history?: ChatHistoryTurn[];
+    /** Running summary returned by a prior turn's `summary` event. */
+    summary?: string;
+  },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
 
@@ -222,6 +240,8 @@ export async function* streamChat(
       message,
       locale: opts?.locale ?? "en",
       persona: opts?.persona ?? "general",
+      history: opts?.history ?? [],
+      ...(opts?.summary ? { summary: opts.summary } : {}),
     }),
   });
 
@@ -273,6 +293,8 @@ export async function* streamChat(
 
           if (eventType === "token") {
             yield { type: "token", data: { content: data.content ?? "" } };
+          } else if (eventType === "summary") {
+            yield { type: "summary", data: { summary: data.summary ?? "" } };
           } else if (eventType === "done") {
             yield { type: "done", data: { status: data.status ?? "complete" } };
           } else if (eventType === "error") {

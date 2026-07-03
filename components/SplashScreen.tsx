@@ -6,7 +6,9 @@ import { useTheme } from "next-themes";
 import ZodiacSilhouette from "./ZodiacSilhouette";
 import BrandLogo from "./ui/BrandLogo";
 
-export default function SplashScreen() {
+const SPLASH_SHOWN_KEY = "aroha_splash_shown";
+
+export default function SplashScreen({ onDone }: { onDone?: () => void } = {}) {
   const [visible, setVisible] = useState(true);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -16,9 +18,22 @@ export default function SplashScreen() {
   const isLight = mounted && resolvedTheme === "light";
 
   useEffect(() => {
+    // Only play the full multi-second splash once per browser session —
+    // repeat visits to "/" (e.g. tapping Home in the bottom nav) shouldn't
+    // replay the logo animation every time.
+    if (sessionStorage.getItem(SPLASH_SHOWN_KEY) === "1") {
+      setVisible(false);
+      onDone?.();
+      return;
+    }
     // Increase duration slightly so the user can enjoy the premium loading animation
-    const t = setTimeout(() => setVisible(false), 3200);
+    const t = setTimeout(() => {
+      setVisible(false);
+      sessionStorage.setItem(SPLASH_SHOWN_KEY, "1");
+      onDone?.();
+    }, 3200);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

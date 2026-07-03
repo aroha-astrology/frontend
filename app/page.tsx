@@ -30,10 +30,14 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   // Show the tour right after onboarding (?tour=1) or once for any existing
   // user who hasn't seen it yet — but never twice, tracked via localStorage.
+  // Gated on the splash finishing first so it doesn't spotlight content that's
+  // still hidden behind the loading logo.
   useEffect(() => {
+    if (!splashDone) return;
     const alreadySeen = localStorage.getItem(TOUR_DONE_KEY) === "1";
     if (alreadySeen) return;
 
@@ -43,7 +47,7 @@ export default function HomePage() {
     } else if (user?.profileCompletedAt) {
       setTourOpen(true);
     }
-  }, [user]);
+  }, [splashDone, user]);
 
   const finishTour = () => {
     setTourOpen(false);
@@ -55,7 +59,7 @@ export default function HomePage() {
       {/* Backgrounds */}
       <ParticleBackground />
       <MoonBackground />
-      <SplashScreen />
+      <SplashScreen onDone={() => setSplashDone(true)} />
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
       {tourOpen && <AppTour onFinish={finishTour} />}
 

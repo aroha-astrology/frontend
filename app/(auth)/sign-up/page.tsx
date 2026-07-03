@@ -150,7 +150,7 @@ export default function SignUpPage() {
                   <span className="text-foreground font-medium">{masked}</span>
                 </p>
 
-                <div className="flex gap-2 justify-between mb-3" onPaste={handleOtpPaste}>
+                <div className="flex gap-2 mb-3" onPaste={handleOtpPaste}>
                   {otp.map((d, i) => (
                     <input
                       key={i}
@@ -161,7 +161,7 @@ export default function SignUpPage() {
                       value={d}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
-                      className="w-12 h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
+                      className="flex-1 min-w-0 max-w-12 h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
                     />
                   ))}
                 </div>

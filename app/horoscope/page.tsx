@@ -10,6 +10,7 @@ import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PanchangStrip from "@/components/horoscope/PanchangStrip";
+import DashaChapterCard from "@/components/horoscope/DashaChapterCard";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
@@ -116,6 +117,12 @@ function PersonalizedCard({ period }: { period: Timescale }) {
           </div>
         ) : (
           <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+        )}
+
+        {data.dasha && (
+          <div className="mt-4">
+            <DashaChapterCard dasha={data.dasha} />
+          </div>
         )}
 
         <div className="flex items-center justify-between mt-3">

@@ -117,6 +117,15 @@ export interface StructuredHoroscope {
   luckyNumber: number;
 }
 
+/** Plain-language reading of the user's current Vimshottari dasha — same on all 4 periods. */
+export interface DashaReading {
+  mahadashaPlanet: string;
+  antardashaPlanet: string | null;
+  hook: string;
+  meaning: string;
+  activeUntil: string | null;
+}
+
 // ─── Panchang ──────────────────────────────────────────────────────────────
 
 export interface PanchangTimeWindow {
@@ -159,6 +168,8 @@ export interface PersonalizedHoroscope {
   monthlyBreakdown?: MonthlyBreakdownEntry[];
   /** Only present for daily/weekly/monthly — the rich Plain-view fields. */
   structured?: StructuredHoroscope;
+  /** Current dasha reading — same on all 4 periods; absent if no kundli yet. */
+  dasha?: DashaReading;
   model: string | null;
   generatedAt: string;
 }

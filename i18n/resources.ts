@@ -4,7 +4,14 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back" },
+      legal: {
+        terms: "Terms of Service",
+        privacy: "Privacy Policy",
+        disclaimer: "Astrology & AI Disclaimer",
+        versionLine: "Version {{version}} · Last updated {{date}}",
+        englishNote: "The legally binding text of this document is English. Titles and navigation are translated for convenience.",
+      },
       consentGate: { body: "Before you continue, we need your consent to process your birth details for astrology features." },
       hero: {
         astrology: "Astrology",
@@ -86,6 +93,12 @@ export const resources = {
           bestDay: "Best Day",
           worstDay: "Toughest Day",
         },
+        dasha: {
+          title: "Your Current Chapter",
+          mahadasha: "Main Period",
+          antardasha: "Sub-Period",
+          activeUntil: "This chapter runs until {{date}}",
+        },
         panchang: {
           todayTitle: "Today's Panchang",
           tithi: "Tithi",
@@ -104,6 +117,11 @@ export const resources = {
           auspicious: "Auspicious",
           regionalCalendars: "Regional Calendars",
           unavailable: "Panchang data isn't available for this date/location right now.",
+          referenceLocation: "Delhi (Reference)",
+          yourLocation: "Your Location",
+          locating: "Locating...",
+          locationDenied: "Location access denied — showing the reference panchang instead.",
+          locationHint: "Timings are shown for Delhi by default — tap \"Your Location\" for sunrise/sunset accurate to where you are.",
         },
       },
       compatibilityPage: {
@@ -144,9 +162,17 @@ export const resources = {
         noResponse: "I could not generate a response. Please try again.",
         connectError: "Failed to connect to the astrologer",
         personaGeneral: "Yogi Baba",
-        personaCareer: "Career",
-        personaLove: "Love",
-        personaHealth: "Health",
+        personaGeneralSpecialty: "General & Spiritual",
+        personaCareer: "Pandit Vikram",
+        personaCareerSpecialty: "Career & Wealth",
+        personaLove: "Gauri",
+        personaLoveSpecialty: "Love & Relationships",
+        personaHealth: "Dr. Kavitha",
+        personaHealthSpecialty: "Health & Ayurveda",
+        thinking1: "Consulting the stars...",
+        thinking2: "Reading your chart...",
+        thinking3: "Checking planetary positions...",
+        sent: "Sent",
       },
       remedies: {
         love: "Love &\nRelationships",
@@ -283,7 +309,14 @@ export const resources = {
 
   hi: {
     translation: {
-      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं" },
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस" },
+      legal: {
+        terms: "सेवा की शर्तें",
+        privacy: "गोपनीयता नीति",
+        disclaimer: "ज्योतिष और AI अस्वीकरण",
+        versionLine: "संस्करण {{version}} · अंतिम अद्यतन {{date}}",
+        englishNote: "इस दस्तावेज़ का कानूनी रूप से मान्य पाठ अंग्रेज़ी में है। शीर्षक और नेविगेशन सुविधा के लिए अनुवादित हैं।",
+      },
       consentGate: { body: "जारी रखने से पहले, हमें ज्योतिष सुविधाओं के लिए आपके जन्म विवरण को संसाधित करने की आपकी सहमति चाहिए।" },
       hero: {
         astrology: "ज्योतिष",
@@ -382,6 +415,12 @@ export const resources = {
           bestDay: "सर्वश्रेष्ठ दिन",
           worstDay: "सबसे कठिन दिन",
         },
+        dasha: {
+          title: "आपका वर्तमान अध्याय",
+          mahadasha: "मुख्य अवधि",
+          antardasha: "उप-अवधि",
+          activeUntil: "यह अध्याय {{date}} तक चलेगा",
+        },
         panchang: {
           todayTitle: "आज का पंचांग",
           tithi: "तिथि",
@@ -400,6 +439,11 @@ export const resources = {
           auspicious: "शुभ",
           regionalCalendars: "क्षेत्रीय पंचांग",
           unavailable: "इस तिथि/स्थान के लिए पंचांग डेटा अभी उपलब्ध नहीं है।",
+          referenceLocation: "दिल्ली (संदर्भ)",
+          yourLocation: "आपका स्थान",
+          locating: "स्थान खोजा जा रहा है...",
+          locationDenied: "स्थान की अनुमति नहीं मिली — इसके बजाय संदर्भ पंचांग दिखाया जा रहा है।",
+          locationHint: "समय डिफ़ॉल्ट रूप से दिल्ली के लिए दिखाए जाते हैं — अपने स्थान के अनुसार सटीक सूर्योदय/सूर्यास्त के लिए \"आपका स्थान\" टैप करें।",
         },
       },
       compatibilityPage: {
@@ -440,9 +484,17 @@ export const resources = {
         noResponse: "मैं उत्तर नहीं बना सका। कृपया पुनः प्रयास करें।",
         connectError: "ज्योतिषी से जुड़ने में विफल",
         personaGeneral: "योगी बाबा",
-        personaCareer: "करियर",
-        personaLove: "प्रेम",
-        personaHealth: "स्वास्थ्य",
+        personaGeneralSpecialty: "सामान्य और आध्यात्मिक",
+        personaCareer: "पंडित विक्रम",
+        personaCareerSpecialty: "करियर और धन",
+        personaLove: "गौरी",
+        personaLoveSpecialty: "प्रेम और रिश्ते",
+        personaHealth: "डॉ. कविता",
+        personaHealthSpecialty: "स्वास्थ्य और आयुर्वेद",
+        thinking1: "सितारों से पूछ रहे हैं...",
+        thinking2: "आपकी कुंडली पढ़ रहे हैं...",
+        thinking3: "ग्रहों की स्थिति जांच रहे हैं...",
+        sent: "भेजा गया",
       },
       menu: {
         title: "मेनू",
@@ -562,7 +614,14 @@ export const resources = {
 
   bn: {
     translation: {
-      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না" },
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান" },
+      legal: {
+        terms: "পরিষেবার শর্তাবলী",
+        privacy: "গোপনীয়তা নীতি",
+        disclaimer: "জ্যোতিষ ও AI দাবিত্যাগ",
+        versionLine: "সংস্করণ {{version}} · সর্বশেষ আপডেট {{date}}",
+        englishNote: "এই নথির আইনত বৈধ পাঠ্য ইংরেজিতে। শিরোনাম ও নেভিগেশন সুবিধার জন্য অনূদিত।",
+      },
       hero: {
         astrology: "জ্যোতিষ",
         aiPowered: "AI চালিত",
@@ -660,6 +719,12 @@ export const resources = {
           bestDay: "সেরা দিন",
           worstDay: "সবচেয়ে কঠিন দিন",
         },
+        dasha: {
+          title: "আপনার বর্তমান অধ্যায়",
+          mahadasha: "প্রধান পর্ব",
+          antardasha: "উপ-পর্ব",
+          activeUntil: "এই অধ্যায় {{date}} পর্যন্ত চলবে",
+        },
         panchang: {
           todayTitle: "আজকের পঞ্চাঙ্গ",
           tithi: "তিথি",
@@ -678,6 +743,11 @@ export const resources = {
           auspicious: "শুভ",
           regionalCalendars: "আঞ্চলিক পঞ্জিকা",
           unavailable: "এই তারিখ/অবস্থানের জন্য পঞ্চাঙ্গ তথ্য এখন উপলব্ধ নেই।",
+          referenceLocation: "দিল্লি (রেফারেন্স)",
+          yourLocation: "আপনার অবস্থান",
+          locating: "অবস্থান খোঁজা হচ্ছে...",
+          locationDenied: "অবস্থানের অনুমতি পাওয়া যায়নি — পরিবর্তে রেফারেন্স পঞ্চাঙ্গ দেখানো হচ্ছে।",
+          locationHint: "সময় ডিফল্টভাবে দিল্লির জন্য দেখানো হয় — আপনার অবস্থান অনুযায়ী সঠিক সূর্যোদয়/সূর্যাস্তের জন্য \"আপনার অবস্থান\" ট্যাপ করুন।",
         },
       },
       compatibilityPage: {
@@ -718,9 +788,17 @@ export const resources = {
         noResponse: "আমি উত্তর তৈরি করতে পারিনি। আবার চেষ্টা করুন।",
         connectError: "জ্যোতিষীর সাথে সংযোগ করতে ব্যর্থ",
         personaGeneral: "যোগী বাবা",
-        personaCareer: "ক্যারিয়ার",
-        personaLove: "প্রেম",
-        personaHealth: "স্বাস্থ্য",
+        personaGeneralSpecialty: "সাধারণ ও আধ্যাত্মিক",
+        personaCareer: "পন্ডিত বিক্রম",
+        personaCareerSpecialty: "কর্মজীবন ও অর্থ",
+        personaLove: "গৌরী",
+        personaLoveSpecialty: "প্রেম ও সম্পর্ক",
+        personaHealth: "ডঃ কবিতা",
+        personaHealthSpecialty: "স্বাস্থ্য ও আয়ুর্বেদ",
+        thinking1: "তারাদের জিজ্ঞাসা করা হচ্ছে...",
+        thinking2: "আপনার কুণ্ডলী পড়া হচ্ছে...",
+        thinking3: "গ্রহের অবস্থান পরীক্ষা করা হচ্ছে...",
+        sent: "পাঠানো হয়েছে",
       },
       menu: {
         title: "মেনু",
@@ -840,7 +918,14 @@ export const resources = {
 
   mr: {
     translation: {
-      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही" },
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे" },
+      legal: {
+        terms: "सेवा अटी",
+        privacy: "गोपनीयता धोरण",
+        disclaimer: "ज्योतिष आणि AI अस्वीकरण",
+        versionLine: "आवृत्ती {{version}} · शेवटचे अद्यतन {{date}}",
+        englishNote: "या दस्तऐवजाचा कायदेशीर वैध मजकूर इंग्रजीत आहे. शीर्षके व नेव्हिगेशन सोयीसाठी अनुवादित आहेत.",
+      },
       hero: {
         astrology: "ज्योतिष",
         aiPowered: "AI संचालित",
@@ -938,6 +1023,12 @@ export const resources = {
           bestDay: "सर्वोत्तम दिवस",
           worstDay: "सर्वात कठीण दिवस",
         },
+        dasha: {
+          title: "तुमचा सध्याचा अध्याय",
+          mahadasha: "मुख्य कालावधी",
+          antardasha: "उप-कालावधी",
+          activeUntil: "हा अध्याय {{date}} पर्यंत चालेल",
+        },
         panchang: {
           todayTitle: "आजचे पंचांग",
           tithi: "तिथी",
@@ -956,6 +1047,11 @@ export const resources = {
           auspicious: "शुभ",
           regionalCalendars: "प्रादेशिक पंचांग",
           unavailable: "या तारखेसाठी/स्थानासाठी पंचांग डेटा सध्या उपलब्ध नाही.",
+          referenceLocation: "दिल्ली (संदर्भ)",
+          yourLocation: "तुमचे स्थान",
+          locating: "स्थान शोधत आहे...",
+          locationDenied: "स्थानाची परवानगी नाकारली — त्याऐवजी संदर्भ पंचांग दाखवत आहे.",
+          locationHint: "वेळा डीफॉल्टनुसार दिल्लीसाठी दाखवल्या जातात — तुमच्या स्थानानुसार अचूक सूर्योदय/सूर्यास्तासाठी \"तुमचे स्थान\" टॅप करा.",
         },
       },
       compatibilityPage: {
@@ -996,9 +1092,17 @@ export const resources = {
         noResponse: "मला उत्तर तयार करता आले नाही. कृपया पुन्हा प्रयत्न करा.",
         connectError: "ज्योतिषाशी जोडता आले नाही",
         personaGeneral: "योगी बाबा",
-        personaCareer: "करिअर",
-        personaLove: "प्रेम",
-        personaHealth: "आरोग्य",
+        personaGeneralSpecialty: "सामान्य आणि आध्यात्मिक",
+        personaCareer: "पंडित विक्रम",
+        personaCareerSpecialty: "करिअर आणि संपत्ती",
+        personaLove: "गौरी",
+        personaLoveSpecialty: "प्रेम आणि नाती",
+        personaHealth: "डॉ. कविता",
+        personaHealthSpecialty: "आरोग्य आणि आयुर्वेद",
+        thinking1: "ताऱ्यांना विचारत आहे...",
+        thinking2: "तुमची कुंडली वाचत आहे...",
+        thinking3: "ग्रहांची स्थिती तपासत आहे...",
+        sent: "पाठवले",
       },
       menu: {
         title: "मेनू",
@@ -1118,7 +1222,14 @@ export const resources = {
 
   te: {
     translation: {
-      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు" },
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు" },
+      legal: {
+        terms: "సేవా నిబంధనలు",
+        privacy: "గోప్యతా విధానం",
+        disclaimer: "జ్యోతిష్యం & AI నిరాకరణ",
+        versionLine: "వెర్షన్ {{version}} · చివరి నవీకరణ {{date}}",
+        englishNote: "ఈ పత్రం యొక్క చట్టబద్ధమైన పాఠ్యం ఇంగ్లీషులో ఉంది. శీర్షికలు సౌలభ్యం కోసం అనువదించబడ్డాయి.",
+      },
       hero: {
         astrology: "జ్యోతిషం",
         aiPowered: "AI ఆధారిత",
@@ -1216,6 +1327,12 @@ export const resources = {
           bestDay: "ఉత్తమ రోజు",
           worstDay: "కష్టతరమైన రోజు",
         },
+        dasha: {
+          title: "మీ ప్రస్తుత అధ్యాయం",
+          mahadasha: "ప్రధాన దశ",
+          antardasha: "ఉప-దశ",
+          activeUntil: "ఈ అధ్యాయం {{date}} వరకు కొనసాగుతుంది",
+        },
         panchang: {
           todayTitle: "నేటి పంచాంగం",
           tithi: "తిథి",
@@ -1234,6 +1351,11 @@ export const resources = {
           auspicious: "శుభం",
           regionalCalendars: "ప్రాంతీయ పంచాంగాలు",
           unavailable: "ఈ తేదీ/ప్రదేశం కోసం పంచాంగ డేటా ప్రస్తుతం అందుబాటులో లేదు.",
+          referenceLocation: "ఢిల్లీ (రిఫరెన్స్)",
+          yourLocation: "మీ ప్రదేశం",
+          locating: "ప్రదేశం కనుగొంటోంది...",
+          locationDenied: "ప్రదేశ అనుమతి నిరాకరించబడింది — బదులుగా రిఫరెన్స్ పంచాంగం చూపిస్తోంది.",
+          locationHint: "సమయాలు డిఫాల్ట్‌గా ఢిల్లీ కోసం చూపబడతాయి — మీ ప్రదేశానికి ఖచ్చితమైన సూర్యోదయం/సూర్యాస్తమయం కోసం \"మీ ప్రదేశం\" నొక్కండి.",
         },
       },
       compatibilityPage: {
@@ -1274,9 +1396,17 @@ export const resources = {
         noResponse: "నేను సమాధానం రూపొందించలేకపోయాను. దయచేసి మళ్లీ ప్రయత్నించండి.",
         connectError: "జ్యోతిష్కుడితో కనెక్ట్ చేయడంలో విఫలమైంది",
         personaGeneral: "యోగి బాబా",
-        personaCareer: "కెరీర్",
-        personaLove: "ప్రేమ",
-        personaHealth: "ఆరోగ్యం",
+        personaGeneralSpecialty: "సాధారణ & ఆధ్యాత్మిక",
+        personaCareer: "పండిట్ విక్రమ్",
+        personaCareerSpecialty: "కెరీర్ & సంపద",
+        personaLove: "గౌరి",
+        personaLoveSpecialty: "ప్రేమ & సంబంధాలు",
+        personaHealth: "డా. కవిత",
+        personaHealthSpecialty: "ఆరోగ్యం & ఆయుర్వేదం",
+        thinking1: "నక్షత్రాలను సంప్రదిస్తోంది...",
+        thinking2: "మీ జాతకం చదువుతోంది...",
+        thinking3: "గ్రహ స్థానాలను తనిఖీ చేస్తోంది...",
+        sent: "పంపబడింది",
       },
       menu: {
         title: "మెనూ",
@@ -1396,7 +1526,14 @@ export const resources = {
 
   ta: {
     translation: {
-      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை" },
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்" },
+      legal: {
+        terms: "சேவை விதிமுறைகள்",
+        privacy: "தனியுரிமைக் கொள்கை",
+        disclaimer: "ஜோதிடம் & AI மறுப்பு",
+        versionLine: "பதிப்பு {{version}} · கடைசி புதுப்பிப்பு {{date}}",
+        englishNote: "இந்த ஆவணத்தின் சட்டப்படி செல்லுபடியாகும் உரை ஆங்கிலத்தில் உள்ளது. தலைப்புகள் வசதிக்காக மொழிபெயர்க்கப்பட்டுள்ளன.",
+      },
       hero: {
         astrology: "ஜோதிடம்",
         aiPowered: "AI இயக்கம்",
@@ -1494,6 +1631,12 @@ export const resources = {
           bestDay: "சிறந்த நாள்",
           worstDay: "கடினமான நாள்",
         },
+        dasha: {
+          title: "உங்கள் தற்போதைய அத்தியாயம்",
+          mahadasha: "முதன்மைக் காலம்",
+          antardasha: "துணைக் காலம்",
+          activeUntil: "இந்த அத்தியாயம் {{date}} வரை நீடிக்கும்",
+        },
         panchang: {
           todayTitle: "இன்றைய பஞ்சாங்கம்",
           tithi: "திதி",
@@ -1512,6 +1655,11 @@ export const resources = {
           auspicious: "சுபம்",
           regionalCalendars: "பிராந்திய பஞ்சாங்கங்கள்",
           unavailable: "இந்த தேதி/இடத்திற்கான பஞ்சாங்க தரவு இப்போது கிடைக்கவில்லை.",
+          referenceLocation: "டெல்லி (குறிப்பு)",
+          yourLocation: "உங்கள் இடம்",
+          locating: "இடம் கண்டறியப்படுகிறது...",
+          locationDenied: "இட அனுமதி மறுக்கப்பட்டது — அதற்கு பதிலாக குறிப்பு பஞ்சாங்கம் காட்டப்படுகிறது.",
+          locationHint: "நேரங்கள் இயல்பாக டெல்லிக்காக காட்டப்படுகின்றன — உங்கள் இடத்திற்கு துல்லியமான சூரிய உதயம்/அஸ்தமனத்திற்கு \"உங்கள் இடம்\" தட்டவும்.",
         },
       },
       compatibilityPage: {
@@ -1552,9 +1700,17 @@ export const resources = {
         noResponse: "என்னால் பதிலை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         connectError: "ஜோதிடருடன் இணைக்க முடியவில்லை",
         personaGeneral: "யோகி பாபா",
-        personaCareer: "தொழில்",
-        personaLove: "காதல்",
-        personaHealth: "ஆரோக்கியம்",
+        personaGeneralSpecialty: "பொது & ஆன்மீகம்",
+        personaCareer: "பண்டிட் விக்ரம்",
+        personaCareerSpecialty: "தொழில் & செல்வம்",
+        personaLove: "கௌரி",
+        personaLoveSpecialty: "காதல் & உறவுகள்",
+        personaHealth: "டாக்டர் கவிதா",
+        personaHealthSpecialty: "ஆரோக்கியம் & ஆயுர்வேதம்",
+        thinking1: "நட்சத்திரங்களிடம் கேட்கிறது...",
+        thinking2: "உங்கள் ஜாதகத்தைப் படிக்கிறது...",
+        thinking3: "கிரக நிலைகளை சரிபார்க்கிறது...",
+        sent: "அனுப்பப்பட்டது",
       },
       menu: {
         title: "மெனு",
@@ -1674,7 +1830,14 @@ export const resources = {
 
   gu: {
     translation: {
-      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના" },
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ" },
+      legal: {
+        terms: "સેવાની શરતો",
+        privacy: "ગોપનીયતા નીતિ",
+        disclaimer: "જ્યોતિષ અને AI અસ્વીકરણ",
+        versionLine: "સંસ્કરણ {{version}} · છેલ્લું અપડેટ {{date}}",
+        englishNote: "આ દસ્તાવેજનો કાયદેસર માન્ય લખાણ અંગ્રેજીમાં છે. શીર્ષકો સુવિધા માટે અનુવાદિત છે.",
+      },
       hero: {
         astrology: "જ્યોતિષ",
         aiPowered: "AI સંચાલિત",
@@ -1772,6 +1935,12 @@ export const resources = {
           bestDay: "શ્રેષ્ઠ દિવસ",
           worstDay: "સૌથી મુશ્કેલ દિવસ",
         },
+        dasha: {
+          title: "તમારો વર્તમાન અધ્યાય",
+          mahadasha: "મુખ્ય ગાળો",
+          antardasha: "ઉપ-ગાળો",
+          activeUntil: "આ અધ્યાય {{date}} સુધી ચાલશે",
+        },
         panchang: {
           todayTitle: "આજનું પંચાંગ",
           tithi: "તિથિ",
@@ -1790,6 +1959,11 @@ export const resources = {
           auspicious: "શુભ",
           regionalCalendars: "પ્રાદેશિક પંચાંગ",
           unavailable: "આ તારીખ/સ્થાન માટે પંચાંગ ડેટા હાલમાં ઉપલબ્ધ નથી.",
+          referenceLocation: "દિલ્હી (સંદર્ભ)",
+          yourLocation: "તમારું સ્થાન",
+          locating: "સ્થાન શોધી રહ્યા છીએ...",
+          locationDenied: "સ્થાનની પરવાનગી નકારવામાં આવી — તેના બદલે સંદર્ભ પંચાંગ બતાવી રહ્યા છીએ.",
+          locationHint: "સમય મૂળભૂત રીતે દિલ્હી માટે બતાવવામાં આવે છે — તમારા સ્થાન મુજબ ચોક્કસ સૂર્યોદય/સૂર્યાસ્ત માટે \"તમારું સ્થાન\" ટેપ કરો.",
         },
       },
       compatibilityPage: {
@@ -1830,9 +2004,17 @@ export const resources = {
         noResponse: "હું જવાબ બનાવી શક્યો નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
         connectError: "જ્યોતિષી સાથે જોડાવામાં નિષ્ફળ",
         personaGeneral: "યોગી બાબા",
-        personaCareer: "કારકિર્દી",
-        personaLove: "પ્રેમ",
-        personaHealth: "આરોગ્ય",
+        personaGeneralSpecialty: "સામાન્ય અને આધ્યાત્મિક",
+        personaCareer: "પંડિત વિક્રમ",
+        personaCareerSpecialty: "કારકિર્દી અને સંપત્તિ",
+        personaLove: "ગૌરી",
+        personaLoveSpecialty: "પ્રેમ અને સંબંધો",
+        personaHealth: "ડૉ. કવિતા",
+        personaHealthSpecialty: "આરોગ્ય અને આયુર્વેદ",
+        thinking1: "તારાઓને પૂછી રહ્યા છીએ...",
+        thinking2: "તમારી કુંડળી વાંચી રહ્યા છીએ...",
+        thinking3: "ગ્રહોની સ્થિતિ તપાસી રહ્યા છીએ...",
+        sent: "મોકલાયું",
       },
       menu: {
         title: "મેનૂ",

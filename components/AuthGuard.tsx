@@ -5,7 +5,10 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import ConsentGate from "@/components/ConsentGate";
 
-const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
+// /legal/* must be readable pre-auth: sign-in/onboarding link to the Terms
+// and Privacy Policy, and consent to an unreadable document is not valid
+// consent under the DPDP Act.
+const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/legal"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { firebaseUser, user, loading } = useAuth();

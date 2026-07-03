@@ -129,7 +129,9 @@ export default function SignUpPage() {
 
                 <p className="mt-5 text-center text-[11px] text-muted/60 leading-relaxed">
                   {t("auth.terms")}{" "}
-                  <span className="text-gold/70 underline underline-offset-2 cursor-pointer">{t("auth.termsLink")}</span>
+                  <Link href="/legal/terms" className="text-gold/70 underline underline-offset-2">{t("legal.terms")}</Link>
+                  {" · "}
+                  <Link href="/legal/privacy" className="text-gold/70 underline underline-offset-2">{t("legal.privacy")}</Link>
                 </p>
               </motion.div>
             )}
@@ -150,7 +152,7 @@ export default function SignUpPage() {
                   <span className="text-foreground font-medium">{masked}</span>
                 </p>
 
-                <div className="flex gap-2 mb-3" onPaste={handleOtpPaste}>
+                <div className="grid grid-cols-6 gap-2 mb-3" onPaste={handleOtpPaste}>
                   {otp.map((d, i) => (
                     <input
                       key={i}
@@ -161,7 +163,7 @@ export default function SignUpPage() {
                       value={d}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
-                      className="flex-1 min-w-0 max-w-12 h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
+                      className="w-full h-14 text-center text-[22px] font-bold text-foreground rounded-xl border border-gold/20 bg-surface focus:border-gold/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.12)] outline-none transition-all"
                     />
                   ))}
                 </div>

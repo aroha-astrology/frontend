@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Briefcase, Heart, Leaf, Sparkles } from "lucide-react";
+import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { streamChat, type ChatPersona, type ChatHistoryTurn } from "@/lib/swarm-api";
@@ -12,16 +12,25 @@ interface Message {
   isError?: boolean;
 }
 
-const PERSONAS: { key: ChatPersona; icon: typeof Sparkles; labelKey: string }[] = [
-  { key: "general", icon: Sparkles, labelKey: "aiChatPage.personaGeneral" },
-  { key: "career", icon: Briefcase, labelKey: "aiChatPage.personaCareer" },
-  { key: "love", icon: Heart, labelKey: "aiChatPage.personaLove" },
-  { key: "health", icon: Leaf, labelKey: "aiChatPage.personaHealth" },
+/**
+ * Visual persona presentation only — the 4 keys are the same functional
+ * personas the backend has always had (general/career/love/health topic
+ * grounding). Naming/avatars give each one an identity to show in the UI;
+ * they don't change what's sent to the API.
+ */
+const PERSONAS: { key: ChatPersona; avatar: string; nameKey: string; specialtyKey: string }[] = [
+  { key: "general", avatar: "🧙", nameKey: "aiChatPage.personaGeneral", specialtyKey: "aiChatPage.personaGeneralSpecialty" },
+  { key: "career", avatar: "💼", nameKey: "aiChatPage.personaCareer", specialtyKey: "aiChatPage.personaCareerSpecialty" },
+  { key: "love", avatar: "🌸", nameKey: "aiChatPage.personaLove", specialtyKey: "aiChatPage.personaLoveSpecialty" },
+  { key: "health", avatar: "🌿", nameKey: "aiChatPage.personaHealth", specialtyKey: "aiChatPage.personaHealthSpecialty" },
 ];
+
+const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
 
 export default function AIChatPage() {
   const { t } = useTranslation();
   const [persona, setPersona] = useState<ChatPersona>("general");
+  const activePersona = PERSONAS.find((p) => p.key === persona)!;
   const suggestions = [
     t("aiChatPage.suggestion1"),
     t("aiChatPage.suggestion2"),
@@ -37,7 +46,17 @@ export default function AIChatPage() {
   ]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [thinkingIdx, setThinkingIdx] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Cycle the "thinking" label while waiting for the first token, so the
+  // wait doesn't feel like a stalled/frozen request.
+  useEffect(() => {
+    if (!streaming) return;
+    setThinkingIdx(0);
+    const id = setInterval(() => setThinkingIdx((i) => (i + 1) % THINKING_KEYS.length), 1800);
+    return () => clearInterval(id);
+  }, [streaming]);
 
   // Conversation memory sent to the backend on each turn. Refs (not state)
   // because they're pure bookkeeping for the next request, not render input.
@@ -172,29 +191,45 @@ export default function AIChatPage() {
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
-      {/* Header */}
+      {/* Header — shows the currently selected astrologer's identity */}
       <div className="px-5 pt-10 pb-4 text-center border-b" style={{ borderColor: "var(--border)" }}>
-        <h1 className="text-3xl font-bold text-gold font-display">🔮 {t("aiChatPage.title")}</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">{t("aiChatPage.subtitle")}</p>
+        <h1 className="text-3xl font-bold text-gold font-display">
+          {activePersona.avatar} {t(activePersona.nameKey)}
+        </h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">{t(activePersona.specialtyKey)}</p>
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed">
           {t("aiChatPage.disclosure")}
         </p>
       </div>
 
-      {/* Persona selector — wraps to a second row rather than overflowing on narrow screens */}
+      {/* Persona cards — avatar + name + specialty, wraps rather than overflowing on narrow screens */}
       <div className="flex flex-wrap gap-2 px-4 pt-3 justify-center">
-        {PERSONAS.map(({ key, icon: Icon, labelKey }) => (
+        {PERSONAS.map(({ key, avatar, nameKey, specialtyKey }) => (
           <button
             key={key}
             onClick={() => setPersona(key)}
             disabled={streaming}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border whitespace-nowrap transition-colors disabled:opacity-40 ${
-              persona === key ? "border-yellow-500 text-yellow-500 bg-yellow-500/10" : "border-transparent"
+            className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border whitespace-nowrap transition-colors disabled:opacity-40 ${
+              persona === key ? "border-yellow-500 bg-yellow-500/10" : "border-transparent"
             }`}
-            style={persona === key ? {} : { background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+            style={persona === key ? {} : { background: "var(--surface)", borderColor: "var(--border)" }}
           >
-            <Icon size={13} />
-            {t(labelKey)}
+            <span
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm ${
+                persona === key ? "bg-yellow-500/20" : ""
+              }`}
+              style={persona === key ? {} : { background: "var(--background)" }}
+            >
+              {avatar}
+            </span>
+            <span className="flex flex-col items-start leading-none">
+              <span className={`text-xs font-semibold ${persona === key ? "text-yellow-500" : ""}`} style={persona === key ? {} : { color: "var(--foreground)" }}>
+                {t(nameKey)}
+              </span>
+              <span className="text-[9.5px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                {t(specialtyKey)}
+              </span>
+            </span>
           </button>
         ))}
       </div>
@@ -227,14 +262,14 @@ export default function AIChatPage() {
             >
               {msg.role === "assistant" && (
                 <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
-                  🔮
+                  {activePersona.avatar}
                 </div>
               )}
               <div
                 className={
                   msg.role === "user"
-                    ? "bg-yellow-500 text-black rounded-3xl rounded-br-md px-4 py-3 max-w-[80%] text-sm"
-                    : `rounded-3xl rounded-bl-md px-4 py-3 max-w-[80%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
+                    ? "bg-yellow-500 text-black rounded-[16px_16px_3px_16px] px-4 py-3 max-w-[80%] text-sm"
+                    : `rounded-[16px_16px_16px_3px] px-4 py-3 max-w-[80%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
                 }
                 style={
                   msg.role !== "user"
@@ -247,6 +282,10 @@ export default function AIChatPage() {
                 {streaming && i === messages.length - 1 && msg.role === "assistant" && (
                   <span className="inline-block w-0.5 h-4 bg-yellow-500 animate-pulse ml-0.5 align-middle" />
                 )}
+                {/* Sent indicator — single check only; there's no "read" concept for an AI reply */}
+                {msg.role === "user" && (
+                  <span className="block text-right text-[10px] text-black/50 mt-0.5 leading-none">✓ {t("aiChatPage.sent")}</span>
+                )}
               </div>
             </motion.div>
           ))}
@@ -257,23 +296,37 @@ export default function AIChatPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex justify-start"
+            className="flex justify-start items-center"
           >
             <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0">
-              🔮
+              {activePersona.avatar}
             </div>
             <div
-              className="rounded-3xl rounded-bl-md px-4 py-3 border flex gap-1 items-center"
+              className="rounded-[16px_16px_16px_3px] px-4 py-3 border flex gap-2.5 items-center"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
-              {[0, 1, 2].map((i) => (
+              <div className="flex gap-1 items-center">
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
+                    className="w-1.5 h-1.5 rounded-full bg-yellow-500 block"
+                  />
+                ))}
+              </div>
+              <AnimatePresence mode="wait">
                 <motion.span
-                  key={i}
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
-                  className="w-1.5 h-1.5 rounded-full bg-yellow-500 block"
-                />
-              ))}
+                  key={thinkingIdx}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs italic"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t(THINKING_KEYS[thinkingIdx]!)}
+                </motion.span>
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

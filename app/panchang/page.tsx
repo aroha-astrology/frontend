@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Sun, Sunset, Clock, ShieldAlert, ShieldCheck, CalendarDays } from "lucide-react";
+import { Sun, Sunset, Clock, ShieldAlert, ShieldCheck, CalendarDays, MapPin, Navigation } from "lucide-react";
 import { api, type PanchangData } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
 import SectionTitle from "@/components/SectionTitle";
+
+/** Delhi/NCR — the same national reference point GET /astro/panchang defaults to server-side. */
+const REFERENCE_LAT = 28.6139;
+const REFERENCE_LON = 77.209;
 
 function FactCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -48,31 +53,53 @@ function WindowCard({
 
 export default function PanchangPage() {
   const { t } = useTranslation();
-  const { firebaseUser, user, loading: authLoading } = useAuth();
-  const [data, setData] = useState<PanchangData | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
+  const { firebaseUser, loading: authLoading } = useAuth();
+  const geo = useGeolocation();
 
+  const [refData, setRefData] = useState<PanchangData | null>(null);
+  const [refState, setRefState] = useState<"loading" | "ready" | "unavailable">("loading");
+  const [userData, setUserData] = useState<PanchangData | null>(null);
+  const [userState, setUserState] = useState<"idle" | "loading" | "ready" | "unavailable">("idle");
+  const [source, setSource] = useState<"reference" | "mine">("reference");
+
+  // Reference panchang (Delhi/NCR) — always fetched, so there's always something to show.
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
-
-    const place = user?.placeOfBirth;
-    const lat = place?.lat ?? 28.6139;
-    const lon = place?.lon ?? 77.209;
-
     api
-      .panchang(lat, lon)
+      .panchang(REFERENCE_LAT, REFERENCE_LON)
       .then((res) => {
         if (cancelled) return;
-        setData(res);
-        setState("ready");
+        setRefData(res);
+        setRefState("ready");
       })
       .catch(() => {
-        if (!cancelled) setState("unavailable");
+        if (!cancelled) setRefState("unavailable");
       });
-
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, user?.placeOfBirth]);
+  }, [authLoading, firebaseUser]);
+
+  // User's current location — only once geolocation is granted.
+  useEffect(() => {
+    if (authLoading || !firebaseUser || !geo.coords) return;
+    let cancelled = false;
+    setUserState("loading");
+    api
+      .panchang(geo.coords.lat, geo.coords.lon)
+      .then((res) => {
+        if (cancelled) return;
+        setUserData(res);
+        setUserState("ready");
+        setSource("mine");
+      })
+      .catch(() => {
+        if (!cancelled) setUserState("unavailable");
+      });
+    return () => { cancelled = true; };
+  }, [authLoading, firebaseUser, geo.coords]);
+
+  const data = source === "mine" && userData ? userData : refData;
+  const state = source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
 
   const regions: Array<"north" | "south" | "west" | "east"> = ["north", "south", "west", "east"];
 
@@ -80,6 +107,37 @@ export default function PanchangPage() {
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
+
+        {/* Location source: reference vs. your actual coordinates */}
+        <div className="mt-4 flex items-center gap-2 flex-wrap">
+          <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
+            <button
+              onClick={() => setSource("reference")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                source === "reference" ? "bg-gold text-[#1a0e00]" : "text-muted"
+              }`}
+            >
+              <MapPin size={12} /> {t("horoscope.panchang.referenceLocation")}
+            </button>
+            <button
+              onClick={() => (userData ? setSource("mine") : geo.request())}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                source === "mine" && userData ? "bg-gold text-[#1a0e00]" : "text-muted"
+              }`}
+            >
+              <Navigation size={12} />
+              {geo.status === "requesting" || userState === "loading"
+                ? t("horoscope.panchang.locating")
+                : t("horoscope.panchang.yourLocation")}
+            </button>
+          </div>
+          {geo.status === "denied" && (
+            <span className="text-[11px] text-muted">{t("horoscope.panchang.locationDenied")}</span>
+          )}
+        </div>
+        {geo.status === "idle" && (
+          <p className="mt-2 text-[11px] text-muted">{t("horoscope.panchang.locationHint")}</p>
+        )}
 
         {state === "loading" && (
           <div className="mt-6 space-y-4">

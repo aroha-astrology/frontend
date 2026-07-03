@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { User, Settings, LogOut, X, ChevronRight } from "lucide-react";
+import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 
 /**
@@ -97,6 +97,18 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                 href="/settings"
                 icon={<Settings size={16} />}
                 label={t("menu.settings")}
+                onClick={onClose}
+              />
+              <DrawerLink
+                href="/legal/terms"
+                icon={<ScrollText size={16} />}
+                label={t("legal.terms")}
+                onClick={onClose}
+              />
+              <DrawerLink
+                href="/legal/privacy"
+                icon={<ShieldCheck size={16} />}
+                label={t("legal.privacy")}
                 onClick={onClose}
               />
             </nav>

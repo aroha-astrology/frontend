@@ -129,7 +129,9 @@ export default function SignUpPage() {
 
                 <p className="mt-5 text-center text-[11px] text-muted/60 leading-relaxed">
                   {t("auth.terms")}{" "}
-                  <span className="text-gold/70 underline underline-offset-2 cursor-pointer">{t("auth.termsLink")}</span>
+                  <Link href="/legal/terms" className="text-gold/70 underline underline-offset-2">{t("legal.terms")}</Link>
+                  {" · "}
+                  <Link href="/legal/privacy" className="text-gold/70 underline underline-offset-2">{t("legal.privacy")}</Link>
                 </p>
               </motion.div>
             )}

@@ -4,7 +4,14 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back" },
+      legal: {
+        terms: "Terms of Service",
+        privacy: "Privacy Policy",
+        disclaimer: "Astrology & AI Disclaimer",
+        versionLine: "Version {{version}} · Last updated {{date}}",
+        englishNote: "The legally binding text of this document is English. Titles and navigation are translated for convenience.",
+      },
       consentGate: { body: "Before you continue, we need your consent to process your birth details for astrology features." },
       hero: {
         astrology: "Astrology",
@@ -283,7 +290,14 @@ export const resources = {
 
   hi: {
     translation: {
-      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं" },
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस" },
+      legal: {
+        terms: "सेवा की शर्तें",
+        privacy: "गोपनीयता नीति",
+        disclaimer: "ज्योतिष और AI अस्वीकरण",
+        versionLine: "संस्करण {{version}} · अंतिम अद्यतन {{date}}",
+        englishNote: "इस दस्तावेज़ का कानूनी रूप से मान्य पाठ अंग्रेज़ी में है। शीर्षक और नेविगेशन सुविधा के लिए अनुवादित हैं।",
+      },
       consentGate: { body: "जारी रखने से पहले, हमें ज्योतिष सुविधाओं के लिए आपके जन्म विवरण को संसाधित करने की आपकी सहमति चाहिए।" },
       hero: {
         astrology: "ज्योतिष",
@@ -562,7 +576,14 @@ export const resources = {
 
   bn: {
     translation: {
-      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না" },
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান" },
+      legal: {
+        terms: "পরিষেবার শর্তাবলী",
+        privacy: "গোপনীয়তা নীতি",
+        disclaimer: "জ্যোতিষ ও AI দাবিত্যাগ",
+        versionLine: "সংস্করণ {{version}} · সর্বশেষ আপডেট {{date}}",
+        englishNote: "এই নথির আইনত বৈধ পাঠ্য ইংরেজিতে। শিরোনাম ও নেভিগেশন সুবিধার জন্য অনূদিত।",
+      },
       hero: {
         astrology: "জ্যোতিষ",
         aiPowered: "AI চালিত",
@@ -840,7 +861,14 @@ export const resources = {
 
   mr: {
     translation: {
-      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही" },
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे" },
+      legal: {
+        terms: "सेवा अटी",
+        privacy: "गोपनीयता धोरण",
+        disclaimer: "ज्योतिष आणि AI अस्वीकरण",
+        versionLine: "आवृत्ती {{version}} · शेवटचे अद्यतन {{date}}",
+        englishNote: "या दस्तऐवजाचा कायदेशीर वैध मजकूर इंग्रजीत आहे. शीर्षके व नेव्हिगेशन सोयीसाठी अनुवादित आहेत.",
+      },
       hero: {
         astrology: "ज्योतिष",
         aiPowered: "AI संचालित",
@@ -1118,7 +1146,14 @@ export const resources = {
 
   te: {
     translation: {
-      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు" },
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు" },
+      legal: {
+        terms: "సేవా నిబంధనలు",
+        privacy: "గోప్యతా విధానం",
+        disclaimer: "జ్యోతిష్యం & AI నిరాకరణ",
+        versionLine: "వెర్షన్ {{version}} · చివరి నవీకరణ {{date}}",
+        englishNote: "ఈ పత్రం యొక్క చట్టబద్ధమైన పాఠ్యం ఇంగ్లీషులో ఉంది. శీర్షికలు సౌలభ్యం కోసం అనువదించబడ్డాయి.",
+      },
       hero: {
         astrology: "జ్యోతిషం",
         aiPowered: "AI ఆధారిత",
@@ -1396,7 +1431,14 @@ export const resources = {
 
   ta: {
     translation: {
-      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை" },
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்" },
+      legal: {
+        terms: "சேவை விதிமுறைகள்",
+        privacy: "தனியுரிமைக் கொள்கை",
+        disclaimer: "ஜோதிடம் & AI மறுப்பு",
+        versionLine: "பதிப்பு {{version}} · கடைசி புதுப்பிப்பு {{date}}",
+        englishNote: "இந்த ஆவணத்தின் சட்டப்படி செல்லுபடியாகும் உரை ஆங்கிலத்தில் உள்ளது. தலைப்புகள் வசதிக்காக மொழிபெயர்க்கப்பட்டுள்ளன.",
+      },
       hero: {
         astrology: "ஜோதிடம்",
         aiPowered: "AI இயக்கம்",
@@ -1674,7 +1716,14 @@ export const resources = {
 
   gu: {
     translation: {
-      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના" },
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ" },
+      legal: {
+        terms: "સેવાની શરતો",
+        privacy: "ગોપનીયતા નીતિ",
+        disclaimer: "જ્યોતિષ અને AI અસ્વીકરણ",
+        versionLine: "સંસ્કરણ {{version}} · છેલ્લું અપડેટ {{date}}",
+        englishNote: "આ દસ્તાવેજનો કાયદેસર માન્ય લખાણ અંગ્રેજીમાં છે. શીર્ષકો સુવિધા માટે અનુવાદિત છે.",
+      },
       hero: {
         astrology: "જ્યોતિષ",
         aiPowered: "AI સંચાલિત",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
@@ -47,7 +48,7 @@ export default function ConsentGate() {
       <h1 className="font-display text-xl text-foreground mb-3">{t("onboarding.confirmTitle")}</h1>
       <p className="text-sm text-muted max-w-xs mb-6 leading-relaxed">{t("consentGate.body")}</p>
 
-      <label className="flex items-start gap-2.5 mb-5 max-w-xs text-left text-[12px] text-muted leading-relaxed cursor-pointer">
+      <label className="flex items-start gap-2.5 mb-2 max-w-xs text-left text-[12px] text-muted leading-relaxed cursor-pointer">
         <input
           type="checkbox"
           checked={consented}
@@ -56,6 +57,13 @@ export default function ConsentGate() {
         />
         {t("onboarding.consentLabel")}
       </label>
+
+      {/* DPDP: the documents being consented to must be readable at the point of consent */}
+      <p className="mb-5 text-[11px] text-muted/70">
+        <Link href="/legal/terms" target="_blank" className="text-gold/70 underline underline-offset-2">{t("legal.terms")}</Link>
+        {" · "}
+        <Link href="/legal/privacy" target="_blank" className="text-gold/70 underline underline-offset-2">{t("legal.privacy")}</Link>
+      </p>
 
       {error && <p className="mb-3 text-[12px] text-red-400">{error}</p>}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -516,7 +517,7 @@ export default function OnboardingPage() {
               ) : null)}
             </div>
 
-            <label className="flex items-start gap-2.5 mb-5 text-[12px] text-muted leading-relaxed cursor-pointer">
+            <label className="flex items-start gap-2.5 mb-2 text-[12px] text-muted leading-relaxed cursor-pointer">
               <input
                 type="checkbox"
                 checked={consented}
@@ -525,6 +526,13 @@ export default function OnboardingPage() {
               />
               {t("onboarding.consentLabel")}
             </label>
+
+            {/* DPDP: the documents being consented to must be readable at the point of consent */}
+            <p className="mb-5 pl-[26px] text-[11px] text-muted/70">
+              <Link href="/legal/terms" target="_blank" className="text-gold/70 underline underline-offset-2">{t("legal.terms")}</Link>
+              {" · "}
+              <Link href="/legal/privacy" target="_blank" className="text-gold/70 underline underline-offset-2">{t("legal.privacy")}</Link>
+            </p>
 
             {submitErr && (
               <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>

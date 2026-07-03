@@ -10,7 +10,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { t } = useTranslation();
 
-  const hidden = ["/onboarding", "/sign-in", "/sign-up"].some((p) => pathname.startsWith(p));
+  const hidden = ["/onboarding", "/sign-in", "/sign-up", "/legal"].some((p) => pathname.startsWith(p));
   if (hidden) return null;
 
   return (

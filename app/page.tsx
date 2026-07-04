@@ -8,7 +8,6 @@ import Hero from "@/components/Hero";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
 import AIChatPreview from "@/components/AIChatPreview";
 import KundliCard from "@/components/KundliCard";
-import RemediesSection from "@/components/RemediesSection";
 import MatchMakingCard from "@/components/MatchMakingCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -99,17 +98,8 @@ export default function HomePage() {
         </div>
 
         {/* Match Making */}
-        <div className="px-5 mt-8">
-          <MatchMakingCard />
-        </div>
-
-        {/* Remedies For You */}
         <div className="px-5 mt-8 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-display text-foreground">{t("home.remediesForYou")}</h2>
-            <Link href="/remedies" className="text-gold text-sm">{t("common.viewAll")}</Link>
-          </div>
-          <RemediesSection />
+          <MatchMakingCard />
         </div>
       </div>
 

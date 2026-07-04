@@ -9,7 +9,6 @@ import { useAuth } from "@/providers/auth-provider";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
-import PanchangStrip from "@/components/horoscope/PanchangStrip";
 import DashaChapterCard from "@/components/horoscope/DashaChapterCard";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
@@ -186,11 +185,6 @@ export default function HoroscopePage() {
               <span className="leading-tight">{t(`horoscope.tab.${ts}`)}</span>
             </button>
           ))}
-        </div>
-
-        {/* Panchang strip — same across all timescales/chart styles (spec 3.1) */}
-        <div className="mt-6">
-          <PanchangStrip />
         </div>
 
         {/* Personalized horoscope — grounded in the user's own chart, distinct

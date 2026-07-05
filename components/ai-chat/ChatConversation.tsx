@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, ChevronLeft } from "lucide-react";
+import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { streamChat, type ChatPersona, type ChatHistoryTurn } from "@/lib/swarm-api";
-import { PERSONAS } from "@/lib/personas";
-import IconButton from "@/components/ui/IconButton";
+import { streamChat, type ChatHistoryTurn } from "@/lib/swarm-api";
+import { ASTROLOGER } from "@/lib/personas";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,15 +15,8 @@ interface Message {
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
 
-export default function ChatConversation({
-  persona,
-  onBack,
-}: {
-  persona: ChatPersona;
-  onBack: () => void;
-}) {
+export default function ChatConversation() {
   const { t } = useTranslation();
-  const activePersona = PERSONAS.find((p) => p.key === persona)!;
   const suggestions = [
     t("aiChatPage.suggestion1"),
     t("aiChatPage.suggestion2"),
@@ -36,8 +28,8 @@ export default function ChatConversation({
     {
       role: "assistant",
       content: t("aiChatPage.personaGreeting", {
-        name: t(activePersona.nameKey),
-        specialty: t(activePersona.specialtyKey),
+        name: t(ASTROLOGER.nameKey),
+        specialty: t(ASTROLOGER.specialtyKey),
       }),
     },
   ]);
@@ -88,7 +80,6 @@ export default function ChatConversation({
 
     try {
       const stream = streamChat(msg, {
-        persona,
         history: historyForThisTurn,
         summary: summaryForThisTurn,
       });
@@ -120,7 +111,7 @@ export default function ChatConversation({
             if (last && last.role === "assistant") {
               next[next.length - 1] = {
                 ...last,
-                content: t("aiChatPage.errorPrefix", { error: event.data.error }),
+                content: t("aiChatPage.errorPrefix", { error: event.data.message }),
                 isError: true,
               };
             }
@@ -184,22 +175,17 @@ export default function ChatConversation({
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, persona, t]);
+  }, [input, streaming, t]);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
-      {/* Header — back button + the currently selected astrologer's identity */}
+      {/* Header — the astrologer's identity */}
       <div className="px-5 pt-10 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="flex items-center gap-3">
-          <IconButton aria-label={t("common.back")} onClick={onBack}>
-            <ChevronLeft size={18} />
-          </IconButton>
-          <div className="flex-1 text-center pr-10">
-            <h1 className="text-2xl font-bold text-gold font-display">
-              {activePersona.avatar} {t(activePersona.nameKey)}
-            </h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t(activePersona.specialtyKey)}</p>
-          </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gold font-display">
+            {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
+          </h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1">{t(ASTROLOGER.specialtyKey)}</p>
         </div>
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
           {t("aiChatPage.disclosure")}
@@ -234,7 +220,7 @@ export default function ChatConversation({
             >
               {msg.role === "assistant" && (
                 <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
-                  {activePersona.avatar}
+                  {ASTROLOGER.avatar}
                 </div>
               )}
               <div
@@ -271,7 +257,7 @@ export default function ChatConversation({
             className="flex justify-start items-center"
           >
             <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0">
-              {activePersona.avatar}
+              {ASTROLOGER.avatar}
             </div>
             <div
               className="rounded-[16px_16px_16px_3px] px-4 py-3 border flex gap-2.5 items-center"

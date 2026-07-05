@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, Hash, Palette, Sparkles, Star } from "lucide-react";
-import { api, ApiError, type PersonalizedHoroscope } from "@/lib/api";
+import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePeriod } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
@@ -14,41 +14,70 @@ import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 
-function PersonalizedCard({ period }: { period: Timescale }) {
+function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
-  const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [state, setState] = useState<"loading" | "generating" | "ready" | "empty" | "error">("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
   const [showMonths, setShowMonths] = useState(false);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     setState("loading");
     setShowMonths(false);
 
-    api
-      .horoscope(period)
-      .then((res) => {
-        if (cancelled) return;
-        setData(res);
-        setState("ready");
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.status === 404) setState("empty");
-        else setState("error");
-      });
+    const POLL_INTERVAL_MS = 2000;
+    const POLL_TIMEOUT_MS = 60_000;
+    const deadline = Date.now() + POLL_TIMEOUT_MS;
 
-    return () => { cancelled = true; };
+    const poll = () => {
+      api
+        .horoscope(period)
+        .then((res) => {
+          if (cancelled) return;
+          if (res.status === "ready") {
+            setData(res);
+            setState("ready");
+            return;
+          }
+          if (res.status === "failed") {
+            setState("error");
+            return;
+          }
+          // res.status === "generating" — keep polling until ready or timed out.
+          setState("generating");
+          if (Date.now() + POLL_INTERVAL_MS > deadline) {
+            setState("empty");
+            return;
+          }
+          timer = setTimeout(poll, POLL_INTERVAL_MS);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          if (err instanceof ApiError && err.status === 404) setState("empty");
+          else setState("error");
+        });
+    };
+
+    poll();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [authLoading, firebaseUser, period]);
 
-  if (state === "loading") {
+  if (state === "loading" || state === "generating") {
     return (
       <Card className="p-5 border-gold/10 animate-pulse">
         <div className="h-4 w-40 rounded bg-gold/10 mb-3" />
         <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
         <div className="h-3 w-3/4 rounded bg-gold/5" />
+        {state === "generating" && (
+          <p className="mt-3 text-xs text-muted text-center">{t("horoscope.personalizedGenerating")}</p>
+        )}
       </Card>
     );
   }
@@ -159,6 +188,13 @@ export default function HoroscopePage() {
   const [timescale, setTimescale] = useState<Timescale>("daily");
   const { forecasts, loading } = useMoonSignForecasts(timescale);
   const [selected, setSelected] = useState<number | null>(null);
+  // Decoupled from `timescale`: "Tomorrow" only ever applies to the
+  // personalized card below, never to the generic moon-sign section (which
+  // has no tomorrow-specific backend support) — so it can't just reuse the
+  // shared tab state. Switching the main tab away from "daily" resets this
+  // back in sync; switching back to "daily" defaults to "daily", not
+  // whatever tomorrow-ness was left over from before.
+  const [personalizedPeriod, setPersonalizedPeriod] = useState<PersonalizedHoroscopePeriod>("daily");
 
   const selectedForecast = selected !== null ? forecasts[selected] : null;
 
@@ -174,6 +210,7 @@ export default function HoroscopePage() {
               key={ts}
               onClick={() => {
                 setTimescale(ts);
+                setPersonalizedPeriod(ts);
                 setSelected(null);
               }}
               className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 rounded-xl text-xs font-medium border text-center transition-colors ${
@@ -187,12 +224,33 @@ export default function HoroscopePage() {
           ))}
         </div>
 
+        {/* Today/Tomorrow — personalized card only, so it only shows up
+            alongside the "Today" tab (the moon-sign grid below has no
+            tomorrow-specific data and stays on "daily" either way). */}
+        {timescale === "daily" && (
+          <div className="mt-3 flex gap-2">
+            {(["daily", "tomorrow"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPersonalizedPeriod(p)}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-colors ${
+                  personalizedPeriod === p
+                    ? "border-gold/50 bg-gold/10 text-gold"
+                    : "border-gold/10 text-muted hover:border-gold/30"
+                }`}
+              >
+                {t(`horoscope.tab.${p}`)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Personalized horoscope — grounded in the user's own chart, distinct
             from the generic per-sign moon-sign section below. Available for
-            all four timescales; yearly additionally offers a month-by-month
-            detail view. */}
+            today/tomorrow/weekly/monthly/yearly; yearly additionally offers a
+            month-by-month detail view. */}
         <div className="mt-4">
-          <PersonalizedCard period={timescale} />
+          <PersonalizedCard period={personalizedPeriod} />
         </div>
 
         {/* Moon-sign section */}

@@ -98,7 +98,7 @@ export interface KundliMissing {
 
 // ─── Personalized horoscope ───────────────────────────────────────────────────
 
-export type PersonalizedHoroscopePeriod = "daily" | "weekly" | "monthly" | "yearly";
+export type PersonalizedHoroscopePeriod = "daily" | "tomorrow" | "weekly" | "monthly" | "yearly";
 
 export interface MonthlyBreakdownEntry {
   month: number; // 1-12

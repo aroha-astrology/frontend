@@ -58,7 +58,7 @@ export const resources = {
       },
       horoscope: {
         title: "Horoscope",
-        tab: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" },
+        tab: { daily: "Today", tomorrow: "Tomorrow", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" },
         comingSoon: "Soon",
         personalizedTitle: "Your Personalized Horoscope",
         personalizedGenerating: "Generating your personalized horoscope… this can take a moment.",
@@ -457,7 +457,7 @@ export const resources = {
       },
       horoscope: {
         title: "राशिफल",
-        tab: { daily: "दैनिक", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
+        tab: { daily: "आज", tomorrow: "कल", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
         comingSoon: "जल्द",
         personalizedTitle: "आपका व्यक्तिगत राशिफल",
         personalizedGenerating: "आपका व्यक्तिगत राशिफल तैयार किया जा रहा है… इसमें थोड़ा समय लग सकता है।",
@@ -823,7 +823,7 @@ export const resources = {
       },
       horoscope: {
         title: "রাশিফল",
-        tab: { daily: "দৈনিক", weekly: "সাপ্তাহিক", monthly: "মাসিক", yearly: "বার্ষিক" },
+        tab: { daily: "আজ", tomorrow: "আগামীকাল", weekly: "সাপ্তাহিক", monthly: "মাসিক", yearly: "বার্ষিক" },
         comingSoon: "শীঘ্রই",
         personalizedTitle: "আপনার ব্যক্তিগত রাশিফল",
         personalizedGenerating: "আপনার ব্যক্তিগত রাশিফল তৈরি হচ্ছে… এতে কিছুটা সময় লাগতে পারে।",
@@ -1189,7 +1189,7 @@ export const resources = {
       },
       horoscope: {
         title: "राशीभविष्य",
-        tab: { daily: "दैनिक", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
+        tab: { daily: "आज", tomorrow: "उद्या", weekly: "साप्ताहिक", monthly: "मासिक", yearly: "वार्षिक" },
         comingSoon: "लवकरच",
         personalizedTitle: "तुमचे वैयक्तिक राशीभविष्य",
         personalizedGenerating: "तुमचे वैयक्तिक राशीभविष्य तयार होत आहे… यासाठी थोडा वेळ लागू शकतो.",
@@ -1551,7 +1551,7 @@ export const resources = {
       },
       horoscope: {
         title: "రాశిఫలం",
-        tab: { daily: "దైనిక", weekly: "వారపు", monthly: "నెలవారీ", yearly: "వార్షిక" },
+        tab: { daily: "ఈరోజు", tomorrow: "రేపు", weekly: "వారపు", monthly: "నెలవారీ", yearly: "వార్షిక" },
         comingSoon: "త్వరలో",
         personalizedTitle: "మీ వ్యక్తిగత రాశిఫలం",
         personalizedGenerating: "మీ వ్యక్తిగత రాశిఫలం తయారవుతోంది… దీనికి కొంత సమయం పట్టవచ్చు.",
@@ -1917,7 +1917,7 @@ export const resources = {
       },
       horoscope: {
         title: "ராசிபலன்",
-        tab: { daily: "தினசரி", weekly: "வாராந்திர", monthly: "மாதாந்திர", yearly: "ஆண்டு" },
+        tab: { daily: "இன்று", tomorrow: "நாளை", weekly: "வாராந்திர", monthly: "மாதாந்திர", yearly: "ஆண்டு" },
         comingSoon: "விரைவில்",
         personalizedTitle: "உங்கள் தனிப்பயன் ராசிபலன்",
         personalizedGenerating: "உங்கள் தனிப்பயன் ராசிபலன் தயாராகிறது… இதற்கு சிறிது நேரம் ஆகலாம்.",
@@ -2279,7 +2279,7 @@ export const resources = {
       },
       horoscope: {
         title: "રાશિફળ",
-        tab: { daily: "દૈનિક", weekly: "સાપ્તાહિક", monthly: "માસિક", yearly: "વાર્ષિક" },
+        tab: { daily: "આજે", tomorrow: "આવતીકાલે", weekly: "સાપ્તાહિક", monthly: "માસિક", yearly: "વાર્ષિક" },
         comingSoon: "જલ્દી",
         personalizedTitle: "તમારું વ્યક્તિગત રાશિફળ",
         personalizedGenerating: "તમારું વ્યક્તિગત રાશિફળ તૈયાર થઈ રહ્યું છે… આમાં થોડો સમય લાગી શકે છે.",

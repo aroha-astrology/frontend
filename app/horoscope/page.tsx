@@ -17,38 +17,67 @@ import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 function PersonalizedCard({ period }: { period: Timescale }) {
   const { t } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
-  const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [state, setState] = useState<"loading" | "generating" | "ready" | "empty" | "error">("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
   const [showMonths, setShowMonths] = useState(false);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     setState("loading");
     setShowMonths(false);
 
-    api
-      .horoscope(period)
-      .then((res) => {
-        if (cancelled) return;
-        setData(res);
-        setState("ready");
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.status === 404) setState("empty");
-        else setState("error");
-      });
+    const POLL_INTERVAL_MS = 2000;
+    const POLL_TIMEOUT_MS = 60_000;
+    const deadline = Date.now() + POLL_TIMEOUT_MS;
 
-    return () => { cancelled = true; };
+    const poll = () => {
+      api
+        .horoscope(period)
+        .then((res) => {
+          if (cancelled) return;
+          if (res.status === "ready") {
+            setData(res);
+            setState("ready");
+            return;
+          }
+          if (res.status === "failed") {
+            setState("error");
+            return;
+          }
+          // res.status === "generating" — keep polling until ready or timed out.
+          setState("generating");
+          if (Date.now() + POLL_INTERVAL_MS > deadline) {
+            setState("empty");
+            return;
+          }
+          timer = setTimeout(poll, POLL_INTERVAL_MS);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          if (err instanceof ApiError && err.status === 404) setState("empty");
+          else setState("error");
+        });
+    };
+
+    poll();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [authLoading, firebaseUser, period]);
 
-  if (state === "loading") {
+  if (state === "loading" || state === "generating") {
     return (
       <Card className="p-5 border-gold/10 animate-pulse">
         <div className="h-4 w-40 rounded bg-gold/10 mb-3" />
         <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
         <div className="h-3 w-3/4 rounded bg-gold/5" />
+        {state === "generating" && (
+          <p className="mt-3 text-xs text-muted text-center">{t("horoscope.personalizedGenerating")}</p>
+        )}
       </Card>
     );
   }

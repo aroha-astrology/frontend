@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -18,7 +19,7 @@ export default function MonthlyBreakdownModal({
 }) {
   const { t } = useTranslation();
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -62,7 +63,11 @@ export default function MonthlyBreakdownModal({
             ))}
           </div>
         </div>
+
+        {/* Bottom padding for mobile — clears the fixed bottom nav bar (h-20) */}
+        <div className="h-24" />
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

@@ -143,6 +143,20 @@ export interface PanchangRegionalMonth {
   year: number;
 }
 
+export interface ChoghadiyaSlot {
+  name: string;
+  type: "good" | "bad" | "neutral";
+  startTime: string;
+  endTime: string;
+}
+
+export interface HoraSlot {
+  planet: string;
+  startTime: string;
+  endTime: string;
+  isAuspicious: boolean;
+}
+
 export interface PanchangData {
   date: string;
   tithi: { number: number; name: string; paksha: string; deity: string; isAuspicious: boolean } | null;
@@ -157,6 +171,82 @@ export interface PanchangData {
   sunriseTime?: string;
   sunsetTime?: string;
   regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+  choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
+  hora?: HoraSlot[];
+}
+
+// ─── Panchang month calendar ─────────────────────────────────────────────────
+
+export interface PanchangMonthDay {
+  day: number;
+  isoDate: string;
+  tithiName: string;
+  tithiNumber: number;
+  paksha: string;
+  nakshatraName: string;
+  vara: string;
+  isFullMoon: boolean;
+  isNewMoon: boolean;
+  isEkadashi: boolean;
+}
+
+// ─── Purchase plan ("Planning to Buy") ────────────────────────────────────────
+
+export type PurchasePlanCategory = "vehicle" | "home" | "commercial" | "other";
+
+export interface PurchasePlanDateAnalysis {
+  date: string;
+  provided: boolean;
+  score: number;
+  verdict: string;
+  highlights: string[];
+  warnings: string[];
+  bestTimeWindows: string[];
+  avoidTimes: string[];
+}
+
+export interface PurchasePlanAnalysis {
+  summary: string[];
+  overallScore: number;
+  overallVerdict: string;
+  tldr: string[];
+  bookingDate: PurchasePlanDateAnalysis;
+  deliveryDate: PurchasePlanDateAnalysis;
+  birthChartInsights: {
+    currentDasha: string;
+    dashaVerdict: string;
+    favorablePlanets: string[];
+    challengingFactors: string[];
+    keyHouses: string;
+  };
+  remedies: string[];
+  luckyColor: string;
+  luckyDirection: string;
+  finalAdvice: string;
+}
+
+export interface PurchasePlan {
+  id: string;
+  category: PurchasePlanCategory;
+  metadata: Record<string, string>;
+  costBracket: string | null;
+  resolvedBookingDate: string;
+  resolvedDeliveryDate: string;
+  status: "pending" | "processing" | "done" | "error";
+  analysis: PurchasePlanAnalysis | { raw: string; parseError: true } | null;
+  errorMessage: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface AnalyzePurchasePlanBody {
+  category: PurchasePlanCategory;
+  metadata?: Record<string, string>;
+  costBracket?: string;
+  bookingDate?: string;
+  deliveryDate?: string;
+  panchangDate?: string;
+  language?: string;
 }
 
 export interface PersonalizedHoroscope {
@@ -358,6 +448,27 @@ export const api = {
     const qs = params.toString();
     return request<PanchangData>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
   },
+
+  /** Lightweight per-day panchang summaries for a calendar month. */
+  panchangMonth: (year: number, month: number, lat?: number, lon?: number) => {
+    const params = new URLSearchParams({ year: String(year), month: String(month) });
+    if (lat != null) params.set("lat", String(lat));
+    if (lon != null) params.set("lon", String(lon));
+    return request<{ year: number; month: number; days: PanchangMonthDay[] }>(
+      `/v1/panchang/month?${params.toString()}`,
+      { auth: true },
+    );
+  },
+
+  /** Request a Vedic timing analysis for a major purchase — returns immediately with a planId to poll. */
+  purchasePlanAnalyze: (body: AnalyzePurchasePlanBody) =>
+    request<{ planId: string }>("/v1/purchase-plan/analyze", { method: "POST", body, auth: true }),
+
+  /** Recent purchase-plan analyses for the current user. */
+  purchasePlanList: () => request<{ plans: PurchasePlan[] }>("/v1/purchase-plan", { auth: true }),
+
+  /** Poll target for a single purchase-plan analysis. */
+  purchasePlanGet: (id: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}`, { auth: true }),
 
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as

@@ -38,10 +38,10 @@ const PLANET_GLYPHS: Record<string, string> = {
 export default function HouseDetails({ houses, className = '' }: HouseDetailsProps) {
   return (
     <Card className={`p-4 ${className}`}>
-      <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-primary mb-3 flex items-center gap-2">
-        <span className="text-accent text-xs">✦</span>
+      <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-gold mb-3 flex items-center gap-2">
+        <span className="text-gold text-xs">❆</span>
         House Details
-        <span className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+        <span className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
       </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -50,19 +50,19 @@ export default function HouseDetails({ houses, className = '' }: HouseDetailsPro
           return (
             <div
               key={h.house}
-              className="p-2.5 rounded-xl border border-gold/10 bg-card/50"
+              className="p-2.5 rounded-xl border border-gold/10 bg-surface/50"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold text-primary">
-                  H{h.house} <span className="font-normal text-text-secondary">({h.sign})</span>
+                <span className="text-xs font-bold text-gold">
+                  H{h.house} <span className="font-normal text-muted">({h.sign})</span>
                 </span>
-                <span className="text-[10px] text-text-secondary">
-                  Lord: <span className="text-primary/80">{PLANET_GLYPHS[h.lord] ?? ''} {h.lord}</span>
+                <span className="text-[10px] text-muted">
+                  Lord: <span className="text-gold/80">{PLANET_GLYPHS[h.lord] ?? ''} {h.lord}</span>
                 </span>
               </div>
 
               {meaning && (
-                <p className="text-[10px] text-text-secondary/60 mb-1">
+                <p className="text-[10px] text-muted/60 mb-1">
                   {meaning.short} — {meaning.keywords.join(', ')}
                 </p>
               )}
@@ -70,13 +70,13 @@ export default function HouseDetails({ houses, className = '' }: HouseDetailsPro
               {h.planets.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {h.planets.map((p) => (
-                    <span key={p} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                    <span key={p} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gold/10 text-gold border border-gold/20">
                       {PLANET_GLYPHS[p] ?? ''} {p}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-[10px] text-text-secondary/30">No planets</span>
+                <span className="text-[10px] text-muted/30">No planets</span>
               )}
             </div>
           );

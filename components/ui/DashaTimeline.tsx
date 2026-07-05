@@ -41,25 +41,25 @@ export default function DashaTimeline({ dasha, className = '' }: DashaTimelinePr
 
   return (
     <Card className={`p-4 ${className}`}>
-      <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-primary mb-3 flex items-center gap-2">
-        <span className="text-accent text-xs">✦</span>
+      <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-gold mb-3 flex items-center gap-2">
+        <span className="text-gold text-xs">❆</span>
         Vimshottari Dasha
-        <span className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+        <span className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
       </h3>
 
       {/* Current period highlight */}
       {currentMahadasha && (
-        <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
-          <div className="text-xs text-text-secondary mb-1">Current Period</div>
-          <div className="text-sm font-bold text-primary">
+        <div className="mb-4 p-3 rounded-xl border border-gold/20 bg-gold/5">
+          <div className="text-xs text-muted mb-1">Current Period</div>
+          <div className="text-sm font-bold text-gold">
             {currentMahadasha.planet} Mahadasha
             {currentAntardasha && (
-              <span className="font-normal text-text-secondary">
+              <span className="font-normal text-muted">
                 {' → '}{currentAntardasha.planet} Antardasha
               </span>
             )}
           </div>
-          <div className="text-[10px] text-text-secondary mt-1">
+          <div className="text-[10px] text-muted mt-1">
             {formatDate(currentMahadasha.startDate)} — {formatDate(currentMahadasha.endDate)}
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function DashaTimeline({ dasha, className = '' }: DashaTimelinePr
       {/* Sub-periods table for active MD */}
       {currentMahadasha?.subPeriods && currentMahadasha.subPeriods.length > 0 && (
         <>
-          <div className="text-[10px] text-text-secondary mb-2 font-semibold uppercase tracking-wider">
+          <div className="text-[10px] text-muted mb-2 font-semibold uppercase tracking-wider">
             Antardashas in {currentMahadasha.planet} Mahadasha
           </div>
           <div className="space-y-1">
@@ -104,8 +104,8 @@ export default function DashaTimeline({ dasha, className = '' }: DashaTimelinePr
                 key={ad.planet + ad.startDate}
                 className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs ${
                   ad.isActive
-                    ? 'bg-primary/10 border border-primary/20 text-primary font-semibold'
-                    : 'text-text-secondary'
+                    ? 'bg-gold/10 border border-gold/20 text-gold font-semibold'
+                    : 'text-muted'
                 }`}
               >
                 <span>{ad.planet}</span>

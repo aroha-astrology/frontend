@@ -11,6 +11,7 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
 import ParticleBackground from "@/components/ParticleBackground";
 import { LANGUAGES, useLanguage, type LangCode } from "@/providers/language-provider";
+import { useAuth } from "@/providers/auth-provider";
 import { api, type Gender, type UpdateMeBody, type PlaceOfBirth } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 
@@ -121,6 +122,7 @@ export default function OnboardingPage() {
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const router = useRouter();
+  const { refresh } = useAuth();
 
   const msgId = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -294,6 +296,11 @@ export default function OnboardingPage() {
       };
 
       await api.updateMe(body);
+      // Refresh the shared auth-context user BEFORE navigating — AuthGuard
+      // reads user.profileCompletedAt on every route change, and a stale
+      // (pre-onboarding) cached user bounces this navigation straight back
+      // to /onboarding.
+      await refresh();
       // Fire-and-forget kundli warm-up: the home page polls /v1/kundli on
       // mount, but kicking the regenerate here means the result is usually
       // ready by the time the user lands there.

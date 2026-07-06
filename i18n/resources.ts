@@ -383,6 +383,14 @@ export const resources = {
         legal: "Legal",
         account: "Account",
       },
+      permissions: {
+        title: "Stay in sync with the sky",
+        subtitle: "Enable location and notifications so your readings are accurate and on time.",
+        locationReason: "Location gives more accurate panchang timings for where you are.",
+        notificationReason: "Notifications let us tell you the moment your daily horoscope is ready.",
+        notNow: "Not now",
+        enable: "Enable",
+      },
       tour: {
         welcomeTitle: "Welcome to Aroha ✨",
         welcomeBody: "Let us show you around — 30 seconds.",
@@ -700,6 +708,14 @@ export const resources = {
         theme: "थीम",
         legal: "कानूनी",
         account: "खाता",
+      },
+      permissions: {
+        title: "आकाश के साथ जुड़े रहें",
+        subtitle: "सटीक और समय पर जानकारी के लिए लोकेशन और नोटिफिकेशन चालू करें।",
+        locationReason: "लोकेशन से आपके स्थान के लिए सटीक पंचांग समय मिलता है।",
+        notificationReason: "नोटिफिकेशन से हम आपको बताएंगे जैसे ही आपकी दैनिक राशिफल तैयार हो।",
+        notNow: "अभी नहीं",
+        enable: "चालू करें",
       },
       remedies: {
         love: "प्रेम और\nरिश्ते",
@@ -1102,6 +1118,14 @@ export const resources = {
         legal: "আইনি",
         account: "অ্যাকাউন্ট",
       },
+      permissions: {
+        title: "আকাশের সাথে সংযুক্ত থাকুন",
+        subtitle: "সঠিক ও সময়মতো তথ্যের জন্য লোকেশন এবং নোটিফিকেশন চালু করুন।",
+        locationReason: "লোকেশন থেকে আপনার জায়গার জন্য সঠিক পঞ্জিকা সময় পাওয়া যায়।",
+        notificationReason: "নোটিফিকেশন আমাদের জানাতে সাহায্য করে যখনই আপনার দৈনিক রাশিফল প্রস্তুত হয়।",
+        notNow: "এখন নয়",
+        enable: "চালু করুন",
+      },
       remedies: {
         love: "প্রেম ও\nসম্পর্ক",
         career: "ক্যারিয়ার ও\nসাফল্য",
@@ -1503,6 +1527,14 @@ export const resources = {
         legal: "कायदेशीर",
         account: "खाते",
       },
+      permissions: {
+        title: "आकाशाशी जोडलेले रहा",
+        subtitle: "अचूक आणि वेळेवर माहितीसाठी लोकेशन आणि नोटिफिकेशन सुरू करा.",
+        locationReason: "लोकेशनमुळे तुमच्या ठिकाणासाठी अचूक पंचांग वेळा मिळतात.",
+        notificationReason: "तुमची दैनंदिन रास भविष्य तयार होताच नोटिफिकेशनद्वारे आम्ही तुम्हाला कळवू.",
+        notNow: "आता नको",
+        enable: "सुरू करा",
+      },
       remedies: {
         love: "प्रेम आणि\nनाती",
         career: "करिअर आणि\nयश",
@@ -1899,6 +1931,14 @@ export const resources = {
         theme: "థీమ్",
         legal: "చట్టపరమైన",
         account: "ఖాతా",
+      },
+      permissions: {
+        title: "ఆకాశంతో అనుసంధానంలో ఉండండి",
+        subtitle: "ఖచ్చితమైన మరియు సకాలంలో సమాచారం కోసం లొకేషన్ మరియు నోటిఫికేషన్‌లను ఆన్ చేయండి.",
+        locationReason: "లొకేషన్ వల్ల మీ ప్రాంతానికి సరైన పంచాంగ సమయాలు లభిస్తాయి.",
+        notificationReason: "మీ రోజువారీ రాశిఫలం సిద్ధమైన వెంటనే మేము మీకు తెలియజేయడానికి నోటిఫికేషన్‌లు సహాయపడతాయి.",
+        notNow: "ఇప్పుడు వద్దు",
+        enable: "ఆన్ చేయండి",
       },
       remedies: {
         love: "ప్రేమ &\nసంబంధాలు",
@@ -2301,6 +2341,14 @@ export const resources = {
         legal: "சட்டப்பூர்வ",
         account: "கணக்கு",
       },
+      permissions: {
+        title: "வானத்துடன் இணைந்திருங்கள்",
+        subtitle: "துல்லியமான, சரியான நேர தகவலுக்காக இருப்பிடம் மற்றும் அறிவிப்புகளை இயக்கவும்.",
+        locationReason: "இருப்பிடம் மூலம் உங்கள் இடத்திற்கான துல்லியமான பஞ்சாங்க நேரங்கள் கிடைக்கும்.",
+        notificationReason: "உங்கள் தினசரி ராசிபலன் தயாரானவுடன் அறிவிப்புகள் மூலம் உங்களுக்குத் தெரிவிப்போம்.",
+        notNow: "இப்போது வேண்டாம்",
+        enable: "இயக்கு",
+      },
       remedies: {
         love: "காதல் &\nஉறவுகள்",
         career: "தொழில் &\nவெற்றி",
@@ -2697,6 +2745,14 @@ export const resources = {
         theme: "થીમ",
         legal: "કાનૂની",
         account: "એકાઉન્ટ",
+      },
+      permissions: {
+        title: "આકાશ સાથે જોડાયેલા રહો",
+        subtitle: "સચોટ અને સમયસર માહિતી માટે લોકેશન અને નોટિફિકેશન ચાલુ કરો.",
+        locationReason: "લોકેશનથી તમારા સ્થળ માટે સચોટ પંચાંગ સમય મળે છે.",
+        notificationReason: "તમારું દૈનિક રાશિફળ તૈયાર થાય કે તરત જ નોટિફિકેશન દ્વારા અમે તમને જણાવીશું.",
+        notNow: "અત્યારે નહીં",
+        enable: "ચાલુ કરો",
       },
       remedies: {
         love: "પ્રેમ અને\nસંબંધો",

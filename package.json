@@ -11,6 +11,8 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@capacitor-firebase/messaging": "^6.3.1",
+    "@capacitor/core": "^6.2.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "clsx": "^2.1.1",

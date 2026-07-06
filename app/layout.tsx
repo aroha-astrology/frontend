@@ -7,6 +7,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import AuthGuard from "@/components/AuthGuard";
 import BottomNavigation from "@/components/BottomNavigation";
 import PageTransition from "@/components/PageTransition";
+import PermissionsPrompt from "@/components/PermissionsPrompt";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default function RootLayout({
               <AuthGuard>
                 <PageTransition>{children}</PageTransition>
                 <BottomNavigation />
+                <PermissionsPrompt />
               </AuthGuard>
             </AuthProvider>
           </LanguageProvider>

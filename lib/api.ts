@@ -55,6 +55,33 @@ export interface ConsentInput {
   privacy?: { version: string };
 }
 
+// ─── Device push tokens ────────────────────────────────────────────────────
+
+export type DevicePlatform = "ios" | "android" | "web";
+
+export interface DeviceToken {
+  id: string;
+  platform: DevicePlatform;
+  deviceId: string | null;
+  locale: string | null;
+  appVersion: string | null;
+  osVersion: string | null;
+  pushEnabled: boolean | null;
+  lastSeenAt: string | null;
+  createdAt: string;
+}
+
+/** POST /v1/device-tokens body — registers/refreshes this device's push token. */
+export interface RegisterDeviceTokenBody {
+  token: string;
+  platform: DevicePlatform;
+  deviceId?: string;
+  locale?: string;
+  appVersion?: string;
+  osVersion?: string;
+  pushEnabled?: boolean;
+}
+
 /** PATCH /v1/me body — all fields optional, additionalProperties:false. */
 export interface UpdateMeBody {
   displayName?: string;
@@ -403,6 +430,14 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** Register/refresh this device's FCM push token. */
+  registerDeviceToken: (body: RegisterDeviceTokenBody) =>
+    request<DeviceToken>("/v1/device-tokens", { method: "POST", body, auth: true }),
+
+  /** Revoke a device push token (e.g. on sign-out). */
+  revokeDeviceToken: (id: string) =>
+    request<void>(`/v1/device-tokens/${id}`, { method: "DELETE", auth: true }),
 
   /** Remedies for the user based on chart. */
   remedies: () => request<{ remedies: RemedyItem[] }>("/v1/remedies", { auth: true }),

@@ -51,25 +51,62 @@ export default function PermissionsPrompt() {
 
   const enable = async () => {
     setBusy(true);
+    // Only a real, permanent decision (an explicit grant or an explicit OS-level
+    // decline) suppresses future prompts. A technical failure along the way
+    // (plugin not resolvable, getToken() erroring, the register-token API call
+    // failing) is NOT a user decision — don't set the "asked" flag for those,
+    // so the prompt reappears next launch instead of silently never retrying.
+    let permanent = false;
     try {
       geo.request();
 
-      const { Capacitor } = await import("@capacitor/core");
-      const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+      let Capacitor: typeof import("@capacitor/core").Capacitor;
+      let FirebaseMessaging: typeof import("@capacitor-firebase/messaging").FirebaseMessaging;
+      try {
+        ({ Capacitor } = await import("@capacitor/core"));
+        ({ FirebaseMessaging } = await import("@capacitor-firebase/messaging"));
+      } catch (err) {
+        console.error("[PermissionsPrompt] plugin import failed", err);
+        return;
+      }
       const platform = Capacitor.getPlatform();
 
-      const perm = await FirebaseMessaging.requestPermissions();
-      if (perm.receive === "granted") {
-        const { token } = await FirebaseMessaging.getToken();
-        if (token && (platform === "android" || platform === "ios")) {
-          await api.registerDeviceToken({ token, platform });
-        }
+      let perm;
+      try {
+        perm = await FirebaseMessaging.requestPermissions();
+        console.log("[PermissionsPrompt] requestPermissions ->", perm.receive);
+      } catch (err) {
+        console.error("[PermissionsPrompt] requestPermissions() threw", err);
+        return;
       }
-    } catch {
-      // Best-effort — a failure here just means the user keeps using the app
-      // without push/location, same as declining outright.
+
+      if (perm.receive === "granted") {
+        try {
+          const { token } = await FirebaseMessaging.getToken();
+          console.log("[PermissionsPrompt] getToken ->", token ? `${token.slice(0, 12)}...` : "(empty)");
+          if (token && (platform === "android" || platform === "ios")) {
+            await api.registerDeviceToken({ token, platform });
+            console.log("[PermissionsPrompt] registerDeviceToken -> ok");
+          }
+        } catch (err) {
+          console.error("[PermissionsPrompt] getToken/registerDeviceToken failed", err);
+          return; // technical failure — leave permanent=false so this retries next launch
+        }
+        permanent = true;
+      } else if (perm.receive === "denied") {
+        // Explicit OS-level decline — respect it, don't re-prompt.
+        permanent = true;
+      }
+      // Any other status (e.g. "prompt"/"prompt-with-rationale") falls through
+      // with permanent=false, so this counts as inconclusive, not declined.
+    } catch (err) {
+      console.error("[PermissionsPrompt] enable() failed", err);
     } finally {
-      dismiss();
+      if (permanent) {
+        dismiss();
+      } else {
+        setVisible(false); // hide for this session, but allow a retry next launch
+      }
       setBusy(false);
     }
   };

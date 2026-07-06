@@ -3,71 +3,27 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Hash, Palette, Sparkles, Star } from "lucide-react";
-import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePeriod } from "@/lib/api";
-import { useAuth } from "@/providers/auth-provider";
+import { ChevronRight, Sparkles, Star } from "lucide-react";
+import type { PersonalizedHoroscopePeriod } from "@/lib/api";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
+import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
-import DashaChapterCard from "@/components/horoscope/DashaChapterCard";
+import PersonalizedHoroscopeDetails from "@/components/horoscope/PersonalizedHoroscopeDetails";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
-import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 
 function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
-  const { firebaseUser, loading: authLoading } = useAuth();
-  const [state, setState] = useState<"loading" | "generating" | "ready" | "empty" | "error">("loading");
-  const [data, setData] = useState<PersonalizedHoroscope | null>(null);
+  const { state, data } = usePersonalizedHoroscope(period);
   const [showMonths, setShowMonths] = useState(false);
 
+  // The month-breakdown modal only ever applies to the period it was opened
+  // for — closing it when the period changes avoids showing last period's
+  // months layered under next period's card while the new one loads.
   useEffect(() => {
-    if (authLoading || !firebaseUser) return;
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    setState("loading");
     setShowMonths(false);
-
-    const POLL_INTERVAL_MS = 2000;
-    const POLL_TIMEOUT_MS = 60_000;
-    const deadline = Date.now() + POLL_TIMEOUT_MS;
-
-    const poll = () => {
-      api
-        .horoscope(period)
-        .then((res) => {
-          if (cancelled) return;
-          if (res.status === "ready") {
-            setData(res);
-            setState("ready");
-            return;
-          }
-          if (res.status === "failed") {
-            setState("error");
-            return;
-          }
-          // res.status === "generating" — keep polling until ready or timed out.
-          setState("generating");
-          if (Date.now() + POLL_INTERVAL_MS > deadline) {
-            setState("empty");
-            return;
-          }
-          timer = setTimeout(poll, POLL_INTERVAL_MS);
-        })
-        .catch((err) => {
-          if (cancelled) return;
-          if (err instanceof ApiError && err.status === 404) setState("empty");
-          else setState("error");
-        });
-    };
-
-    poll();
-
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, [authLoading, firebaseUser, period]);
+  }, [period]);
 
   if (state === "loading" || state === "generating") {
     return (
@@ -93,9 +49,7 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   if (state === "error" || !data) return null;
 
   const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
-  const year = data.forDate.slice(0, 4);
-  const s = data.structured;
-  const badgeKey = s ? (QUALITY_BADGE_KEYS[s.quality] ?? QUALITY_BADGE_KEYS.moderate) : null;
+  const year = data.forDate?.slice(0, 4) ?? "";
 
   return (
     <>
@@ -106,52 +60,7 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
           {t("horoscope.personalizedTitle")}
         </div>
 
-        {s && badgeKey ? (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={16} className={i < s.score ? "fill-gold text-gold" : "text-gold/20"} />
-                ))}
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
-                {t(badgeKey.i18nKey)}
-              </span>
-            </div>
-
-            <p className="text-base text-gold font-semibold leading-snug">{s.hook}</p>
-            <p className="text-sm text-foreground/90 leading-relaxed">{s.description}</p>
-
-            <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
-                <Sparkles size={14} />
-                {t("horoscope.detail.todaysAdvice")}
-              </div>
-              <p className="text-sm text-foreground/90 leading-relaxed">{s.advice}</p>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-                <Palette size={16} className="text-gold mx-auto mb-1" />
-                <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
-                <p className="text-sm text-foreground font-medium">{s.luckyColor}</p>
-              </div>
-              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-                <Hash size={16} className="text-gold mx-auto mb-1" />
-                <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
-                <p className="text-sm text-foreground font-medium">{s.luckyNumber}</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
-        )}
-
-        {data.dasha && (
-          <div className="mt-4">
-            <DashaChapterCard dasha={data.dasha} />
-          </div>
-        )}
+        <PersonalizedHoroscopeDetails data={data} />
 
         <div className="flex items-center justify-between mt-3">
           <p className="text-[10px] text-muted">{data.forDate}</p>

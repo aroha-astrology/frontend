@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Star, X, Moon, Sparkles, Palette, Hash, ArrowRight, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -22,7 +23,7 @@ export default function ForecastDetailModal({
   const badgeKey = QUALITY_BADGE_KEYS[forecast.quality] ?? QUALITY_BADGE_KEYS.moderate;
   const daily = isDaily(forecast);
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -201,9 +202,10 @@ export default function ForecastDetailModal({
           )}
         </div>
 
-        {/* Bottom padding for mobile */}
-        <div className="h-6" />
+        {/* Bottom padding for mobile — clears the fixed bottom nav bar (h-20) */}
+        <div className="h-24" />
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

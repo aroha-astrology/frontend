@@ -115,9 +115,6 @@ export interface MatchmakingResponse {
   mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
 }
 
-/** Which astrologer persona to chat with — determines which chart-fact slice the backend injects. */
-export type ChatPersona = "career" | "love" | "health" | "general";
-
 /** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
 export interface ChatHistoryTurn {
   role: "user" | "assistant";
@@ -142,7 +139,7 @@ export interface ChatDoneEvent {
 
 export interface ChatErrorEvent {
   type: "error";
-  data: { error: string };
+  data: { message: string };
 }
 
 export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent;
@@ -224,7 +221,6 @@ export async function* streamChat(
   message: string,
   opts?: {
     locale?: string;
-    persona?: ChatPersona;
     /** Recent turns to carry forward; omit turns already folded into `summary`. */
     history?: ChatHistoryTurn[];
     /** Running summary returned by a prior turn's `summary` event. */
@@ -239,7 +235,6 @@ export async function* streamChat(
     body: JSON.stringify({
       message,
       locale: opts?.locale ?? "en",
-      persona: opts?.persona ?? "general",
       history: opts?.history ?? [],
       ...(opts?.summary ? { summary: opts.summary } : {}),
     }),
@@ -298,7 +293,7 @@ export async function* streamChat(
           } else if (eventType === "done") {
             yield { type: "done", data: { status: data.status ?? "complete" } };
           } else if (eventType === "error") {
-            yield { type: "error", data: { error: data.error ?? "Unknown error" } };
+            yield { type: "error", data: { message: data.message ?? "Unknown error" } };
           }
         } catch {
           // Malformed JSON in SSE data — skip frame

@@ -9,20 +9,23 @@ import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
-import PersonalizedHoroscopeDetails from "@/components/horoscope/PersonalizedHoroscopeDetails";
+import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import Card from "@/components/ui/Card";
-import type { Timescale } from "@/components/horoscope/types";
+import { QUALITY_BADGE_KEYS, type Timescale } from "@/components/horoscope/types";
 
 function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
   const { state, data } = usePersonalizedHoroscope(period);
   const [showMonths, setShowMonths] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
 
-  // The month-breakdown modal only ever applies to the period it was opened
-  // for — closing it when the period changes avoids showing last period's
-  // months layered under next period's card while the new one loads.
+  // The month-breakdown / full-detail modals only ever apply to the period
+  // they were opened for — closing them when the period changes avoids
+  // showing last period's content layered under next period's card while the
+  // new one loads.
   useEffect(() => {
     setShowMonths(false);
+    setShowDetail(false);
   }, [period]);
 
   if (state === "loading" || state === "generating") {
@@ -50,6 +53,11 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
 
   const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
   const year = data.forDate?.slice(0, 4) ?? "";
+  // Only populated for daily/weekly/monthly — yearly has no per-category
+  // score and keeps its plain summary + month-by-month button below instead
+  // (see PersonalizedDetailModal's doc comment).
+  const s = data.structured;
+  const badgeKey = s ? (QUALITY_BADGE_KEYS[s.categories.overall.quality] ?? QUALITY_BADGE_KEYS.moderate) : null;
 
   return (
     <>
@@ -60,7 +68,29 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
           {t("horoscope.personalizedTitle")}
         </div>
 
-        <PersonalizedHoroscopeDetails data={data} />
+        {s && badgeKey ? (
+          <button onClick={() => setShowDetail(true)} className="w-full text-left space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={16} className={i < s.categories.overall.score ? "fill-gold text-gold" : "text-gold/20"} />
+                ))}
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
+                {t(badgeKey.i18nKey)}
+              </span>
+            </div>
+
+            <p className="text-base text-gold font-semibold leading-snug">{s.categories.overall.hook}</p>
+
+            <div className="flex items-center gap-1 text-[11px] font-medium text-gold">
+              {t("horoscope.viewFullReading")}
+              <ChevronRight size={12} />
+            </div>
+          </button>
+        ) : (
+          <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
+        )}
 
         <div className="flex items-center justify-between mt-3">
           <p className="text-[10px] text-muted">{data.forDate}</p>
@@ -75,6 +105,10 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
           )}
         </div>
       </Card>
+
+      <AnimatePresence>
+        {showDetail && s && <PersonalizedDetailModal data={data} onClose={() => setShowDetail(false)} />}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showMonths && hasMonths && (

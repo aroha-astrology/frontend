@@ -10,6 +10,16 @@ export interface KeyTransit {
   influence: string;
 }
 
+export type Category = "overall" | "health" | "career" | "marriage";
+
+export interface CategoryReading {
+  hook: string;
+  description: string;
+  advice: string;
+  quality: "good" | "moderate" | "challenging" | "avoid";
+  score: number; // 1-5
+}
+
 /** Mirrors the backend's daily MoonSignPrediction. */
 export interface DailyForecastData {
   period: "daily";
@@ -28,6 +38,7 @@ export interface DailyForecastData {
   luckyColor: string;
   luckyNumber: number;
   keyTransits: KeyTransit[];
+  categories: Record<Category, CategoryReading>;
 }
 
 /** Mirrors the backend's PeriodicMoonSignPrediction (weekly/monthly/yearly). */
@@ -48,6 +59,7 @@ export interface PeriodicForecastData {
   luckyColor: string;
   luckyNumber: number;
   keyTransits: KeyTransit[];
+  categories: Record<Category, CategoryReading>;
 }
 
 export type ForecastData = DailyForecastData | PeriodicForecastData;

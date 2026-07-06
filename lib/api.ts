@@ -7,6 +7,7 @@
 // client-side via Firebase (see providers/auth-provider).
 
 import { getFirebaseAuth } from "./firebase";
+import type { Category, CategoryReading } from "@/components/horoscope/types";
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://13.232.179.137:3000"
@@ -106,7 +107,13 @@ export interface MonthlyBreakdownEntry {
   summary: string;
 }
 
-/** Mirrors the moon-sign forecast cards' shape so the personalized card can reuse the same Plain-view UI. */
+/**
+ * Mirrors the moon-sign forecast cards' shape so the personalized card can reuse the same
+ * Plain-view UI. The top-level hook/description/advice/quality/score fields mirror
+ * `categories.overall` for backward compatibility with consumers still reading the old
+ * singular shape (e.g. PersonalizedHoroscopeDetails.tsx, used by the Home page's
+ * "Today's Reading" flow, untouched by the 2026-07-03 category-ratings work).
+ */
 export interface StructuredHoroscope {
   hook: string;
   description: string;
@@ -115,6 +122,7 @@ export interface StructuredHoroscope {
   score: number; // 1-5
   luckyColor: string;
   luckyNumber: number;
+  categories: Record<Category, CategoryReading>;
 }
 
 /** Plain-language reading of the user's current Vimshottari dasha — same on all 4 periods. */

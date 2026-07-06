@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
+import { cn } from "@/lib/utils";
 
 interface PersonForm {
   name: string;
@@ -23,6 +26,7 @@ const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
 
 export default function CompatibilityPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [form, setForm] = useState<CompatForm>({
     boy: { ...emptyPerson },
     girl: { ...emptyPerson },
@@ -35,12 +39,35 @@ export default function CompatibilityPage() {
   // Matchmaking involves a second person's birth data, often entered without
   // them present — require an explicit consent acknowledgement before submit.
   const [consented, setConsented] = useState(false);
+  // "This is me" — prefill Person 1 from the signed-in user's saved birth
+  // details instead of retyping them for every match check.
+  const [useMyDetails, setUseMyDetails] = useState(false);
+  const hasSavedBirthDetails = !!user?.dateOfBirth;
 
   const updatePerson = (who: "boy" | "girl", field: keyof PersonForm, value: string) => {
     setForm((prev) => ({
       ...prev,
       [who]: { ...prev[who], [field]: value },
     }));
+  };
+
+  const toggleUseMyDetails = (checked: boolean) => {
+    setUseMyDetails(checked);
+    if (checked && user) {
+      setForm((prev) => ({
+        ...prev,
+        boy: {
+          name: user.displayName ?? "",
+          dob: user.dateOfBirth ?? "",
+          time: (user.timeOfBirth ?? "").slice(0, 5),
+          place: user.placeOfBirth?.name ?? "",
+        },
+      }));
+      setResolvedBoyPlace(user.placeOfBirth ?? null);
+    } else {
+      setForm((prev) => ({ ...prev, boy: { ...emptyPerson } }));
+      setResolvedBoyPlace(null);
+    }
   };
 
   const check = async () => {
@@ -100,14 +127,15 @@ export default function CompatibilityPage() {
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
   const style = { background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" };
 
-  const renderPersonFields = (who: "boy" | "girl", label: string) => (
+  const renderPersonFields = (who: "boy" | "girl", label: string, disabled = false) => (
     <div className="space-y-3">
       <p className="text-xs text-[var(--text-muted)] ml-1">{label}</p>
       <input
         placeholder={t("compatibilityPage.name")}
         value={form[who].name}
         onChange={(e) => updatePerson(who, "name", e.target.value)}
-        className={inputClass}
+        disabled={disabled}
+        className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
         style={style}
       />
       <div>
@@ -116,7 +144,8 @@ export default function CompatibilityPage() {
           type="date"
           value={form[who].dob}
           onChange={(e) => updatePerson(who, "dob", e.target.value)}
-          className={inputClass}
+          disabled={disabled}
+          className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
           style={style}
         />
       </div>
@@ -126,20 +155,31 @@ export default function CompatibilityPage() {
           type="time"
           value={form[who].time}
           onChange={(e) => updatePerson(who, "time", e.target.value)}
-          className={inputClass}
+          disabled={disabled}
+          className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
           style={style}
         />
       </div>
-      <PlaceAutocomplete
-        placeholder={t("compatibilityPage.birthPlace")}
-        inputClassName={inputClass}
-        inputStyle={style}
-        onSelect={(place) => {
-          updatePerson(who, "place", place.name);
-          if (who === "boy") setResolvedBoyPlace(place);
-          else setResolvedGirlPlace(place);
-        }}
-      />
+      {disabled ? (
+        <input
+          value={form[who].place}
+          disabled
+          readOnly
+          className={cn(inputClass, "opacity-50 cursor-not-allowed")}
+          style={style}
+        />
+      ) : (
+        <PlaceAutocomplete
+          placeholder={t("compatibilityPage.birthPlace")}
+          inputClassName={inputClass}
+          inputStyle={style}
+          onSelect={(place) => {
+            updatePerson(who, "place", place.name);
+            if (who === "boy") setResolvedBoyPlace(place);
+            else setResolvedGirlPlace(place);
+          }}
+        />
+      )}
     </div>
   );
 
@@ -158,8 +198,35 @@ export default function CompatibilityPage() {
         </p>
 
         <div className="mt-8 space-y-4">
+          <label
+            className={cn(
+              "flex items-start gap-2.5 px-1 text-xs leading-relaxed",
+              hasSavedBirthDetails ? "cursor-pointer" : "cursor-not-allowed",
+            )}
+            style={{ color: "var(--text-muted)" }}
+          >
+            <input
+              type="checkbox"
+              checked={useMyDetails}
+              disabled={!hasSavedBirthDetails}
+              onChange={(e) => toggleUseMyDetails(e.target.checked)}
+              className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500 disabled:opacity-40"
+            />
+            <span>
+              {t("compatibilityPage.useMyDetails")}
+              {!hasSavedBirthDetails && (
+                <>
+                  {" — "}
+                  <Link href="/profile" className="text-gold underline underline-offset-2">
+                    {t("compatibilityPage.useMyDetailsHint")}
+                  </Link>
+                </>
+              )}
+            </span>
+          </label>
+
           <div className="grid grid-cols-2 gap-3">
-            {renderPersonFields("boy", t("compatibilityPage.person1"))}
+            {renderPersonFields("boy", t("compatibilityPage.person1"), useMyDetails)}
             {renderPersonFields("girl", t("compatibilityPage.person2"))}
           </div>
 

@@ -88,7 +88,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
             {/* Items */}
             <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
               <DrawerLink
-                href="/onboarding"
+                href="/profile"
                 icon={<User size={16} />}
                 label={t("menu.profile")}
                 onClick={onClose}

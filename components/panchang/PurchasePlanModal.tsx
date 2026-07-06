@@ -118,8 +118,11 @@ export default function PurchasePlanModal({ isOpen, panchangDate, onClose, onSub
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <Card className="w-full sm:max-w-md max-h-[85vh] overflow-y-auto p-5 rounded-t-3xl sm:rounded-3xl border-gold/20">
+    // z-[60]: the bottom tab bar (BottomNavigation) renders after page content
+    // at z-50, so this sheet must sit above it or its bottom ~80px (submit
+    // button on the form step) gets visually covered on mobile.
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+      <Card className="w-full sm:max-w-md max-h-[85vh] overflow-y-auto p-5 pb-8 sm:pb-5 rounded-t-3xl sm:rounded-3xl border-gold/20">
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm font-display text-foreground">{t("horoscope.panchang.planningToBuyTitle")}</p>
           <button onClick={handleClose} className="p-1 text-muted hover:text-foreground" aria-label={t("purchasePlan.close")}>

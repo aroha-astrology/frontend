@@ -420,11 +420,7 @@ export default function KundliPage() {
 
         {/* ── CHART VIEW ── */}
         {hasData && chartData && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             {/* 1. Header card */}
             {(ascendant || planets.length > 0) && (
               <KundliHeaderCard
@@ -488,7 +484,7 @@ export default function KundliPage() {
             {viewMode === "technical" && Object.keys(divisionalCharts).length > 0 && (
               <VargaChartTabs divisionalCharts={divisionalCharts} />
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* ── FORM (no chart yet) ── */}

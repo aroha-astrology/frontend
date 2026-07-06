@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Hero from "@/components/Hero";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
-import AIChatPreview from "@/components/AIChatPreview";
+import TodayReading from "@/components/TodayReading";
 import KundliCard from "@/components/KundliCard";
 import MatchMakingCard from "@/components/MatchMakingCard";
 import MoonBackground from "@/components/MoonBackground";
@@ -80,9 +80,9 @@ export default function HomePage() {
         {/* Hero Section */}
         <Hero />
 
-        {/* AI Astrologer Card */}
+        {/* Today's Reading — personalized horoscope highlights */}
         <div className="px-5 mt-6">
-          <AIChatPreview />
+          <TodayReading />
         </div>
 
         {/* Natal Kundli — fetched after onboarding, polls /v1/kundli (202 → retry every 2s) */}

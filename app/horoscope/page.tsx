@@ -3,52 +3,37 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Hash, Palette, Sparkles, Star } from "lucide-react";
-import { api, ApiError, type PersonalizedHoroscope } from "@/lib/api";
-import { useAuth } from "@/providers/auth-provider";
+import { ChevronRight, Sparkles, Star } from "lucide-react";
+import type { PersonalizedHoroscopePeriod } from "@/lib/api";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
+import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
-import DashaChapterCard from "@/components/horoscope/DashaChapterCard";
+import PersonalizedHoroscopeDetails from "@/components/horoscope/PersonalizedHoroscopeDetails";
 import Card from "@/components/ui/Card";
 import type { Timescale } from "@/components/horoscope/types";
-import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 
-function PersonalizedCard({ period }: { period: Timescale }) {
+function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
-  const { firebaseUser, loading: authLoading } = useAuth();
-  const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
-  const [data, setData] = useState<PersonalizedHoroscope | null>(null);
+  const { state, data } = usePersonalizedHoroscope(period);
   const [showMonths, setShowMonths] = useState(false);
 
+  // The month-breakdown modal only ever applies to the period it was opened
+  // for — closing it when the period changes avoids showing last period's
+  // months layered under next period's card while the new one loads.
   useEffect(() => {
-    if (authLoading || !firebaseUser) return;
-    let cancelled = false;
-    setState("loading");
     setShowMonths(false);
+  }, [period]);
 
-    api
-      .horoscope(period)
-      .then((res) => {
-        if (cancelled) return;
-        setData(res);
-        setState("ready");
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.status === 404) setState("empty");
-        else setState("error");
-      });
-
-    return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, period]);
-
-  if (state === "loading") {
+  if (state === "loading" || state === "generating") {
     return (
       <Card className="p-5 border-gold/10 animate-pulse">
         <div className="h-4 w-40 rounded bg-gold/10 mb-3" />
         <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
         <div className="h-3 w-3/4 rounded bg-gold/5" />
+        {state === "generating" && (
+          <p className="mt-3 text-xs text-muted text-center">{t("horoscope.personalizedGenerating")}</p>
+        )}
       </Card>
     );
   }
@@ -64,9 +49,7 @@ function PersonalizedCard({ period }: { period: Timescale }) {
   if (state === "error" || !data) return null;
 
   const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
-  const year = data.forDate.slice(0, 4);
-  const s = data.structured;
-  const badgeKey = s ? (QUALITY_BADGE_KEYS[s.quality] ?? QUALITY_BADGE_KEYS.moderate) : null;
+  const year = data.forDate?.slice(0, 4) ?? "";
 
   return (
     <>
@@ -77,52 +60,7 @@ function PersonalizedCard({ period }: { period: Timescale }) {
           {t("horoscope.personalizedTitle")}
         </div>
 
-        {s && badgeKey ? (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={16} className={i < s.score ? "fill-gold text-gold" : "text-gold/20"} />
-                ))}
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
-                {t(badgeKey.i18nKey)}
-              </span>
-            </div>
-
-            <p className="text-base text-gold font-semibold leading-snug">{s.hook}</p>
-            <p className="text-sm text-foreground/90 leading-relaxed">{s.description}</p>
-
-            <div className="bg-gold/5 border border-gold/15 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-2">
-                <Sparkles size={14} />
-                {t("horoscope.detail.todaysAdvice")}
-              </div>
-              <p className="text-sm text-foreground/90 leading-relaxed">{s.advice}</p>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-                <Palette size={16} className="text-gold mx-auto mb-1" />
-                <p className="text-xs text-muted">{t("horoscope.detail.luckyColor")}</p>
-                <p className="text-sm text-foreground font-medium">{s.luckyColor}</p>
-              </div>
-              <div className="flex-1 bg-surface/50 border border-gold/10 rounded-xl p-3 text-center">
-                <Hash size={16} className="text-gold mx-auto mb-1" />
-                <p className="text-xs text-muted">{t("horoscope.detail.luckyNumber")}</p>
-                <p className="text-sm text-foreground font-medium">{s.luckyNumber}</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-foreground/90 leading-relaxed">{data.summary}</p>
-        )}
-
-        {data.dasha && (
-          <div className="mt-4">
-            <DashaChapterCard dasha={data.dasha} />
-          </div>
-        )}
+        <PersonalizedHoroscopeDetails data={data} />
 
         <div className="flex items-center justify-between mt-3">
           <p className="text-[10px] text-muted">{data.forDate}</p>
@@ -159,6 +97,13 @@ export default function HoroscopePage() {
   const [timescale, setTimescale] = useState<Timescale>("daily");
   const { forecasts, loading } = useMoonSignForecasts(timescale);
   const [selected, setSelected] = useState<number | null>(null);
+  // Decoupled from `timescale`: "Tomorrow" only ever applies to the
+  // personalized card below, never to the generic moon-sign section (which
+  // has no tomorrow-specific backend support) — so it can't just reuse the
+  // shared tab state. Switching the main tab away from "daily" resets this
+  // back in sync; switching back to "daily" defaults to "daily", not
+  // whatever tomorrow-ness was left over from before.
+  const [personalizedPeriod, setPersonalizedPeriod] = useState<PersonalizedHoroscopePeriod>("daily");
 
   const selectedForecast = selected !== null ? forecasts[selected] : null;
 
@@ -174,6 +119,7 @@ export default function HoroscopePage() {
               key={ts}
               onClick={() => {
                 setTimescale(ts);
+                setPersonalizedPeriod(ts);
                 setSelected(null);
               }}
               className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 rounded-xl text-xs font-medium border text-center transition-colors ${
@@ -187,12 +133,33 @@ export default function HoroscopePage() {
           ))}
         </div>
 
+        {/* Today/Tomorrow — personalized card only, so it only shows up
+            alongside the "Today" tab (the moon-sign grid below has no
+            tomorrow-specific data and stays on "daily" either way). */}
+        {timescale === "daily" && (
+          <div className="mt-3 flex gap-2">
+            {(["daily", "tomorrow"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPersonalizedPeriod(p)}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-colors ${
+                  personalizedPeriod === p
+                    ? "border-gold/50 bg-gold/10 text-gold"
+                    : "border-gold/10 text-muted hover:border-gold/30"
+                }`}
+              >
+                {t(`horoscope.tab.${p}`)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Personalized horoscope — grounded in the user's own chart, distinct
             from the generic per-sign moon-sign section below. Available for
-            all four timescales; yearly additionally offers a month-by-month
-            detail view. */}
+            today/tomorrow/weekly/monthly/yearly; yearly additionally offers a
+            month-by-month detail view. */}
         <div className="mt-4">
-          <PersonalizedCard period={timescale} />
+          <PersonalizedCard period={personalizedPeriod} />
         </div>
 
         {/* Moon-sign section */}

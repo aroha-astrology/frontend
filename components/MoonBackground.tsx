@@ -42,7 +42,17 @@ export default function MoonBackground({
         animate={{ y: [-8, 8, -8] }}
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
         className="absolute -top-[80px] -left-[160px] w-[460px] h-[460px] transition-opacity duration-300"
-        style={{ opacity: isLight ? 0.16 : 0.7 }}
+        style={{
+          opacity: isLight ? 0.16 : 0.7,
+          // This box is anchored off-screen top-left (-160px/-80px), so only
+          // its right ~300px is ever actually on-screen — which used to reach
+          // straight into the horizontally-centered header logo/Hero area.
+          // Hard-clip it to a corner accent (fades out by local x=270px, i.e.
+          // ~110px of real screen width) so it structurally can't reach a
+          // centered logo regardless of theme/opacity tuning.
+          WebkitMaskImage: "linear-gradient(to right, #000 0%, #000 45%, transparent 59%)",
+          maskImage: "linear-gradient(to right, #000 0%, #000 45%, transparent 59%)",
+        }}
       >
         {/* Atmospheric halo that bleeds into the night sky */}
         <div

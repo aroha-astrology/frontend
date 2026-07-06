@@ -139,9 +139,9 @@ export interface MonthlyBreakdownEntry {
 /**
  * Mirrors the moon-sign forecast cards' shape so the personalized card can reuse the same
  * Plain-view UI. The top-level hook/description/advice/quality/score fields mirror
- * `categories.overall` for backward compatibility with consumers still reading the old
- * singular shape (e.g. PersonalizedHoroscopeDetails.tsx, used by the Home page's
- * "Today's Reading" flow, untouched by the 2026-07-03 category-ratings work).
+ * `categories.overall` for backward compatibility with any consumer still reading the old
+ * singular shape (all current UI — TodayReading.tsx and app/horoscope/page.tsx — reads
+ * `categories.overall` directly; these top-level fields exist for older API consumers).
  */
 export interface StructuredHoroscope {
   hook: string;

@@ -6,14 +6,17 @@ import { ChevronRight, Sparkles, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
-import PersonalizedHoroscopeModal from "@/components/horoscope/PersonalizedHoroscopeModal";
+import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 
 /**
- * Home page's "Today's Reading" card — the top 2 highlights (hook + advice)
- * from today's personalized horoscope, with a Details button that opens the
- * full reading in a modal. Replaces the old static AI Astrologer promo card;
- * the bottom nav's central "Ask AI" button remains the entry point to chat.
+ * Home page's "Today's Reading" card — a brief Overall highlight from today's
+ * personalized horoscope, with a Details button that opens the SAME
+ * PersonalizedDetailModal the /horoscope page uses (full Health/Career/
+ * Marriage/Finance/Education breakdown) — one modal, so this card and the
+ * horoscope page's daily view are never out of sync with each other.
+ * Replaces the old static AI Astrologer promo card; the bottom nav's central
+ * "Ask AI" button remains the entry point to chat.
  */
 export default function TodayReading() {
   const { t } = useTranslation();
@@ -30,10 +33,13 @@ export default function TodayReading() {
     );
   }
 
-  if (state !== "ready" || !data?.structured) return null;
+  // Guarded the same way as the /horoscope page's PersonalizedCard — a
+  // truthy `structured` with no `categories.overall` (a still-inconsistent
+  // stale row) must not render/crash here either.
+  if (state !== "ready" || !data?.structured?.categories?.overall) return null;
 
-  const s = data.structured;
-  const badgeKey = QUALITY_BADGE_KEYS[s.quality] ?? QUALITY_BADGE_KEYS.moderate;
+  const overall = data.structured.categories.overall;
+  const badgeKey = QUALITY_BADGE_KEYS[overall.quality] ?? QUALITY_BADGE_KEYS.moderate;
 
   return (
     <>
@@ -52,7 +58,7 @@ export default function TodayReading() {
           <div className="flex items-center gap-2">
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} size={12} className={i < s.score ? "fill-gold text-gold" : "text-gold/20"} />
+                <Star key={i} size={12} className={i < overall.score ? "fill-gold text-gold" : "text-gold/20"} />
               ))}
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap ${badgeKey.bg} ${badgeKey.text}`}>
@@ -61,8 +67,8 @@ export default function TodayReading() {
           </div>
         </div>
 
-        <p className="text-base text-gold font-semibold leading-snug mb-1.5">{s.hook}</p>
-        <p className="text-sm text-foreground/90 leading-relaxed">{s.advice}</p>
+        <p className="text-base text-gold font-semibold leading-snug mb-1.5">{overall.hook}</p>
+        <p className="text-sm text-foreground/90 leading-relaxed">{overall.advice}</p>
 
         <div className="flex justify-end mt-3">
           <button
@@ -76,7 +82,7 @@ export default function TodayReading() {
       </Card>
 
       <AnimatePresence>
-        {showDetails && <PersonalizedHoroscopeModal data={data} onClose={() => setShowDetails(false)} />}
+        {showDetails && <PersonalizedDetailModal data={data} onClose={() => setShowDetails(false)} />}
       </AnimatePresence>
     </>
   );

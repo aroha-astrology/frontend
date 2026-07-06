@@ -55,8 +55,11 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const year = data.forDate?.slice(0, 4) ?? "";
   // Only populated for daily/weekly/monthly — yearly has no per-category
   // score and keeps its plain summary + month-by-month button below instead
-  // (see PersonalizedDetailModal's doc comment).
-  const s = data.structured;
+  // (see PersonalizedDetailModal's doc comment). `categories` is guaranteed
+  // by the backend (it backfills stale pre-category-ratings rows), but guard
+  // defensively anyway — a truthy `structured` with no `categories.overall`
+  // must fall back to the plain-summary view below, not throw.
+  const s = data.structured?.categories?.overall ? data.structured : undefined;
   const badgeKey = s ? (QUALITY_BADGE_KEYS[s.categories.overall.quality] ?? QUALITY_BADGE_KEYS.moderate) : null;
 
   return (

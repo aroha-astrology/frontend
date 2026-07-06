@@ -7,7 +7,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import CategoryRatingRow from "./CategoryRatingRow";
 import DashaChapterCard from "./DashaChapterCard";
 
-const CATEGORY_ORDER = ["overall", "health", "career", "marriage"] as const;
+const CATEGORY_ORDER = ["overall", "health", "career", "marriage", "finance", "education"] as const;
 
 /**
  * Full 4-category breakdown for the personalized card, opened on tap (spec

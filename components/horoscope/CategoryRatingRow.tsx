@@ -1,14 +1,16 @@
 "use client";
 
-import { Star, Sparkles, HeartPulse, Briefcase, Heart } from "lucide-react";
+import { Star, Sparkles, HeartPulse, Briefcase, Heart, Wallet, GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Category, CategoryReading } from "./types";
 
-const CATEGORY_ICON: Record<Category, React.ReactNode> = {
+export const CATEGORY_ICON: Record<Category, React.ReactNode> = {
   overall: <Sparkles size={16} />,
   health: <HeartPulse size={16} />,
   career: <Briefcase size={16} />,
   marriage: <Heart size={16} />,
+  finance: <Wallet size={16} />,
+  education: <GraduationCap size={16} />,
 };
 
 export default function CategoryRatingRow({

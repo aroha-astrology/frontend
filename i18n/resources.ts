@@ -100,6 +100,8 @@ export const resources = {
           health: "Health",
           career: "Career",
           marriage: "Marriage",
+          finance: "Finance",
+          education: "Education",
         },
         dasha: {
           title: "Your Current Chapter",
@@ -542,6 +544,8 @@ export const resources = {
           health: "स्वास्थ्य",
           career: "करियर",
           marriage: "विवाह",
+          finance: "वित्त",
+          education: "शिक्षा",
         },
         dasha: {
           title: "आपका वर्तमान अध्याय",
@@ -951,6 +955,8 @@ export const resources = {
           health: "স্বাস্থ্য",
           career: "কর্মজীবন",
           marriage: "বিবাহ",
+          finance: "অর্থ",
+          education: "শিক্ষা",
         },
         dasha: {
           title: "আপনার বর্তমান অধ্যায়",
@@ -1360,6 +1366,8 @@ export const resources = {
           health: "आरोग्य",
           career: "करिअर",
           marriage: "विवाह",
+          finance: "अर्थ",
+          education: "शिक्षण",
         },
         dasha: {
           title: "तुमचा सध्याचा अध्याय",
@@ -1765,6 +1773,8 @@ export const resources = {
           health: "ఆరోగ్యం",
           career: "కెరీర్",
           marriage: "వివాహం",
+          finance: "ఆర్థికం",
+          education: "విద్య",
         },
         dasha: {
           title: "మీ ప్రస్తుత అధ్యాయం",
@@ -2174,6 +2184,8 @@ export const resources = {
           health: "ஆரோக்கியம்",
           career: "தொழில்",
           marriage: "திருமணம்",
+          finance: "நிதி",
+          education: "கல்வி",
         },
         dasha: {
           title: "உங்கள் தற்போதைய அத்தியாயம்",
@@ -2579,6 +2591,8 @@ export const resources = {
           health: "આરોગ્ય",
           career: "કારકિર્દી",
           marriage: "લગ્ન",
+          finance: "નાણાં",
+          education: "શિક્ષણ",
         },
         dasha: {
           title: "તમારો વર્તમાન અધ્યાય",

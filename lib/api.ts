@@ -7,7 +7,7 @@
 // client-side via Firebase (see providers/auth-provider).
 
 import { getFirebaseAuth } from "./firebase";
-import type { Category, CategoryReading } from "@/components/horoscope/types";
+import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://13.232.179.137:3000"
@@ -132,6 +132,8 @@ export interface MonthlyBreakdownEntry {
   month: number; // 1-12
   monthLabel: string;
   summary: string;
+  /** One relatable hook per sub-category for that month. Absent on rows generated before 2026-07-06. */
+  categoryHooks?: Record<SubCategory, string>;
 }
 
 /**

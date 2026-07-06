@@ -10,7 +10,10 @@ export interface KeyTransit {
   influence: string;
 }
 
-export type Category = "overall" | "health" | "career" | "marriage";
+export type Category = "overall" | "health" | "career" | "marriage" | "finance" | "education";
+
+/** The 5 rated life areas, excluding the derived "overall" — used for per-month yearly hooks. */
+export type SubCategory = Exclude<Category, "overall">;
 
 export interface CategoryReading {
   hook: string;

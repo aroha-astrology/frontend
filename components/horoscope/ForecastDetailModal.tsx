@@ -8,7 +8,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import CategoryRatingRow from "./CategoryRatingRow";
 
 type ViewMode = "plain" | "technical";
-const CATEGORY_ORDER = ["overall", "health", "career", "marriage"] as const;
+const CATEGORY_ORDER = ["overall", "health", "career", "marriage", "finance", "education"] as const;
 
 export default function ForecastDetailModal({
   forecast,

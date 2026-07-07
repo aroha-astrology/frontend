@@ -216,6 +216,7 @@ export async function matchmaking(
 /**
  * POST /v1/chat — SSE streaming chat with the AI Jyotish Scholar.
  * Yields parsed SSE events: { type: "token"|"done"|"error", data }.
+ * Groups tokens into ~2-line chunks for better chat-like UX.
  */
 export async function* streamChat(
   message: string,
@@ -229,79 +230,118 @@ export async function* streamChat(
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
 
-  const res = await fetch(`${BASE_URL}/v1/chat`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      message,
-      locale: opts?.locale ?? "en",
-      history: opts?.history ?? [],
-      ...(opts?.summary ? { summary: opts.summary } : {}),
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    let detail = text;
-    try {
-      const parsed = JSON.parse(text);
-      detail = parsed?.detail ?? parsed?.error?.message ?? text;
-    } catch { /* use raw text */ }
-    throw new SwarmApiError(res.status, "chat_error", String(detail));
-  }
-
-  const reader = res.body?.getReader();
-  if (!reader) throw new SwarmApiError(0, "no_body", "Response has no body");
-
-  const decoder = new TextDecoder();
-  let buffer = "";
+  // Use AbortController for timeout (5 minutes for streaming responses)
+  // Streaming keeps connection alive, so we allow long response times
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 300000);
 
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    const res = await fetch(`${BASE_URL}/v1/chat`, {
+      method: "POST",
+      headers,
+      signal: controller.signal,
+      body: JSON.stringify({
+        message,
+        locale: opts?.locale ?? "en",
+        history: opts?.history ?? [],
+        ...(opts?.summary ? { summary: opts.summary } : {}),
+      }),
+    });
 
-      buffer += decoder.decode(value, { stream: true });
+    if (!res.ok) {
+      const text = await res.text();
+      let detail = text;
+      try {
+        const parsed = JSON.parse(text);
+        detail = parsed?.detail ?? parsed?.error?.message ?? text;
+      } catch { /* use raw text */ }
+      throw new SwarmApiError(res.status, "chat_error", String(detail));
+    }
 
-      // Parse SSE frames: "event: <type>\ndata: <json>\n\n"
-      const frames = buffer.split("\n\n");
-      buffer = frames.pop() ?? ""; // keep incomplete frame in buffer
+    const reader = res.body?.getReader();
+    if (!reader) throw new SwarmApiError(0, "no_body", "Response has no body");
 
-      for (const frame of frames) {
-        if (!frame.trim()) continue;
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let tokenBuffer = ""; // Buffer tokens into ~2-line chunks
 
-        let eventType = "message";
-        let dataStr = "";
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        for (const line of frame.split("\n")) {
-          if (line.startsWith("event: ")) {
-            eventType = line.slice(7).trim();
-          } else if (line.startsWith("data: ")) {
-            dataStr = line.slice(6);
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE frames: "event: <type>\ndata: <json>\n\n"
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() ?? ""; // keep incomplete frame in buffer
+
+        for (const frame of frames) {
+          if (!frame.trim()) continue;
+
+          let eventType = "message";
+          let dataStr = "";
+
+          for (const line of frame.split("\n")) {
+            if (line.startsWith("event: ")) {
+              eventType = line.slice(7).trim();
+            } else if (line.startsWith("data: ")) {
+              dataStr = line.slice(6);
+            }
           }
-        }
 
-        if (!dataStr) continue;
+          if (!dataStr) continue;
 
-        try {
-          const data = JSON.parse(dataStr);
+          try {
+            const data = JSON.parse(dataStr);
 
-          if (eventType === "token") {
-            yield { type: "token", data: { content: data.content ?? "" } };
-          } else if (eventType === "summary") {
-            yield { type: "summary", data: { summary: data.summary ?? "" } };
-          } else if (eventType === "done") {
-            yield { type: "done", data: { status: data.status ?? "complete" } };
-          } else if (eventType === "error") {
-            yield { type: "error", data: { message: data.message ?? "Unknown error" } };
+            if (eventType === "token") {
+              const content = data.content ?? "";
+              tokenBuffer += content;
+
+              // Emit tokens as 2-line chunks (~100 chars typical, or on newlines)
+              const lineCount = (tokenBuffer.match(/\n/g) || []).length;
+              if (lineCount >= 2 || tokenBuffer.length > 100) {
+                yield { type: "token", data: { content: tokenBuffer } };
+                tokenBuffer = "";
+              }
+            } else if (eventType === "summary") {
+              // Flush any pending tokens before summary
+              if (tokenBuffer) {
+                yield { type: "token", data: { content: tokenBuffer } };
+                tokenBuffer = "";
+              }
+              yield { type: "summary", data: { summary: data.summary ?? "" } };
+            } else if (eventType === "done") {
+              // Flush any pending tokens before done
+              if (tokenBuffer) {
+                yield { type: "token", data: { content: tokenBuffer } };
+                tokenBuffer = "";
+              }
+              yield { type: "done", data: { status: data.status ?? "complete" } };
+            } else if (eventType === "error") {
+              yield { type: "error", data: { message: data.message ?? "Unknown error" } };
+            }
+          } catch {
+            // Malformed JSON in SSE data — skip frame
           }
-        } catch {
-          // Malformed JSON in SSE data — skip frame
         }
       }
+
+      // Flush any remaining tokens
+      if (tokenBuffer) {
+        yield { type: "token", data: { content: tokenBuffer } };
+      }
+    } finally {
+      reader.releaseLock();
     }
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new SwarmApiError(408, "timeout", "Chat request timed out after 5 minutes");
+    }
+    throw err;
   } finally {
-    reader.releaseLock();
+    clearTimeout(timeoutId);
   }
 }
 

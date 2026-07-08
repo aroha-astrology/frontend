@@ -81,6 +81,7 @@ export default function PermissionsPrompt() {
       }
 
       if (perm.receive === "granted") {
+        permanent = true; // User made their choice, don't ask again even if API fails
         try {
           const { token } = await FirebaseMessaging.getToken();
           console.log("[PermissionsPrompt] getToken ->", token ? `${token.slice(0, 12)}...` : "(empty)");
@@ -90,9 +91,8 @@ export default function PermissionsPrompt() {
           }
         } catch (err) {
           console.error("[PermissionsPrompt] getToken/registerDeviceToken failed", err);
-          return; // technical failure — leave permanent=false so this retries next launch
+          // Don't return here, we still want to dismiss the modal
         }
-        permanent = true;
       } else if (perm.receive === "denied") {
         // Explicit OS-level decline — respect it, don't re-prompt.
         permanent = true;

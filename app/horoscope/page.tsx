@@ -196,7 +196,7 @@ export default function HoroscopePage() {
             today/tomorrow/weekly/monthly/yearly; yearly additionally offers a
             month-by-month detail view. */}
         <div className="mt-4">
-          <PersonalizedCard period={personalizedPeriod} />
+          <PersonalizedCard key={personalizedPeriod} period={personalizedPeriod} />
         </div>
 
         {/* Moon-sign section */}

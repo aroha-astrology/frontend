@@ -576,7 +576,7 @@ async function horoscopeRequest(period: PersonalizedHoroscopePeriod): Promise<Ho
   const headers: Record<string, string> = { ...(await authHeader()) };
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}`, { method: "GET", headers });
+    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}`, { method: "GET", headers, cache: "no-store" });
   } catch {
     throw new ApiError(0, "network_error", "Could not reach the server");
   }

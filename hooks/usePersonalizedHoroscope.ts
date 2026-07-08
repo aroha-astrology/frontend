@@ -24,6 +24,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     setState("loading");
+    setData(null);
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
 

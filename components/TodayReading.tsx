@@ -8,6 +8,7 @@ import Card from "@/components/ui/Card";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
+import CategoryHookRotator from "@/components/home/CategoryHookRotator";
 
 /**
  * Home page's "Today's Reading" card — a brief Overall highlight from today's
@@ -69,6 +70,8 @@ export default function TodayReading() {
 
         <p className="text-base text-gold font-semibold leading-snug mb-1.5">{overall.hook}</p>
         <p className="text-sm text-foreground/90 leading-relaxed">{overall.advice}</p>
+
+        <CategoryHookRotator categories={data.structured.categories} />
 
         <div className="flex justify-end mt-3">
           <button

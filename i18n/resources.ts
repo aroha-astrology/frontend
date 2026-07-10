@@ -2937,6 +2937,14 @@ export const resources = {
         matchMaking: "કુંડળી મેળાપ",
         matchMakingDesc: "વૈદિક જ્યોતિષના આધારે સુસંગતતા શોધો.",
         remediesForYou: "તમારા માટે ઉપાય",
+        namaste: "નમસ્તે {{name}},",
+        namasteGuest: "નમસ્તે,",
+        greeting: {
+          morning: "શુભ સવાર",
+          afternoon: "શુભ બપોર",
+          evening: "શુભ સાંજ",
+          night: "શુભ રાત્રિ",
+        },
       },
       nav: { home: "હોમ", kundli: "કુંડળી", askAI: "AI પૂછો", horoscope: "રાશિફળ", remedies: "ઉપાય", panchang: "પંચાંગ" },
       kundli: {

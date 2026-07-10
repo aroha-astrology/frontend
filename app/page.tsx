@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import Hero from "@/components/Hero";
+import GreetingHeader from "@/components/GreetingHeader";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
 import TodayReading from "@/components/TodayReading";
 import KundliCard from "@/components/KundliCard";
@@ -57,8 +57,8 @@ export default function HomePage() {
       <div className="relative z-10">
         <TopBar />
 
-        {/* Hero Section */}
-        <Hero />
+        {/* Personalized greeting header */}
+        <GreetingHeader />
 
         {/* Today's Reading — personalized horoscope highlights */}
         <div className="px-5 mt-6">

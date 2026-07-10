@@ -15,6 +15,50 @@ interface Message {
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
 
+/**
+ * The LLM writes `*`/`-` bullet lines and blank-line paragraph breaks, but a
+ * plain-text `<div>` collapses newlines (default `white-space: normal`), so
+ * a multi-line list rendered as-is turns into one run-on line with literal
+ * "*" characters. Split into real paragraphs/list items instead.
+ */
+function renderMessageContent(content: string) {
+  const lines = content.split("\n");
+  const blocks: React.ReactNode[] = [];
+  let listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length === 0) return;
+    blocks.push(
+      <ul key={`list-${blocks.length}`} className="list-disc pl-4 space-y-1 my-1.5">
+        {listItems.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+    );
+    listItems = [];
+  };
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    const bulletMatch = trimmed.match(/^[*-]\s+(.*)/);
+    if (bulletMatch) {
+      listItems.push(bulletMatch[1]!);
+      return;
+    }
+    flushList();
+    if (trimmed) {
+      blocks.push(
+        <p key={`p-${i}`} className="mb-1.5 last:mb-0">
+          {trimmed}
+        </p>
+      );
+    }
+  });
+  flushList();
+
+  return blocks;
+}
+
 export default function ChatConversation() {
   const { t } = useTranslation();
   const suggestions = [
@@ -235,7 +279,7 @@ export default function ChatConversation() {
                     : {}
                 }
               >
-                {msg.content || (streaming && i === messages.length - 1 ? "" : msg.content)}
+                {msg.role === "assistant" ? renderMessageContent(msg.content) : msg.content}
                 {/* Show cursor while streaming the last message */}
                 {streaming && i === messages.length - 1 && msg.role === "assistant" && (
                   <span className="inline-block w-0.5 h-4 bg-yellow-500 animate-pulse ml-0.5 align-middle" />

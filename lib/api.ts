@@ -515,6 +515,9 @@ export const api = {
   /** Poll target for a single purchase-plan analysis. */
   purchasePlanGet: (id: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}`, { auth: true }),
 
+  /** Delete a purchase-plan analysis. */
+  purchasePlanDelete: (id: string) => request<void>(`/v1/purchase-plan/${id}`, { method: "DELETE", auth: true }),
+
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as
    * `getKundli()`. 202 here means another regenerate run is already active.

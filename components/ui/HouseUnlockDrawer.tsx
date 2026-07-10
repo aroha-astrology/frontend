@@ -53,14 +53,14 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
           />
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-[2.5rem] p-6 max-h-[85vh] overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 z-[100] bg-background border-t border-border rounded-t-[2.5rem] p-6 max-h-[85vh] overflow-y-auto pb-12"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -90,8 +90,12 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                  {meaning?.hook}
                </p>
 
-               <div className="mt-6 flex justify-center pb-2 relative z-10">
-                  <div className="flex flex-col items-center">
+               <div className="absolute top-24 inset-x-0 opacity-10 pointer-events-none text-[8px] text-justify leading-tight px-4 text-gold/30 blur-[1px]">
+                  Astrological analysis indicates that the planetary alignments in this house exert a profound influence on your current dasha sequence. The conjunction of significant celestial bodies creates a unique energetic signature, manifesting as both challenges and hidden opportunities in this domain of life. When the lord of this house transits through favorable nakshatras, you can expect sudden shifts in perspective. Furthermore, the aspect from benefic planets mitigates potential malefic effects, offering a protective shield. Deeply examining the degrees of these placements reveals timing for important life events, specifically surrounding periods of personal transformation and material gains. Your karma uniquely unfolds here, dictating the lessons required for spiritual evolution and worldly success.
+               </div>
+
+               <div className="mt-8 flex justify-center pb-4 relative z-10">
+                  <div className="flex flex-col items-center p-4 bg-background/80 backdrop-blur-md rounded-2xl border border-gold/10">
                      <Lock size={32} className="text-gold mb-3" />
                      <h3 className="text-lg font-bold text-foreground mb-1">Unlock {house.house}{house.house === 1 ? 'st' : house.house === 2 ? 'nd' : house.house === 3 ? 'rd' : 'th'} House</h3>
                      <p className="text-xs text-muted text-center max-w-[250px]">

@@ -12,22 +12,15 @@ import MatchMakingCard from "@/components/MatchMakingCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
-import ThemeSwitch from "@/components/ThemeSwitch";
-import LanguagePicker from "@/components/LanguagePicker";
-import NotificationsSheet from "@/components/NotificationsSheet";
+import TopBar from "@/components/TopBar";
 import AppTour from "@/components/tour/AppTour";
 import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
-import IconButton from "@/components/ui/IconButton";
-import AppMenuDrawer from "@/components/AppMenuDrawer";
-import { Menu, Bell } from "lucide-react";
 
 export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
@@ -59,23 +52,10 @@ export default function HomePage() {
       <ParticleBackground />
       <MoonBackground />
       <SplashScreen onDone={() => setSplashDone(true)} />
-      <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
       {tourOpen && <AppTour onFinish={finishTour} />}
 
       <div className="relative z-10">
-        {/* Top bar */}
-        <div className="flex justify-between items-center px-5 pt-8 pb-4">
-          <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
-            <Menu size={20} />
-          </IconButton>
-          <div className="flex items-center gap-2">
-            <LanguagePicker />
-            <ThemeSwitch />
-            <IconButton aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>
-              <Bell size={20} />
-            </IconButton>
-          </div>
-        </div>
+        <TopBar />
 
         {/* Hero Section */}
         <Hero />
@@ -106,9 +86,6 @@ export default function HomePage() {
           <MatchMakingCard />
         </div>
       </div>
-
-      {/* Slide-in menu (profile / settings / sign out) */}
-      <AppMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </main>
   );
 }

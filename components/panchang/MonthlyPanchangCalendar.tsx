@@ -159,10 +159,20 @@ export default function MonthlyPanchangCalendar({
                 <span className="text-[9px]">🌑</span>
               ) : cell.isEkadashi ? (
                 <span className="text-[9px]">🪷</span>
+              ) : adhik ? (
+                <span className="text-[9px] opacity-70">🚫</span>
               ) : null}
             </button>
           );
         })}
+      </div>
+
+      <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[9px] text-muted justify-center border-t border-gold/10 pt-3">
+         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-red-500/20 border border-red-500/40" /> Adhik Maas</div>
+         <div className="flex items-center gap-1.5"><span>🌕</span> Purnima</div>
+         <div className="flex items-center gap-1.5"><span>🌑</span> Amavasya</div>
+         <div className="flex items-center gap-1.5"><span>🪷</span> Ekadashi</div>
+         <div className="flex items-center gap-1.5"><span>✨</span> Festival</div>
       </div>
 
       {keyDates.length > 0 && (

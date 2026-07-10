@@ -28,6 +28,7 @@ interface NorthIndianChartProps {
   title?: string;
   instant?: boolean;
   showMeanings?: boolean;
+  onHouseClick?: (houseNum: number) => void;
 }
 
 const HOUSE_MEANINGS: Record<number, string> = {
@@ -198,7 +199,13 @@ export default function NorthIndianChart({
         const baseDelay = 1.05 + hi * 0.045;
 
         return (
-          <motion.g key={house.house} filter={isAscendant ? 'url(#niAscGlow)' : undefined} {...fadeOnly(baseDelay)}>
+          <motion.g 
+            key={house.house} 
+            filter={isAscendant ? 'url(#niAscGlow)' : undefined} 
+            {...fadeOnly(baseDelay)}
+            onClick={() => onHouseClick?.(house.house)}
+            style={{ cursor: onHouseClick ? 'pointer' : 'default' }}
+          >
             {isAscendant && (
               <text x={pos.numberX} y={pos.numberY - 12} textAnchor="middle"
                 fill="rgba(212,175,55,0.90)" fontSize="8" fontWeight="800" letterSpacing="1.3"

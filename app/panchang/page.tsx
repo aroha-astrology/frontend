@@ -21,6 +21,7 @@ import SectionTitle from "@/components/SectionTitle";
 import MonthlyPanchangCalendar from "@/components/panchang/MonthlyPanchangCalendar";
 import PurchasePlanModal from "@/components/panchang/PurchasePlanModal";
 import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
+import TopBar from "@/components/TopBar";
 import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 
@@ -207,13 +208,24 @@ export default function PanchangPage() {
     setPlans((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }, []);
 
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      await api.purchasePlanDelete(id);
+      setPlans((prev) => prev.filter((p) => p.id !== id));
+      if (pollingId === id) setPollingId(null);
+    } catch {
+      // ignore
+    }
+  }, [pollingId]);
+
   const regionMeta = REGION_META[region];
   const regionalMonth = data?.regionalMonths?.[region];
   const adhik = findAdhikMaas(selectedDate);
 
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-10">
+      <TopBar />
+      <div className="px-5 pt-4">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
 
         {/* Location source */}
@@ -455,7 +467,7 @@ export default function PanchangPage() {
                   {t("horoscope.panchang.planningToBuyTitle")}
                 </button>
               </div>
-              {plans.length > 0 && <PurchasePlanResults plans={plans} pollingId={pollingId} onPolled={handlePolled} />}
+              {plans.length > 0 && <PurchasePlanResults plans={plans} pollingId={pollingId} onPolled={handlePolled} onDelete={handleDelete} />}
             </Card>
 
             <p className="flex items-center gap-1.5 text-[10px] text-muted justify-center pt-2">

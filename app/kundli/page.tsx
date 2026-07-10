@@ -12,8 +12,8 @@ import NorthIndianChart from "@/components/ui/NorthIndianChart";
 import SouthIndianChart from "@/components/ui/SouthIndianChart";
 import PlanetsTable from "@/components/ui/PlanetsTable";
 import HouseDetails from "@/components/ui/HouseDetails";
-import KundliInsights from "@/components/ui/KundliInsights";
 import HouseGrid from "@/components/ui/HouseGrid";
+import TopBar from "@/components/TopBar";
 import HouseUnlockDrawer from "@/components/ui/HouseUnlockDrawer";
 import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
@@ -355,7 +355,7 @@ export default function KundliPage() {
 
   // Mock credit system state
   const [credits, setCredits] = useState(50);
-  const [unlockedHouses, setUnlockedHouses] = useState<number[]>([1]);
+  const [unlockedHouses, setUnlockedHouses] = useState<number[]>([]);
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -425,7 +425,10 @@ export default function KundliPage() {
 
   return (
     <main className="min-h-screen pb-28 bg-background">
-      <div className="px-5 pt-10 max-w-lg mx-auto space-y-4">
+      <TopBar 
+         rightContent={<ViewModeToggle mode={viewMode} onChange={setViewMode} />} 
+      />
+      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
 
         {/* ── CHART VIEW ── */}
         {hasData && chartData && (
@@ -458,25 +461,38 @@ export default function KundliPage() {
               </div>
               <div className="max-w-[380px] mx-auto">
                 {chartStyle === "north" ? (
-                  <NorthIndianChart chartData={{ houses, planets }} title="Lagna (D1)" showMeanings />
+                  <NorthIndianChart 
+                     chartData={{ houses, planets }} 
+                     title="Lagna (D1)" 
+                     showMeanings 
+                     onHouseClick={(houseNum) => {
+                        const h = houses.find((x) => x.house === houseNum);
+                        if (!h) return;
+                        if (!unlockedHouses.includes(h.house)) {
+                           setSelectedHouse(h);
+                           setIsDrawerOpen(true);
+                        }
+                     }}
+                  />
                 ) : (
-                  <SouthIndianChart chartData={{ houses, planets }} title="Lagna (D1)" />
+                  <SouthIndianChart 
+                     chartData={{ houses, planets }} 
+                     title="Lagna (D1)" 
+                     onHouseClick={(houseNum) => {
+                        const h = houses.find((x) => x.house === houseNum);
+                        if (!h) return;
+                        if (!unlockedHouses.includes(h.house)) {
+                           setSelectedHouse(h);
+                           setIsDrawerOpen(true);
+                        }
+                     }}
+                  />
                 )}
               </div>
             </Card>
 
-            {/* 3. Plain / Technical toggle */}
-            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
-
             {viewMode === "plain" ? (
               <>
-                {/* Insights Section */}
-                <KundliInsights 
-                  ascendant={ascendant} 
-                  sun={planets.find((p: any) => p.planet === 'Sun')}
-                  moon={planets.find((p: any) => p.planet === 'Moon')}
-                />
-                
                 {/* House Grid with Credits */}
                 {houses.length > 0 && (
                   <HouseGrid 

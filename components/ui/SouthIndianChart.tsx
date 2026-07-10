@@ -23,6 +23,7 @@ interface SouthIndianChartProps {
   chartData: { houses: HouseData[]; planets: PlanetPosition[] };
   ascendantHouse?: number;
   title?: string;
+  onHouseClick?: (houseNum: number) => void;
 }
 
 const PLANET_GLYPHS: Record<Planet, string> = {
@@ -110,9 +111,15 @@ export default function SouthIndianChart({
         const y = PAD + row * CELL;
         const isAscendant = signIdx === ascSignIndex;
         const planetLabels = signPlanets[signIdx] || [];
+        const houseData = houses.find(h => h.signIndex === signIdx);
+        const houseNum = houseData?.house;
 
         return (
-          <g key={signIdx} filter={isAscendant ? 'url(#siCellGlow)' : undefined}>
+          <g 
+            key={signIdx}
+            onClick={() => houseNum !== undefined && onHouseClick?.(houseNum)}
+            style={{ cursor: houseNum !== undefined && onHouseClick ? 'pointer' : 'default' }}
+            filter={isAscendant ? 'url(#siCellGlow)' : undefined}>
             <rect x={x} y={y} width={CELL} height={CELL}
               fill={isAscendant ? 'url(#siAscGrad)' : 'transparent'}
               stroke={isAscendant ? 'rgba(212,175,55,0.55)' : 'rgba(212,175,55,0.18)'}

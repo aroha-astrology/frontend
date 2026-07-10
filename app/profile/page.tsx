@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Pencil, Loader2 } from "lucide-react";
+import { ArrowLeft, Pencil, Loader2, Sparkles } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -169,6 +169,26 @@ export default function ProfilePage() {
             </button>
           )}
         </div>
+
+        <Card className="p-4 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-gold" />
+            <div>
+              <span className="text-[10px] text-muted uppercase tracking-wider block">
+                {t("payment.currentBalance")}
+              </span>
+              <span className="text-base font-bold text-gold">
+                {user?.credits ?? 0} {t("payment.creditsUnit")}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push("/payment")}
+            className="px-4 py-2 rounded-xl bg-gold text-[#1a0e00] text-xs font-bold"
+          >
+            {t("payment.buyCredits")}
+          </button>
+        </Card>
 
         <Card className="p-4">
           {!editing ? (

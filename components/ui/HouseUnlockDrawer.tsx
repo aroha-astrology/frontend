@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Lock, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ interface HouseUnlockDrawerProps {
 
 export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost, isUnlocked = false }: HouseUnlockDrawerProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
@@ -131,19 +133,31 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                           {unlockError && (
                             <p className="text-xs text-red-400 mb-2 text-center">{unlockError}</p>
                           )}
-                          <button
-                            onClick={handleUnlock}
-                            disabled={!canAfford || unlocking}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {unlocking ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : canAfford ? (
-                              t('kundli.house.unlockButton', { cost: unlockCost })
-                            ) : (
-                              t('kundli.house.notEnoughCredits')
-                            )}
-                          </button>
+                          {canAfford ? (
+                            <button
+                              onClick={handleUnlock}
+                              disabled={unlocking}
+                              className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {unlocking ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                t('kundli.house.unlockButton', { cost: unlockCost })
+                              )}
+                            </button>
+                          ) : (
+                            <div className="w-full">
+                              <p className="text-xs text-red-400 mb-2 text-center">
+                                {t('kundli.house.notEnoughCredits')}
+                              </p>
+                              <button
+                                onClick={() => router.push('/payment')}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98]"
+                              >
+                                {t('payment.buyCredits')}
+                              </button>
+                            </div>
+                          )}
                        </div>
                     </div>
                  </div>

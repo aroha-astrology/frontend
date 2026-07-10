@@ -322,6 +322,44 @@ export interface HoroscopePending {
 /** Unified surface returned by `api.horoscope()` — caller branches on `status`. */
 export type HoroscopeResult = HoroscopeReady | HoroscopePending;
 
+// ─── Billing / credit purchases ────────────────────────────────────────────────
+
+export interface CreditPack {
+  id: string;
+  credits: number;
+  priceInPaise: number;
+  currency: string;
+  label: string;
+  popular?: boolean;
+}
+
+export interface CouponValidation {
+  valid: boolean;
+  code: string;
+  discountType?: "percent" | "flat";
+  discountValue?: number;
+  discountPaise?: number;
+  finalAmountPaise?: number;
+  message?: string;
+}
+
+export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
+
+export interface Order {
+  id: string;
+  packId: string;
+  credits: number;
+  amountPaise: number;
+  discountPaise: number;
+  finalAmountPaise: number;
+  currency: string;
+  couponCode: string | null;
+  status: OrderStatus;
+  gatewayProvider: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
 // ─── Error type ──────────────────────────────────────────────────────────────
 
 /** Normalised backend error (`{ error: { code, message, requestId } }`). */
@@ -549,6 +587,37 @@ export const api = {
    */
   pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
     pollKundli(opts),
+
+  /** Purchasable credit packs. */
+  billingPacks: () => request<{ packs: CreditPack[] }>("/v1/billing/packs", { auth: true }),
+
+  /** Preview the discount a coupon would apply to a pack, without redeeming it. */
+  validateCoupon: (code: string, packId: string) =>
+    request<CouponValidation>("/v1/billing/coupons/validate", {
+      method: "POST",
+      body: { code, packId },
+      auth: true,
+    }),
+
+  /** Create a pending order for a credit pack (optionally with a coupon applied). */
+  checkout: (packId: string, couponCode?: string) =>
+    request<Order>("/v1/billing/checkout", {
+      method: "POST",
+      body: couponCode ? { packId, couponCode } : { packId },
+      auth: true,
+    }),
+
+  /**
+   * Confirm payment for a pending order and grant its credits. MOCK — stands
+   * in for a real gateway webhook until Razorpay/Stripe is wired up; always
+   * succeeds for a pending order. Caller should `refresh()` (useAuth) after
+   * to pick up the updated credit balance.
+   */
+  confirmOrder: (orderId: string) =>
+    request<{ order: Order; credits: number }>(`/v1/billing/orders/${orderId}/confirm`, {
+      method: "POST",
+      auth: true,
+    }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

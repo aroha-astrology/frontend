@@ -61,13 +61,6 @@ function renderMessageContent(content: string) {
 
 export default function ChatConversation() {
   const { t } = useTranslation();
-  const suggestions = [
-    t("aiChatPage.suggestion1"),
-    t("aiChatPage.suggestion2"),
-    t("aiChatPage.suggestion3"),
-    t("aiChatPage.suggestion4"),
-    t("aiChatPage.suggestion5"),
-  ];
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -246,21 +239,6 @@ export default function ChatConversation() {
             ]}
           />
         </div>
-      </div>
-
-      {/* Suggestion chips */}
-      <div className="flex gap-2 px-4 py-3 overflow-x-auto">
-        {suggestions.map((s) => (
-          <button
-            key={s}
-            onClick={() => sendMessage(s)}
-            disabled={streaming}
-            className="px-4 py-2 rounded-full text-sm whitespace-nowrap border transition-colors hover:border-yellow-500/50 disabled:opacity-40"
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}
-          >
-            {s}
-          </button>
-        ))}
       </div>
 
       {/* Messages */}

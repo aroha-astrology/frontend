@@ -85,6 +85,7 @@ export default function NorthIndianChart({
   title = 'Rashi Chart',
   instant = false,
   showMeanings = false,
+  onHouseClick,
 }: NorthIndianChartProps) {
   const { houses, planets } = chartData;
   const skip = instant;

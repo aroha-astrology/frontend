@@ -67,6 +67,7 @@ export default function SouthIndianChart({
   chartData,
   ascendantHouse = 1,
   title = 'Rashi Chart',
+  onHouseClick,
 }: SouthIndianChartProps) {
   const { houses, planets } = chartData;
 

@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next";
 import { swarmApi, type BirthInput, type OnboardingResponse, type OnboardingCharts } from "@/lib/swarm-api";
 import { useKundli } from "@/hooks/useKundli";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
-import type { PlaceOfBirth, KundliReady } from "@/lib/api";
+import { api, type PlaceOfBirth, type KundliReady } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 import Card from "@/components/ui/Card";
 import NorthIndianChart from "@/components/ui/NorthIndianChart";
 import SouthIndianChart from "@/components/ui/SouthIndianChart";
 import PlanetsTable from "@/components/ui/PlanetsTable";
-import HouseDetails from "@/components/ui/HouseDetails";
 import HouseGrid from "@/components/ui/HouseGrid";
 import TopBar from "@/components/TopBar";
 import HouseUnlockDrawer from "@/components/ui/HouseUnlockDrawer";
@@ -353,11 +353,15 @@ export default function KundliPage() {
   const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
   const [viewMode, setViewMode] = useState<ViewMode>("plain");
 
-  // Mock credit system state
-  const [credits, setCredits] = useState(50);
-  const [unlockedHouses, setUnlockedHouses] = useState<number[]>([]);
+  // Credits/unlocked-houses are the authoritative server values on the
+  // signed-in user row (POST /v1/me/unlock-house), not local state — refresh()
+  // re-fetches them from GET /v1/me after a successful unlock.
+  const { user, refresh: refreshUser } = useAuth();
+  const credits = user?.credits ?? 0;
+  const unlockedHouses = user?.unlockedHouses ?? [];
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const UNLOCK_COST = 5;
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
@@ -514,12 +518,11 @@ export default function KundliPage() {
                   onClose={() => setIsDrawerOpen(false)}
                   house={selectedHouse}
                   credits={credits}
-                  unlockCost={unlockedHouses.length === 0 ? 0 : 5}
+                  unlockCost={UNLOCK_COST}
                   isUnlocked={selectedHouse ? unlockedHouses.includes(selectedHouse.house) : false}
-                  onUnlock={(houseNum) => {
-                    const cost = unlockedHouses.length === 0 ? 0 : 5;
-                    setCredits((c) => c - cost);
-                    setUnlockedHouses((prev) => [...prev, houseNum]);
+                  onUnlock={async (houseNum) => {
+                    await api.unlockHouse(houseNum);
+                    await refreshUser();
                   }}
                 />
               </>

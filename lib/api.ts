@@ -36,6 +36,10 @@ export interface User {
   profileCompletedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /** Spendable balance for unlocking kundli house details (POST /v1/me/unlock-house). */
+  credits: number;
+  /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
+  unlockedHouses: number[];
   createdAt: string;
   updatedAt: string;
 }
@@ -432,6 +436,19 @@ export const api = {
 
   /** Soft-delete the current account. */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /**
+   * Spend credits to unlock a kundli house's detail view. Throws ApiError
+   * with status 409 if the user has insufficient credits or the house is
+   * already unlocked. Caller should re-fetch the user (e.g. `refresh()`
+   * from useAuth) afterward to pick up the updated credits/unlockedHouses.
+   */
+  unlockHouse: (houseNumber: number) =>
+    request<{ success: boolean }>("/v1/me/unlock-house", {
+      method: "POST",
+      body: { houseNumber },
+      auth: true,
+    }),
 
   /** Register/refresh this device's FCM push token. */
   registerDeviceToken: (body: RegisterDeviceTokenBody) =>

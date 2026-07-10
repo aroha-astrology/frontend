@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Lock } from 'lucide-react';
+import { X, Sparkles, Lock, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface HouseData {
@@ -16,34 +17,36 @@ interface HouseUnlockDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   house: HouseData | null;
-  onUnlock: (houseNum: number) => void;
+  onUnlock: (houseNum: number) => Promise<void>;
   credits: number;
   unlockCost: number;
   isUnlocked?: boolean;
 }
 
-const HOUSE_MEANINGS: Record<number, { title: string; hook: string }> = {
-  1:  { title: 'Self',        hook: 'Discover your core personality and how the world sees you.' },
-  2:  { title: 'Wealth',      hook: 'Uncover the secrets of your financial luck and family bonds.' },
-  3:  { title: 'Courage',     hook: 'Learn about your innate courage, skills, and communication style.' },
-  4:  { title: 'Home',        hook: 'Know what brings emotional peace, property luck, and motherly bond. The 4th house governs comfort and roots.' },
-  5:  { title: 'Children',    hook: 'Explore your creative potential, romance, and past-life karma.' },
-  6:  { title: 'Enemies',     hook: 'Understand how you handle conflicts, debts, and your daily service.' },
-  7:  { title: 'Marriage',    hook: 'Reveal the dynamics of your partnerships and marital harmony.' },
-  8:  { title: 'Longevity',   hook: 'Dive into life\'s mysteries, transformations, and hidden wealth.' },
-  9:  { title: 'Fortune',     hook: 'Find out about your luck, dharma, and higher learning journey.' },
-  10: { title: 'Career',      hook: 'Unlock the potential of your professional life and public status.' },
-  11: { title: 'Gains',       hook: 'See your path to fulfilling desires and gaining from your networks.' },
-  12: { title: 'Liberation',  hook: 'Discover your subconscious mind, spirituality, and foreign travels.' },
-};
-
 export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost, isUnlocked = false }: HouseUnlockDrawerProps) {
   const { t } = useTranslation();
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
 
   if (!house) return null;
 
-  const meaning = HOUSE_MEANINGS[house.house];
+  const ordinals = t('kundli.house.ordinals', { returnObjects: true }) as string[];
+  const ordinal = ordinals?.[house.house - 1] ?? `${house.house}`;
+  const name = t(`kundli.house.names.${house.house}`);
+  const hook = t(`kundli.house.hooks.${house.house}`);
   const canAfford = credits >= unlockCost;
+
+  const handleUnlock = async () => {
+    setUnlockError(null);
+    setUnlocking(true);
+    try {
+      await onUnlock(house.house);
+    } catch {
+      setUnlockError(t('kundli.house.notEnoughCredits'));
+    } finally {
+      setUnlocking(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -69,8 +72,8 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                     {house.house}
                  </div>
                  <div>
-                    <h2 className="text-xl font-display text-foreground font-bold">{meaning?.title || 'House'}</h2>
-                    <p className="text-xs text-muted">House of {meaning?.title}</p>
+                    <h2 className="text-xl font-display text-foreground font-bold">{name}</h2>
+                    <p className="text-xs text-muted">{t('kundli.house.of', { name })}</p>
                  </div>
               </div>
               <button
@@ -81,58 +84,70 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
               </button>
             </div>
 
-            <div className="relative rounded-2xl border border-gold/20 bg-surface/30 p-5 mb-6 overflow-hidden">
+            <div className="rounded-2xl border border-gold/20 bg-surface/30 p-5 mb-6">
                <div className="flex items-center gap-2 mb-3">
                   <Sparkles size={16} className="text-gold" />
-                  <span className="text-sm font-bold text-foreground">What you will feel</span>
+                  <span className="text-sm font-bold text-foreground">{t('kundli.house.whatYouWillFeel')}</span>
                </div>
-               
-               <p className="text-sm text-foreground/90 leading-relaxed relative z-10 font-medium">
-                 {meaning?.hook}
+
+               <p className="text-sm text-foreground/90 leading-relaxed font-medium mb-4">
+                 {hook}
                </p>
 
-               <div className={`absolute top-24 inset-x-0 pointer-events-none text-[10px] text-justify leading-relaxed px-4 transition-all duration-700 ${isUnlocked ? 'text-foreground blur-none opacity-100 relative top-0 mt-4 pointer-events-auto' : 'opacity-10 text-gold/30 blur-[2px]'}`}>
-                  Astrological analysis indicates that the planetary alignments in this house exert a profound influence on your current dasha sequence. The conjunction of significant celestial bodies creates a unique energetic signature, manifesting as both challenges and hidden opportunities in this domain of life. When the lord of this house transits through favorable nakshatras, you can expect sudden shifts in perspective. Furthermore, the aspect from benefic planets mitigates potential malefic effects, offering a protective shield. Deeply examining the degrees of these placements reveals timing for important life events, specifically surrounding periods of personal transformation and material gains. Your karma uniquely unfolds here, dictating the lessons required for spiritual evolution and worldly success.
-               </div>
-
-               {isUnlocked && (
-                  <div className="mt-6 pt-4 border-t border-gold/10">
+               {isUnlocked ? (
+                  <div className="pt-4 border-t border-gold/10">
                      <div className="flex gap-4">
                         <div className="flex-1">
-                           <span className="text-[10px] text-muted block mb-1">Planets Present</span>
+                           <span className="text-[10px] text-muted block mb-1">{t('kundli.house.planetsPresent')}</span>
                            <div className="text-sm font-semibold text-foreground">
-                              {house.planets.length > 0 ? house.planets.join(', ') : 'None'}
+                              {house.planets.length > 0 ? house.planets.join(', ') : t('kundli.house.none')}
                            </div>
                         </div>
                         <div>
-                           <span className="text-[10px] text-muted block mb-1">House Lord</span>
+                           <span className="text-[10px] text-muted block mb-1">{t('kundli.house.houseLord')}</span>
                            <div className="text-sm font-semibold text-gold">
                               {house.lord}
                            </div>
                         </div>
                      </div>
                   </div>
-               )}
-
-               {!isUnlocked && (
-                 <div className="mt-8 flex justify-center pb-4 relative z-10">
-                    <div className="flex flex-col items-center p-4 bg-background/80 backdrop-blur-md rounded-2xl border border-gold/10">
-                       <Lock size={32} className="text-gold mb-3" />
-                       <h3 className="text-lg font-bold text-foreground mb-1">Unlock {house.house}{house.house === 1 ? 'st' : house.house === 2 ? 'nd' : house.house === 3 ? 'rd' : 'th'} House</h3>
-                       <p className="text-xs text-muted mb-4 text-center max-w-[200px]">
-                         Spend {unlockCost} credits to reveal the deep astrological secrets hidden in this house.
-                       </p>
-                       <button
-                         onClick={() => onUnlock(house.house)}
-                         disabled={!canAfford}
-                         className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                       >
-                         {canAfford ? `Unlock for ${unlockCost} Credits` : 'Not enough credits'}
-                       </button>
+               ) : (
+                 <div className="relative min-h-[190px] rounded-xl overflow-hidden">
+                    <p
+                      aria-hidden
+                      className="text-[11px] leading-relaxed text-foreground/50 blur-[3px] select-none"
+                    >
+                      {t('kundli.house.teaser')}
+                    </p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-transparent via-surface/60 to-surface/95">
+                       <div className="flex flex-col items-center p-4 bg-background/90 rounded-2xl border border-gold/20 mx-2 max-w-[260px]">
+                          <Lock size={28} className="text-gold mb-2" />
+                          <h3 className="text-base font-bold text-foreground mb-1 text-center">
+                            {t('kundli.house.unlockTitle', { ordinal })}
+                          </h3>
+                          <p className="text-xs text-muted mb-3 text-center">
+                            {t('kundli.house.unlockBody', { cost: unlockCost })}
+                          </p>
+                          {unlockError && (
+                            <p className="text-xs text-red-400 mb-2 text-center">{unlockError}</p>
+                          )}
+                          <button
+                            onClick={handleUnlock}
+                            disabled={!canAfford || unlocking}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {unlocking ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : canAfford ? (
+                              t('kundli.house.unlockButton', { cost: unlockCost })
+                            ) : (
+                              t('kundli.house.notEnoughCredits')
+                            )}
+                          </button>
+                       </div>
                     </div>
                  </div>
                )}
-
             </div>
           </motion.div>
         </>

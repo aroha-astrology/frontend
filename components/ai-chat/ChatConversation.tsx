@@ -4,8 +4,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { streamChat, type ChatHistoryTurn } from "@/lib/swarm-api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { streamChat, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
 import { ASTROLOGER } from "@/lib/personas";
+import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,47 +19,44 @@ interface Message {
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
 
 /**
- * The LLM writes `*`/`-` bullet lines and blank-line paragraph breaks, but a
- * plain-text `<div>` collapses newlines (default `white-space: normal`), so
- * a multi-line list rendered as-is turns into one run-on line with literal
- * "*" characters. Split into real paragraphs/list items instead.
+ * Assistant replies are markdown (short direct replies happen to have no
+ * markdown syntax and pass through unchanged; Details-mode replies use real
+ * headers/bold/tables). Wide elements (tables) scroll horizontally instead
+ * of breaking the bubble layout on a narrow phone screen.
  */
 function renderMessageContent(content: string) {
-  const lines = content.split("\n");
-  const blocks: React.ReactNode[] = [];
-  let listItems: string[] = [];
-
-  const flushList = () => {
-    if (listItems.length === 0) return;
-    blocks.push(
-      <ul key={`list-${blocks.length}`} className="list-disc pl-4 space-y-1 my-1.5">
-        {listItems.map((item, i) => (
-          <li key={i}>{item}</li>
-        ))}
-      </ul>
-    );
-    listItems = [];
-  };
-
-  lines.forEach((line, i) => {
-    const trimmed = line.trim();
-    const bulletMatch = trimmed.match(/^[*-]\s+(.*)/);
-    if (bulletMatch) {
-      listItems.push(bulletMatch[1]!);
-      return;
-    }
-    flushList();
-    if (trimmed) {
-      blocks.push(
-        <p key={`p-${i}`} className="mb-1.5 last:mb-0">
-          {trimmed}
-        </p>
-      );
-    }
-  });
-  flushList();
-
-  return blocks;
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+        ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 my-1.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 my-1.5">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        strong: ({ children }) => <strong className="font-semibold text-gold">{children}</strong>,
+        h1: ({ children }) => <p className="mt-2 mb-1 font-semibold text-gold">{children}</p>,
+        h2: ({ children }) => <p className="mt-2 mb-1 font-semibold text-gold">{children}</p>,
+        h3: ({ children }) => <p className="mt-2 mb-1 font-semibold text-gold">{children}</p>,
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-2 -mx-1">
+            <table className="text-xs border-collapse">{children}</table>
+          </div>
+        ),
+        th: ({ children }) => (
+          <th className="border px-2 py-1 text-left font-semibold" style={{ borderColor: "var(--border)" }}>
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="border px-2 py-1 align-top" style={{ borderColor: "var(--border)" }}>
+            {children}
+          </td>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 }
 
 export default function ChatConversation() {
@@ -80,6 +80,7 @@ export default function ChatConversation() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
+  const [detailLevel, setDetailLevel] = useState<ChatDetailLevel>("direct");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Cycle the "thinking" label while waiting for the first token, so the
@@ -126,6 +127,7 @@ export default function ChatConversation() {
       const stream = streamChat(msg, {
         history: historyForThisTurn,
         summary: summaryForThisTurn,
+        detailLevel,
       });
       let fullContent = "";
       let hadError = false;
@@ -219,7 +221,7 @@ export default function ChatConversation() {
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, t]);
+  }, [input, streaming, t, detailLevel]);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
@@ -234,6 +236,16 @@ export default function ChatConversation() {
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
           {t("aiChatPage.disclosure")}
         </p>
+        <div className="flex justify-center mt-3">
+          <SegmentedToggle
+            value={detailLevel}
+            onChange={setDetailLevel}
+            options={[
+              { value: "direct", label: t("aiChatPage.toggle.direct") },
+              { value: "details", label: t("aiChatPage.toggle.details") },
+            ]}
+          />
+        </div>
       </div>
 
       {/* Suggestion chips */}
@@ -271,7 +283,7 @@ export default function ChatConversation() {
                 className={
                   msg.role === "user"
                     ? "bg-yellow-500 text-black rounded-[16px_16px_3px_16px] px-4 py-3 max-w-[80%] text-sm"
-                    : `rounded-[16px_16px_16px_3px] px-4 py-3 max-w-[80%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
+                    : `rounded-[16px_16px_16px_3px] px-4 py-3 max-w-[92%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
                 }
                 style={
                   msg.role !== "user"

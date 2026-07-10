@@ -235,6 +235,7 @@ export const resources = {
         thinking2: "Reading your chart...",
         thinking3: "Checking planetary positions...",
         sent: "Sent",
+        toggle: { direct: "Direct", details: "Details" },
       },
       remedies: {
         love: "Love &\nRelationships",
@@ -679,6 +680,7 @@ export const resources = {
         thinking2: "आपकी कुंडली पढ़ रहे हैं...",
         thinking3: "ग्रहों की स्थिति जांच रहे हैं...",
         sent: "भेजा गया",
+        toggle: { direct: "सीधा", details: "विस्तृत" },
       },
       menu: {
         title: "मेनू",
@@ -1090,6 +1092,7 @@ export const resources = {
         thinking2: "আপনার কুণ্ডলী পড়া হচ্ছে...",
         thinking3: "গ্রহের অবস্থান পরীক্ষা করা হচ্ছে...",
         sent: "পাঠানো হয়েছে",
+        toggle: { direct: "সংক্ষিপ্ত", details: "বিস্তারিত" },
       },
       menu: {
         title: "মেনু",
@@ -1501,6 +1504,7 @@ export const resources = {
         thinking2: "तुमची कुंडली वाचत आहे...",
         thinking3: "ग्रहांची स्थिती तपासत आहे...",
         sent: "पाठवले",
+        toggle: { direct: "थोडक्यात", details: "सविस्तर" },
       },
       menu: {
         title: "मेनू",
@@ -1908,6 +1912,7 @@ export const resources = {
         thinking2: "మీ జాతకం చదువుతోంది...",
         thinking3: "గ్రహ స్థానాలను తనిఖీ చేస్తోంది...",
         sent: "పంపబడింది",
+        toggle: { direct: "సంక్షిప్తం", details: "వివరాలు" },
       },
       menu: {
         title: "మెనూ",
@@ -2319,6 +2324,7 @@ export const resources = {
         thinking2: "உங்கள் ஜாதகத்தைப் படிக்கிறது...",
         thinking3: "கிரக நிலைகளை சரிபார்க்கிறது...",
         sent: "அனுப்பப்பட்டது",
+        toggle: { direct: "சுருக்கமாக", details: "விரிவாக" },
       },
       menu: {
         title: "மெனு",
@@ -2726,6 +2732,7 @@ export const resources = {
         thinking2: "તમારી કુંડળી વાંચી રહ્યા છીએ...",
         thinking3: "ગ્રહોની સ્થિતિ તપાસી રહ્યા છીએ...",
         sent: "મોકલાયું",
+        toggle: { direct: "ટૂંકમાં", details: "વિગતવાર" },
       },
       menu: {
         title: "મેનૂ",

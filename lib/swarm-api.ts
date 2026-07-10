@@ -115,6 +115,9 @@ export interface MatchmakingResponse {
   mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
 }
 
+/** Reply depth: "direct" (short, default) or "details" (long-form, structured). */
+export type ChatDetailLevel = "direct" | "details";
+
 /** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
 export interface ChatHistoryTurn {
   role: "user" | "assistant";
@@ -226,6 +229,8 @@ export async function* streamChat(
     history?: ChatHistoryTurn[];
     /** Running summary returned by a prior turn's `summary` event. */
     summary?: string;
+    /** "direct" (short, default) or "details" (long-form, structured). */
+    detailLevel?: ChatDetailLevel;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -244,6 +249,7 @@ export async function* streamChat(
         message,
         locale: opts?.locale ?? "en",
         history: opts?.history ?? [],
+        detailLevel: opts?.detailLevel ?? "direct",
         ...(opts?.summary ? { summary: opts.summary } : {}),
       }),
     });
@@ -261,9 +267,16 @@ export async function* streamChat(
     const reader = res.body?.getReader();
     if (!reader) throw new SwarmApiError(0, "no_body", "Response has no body");
 
+    // Details-mode replies are long structured markdown (headers, tables) —
+    // flushing every ~100 chars/2 newlines like a short direct reply chops
+    // that structure mid-header/mid-table-row, so use a much looser
+    // threshold and flush on paragraph boundaries (blank line) instead.
+    const isDetails = opts?.detailLevel === "details";
+    const FLUSH_CHAR_THRESHOLD = isDetails ? 400 : 100;
+
     const decoder = new TextDecoder();
     let buffer = "";
-    let tokenBuffer = ""; // Buffer tokens into ~2-line chunks
+    let tokenBuffer = ""; // Buffer tokens into ~2-line (or paragraph, in Details mode) chunks
 
     try {
       while (true) {
@@ -299,9 +312,13 @@ export async function* streamChat(
               const content = data.content ?? "";
               tokenBuffer += content;
 
-              // Emit tokens as 2-line chunks (~100 chars typical, or on newlines)
-              const lineCount = (tokenBuffer.match(/\n/g) || []).length;
-              if (lineCount >= 2 || tokenBuffer.length > 100) {
+              // Direct mode: flush on ~2 newlines or 100 chars. Details mode:
+              // flush on a paragraph break (blank line) or 400 chars, so a
+              // markdown header/table row is far less likely to split mid-line.
+              const shouldFlush = isDetails
+                ? tokenBuffer.includes("\n\n") || tokenBuffer.length > FLUSH_CHAR_THRESHOLD
+                : (tokenBuffer.match(/\n/g) || []).length >= 2 || tokenBuffer.length > FLUSH_CHAR_THRESHOLD;
+              if (shouldFlush) {
                 yield { type: "token", data: { content: tokenBuffer } };
                 tokenBuffer = "";
               }

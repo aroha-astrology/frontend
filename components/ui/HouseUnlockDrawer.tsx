@@ -19,6 +19,7 @@ interface HouseUnlockDrawerProps {
   onUnlock: (houseNum: number) => void;
   credits: number;
   unlockCost: number;
+  isUnlocked?: boolean;
 }
 
 const HOUSE_MEANINGS: Record<number, { title: string; hook: string }> = {
@@ -36,7 +37,7 @@ const HOUSE_MEANINGS: Record<number, { title: string; hook: string }> = {
   12: { title: 'Liberation',  hook: 'Discover your subconscious mind, spirituality, and foreign travels.' },
 };
 
-export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost }: HouseUnlockDrawerProps) {
+export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost, isUnlocked = false }: HouseUnlockDrawerProps) {
   const { t } = useTranslation();
 
   if (!house) return null;
@@ -90,45 +91,48 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                  {meaning?.hook}
                </p>
 
-               <div className="absolute top-24 inset-x-0 opacity-10 pointer-events-none text-[8px] text-justify leading-tight px-4 text-gold/30 blur-[1px]">
+               <div className={`absolute top-24 inset-x-0 pointer-events-none text-[10px] text-justify leading-relaxed px-4 transition-all duration-700 ${isUnlocked ? 'text-foreground blur-none opacity-100 relative top-0 mt-4 pointer-events-auto' : 'opacity-10 text-gold/30 blur-[2px]'}`}>
                   Astrological analysis indicates that the planetary alignments in this house exert a profound influence on your current dasha sequence. The conjunction of significant celestial bodies creates a unique energetic signature, manifesting as both challenges and hidden opportunities in this domain of life. When the lord of this house transits through favorable nakshatras, you can expect sudden shifts in perspective. Furthermore, the aspect from benefic planets mitigates potential malefic effects, offering a protective shield. Deeply examining the degrees of these placements reveals timing for important life events, specifically surrounding periods of personal transformation and material gains. Your karma uniquely unfolds here, dictating the lessons required for spiritual evolution and worldly success.
                </div>
 
-               <div className="mt-8 flex justify-center pb-4 relative z-10">
-                  <div className="flex flex-col items-center p-4 bg-background/80 backdrop-blur-md rounded-2xl border border-gold/10">
-                     <Lock size={32} className="text-gold mb-3" />
-                     <h3 className="text-lg font-bold text-foreground mb-1">Unlock {house.house}{house.house === 1 ? 'st' : house.house === 2 ? 'nd' : house.house === 3 ? 'rd' : 'th'} House</h3>
-                     <p className="text-xs text-muted text-center max-w-[250px]">
-                        Spend {unlockCost} credits to reveal the detailed planetary reading for this house.
-                     </p>
+               {isUnlocked && (
+                  <div className="mt-6 pt-4 border-t border-gold/10">
+                     <div className="flex gap-4">
+                        <div className="flex-1">
+                           <span className="text-[10px] text-muted block mb-1">Planets Present</span>
+                           <div className="text-sm font-semibold text-foreground">
+                              {house.planets.length > 0 ? house.planets.join(', ') : 'None'}
+                           </div>
+                        </div>
+                        <div>
+                           <span className="text-[10px] text-muted block mb-1">House Lord</span>
+                           <div className="text-sm font-semibold text-gold">
+                              {house.lord}
+                           </div>
+                        </div>
+                     </div>
                   </div>
-               </div>
+               )}
 
-               {/* Blurred background effect */}
-               <div className="absolute inset-0 top-16 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-0" />
-            </div>
+               {!isUnlocked && (
+                 <div className="mt-8 flex justify-center pb-4 relative z-10">
+                    <div className="flex flex-col items-center p-4 bg-background/80 backdrop-blur-md rounded-2xl border border-gold/10">
+                       <Lock size={32} className="text-gold mb-3" />
+                       <h3 className="text-lg font-bold text-foreground mb-1">Unlock {house.house}{house.house === 1 ? 'st' : house.house === 2 ? 'nd' : house.house === 3 ? 'rd' : 'th'} House</h3>
+                       <p className="text-xs text-muted mb-4 text-center max-w-[200px]">
+                         Spend {unlockCost} credits to reveal the deep astrological secrets hidden in this house.
+                       </p>
+                       <button
+                         onClick={() => onUnlock(house.house)}
+                         disabled={!canAfford}
+                         className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-gold text-[#1a0e00] rounded-xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                         {canAfford ? `Unlock for ${unlockCost} Credits` : 'Not enough credits'}
+                       </button>
+                    </div>
+                 </div>
+               )}
 
-            <div className="flex flex-col gap-3">
-               <button
-                 onClick={() => {
-                   if (canAfford) {
-                     onUnlock(house.house);
-                     onClose();
-                   }
-                 }}
-                 disabled={!canAfford}
-                 className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
-                   canAfford 
-                     ? 'bg-gold text-black hover:bg-gold/90' 
-                     : 'bg-surface border border-border text-muted opacity-50'
-                 }`}
-               >
-                 {canAfford ? (
-                   <>Unlock for {unlockCost} Credits</>
-                 ) : (
-                   <>Not enough credits ({credits}/{unlockCost})</>
-                 )}
-               </button>
             </div>
           </motion.div>
         </>

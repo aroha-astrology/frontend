@@ -468,10 +468,8 @@ export default function KundliPage() {
                      onHouseClick={(houseNum) => {
                         const h = houses.find((x) => x.house === houseNum);
                         if (!h) return;
-                        if (!unlockedHouses.includes(h.house)) {
-                           setSelectedHouse(h);
-                           setIsDrawerOpen(true);
-                        }
+                        setSelectedHouse(h);
+                        setIsDrawerOpen(true);
                      }}
                   />
                 ) : (
@@ -481,10 +479,8 @@ export default function KundliPage() {
                      onHouseClick={(houseNum) => {
                         const h = houses.find((x) => x.house === houseNum);
                         if (!h) return;
-                        if (!unlockedHouses.includes(h.house)) {
-                           setSelectedHouse(h);
-                           setIsDrawerOpen(true);
-                        }
+                        setSelectedHouse(h);
+                        setIsDrawerOpen(true);
                      }}
                   />
                 )}
@@ -500,10 +496,8 @@ export default function KundliPage() {
                     unlockedHouses={unlockedHouses}
                     credits={credits}
                     onHouseClick={(h) => {
-                      if (!unlockedHouses.includes(h.house)) {
-                        setSelectedHouse(h);
-                        setIsDrawerOpen(true);
-                      }
+                      setSelectedHouse(h);
+                      setIsDrawerOpen(true);
                     }}
                   />
                 )}
@@ -520,9 +514,11 @@ export default function KundliPage() {
                   onClose={() => setIsDrawerOpen(false)}
                   house={selectedHouse}
                   credits={credits}
-                  unlockCost={5}
+                  unlockCost={unlockedHouses.length === 0 ? 0 : 5}
+                  isUnlocked={selectedHouse ? unlockedHouses.includes(selectedHouse.house) : false}
                   onUnlock={(houseNum) => {
-                    setCredits((c) => c - 5);
+                    const cost = unlockedHouses.length === 0 ? 0 : 5;
+                    setCredits((c) => c - cost);
                     setUnlockedHouses((prev) => [...prev, houseNum]);
                   }}
                 />
@@ -538,10 +534,8 @@ export default function KundliPage() {
                     unlockedHouses={unlockedHouses}
                     credits={credits}
                     onHouseClick={(h) => {
-                      if (!unlockedHouses.includes(h.house)) {
-                        setSelectedHouse(h);
-                        setIsDrawerOpen(true);
-                      }
+                      setSelectedHouse(h);
+                      setIsDrawerOpen(true);
                     }}
                   />
                 )}

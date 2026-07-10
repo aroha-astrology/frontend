@@ -124,7 +124,8 @@ export default function SouthIndianChart({
             <rect x={x} y={y} width={CELL} height={CELL}
               fill={isAscendant ? 'url(#siAscGrad)' : 'transparent'}
               stroke={isAscendant ? 'rgba(212,175,55,0.55)' : 'rgba(212,175,55,0.18)'}
-              strokeWidth={isAscendant ? '1.5' : '0.8'} />
+              strokeWidth={isAscendant ? '1.5' : '0.8'}
+              pointerEvents="all" />
             {isAscendant && (
               <>
                 <line x1={x} y1={y} x2={x + 18} y2={y + 18} stroke="rgba(212,175,55,0.80)" strokeWidth="2" />

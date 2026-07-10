@@ -207,6 +207,7 @@ export default function NorthIndianChart({
             onClick={() => onHouseClick?.(house.house)}
             style={{ cursor: onHouseClick ? 'pointer' : 'default' }}
           >
+            <circle cx={pos.numberX} cy={pos.numberY} r="35" fill="transparent" pointerEvents="all" />
             {isAscendant && (
               <text x={pos.numberX} y={pos.numberY - 12} textAnchor="middle"
                 fill="rgba(212,175,55,0.90)" fontSize="8" fontWeight="800" letterSpacing="1.3"

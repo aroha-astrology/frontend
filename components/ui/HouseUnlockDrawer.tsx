@@ -1,0 +1,134 @@
+'use client';
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Sparkles, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+interface HouseData {
+  house: number;
+  sign: string;
+  signIndex: number;
+  lord: string;
+  planets: string[];
+}
+
+interface HouseUnlockDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  house: HouseData | null;
+  onUnlock: (houseNum: number) => void;
+  credits: number;
+  unlockCost: number;
+}
+
+const HOUSE_MEANINGS: Record<number, { title: string; hook: string }> = {
+  1:  { title: 'Self',        hook: 'Discover your core personality and how the world sees you.' },
+  2:  { title: 'Wealth',      hook: 'Uncover the secrets of your financial luck and family bonds.' },
+  3:  { title: 'Courage',     hook: 'Learn about your innate courage, skills, and communication style.' },
+  4:  { title: 'Home',        hook: 'Know what brings emotional peace, property luck, and motherly bond. The 4th house governs comfort and roots.' },
+  5:  { title: 'Children',    hook: 'Explore your creative potential, romance, and past-life karma.' },
+  6:  { title: 'Enemies',     hook: 'Understand how you handle conflicts, debts, and your daily service.' },
+  7:  { title: 'Marriage',    hook: 'Reveal the dynamics of your partnerships and marital harmony.' },
+  8:  { title: 'Longevity',   hook: 'Dive into life\'s mysteries, transformations, and hidden wealth.' },
+  9:  { title: 'Fortune',     hook: 'Find out about your luck, dharma, and higher learning journey.' },
+  10: { title: 'Career',      hook: 'Unlock the potential of your professional life and public status.' },
+  11: { title: 'Gains',       hook: 'See your path to fulfilling desires and gaining from your networks.' },
+  12: { title: 'Liberation',  hook: 'Discover your subconscious mind, spirituality, and foreign travels.' },
+};
+
+export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost }: HouseUnlockDrawerProps) {
+  const { t } = useTranslation();
+
+  if (!house) return null;
+
+  const meaning = HOUSE_MEANINGS[house.house];
+  const canAfford = credits >= unlockCost;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-[2.5rem] p-6 max-h-[85vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold">
+                    {house.house}
+                 </div>
+                 <div>
+                    <h2 className="text-xl font-display text-foreground font-bold">{meaning?.title || 'House'}</h2>
+                    <p className="text-xs text-muted">House of {meaning?.title}</p>
+                 </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center text-muted hover:text-foreground"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="relative rounded-2xl border border-gold/20 bg-surface/30 p-5 mb-6 overflow-hidden">
+               <div className="flex items-center gap-2 mb-3">
+                  <Sparkles size={16} className="text-gold" />
+                  <span className="text-sm font-bold text-foreground">What you will feel</span>
+               </div>
+               
+               <p className="text-sm text-foreground/90 leading-relaxed relative z-10 font-medium">
+                 {meaning?.hook}
+               </p>
+
+               <div className="mt-6 flex justify-center pb-2 relative z-10">
+                  <div className="flex flex-col items-center">
+                     <Lock size={32} className="text-gold mb-3" />
+                     <h3 className="text-lg font-bold text-foreground mb-1">Unlock {house.house}{house.house === 1 ? 'st' : house.house === 2 ? 'nd' : house.house === 3 ? 'rd' : 'th'} House</h3>
+                     <p className="text-xs text-muted text-center max-w-[250px]">
+                        Spend {unlockCost} credits to reveal the detailed planetary reading for this house.
+                     </p>
+                  </div>
+               </div>
+
+               {/* Blurred background effect */}
+               <div className="absolute inset-0 top-16 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-0" />
+            </div>
+
+            <div className="flex flex-col gap-3">
+               <button
+                 onClick={() => {
+                   if (canAfford) {
+                     onUnlock(house.house);
+                     onClose();
+                   }
+                 }}
+                 disabled={!canAfford}
+                 className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
+                   canAfford 
+                     ? 'bg-gold text-black hover:bg-gold/90' 
+                     : 'bg-surface border border-border text-muted opacity-50'
+                 }`}
+               >
+                 {canAfford ? (
+                   <>Unlock for {unlockCost} Credits</>
+                 ) : (
+                   <>Not enough credits ({credits}/{unlockCost})</>
+                 )}
+               </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}

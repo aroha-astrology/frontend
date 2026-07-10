@@ -12,6 +12,9 @@ import NorthIndianChart from "@/components/ui/NorthIndianChart";
 import SouthIndianChart from "@/components/ui/SouthIndianChart";
 import PlanetsTable from "@/components/ui/PlanetsTable";
 import HouseDetails from "@/components/ui/HouseDetails";
+import KundliInsights from "@/components/ui/KundliInsights";
+import HouseGrid from "@/components/ui/HouseGrid";
+import HouseUnlockDrawer from "@/components/ui/HouseUnlockDrawer";
 import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
 import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
@@ -350,6 +353,12 @@ export default function KundliPage() {
   const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
   const [viewMode, setViewMode] = useState<ViewMode>("plain");
 
+  // Mock credit system state
+  const [credits, setCredits] = useState(50);
+  const [unlockedHouses, setUnlockedHouses] = useState<number[]>([1]);
+  const [selectedHouse, setSelectedHouse] = useState<any>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
     setGenerating(true);
@@ -430,20 +439,7 @@ export default function KundliPage() {
               />
             )}
 
-            {/* 2. Plain / Technical toggle */}
-            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
-
-            {/* 3. Current Dasha */}
-            {dasha && (
-              viewMode === "plain"
-                ? <PlainDashaCard dasha={dasha} />
-                : <DashaTimeline dasha={dasha} />
-            )}
-
-            {/* 4. Yogas & Doshas stat row */}
-            <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
-
-            {/* 5. Chart — always visible in both modes */}
+            {/* 2. Chart at the top */}
             <Card className="p-4">
               <div className="flex justify-center gap-2 mb-4">
                 {(["north", "south"] as ChartStyle[]).map((s) => (
@@ -462,23 +458,79 @@ export default function KundliPage() {
               </div>
               <div className="max-w-[380px] mx-auto">
                 {chartStyle === "north" ? (
-                  <NorthIndianChart chartData={{ houses, planets }} title="Rashi Chart (D1)" showMeanings />
+                  <NorthIndianChart chartData={{ houses, planets }} title="Lagna (D1)" showMeanings />
                 ) : (
-                  <SouthIndianChart chartData={{ houses, planets }} title="Rashi Chart (D1)" />
+                  <SouthIndianChart chartData={{ houses, planets }} title="Lagna (D1)" />
                 )}
               </div>
             </Card>
 
-            {/* 6. Planets & Houses */}
-            {viewMode === "plain"
-              ? planets.length > 0 && <PlainPlanetPills planets={planets} />
-              : (
-                <>
-                  {planets.length > 0 && <PlanetsTable planets={planets} />}
-                  {houses.length > 0 && <HouseDetails houses={houses} />}
-                </>
-              )
-            }
+            {/* 3. Plain / Technical toggle */}
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+
+            {viewMode === "plain" ? (
+              <>
+                {/* Insights Section */}
+                <KundliInsights 
+                  ascendant={ascendant} 
+                  sun={planets.find((p: any) => p.planet === 'Sun')}
+                  moon={planets.find((p: any) => p.planet === 'Moon')}
+                />
+                
+                {/* House Grid with Credits */}
+                {houses.length > 0 && (
+                  <HouseGrid 
+                    houses={houses} 
+                    unlockedHouses={unlockedHouses}
+                    credits={credits}
+                    onHouseClick={(h) => {
+                      if (!unlockedHouses.includes(h.house)) {
+                        setSelectedHouse(h);
+                        setIsDrawerOpen(true);
+                      }
+                    }}
+                  />
+                )}
+
+                {/* Current Dasha */}
+                {dasha && <PlainDashaCard dasha={dasha} />}
+                
+                {/* Yogas & Doshas */}
+                <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
+                
+                {/* Unlock Drawer */}
+                <HouseUnlockDrawer
+                  isOpen={isDrawerOpen}
+                  onClose={() => setIsDrawerOpen(false)}
+                  house={selectedHouse}
+                  credits={credits}
+                  unlockCost={5}
+                  onUnlock={(houseNum) => {
+                    setCredits((c) => c - 5);
+                    setUnlockedHouses((prev) => [...prev, houseNum]);
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                {dasha && <DashaTimeline dasha={dasha} />}
+                <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
+                {planets.length > 0 && <PlanetsTable planets={planets} />}
+                {houses.length > 0 && (
+                  <HouseGrid 
+                    houses={houses} 
+                    unlockedHouses={unlockedHouses}
+                    credits={credits}
+                    onHouseClick={(h) => {
+                      if (!unlockedHouses.includes(h.house)) {
+                        setSelectedHouse(h);
+                        setIsDrawerOpen(true);
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
 
             {/* 7. Divisional charts — Technical only */}
             {viewMode === "technical" && Object.keys(divisionalCharts).length > 0 && (

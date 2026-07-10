@@ -40,6 +40,9 @@ interface NormalizedKundli {
   yogas: Yoga[];
   doshas: DoshaAnalysis | null;
   divisionalCharts: Record<string, any>;
+  /** Degrees of precession (Lahiri) used for the sidereal chart above; lets us
+   *  derive the Western tropical Sun sign without a second ephemeris call. */
+  ayanamsaValue: number | null;
 }
 
 // ─── Data normalizer ─────────────────────────────────────────────────────────
@@ -81,7 +84,9 @@ function normalizeKundli(
     const divisionalCharts: Record<string, any> =
       (chart.divisionalCharts as Record<string, any>) ?? {};
 
-    return { planets, houses, ascendant, dasha, yogas, doshas, divisionalCharts };
+    const ayanamsaValue = typeof chart.ayanamsaValue === "number" ? chart.ayanamsaValue : null;
+
+    return { planets, houses, ascendant, dasha, yogas, doshas, divisionalCharts, ayanamsaValue };
   } else {
     // ── Swarm/Onboarding path ──────────────────────────────────────────────
     const o = source as OnboardingResponse;
@@ -101,6 +106,9 @@ function normalizeKundli(
         }
       : null;
 
+    const ayanamsaValue =
+      typeof (ch.chart as any)?.ayanamsaValue === "number" ? (ch.chart as any).ayanamsaValue : null;
+
     // Swarm onboarding does not reliably carry yoga/dosha data — return empty;
     // user must reload to hit REST path.
     return {
@@ -111,6 +119,7 @@ function normalizeKundli(
       yogas: [],
       doshas: null,
       divisionalCharts: {},
+      ayanamsaValue,
     };
   }
 }
@@ -121,6 +130,25 @@ const PLANET_GLYPHS: Record<string, string> = {
   Sun: "☉", Moon: "☾", Mars: "♂", Mercury: "☿",
   Jupiter: "♃", Venus: "♀", Saturn: "♄", Rahu: "☊", Ketu: "☋",
 };
+
+const ZODIAC_SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+];
+
+/**
+ * The "Sun Sign" pill deliberately shows the Western tropical sign (what
+ * someone means when they say "I'm a Cancer"), not the Vedic sidereal sign
+ * the rest of this chart uses — the two differ by the ayanamsa (~24°), and
+ * showing sidereal here reads as "wrong" to users expecting their familiar
+ * sign. Derived from the already-computed sidereal longitude + ayanamsaValue
+ * rather than a calendar-date table, so it's exact for cusp births too.
+ */
+function westernSunSign(sunLongitude: number | undefined, ayanamsaValue: number | null): string | null {
+  if (typeof sunLongitude !== "number" || typeof ayanamsaValue !== "number") return null;
+  const tropicalLongitude = ((sunLongitude + ayanamsaValue) % 360 + 360) % 360;
+  return ZODIAC_SIGNS[Math.floor(tropicalLongitude / 30)] ?? null;
+}
 
 function SectionHeading({ icon = "✦", children }: { icon?: string; children: React.ReactNode }) {
   return (
@@ -185,19 +213,24 @@ function KundliHeaderCard({
   name,
   planets,
   ascendant,
+  ayanamsaValue,
 }: {
   name?: string | null;
   planets: any[];
   ascendant: Record<string, any> | null;
+  ayanamsaValue: number | null;
 }) {
   const { t } = useTranslation();
   const moon = planets.find((p: any) => p.planet === "Moon");
   const sun = planets.find((p: any) => p.planet === "Sun");
+  // Fall back to the sidereal sign if ayanamsaValue is missing (older/degraded
+  // charts) rather than hiding the pill.
+  const sunSign = westernSunSign(sun?.longitude, ayanamsaValue) ?? sun?.sign;
 
   const pills = [
     { label: t("kundli.ascendant"), value: ascendant?.ascendantSign ?? ascendant?.sign },
     { label: t("kundli.moonSign"), value: moon?.sign },
-    { label: t("kundli.sunSign"), value: sun?.sign },
+    { label: t("kundli.sunSign"), value: sunSign },
     { label: t("kundli.nakshatra"), value: moon?.nakshatra },
   ].filter((p) => p.value);
 
@@ -397,10 +430,10 @@ export default function KundliPage() {
     return null;
   }, [hasExisting, hasFresh, kundli, freshResult]);
 
-  const { planets, houses, ascendant, dasha, yogas, doshas, divisionalCharts } =
+  const { planets, houses, ascendant, dasha, yogas, doshas, divisionalCharts, ayanamsaValue } =
     chartData ?? {
       planets: [], houses: [], ascendant: null, dasha: null,
-      yogas: [], doshas: null, divisionalCharts: {},
+      yogas: [], doshas: null, divisionalCharts: {}, ayanamsaValue: null,
     };
 
   const displayName =
@@ -443,6 +476,7 @@ export default function KundliPage() {
                 name={displayName}
                 planets={planets}
                 ascendant={ascendant}
+                ayanamsaValue={ayanamsaValue}
               />
             )}
 

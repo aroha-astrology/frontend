@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { usePlaceAutocomplete, type PlaceSuggestion } from "@/hooks/usePlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
 
@@ -22,16 +23,26 @@ export default function PlaceAutocomplete({
   inputClassName,
   inputStyle,
 }: PlaceAutocompleteProps) {
-  const { query, setQuery, suggestions, loading, selectedPlace, select, clear } =
-    usePlaceAutocomplete();
+  const { t } = useTranslation();
+  const {
+    query, setQuery, suggestions, loading, selectedPlace,
+    select, clearSelection, geocodingId, selectError,
+  } = usePlaceAutocomplete();
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const notifiedRef = useRef<PlaceOfBirth | null>(null);
 
-  // Notify parent when a place is resolved
+  // Notify parent when a place is resolved. Guarded by notifiedRef (rather
+  // than relying solely on the effect dependency array) because `onSelect`
+  // is a fresh inline closure on every parent render — without the guard,
+  // any parent re-render while this component is still mounted (e.g. the
+  // parent appending a chat message right after selection) would re-fire
+  // onSelect for the same place.
   useEffect(() => {
-    if (selectedPlace) {
+    if (selectedPlace && notifiedRef.current !== selectedPlace) {
+      notifiedRef.current = selectedPlace;
       onSelect(selectedPlace);
       setOpen(false);
     }
@@ -87,6 +98,10 @@ export default function PlaceAutocomplete({
   );
 
   const showEmpty = open && query.length >= 2 && suggestions.length === 0 && !loading;
+  // Any suggestion resolving (geocoding) — block taps on other rows so a
+  // second tap can't fire a second, overlapping select() while one is
+  // already in flight.
+  const resolving = geocodingId !== null;
 
   return (
     <div ref={wrapperRef} className={`relative ${className ?? ""}`}>
@@ -95,7 +110,7 @@ export default function PlaceAutocomplete({
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
-          if (selectedPlace) clear();
+          if (selectedPlace) clearSelection();
         }}
         onFocus={() => {
           if (suggestions.length > 0) setOpen(true);
@@ -108,7 +123,7 @@ export default function PlaceAutocomplete({
       />
 
       {/* Dropdown */}
-      {open && (suggestions.length > 0 || loading || showEmpty) && (
+      {open && (suggestions.length > 0 || loading || showEmpty || selectError) && (
         <ul
           ref={listRef}
           className="absolute left-0 right-0 bottom-full mb-1 z-50 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-gold/20 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
@@ -116,28 +131,39 @@ export default function PlaceAutocomplete({
           {loading && (
             <li className="flex items-center gap-2 px-4 py-3 text-sm text-muted">
               <Loader2 size={14} className="animate-spin text-gold/60" />
-              Searching...
+              {t("onboarding.searching")}
             </li>
           )}
           {showEmpty && (
-            <li className="px-4 py-3 text-sm text-muted">No places found</li>
+            <li className="px-4 py-3 text-sm text-muted">{t("onboarding.noPlacesFound")}</li>
           )}
-          {suggestions.map((s, i) => (
-            <li
-              key={s.id}
-              role="option"
-              aria-selected={i === highlightIdx}
-              onClick={() => select(s)}
-              onMouseEnter={() => setHighlightIdx(i)}
-              className={`flex items-center gap-2.5 px-4 py-3 text-sm cursor-pointer transition-colors ${
-                i === highlightIdx ? "bg-gold/10" : "hover:bg-gold/10"
-              }`}
-              style={{ color: "var(--foreground)" }}
-            >
-              <MapPin size={14} className="shrink-0 text-gold/50" />
-              {s.description}
-            </li>
-          ))}
+          {selectError && (
+            <li className="px-4 py-3 text-sm text-red-400">{t("onboarding.placeNotFound")}</li>
+          )}
+          {suggestions.map((s, i) => {
+            const isResolving = geocodingId === s.id;
+            return (
+              <li
+                key={s.id}
+                role="option"
+                aria-selected={i === highlightIdx}
+                aria-disabled={resolving}
+                onClick={() => { if (!resolving) select(s); }}
+                onMouseEnter={() => setHighlightIdx(i)}
+                className={`flex items-center gap-2.5 px-4 py-3 text-sm transition-colors ${
+                  resolving ? "cursor-wait opacity-60" : "cursor-pointer"
+                } ${i === highlightIdx ? "bg-gold/10" : !resolving ? "hover:bg-gold/10" : ""}`}
+                style={{ color: "var(--foreground)" }}
+              >
+                {isResolving ? (
+                  <Loader2 size={14} className="shrink-0 animate-spin text-gold/60" />
+                ) : (
+                  <MapPin size={14} className="shrink-0 text-gold/50" />
+                )}
+                {isResolving ? t("onboarding.locating") : s.description}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -8,7 +8,10 @@ import { useAuth } from "@/providers/auth-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { api } from "@/lib/api";
 
-const ASKED_KEY = "aroha:permissionsAsked";
+// v2: bumped because a bug (fixed alongside this) could mark the prompt as
+// permanently dismissed even when getToken()/registerDeviceToken failed —
+// this resets the gate so anyone caught by that gets a fresh retry.
+const ASKED_KEY = "aroha:permissionsAsked:v2";
 
 /**
  * One-time "enable location + notifications" prompt, shown after a
@@ -81,17 +84,17 @@ export default function PermissionsPrompt() {
       }
 
       if (perm.receive === "granted") {
-        permanent = true; // User made their choice, don't ask again even if API fails
         try {
           const { token } = await FirebaseMessaging.getToken();
           console.log("[PermissionsPrompt] getToken ->", token ? `${token.slice(0, 12)}...` : "(empty)");
           if (token && (platform === "android" || platform === "ios")) {
             await api.registerDeviceToken({ token, platform });
             console.log("[PermissionsPrompt] registerDeviceToken -> ok");
+            permanent = true; // Reached full success — a real, permanent decision.
           }
         } catch (err) {
           console.error("[PermissionsPrompt] getToken/registerDeviceToken failed", err);
-          // Don't return here, we still want to dismiss the modal
+          // Leave `permanent` false — technical failure, not a user decision, so retry next launch.
         }
       } else if (perm.receive === "denied") {
         // Explicit OS-level decline — respect it, don't re-prompt.

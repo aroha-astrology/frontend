@@ -322,6 +322,27 @@ export interface HoroscopePending {
 /** Unified surface returned by `api.horoscope()` — caller branches on `status`. */
 export type HoroscopeResult = HoroscopeReady | HoroscopePending;
 
+/** 200 body: the per-house insight is ready. */
+export interface HouseInsightReady {
+  status: "ready";
+  text: string;
+  strengths: string[];
+  weaknesses: string[];
+}
+
+/** 202 body: generation just started in the background, or the last attempt failed. */
+export interface HouseInsightPending {
+  status: "generating" | "failed";
+}
+
+/** 403: the house isn't unlocked yet — distinct from "failed" so the UI doesn't retry-poll it. */
+export interface HouseInsightForbidden {
+  status: "forbidden";
+}
+
+/** Unified surface returned by `api.houseInsight()` — caller branches on `status`. */
+export type HouseInsightResult = HouseInsightReady | HouseInsightPending | HouseInsightForbidden;
+
 // ─── Billing / credit purchases ────────────────────────────────────────────────
 
 export interface CreditPack {
@@ -539,6 +560,20 @@ export const api = {
     opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
   ) => pollHoroscope(period, opts),
 
+  /**
+   * Personalized insight for one kundli house (1-12) — generated lazily the
+   * first time it's requested and cached forever after. Caller branches on
+   * `result.status`: "ready" (200), "generating"/"failed" (202, poll again),
+   * or "forbidden" (403, house isn't unlocked).
+   */
+  houseInsight: (house: number) => houseInsightRequest(house),
+
+  /** Poll `houseInsight(house)` until "ready"/"failed"/"forbidden", or `timeoutMs` elapses. */
+  pollHouseInsight: (
+    house: number,
+    opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+  ) => pollHouseInsight(house, opts),
+
   /** Panchang data. */
   panchang: (lat?: number, lon?: number, date?: string) => {
     const params = new URLSearchParams();
@@ -696,6 +731,50 @@ async function pollHoroscope(
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await horoscopeRequest(period);
+    if (r.status !== "generating") return r;
+    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, interval));
+  }
+}
+
+// ─── House insight helpers ────────────────────────────────────────────────────
+
+async function houseInsightRequest(house: number): Promise<HouseInsightResult> {
+  const headers: Record<string, string> = { ...(await authHeader()) };
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/v1/kundli/houses/${house}/insight`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  if (res.status === 403) return { status: "forbidden" };
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (res.status === 200) return data as HouseInsightReady;
+  if (res.status === 202) return data as HouseInsightPending;
+  const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+    ?.error;
+  throw new ApiError(
+    res.status,
+    err?.code ?? "http_error",
+    err?.message ?? `Request failed (${res.status})`,
+    err?.requestId,
+  );
+}
+
+async function pollHouseInsight(
+  house: number,
+  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+): Promise<HouseInsightResult> {
+  const interval = opts.intervalMs ?? 2000;
+  const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  while (true) {
+    if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
+    const r = await houseInsightRequest(house);
     if (r.status !== "generating") return r;
     if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
     await new Promise((res) => setTimeout(res, interval));

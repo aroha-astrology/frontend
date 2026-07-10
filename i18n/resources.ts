@@ -394,6 +394,9 @@ export const resources = {
           creditsAvailable: "You have {{credits}} credits",
           unlockHint: "Unlock a house for {{cost}} credits",
           numHouse: "{{ordinal}} House",
+          insightsTitle: "Insights",
+          insightsLoading: "Generating your personalized insight…",
+          askAstrologer: "Ask an Astrologer",
         },
       },
       payment: {
@@ -612,6 +615,9 @@ export const resources = {
           creditsAvailable: "आपके पास {{credits}} क्रेडिट हैं",
           unlockHint: "एक भाव अनलॉक करने के लिए {{cost}} क्रेडिट",
           numHouse: "{{ordinal}} भाव",
+          insightsTitle: "जानकारी",
+          insightsLoading: "आपकी व्यक्तिगत जानकारी तैयार की जा रही है…",
+          askAstrologer: "ज्योतिषी से पूछें",
         },
       },
       kundliPage: {
@@ -1092,6 +1098,9 @@ export const resources = {
           creditsAvailable: "আপনার কাছে {{credits}} ক্রেডিট আছে",
           unlockHint: "একটি ভাব আনলক করতে {{cost}} ক্রেডিট",
           numHouse: "{{ordinal}} ভাব",
+          insightsTitle: "অন্তর্দৃষ্টি",
+          insightsLoading: "আপনার ব্যক্তিগত অন্তর্দৃষ্টি তৈরি করা হচ্ছে…",
+          askAstrologer: "জ্যোতিষীর কাছে জিজ্ঞাসা করুন",
         },
       },
       kundliPage: {
@@ -1572,6 +1581,9 @@ export const resources = {
           creditsAvailable: "तुमच्याकडे {{credits}} क्रेडिट्स आहेत",
           unlockHint: "एक भाव अनलॉक करण्यासाठी {{cost}} क्रेडिट्स",
           numHouse: "{{ordinal}} भाव",
+          insightsTitle: "अंतर्दृष्टी",
+          insightsLoading: "तुमची वैयक्तिक अंतर्दृष्टी तयार होत आहे…",
+          askAstrologer: "ज्योतिषाला विचारा",
         },
       },
       kundliPage: {
@@ -2048,6 +2060,9 @@ export const resources = {
           creditsAvailable: "మీ వద్ద {{credits}} క్రెడిట్‌లు ఉన్నాయి",
           unlockHint: "ఒక ఇంటిని అన్‌లాక్ చేయడానికి {{cost}} క్రెడిట్‌లు",
           numHouse: "{{ordinal}} ఇల్లు",
+          insightsTitle: "అంతర్దృష్టులు",
+          insightsLoading: "మీ వ్యక్తిగత అంతర్దృష్టిని రూపొందిస్తున్నాము…",
+          askAstrologer: "జ్యోతిష్కుడిని అడగండి",
         },
       },
       kundliPage: {
@@ -2528,6 +2543,9 @@ export const resources = {
           creditsAvailable: "உங்களிடம் {{credits}} கிரெடிட்கள் உள்ளன",
           unlockHint: "ஒரு வீட்டைத் திறக்க {{cost}} கிரெடிட்கள்",
           numHouse: "{{ordinal}} வீடு",
+          insightsTitle: "நுண்ணறிவு",
+          insightsLoading: "உங்கள் தனிப்பட்ட நுண்ணறிவை உருவாக்குகிறோம்…",
+          askAstrologer: "ஜோதிடரிடம் கேளுங்கள்",
         },
       },
       kundliPage: {
@@ -3004,6 +3022,9 @@ export const resources = {
           creditsAvailable: "તમારી પાસે {{credits}} ક્રેડિટ છે",
           unlockHint: "એક ઘર અનલોક કરવા માટે {{cost}} ક્રેડિટ",
           numHouse: "{{ordinal}} ઘર",
+          insightsTitle: "સૂઝ",
+          insightsLoading: "તમારી વ્યક્તિગત સૂઝ તૈયાર થઈ રહી છે…",
+          askAstrologer: "જ્યોતિષીને પૂછો",
         },
       },
       kundliPage: {

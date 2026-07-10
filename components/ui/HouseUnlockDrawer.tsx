@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Lock, Loader2 } from 'lucide-react';
+import { X, Sparkles, Lock, Loader2, MessageCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useHouseInsight } from '@/hooks/useHouseInsight';
 
 interface HouseData {
   house: number;
@@ -29,6 +30,10 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
   const router = useRouter();
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
+
+  const { state: insightState, data: insight } = useHouseInsight(
+    isOpen && isUnlocked && house ? house.house : null,
+  );
 
   if (!house) return null;
 
@@ -112,6 +117,50 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                            </div>
                         </div>
                      </div>
+
+                     {(insightState === 'loading' || insightState === 'generating') && (
+                        <div className="mt-4 pt-4 border-t border-gold/10 flex items-center gap-2 text-xs text-muted">
+                           <Loader2 size={14} className="animate-spin" />
+                           {t('kundli.house.insightsLoading')}
+                        </div>
+                     )}
+
+                     {insightState === 'ready' && insight?.status === 'ready' && (
+                        <div className="mt-4 pt-4 border-t border-gold/10">
+                           <span className="text-[10px] text-muted block mb-2">{t('kundli.house.insightsTitle')}</span>
+                           <p className="text-sm text-foreground/90 leading-relaxed mb-3">{insight.text}</p>
+
+                           {insight.strengths.length > 0 && (
+                              <div className="mb-2 space-y-1">
+                                 {insight.strengths.map((s, i) => (
+                                    <div key={i} className="flex items-start gap-1.5 text-xs text-emerald-300">
+                                       <CheckCircle2 size={13} className="mt-0.5 shrink-0" />
+                                       <span>{s}</span>
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
+
+                           {insight.weaknesses.length > 0 && (
+                              <div className="space-y-1">
+                                 {insight.weaknesses.map((w, i) => (
+                                    <div key={i} className="flex items-start gap-1.5 text-xs text-amber-300">
+                                       <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+                                       <span>{w}</span>
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
+                        </div>
+                     )}
+
+                     <button
+                        onClick={() => router.push('/ai-chat')}
+                        className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
+                     >
+                        <MessageCircle size={16} />
+                        {t('kundli.house.askAstrologer')}
+                     </button>
                   </div>
                ) : (
                  <div className="relative min-h-[190px] rounded-xl overflow-hidden">

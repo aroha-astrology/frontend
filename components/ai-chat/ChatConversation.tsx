@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -9,7 +10,11 @@ import remarkGfm from "remark-gfm";
 import { streamChat, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
+import { useAuth } from "@/providers/auth-provider";
 import SegmentedToggle from "@/components/ui/SegmentedToggle";
+
+/** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
+const CHAT_MESSAGE_COST = 2;
 
 interface Message {
   role: "user" | "assistant";
@@ -62,6 +67,8 @@ function renderMessageContent(content: string) {
 
 export default function ChatConversation() {
   const { t } = useTranslation();
+  const { user, refresh } = useAuth();
+  const canAfford = (user?.credits ?? 0) >= CHAT_MESSAGE_COST;
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -103,7 +110,7 @@ export default function ChatConversation() {
 
   const sendMessage = useCallback(async (text?: string) => {
     const msg = text ?? input;
-    if (!msg.trim() || streaming) return;
+    if (!msg.trim() || streaming || !canAfford) return;
 
     // Add user message + empty assistant placeholder in one update
     setMessages((prev) => [
@@ -214,8 +221,12 @@ export default function ChatConversation() {
       });
     } finally {
       setStreaming(false);
+      // Credits are charged server-side the moment the request is accepted
+      // (even if generation then fails) — refresh so the balance shown in
+      // the top bar reflects the new total right away.
+      refresh().catch(() => {});
     }
-  }, [input, streaming, t, detailLevel]);
+  }, [input, streaming, canAfford, t, detailLevel, refresh]);
 
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
@@ -340,26 +351,41 @@ export default function ChatConversation() {
 
       {/* Input bar */}
       <div className="fixed bottom-16 left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
-        <div className="flex gap-3 max-w-lg mx-auto">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder={t("aiChatPage.inputPlaceholder")}
-            className="flex-1 h-14 rounded-full px-5 outline-none border text-sm"
-            style={{
-              background: "var(--surface)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
-          />
-          <button
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || streaming}
-            className="h-14 w-14 rounded-full bg-yellow-500 text-black flex items-center justify-center disabled:opacity-40 transition-opacity"
-          >
-            <Send size={20} />
-          </button>
+        <div className="max-w-lg mx-auto">
+          {canAfford ? (
+            <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">
+              {t("aiChatPage.costPerMessage", { cost: CHAT_MESSAGE_COST })}
+            </p>
+          ) : (
+            <p className="text-center text-[11px] text-red-400 mb-1.5">
+              {t("aiChatPage.notEnoughCreditsToAsk")} &middot;{" "}
+              <Link href="/payment" className="underline underline-offset-2">
+                {t("payment.buyCredits")}
+              </Link>
+            </p>
+          )}
+          <div className="flex gap-3">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder={t("aiChatPage.inputPlaceholder")}
+              disabled={!canAfford}
+              className="flex-1 h-14 rounded-full px-5 outline-none border text-sm disabled:opacity-50"
+              style={{
+                background: "var(--surface)",
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
+            />
+            <button
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || streaming || !canAfford}
+              className="h-14 w-14 rounded-full bg-yellow-500 text-black flex items-center justify-center disabled:opacity-40 transition-opacity"
+            >
+              <Send size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </main>

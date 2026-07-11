@@ -33,6 +33,8 @@ export interface User {
   dateOfBirth: string | null; // YYYY-MM-DD
   timeOfBirth: string | null; // HH:mm[:ss]
   placeOfBirth: PlaceOfBirth | null;
+  /** False once the user has used their one lifetime birth-detail (DOB/time/place) edit. */
+  canEditBirthDetails: boolean;
   profileCompletedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;

@@ -10,7 +10,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
-import { api, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
+import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +72,10 @@ export default function ProfilePage() {
 
   function startEdit() {
     if (!user) return;
+    if (!user.canEditBirthDetails) {
+      setSubmitErr(t("profile.birthEditLimitReached"));
+      return;
+    }
     setForm({
       displayName: user.displayName ?? "",
       gender: user.gender ?? null,
@@ -126,8 +130,12 @@ export default function ProfilePage() {
 
       setEditing(false);
       setForm(null);
-    } catch {
-      setSubmitErr(t("profile.saveError"));
+    } catch (err) {
+      setSubmitErr(
+        err instanceof ApiError && err.status === 409
+          ? t("profile.birthEditLimitReached")
+          : t("profile.saveError"),
+      );
     } finally {
       setSubmitting(false);
     }

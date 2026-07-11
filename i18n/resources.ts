@@ -367,9 +367,9 @@ export const resources = {
           high: "A strong influence — classical remedies and awareness are advised.",
         },
         house: {
-          names: {
-            "1": "Self", "2": "Wealth", "3": "Courage", "4": "Home", "5": "Children", "6": "Enemies",
-            "7": "Marriage", "8": "Longevity", "9": "Fortune", "10": "Career", "11": "Gains", "12": "Liberation",
+                    names: {
+            "1": "Self & Personality", "2": "Wealth & Family", "3": "Courage & Siblings", "4": "Home & Mother", "5": "Children & Creativity", "6": "Enemies & Health",
+            "7": "Marriage & Partnerships", "8": "Longevity & Transformation", "9": "Fortune & Dharma", "10": "Career & Karma", "11": "Gains & Networks", "12": "Liberation & Loss",
           },
           hooks: {
             "1": "Discover your core personality and how the world sees you.",
@@ -606,9 +606,9 @@ export const resources = {
           high: "एक मजबूत प्रभाव — शास्त्रीय उपाय और जागरूकता की सलाह दी जाती है।",
         },
         house: {
-          names: {
-            "1": "स्वयं", "2": "धन", "3": "साहस", "4": "गृह", "5": "संतान", "6": "शत्रु",
-            "7": "विवाह", "8": "दीर्घायु", "9": "भाग्य", "10": "करियर", "11": "लाभ", "12": "मोक्ष",
+                    names: {
+            "1": "स्वयं और व्यक्तित्व", "2": "धन और परिवार", "3": "साहस और भाई-बहन", "4": "गृह और माता", "5": "संतान और रचनात्मकता", "6": "शत्रु और रोग",
+            "7": "विवाह और साझेदारी", "8": "दीर्घायु और परिवर्तन", "9": "भाग्य और धर्म", "10": "करियर और कर्म", "11": "लाभ और मित्र", "12": "मोक्ष और व्यय",
           },
           hooks: {
             "1": "अपने मूल स्वभाव और दुनिया आपको कैसे देखती है, यह जानें।",

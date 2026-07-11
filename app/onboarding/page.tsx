@@ -284,7 +284,13 @@ export default function OnboardingPage() {
         };
         body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
       }
-      if (answers.status) body.relationshipStatus = answers.status;
+      if (answers.status) {
+        const statusMap: Record<string, string> = {
+          dating: "in_relationship",
+          other: "prefer_not_to_say",
+        };
+        body.relationshipStatus = statusMap[answers.status] ?? answers.status;
+      }
       body.onboardingStatus = "completed";
       // Gates chat/onboarding-analysis/forecast/matchmaking server-side
       // (requireConsent middleware) — must be sent explicitly, the checkbox

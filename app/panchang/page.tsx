@@ -254,6 +254,11 @@ export default function PanchangPage() {
           {geo.status === "denied" && <span className="text-[11px] text-muted">{t("horoscope.panchang.locationDenied")}</span>}
         </div>
         {geo.status === "idle" && <p className="mt-2 text-[11px] text-muted">{t("horoscope.panchang.locationHint")}</p>}
+        {geo.status === "granted" && geo.locationName && (
+          <p className="mt-2 text-[11px] text-muted flex items-center gap-1">
+            <MapPin size={10} /> {geo.locationName}
+          </p>
+        )}
 
         {/* Regional calendar + Adhik Maas */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">

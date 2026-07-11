@@ -78,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fbSignOut(getFirebaseAuth());
     setUser(null);
     setFirebaseUser(null);
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+    }
   };
 
   useEffect(() => {

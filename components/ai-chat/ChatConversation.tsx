@@ -240,9 +240,9 @@ export default function ChatConversation() {
   }, []);
 
   return (
-    <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-44 flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header — the astrologer's identity */}
-      <div className="px-5 pt-10 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gold font-display">
             {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
@@ -350,7 +350,7 @@ export default function ChatConversation() {
       </div>
 
       {/* Input bar */}
-      <div className="fixed bottom-16 left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
+      <div className="fixed bottom-[96px] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
           {canAfford ? (
             <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">

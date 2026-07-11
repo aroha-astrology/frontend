@@ -190,7 +190,7 @@ export default function OnboardingPage() {
     if (!val) return;
 
     if (step === 2) { // name
-      await advance({ name: val }, val, Q[2]);
+      await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
     } else if (step === 3) { // dob
       if (!isValidDob(val)) { setInputErr(t("onboarding.invalidDob")); return; }
       await advance({ dob: val }, val, Q[3]);
@@ -506,7 +506,28 @@ export default function OnboardingPage() {
             {/* Handle */}
             <div className="w-10 h-1 rounded-full bg-gold/30 mx-auto mb-5" />
 
-            <h3 className="font-display text-[20px] text-foreground mb-4">{t("onboarding.confirmTitle")}</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-[20px] text-foreground">{t("onboarding.confirmTitle")}</h3>
+              <button
+                onClick={() => {
+                  setShowConfirm(false);
+                  setStep(1);
+                  setAnswers({});
+                  setConsented(false);
+                  setResolvedPlace(null);
+                  setTextInput("");
+                  setInputErr("");
+                  setSubmitErr("");
+                  setMessages([
+                    { id: nextId(), from: "bot", text: t("onboarding.greeting") },
+                    { id: nextId(), from: "bot", text: Q[0] },
+                  ]);
+                }}
+                className="text-[13px] text-gold/80 hover:text-gold uppercase tracking-wider font-medium px-3 py-1 -mr-2 active:scale-95 transition-all"
+              >
+                {t("profile.edit")}
+              </button>
+            </div>
 
             <div className="space-y-3 mb-6">
               {[

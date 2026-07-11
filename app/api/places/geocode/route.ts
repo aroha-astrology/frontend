@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isRateLimited, clientIp } from '@/lib/rate-limit';
 
 async function nominatimSearch(params: Record<string, string>) {
   const url = `https://nominatim.openstreetmap.org/search?${new URLSearchParams({
@@ -14,6 +15,10 @@ async function nominatimSearch(params: Record<string, string>) {
 }
 
 export async function GET(req: NextRequest) {
+  if (isRateLimited(`places-geocode:${clientIp(req)}`, 20, 60_000)) {
+    return NextResponse.json(null, { status: 429 });
+  }
+
   const city = req.nextUrl.searchParams.get('city')?.trim();
   const state = req.nextUrl.searchParams.get('state')?.trim();
   const district = req.nextUrl.searchParams.get('district')?.trim();

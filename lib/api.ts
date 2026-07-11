@@ -10,7 +10,7 @@ import { getFirebaseAuth } from "./firebase";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 
 const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://13.232.179.137:3000"
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
 ).replace(/\/$/, "");
 
 // ─── Types (mirrors components.schemas in openapi.json) ──────────────────────

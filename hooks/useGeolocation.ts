@@ -7,6 +7,7 @@ export type GeolocationStatus = "idle" | "requesting" | "granted" | "denied" | "
 interface GeolocationState {
   status: GeolocationStatus;
   coords: { lat: number; lon: number } | null;
+  locationName?: string | null;
 }
 
 /**
@@ -20,19 +21,30 @@ export function useGeolocation() {
 
   const request = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setState({ status: "unavailable", coords: null });
+      setState({ status: "unavailable", coords: null, locationName: null });
       return;
     }
     setState((s) => ({ ...s, status: "requesting" }));
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        let locationName = null;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const data = await res.json();
+          locationName = data.address?.city || data.address?.town || data.address?.village || data.address?.state || data.name || null;
+        } catch (e) {
+          console.error("Reverse geocoding failed", e);
+        }
         setState({
           status: "granted",
-          coords: { lat: pos.coords.latitude, lon: pos.coords.longitude },
+          coords: { lat, lon },
+          locationName,
         });
       },
       () => {
-        setState({ status: "denied", coords: null });
+        setState({ status: "denied", coords: null, locationName: null });
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 15 * 60_000 },
     );

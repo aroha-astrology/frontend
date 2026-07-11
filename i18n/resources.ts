@@ -213,6 +213,7 @@ export const resources = {
         mangalDoshaStatus: "P1: {{p1}} · P2: {{p2}}",
         useMyDetails: "This is me — use my saved birth details",
         useMyDetailsHint: "Add your birth details in your profile first",
+        askAstrologerPrompt: "What can you tell us about this match?",
       },
       aiChatPage: {
         title: "AI Astrologer",
@@ -828,6 +829,7 @@ export const resources = {
         mangalDoshaStatus: "व्यक्ति 1: {{p1}} · व्यक्ति 2: {{p2}}",
         useMyDetails: "यह मैं हूं — मेरे सहेजे गए जन्म विवरण का उपयोग करें",
         useMyDetailsHint: "पहले अपनी प्रोफ़ाइल में अपने जन्म विवरण जोड़ें",
+        askAstrologerPrompt: "इस जोड़ी के बारे में आप क्या बता सकते हैं?",
       },
       aiChatPage: {
         title: "AI ज्योतिषी",
@@ -1330,6 +1332,7 @@ export const resources = {
         mangalDoshaStatus: "ব্যক্তি ১: {{p1}} · ব্যক্তি ২: {{p2}}",
         useMyDetails: "এটি আমি — আমার সংরক্ষিত জন্ম বিবরণ ব্যবহার করুন",
         useMyDetailsHint: "প্রথমে আপনার প্রোফাইলে জন্ম বিবরণ যোগ করুন",
+        askAstrologerPrompt: "এই মিল সম্পর্কে আপনি কী বলতে পারেন?",
       },
       aiChatPage: {
         title: "AI জ্যোতিষী",
@@ -1832,6 +1835,7 @@ export const resources = {
         mangalDoshaStatus: "व्यक्ती १: {{p1}} · व्यक्ती २: {{p2}}",
         useMyDetails: "हे मी आहे — माझे जतन केलेले जन्म तपशील वापरा",
         useMyDetailsHint: "आधी तुमच्या प्रोफाइलमध्ये जन्म तपशील जोडा",
+        askAstrologerPrompt: "या जुळणीबद्दल तुम्ही काय सांगू शकता?",
       },
       aiChatPage: {
         title: "AI ज्योतिषी",
@@ -2330,6 +2334,7 @@ export const resources = {
         mangalDoshaStatus: "వ్యక్తి 1: {{p1}} · వ్యక్తి 2: {{p2}}",
         useMyDetails: "ఇది నేనే — నా సేవ్ చేసిన జననం వివరాలను ఉపయోగించండి",
         useMyDetailsHint: "ముందుగా మీ ప్రొఫైల్‌లో జననం వివరాలను జోడించండి",
+        askAstrologerPrompt: "ఈ జోడీ గురించి మీరు ఏమి చెప్పగలరు?",
       },
       aiChatPage: {
         title: "AI జ్యోతిష్కుడు",
@@ -2832,6 +2837,7 @@ export const resources = {
         mangalDoshaStatus: "நபர் 1: {{p1}} · நபர் 2: {{p2}}",
         useMyDetails: "இது நான் தான் — எனது சேமிக்கப்பட்ட பிறப்பு விவரங்களைப் பயன்படுத்து",
         useMyDetailsHint: "முதலில் உங்கள் சுயவிவரத்தில் பிறப்பு விவரங்களைச் சேர்க்கவும்",
+        askAstrologerPrompt: "இந்த பொருத்தத்தைப் பற்றி நீங்கள் என்ன சொல்ல முடியும்?",
       },
       aiChatPage: {
         title: "AI ஜோதிடர்",
@@ -3330,6 +3336,7 @@ export const resources = {
         mangalDoshaStatus: "વ્યક્તિ ૧: {{p1}} · વ્યક્તિ ૨: {{p2}}",
         useMyDetails: "આ હું છું — મારી સાચવેલી જન્મ વિગતોનો ઉપયોગ કરો",
         useMyDetailsHint: "પહેલા તમારી પ્રોફાઇલમાં જન્મ વિગતો ઉમેરો",
+        askAstrologerPrompt: "આ જોડી વિશે તમે શું કહી શકો?",
       },
       aiChatPage: {
         title: "AI જ્યોતિષી",

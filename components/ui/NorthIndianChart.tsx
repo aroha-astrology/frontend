@@ -218,10 +218,6 @@ export default function NorthIndianChart({
               fontSize="11" fontWeight={isAscendant ? '800' : '700'} fontFamily="DM Sans, sans-serif">
               {house.house}
             </text>
-            <text x={pos.numberX} y={pos.numberY + 12} textAnchor="middle"
-              fill="rgba(130,210,210,0.70)" fontSize="8.5" fontWeight="600" fontFamily="DM Sans, sans-serif">
-              {PLANET_ABBR[house.lord] ?? house.lord.slice(0, 2)}
-            </text>
             {planetLabels.map((label, idx) => (
               <motion.text key={label} x={pos.planetX} y={pos.planetY + idx * 14} textAnchor="middle"
                 fill={label.includes('(R)') ? 'rgba(174,128,255,0.85)' : 'rgba(212,175,55,0.95)'}

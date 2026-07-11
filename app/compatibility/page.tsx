@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { MessageCircle } from "lucide-react";
 import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
+import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 
 interface PersonForm {
   name: string;
@@ -27,6 +30,7 @@ const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
 export default function CompatibilityPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState<CompatForm>({
     boy: { ...emptyPerson },
     girl: { ...emptyPerson },
@@ -122,6 +126,17 @@ export default function CompatibilityPage() {
     pct >= 75 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
   const verdictLabel =
     pct >= 75 ? t("compatibilityPage.excellentMatch") : pct >= 50 ? t("compatibilityPage.goodMatch") : t("compatibilityPage.needsAttention");
+
+  const askAstrologer = () => {
+    if (!result) return;
+    const parts = [
+      t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal }),
+      ...redFlags.map((k) => t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })),
+      t("compatibilityPage.askAstrologerPrompt"),
+    ];
+    sessionStorage.setItem(CHAT_PENDING_CONTEXT_KEY, parts.join(" "));
+    router.push("/ai-chat");
+  };
 
   const inputClass =
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
@@ -345,6 +360,14 @@ export default function CompatibilityPage() {
             {result.recommendation && (
               <p className="mt-3 text-xs text-yellow-500 leading-relaxed">{result.recommendation}</p>
             )}
+
+            <button
+              onClick={askAstrologer}
+              className="mt-5 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
+            >
+              <MessageCircle size={16} />
+              {t("kundli.house.askAstrologer")}
+            </button>
           </motion.div>
         )}
       </div>

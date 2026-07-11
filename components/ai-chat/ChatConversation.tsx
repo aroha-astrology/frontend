@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { streamChat, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
 import { ASTROLOGER } from "@/lib/personas";
+import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 interface Message {
@@ -215,6 +216,17 @@ export default function ChatConversation() {
       setStreaming(false);
     }
   }, [input, streaming, t, detailLevel]);
+
+  // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
+  // hand off a pre-composed first message via sessionStorage so the
+  // astrologer already has context instead of starting from a blank chat.
+  useEffect(() => {
+    const pending = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
+    if (!pending) return;
+    sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
+    sendMessage(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>

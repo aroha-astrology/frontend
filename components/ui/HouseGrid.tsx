@@ -65,7 +65,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, credit
             <button
               key={h.house}
               onClick={() => onHouseClick(h)}
-              className={`p-3 rounded-2xl border text-left transition-all ${
+              className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[100px] ${
                 isUnlocked
                   ? 'bg-surface border-gold/20 hover:border-gold/40'
                   : 'bg-surface/40 border-border/50 hover:border-gold/30 hover:bg-surface/60 opacity-80'

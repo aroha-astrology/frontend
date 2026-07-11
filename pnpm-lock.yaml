@@ -11,6 +11,9 @@ importers:
       '@capacitor-firebase/messaging':
         specifier: ^6.3.1
         version: 6.3.1(@capacitor/core@6.2.1)(firebase@12.15.0)
+      '@capacitor/app':
+        specifier: ^6.0.3
+        version: 6.0.3(@capacitor/core@6.2.1)
       '@capacitor/core':
         specifier: ^6.2.1
         version: 6.2.1
@@ -112,6 +115,11 @@ packages:
     peerDependenciesMeta:
       firebase:
         optional: true
+
+  '@capacitor/app@6.0.3':
+    resolution: {integrity: sha512-4gFUCbcVz0N/YYN32OBFerocWXslIv3Nc90gDiRsBkJc0plwK6kIUT6PKa5WtW2kfhteUeCVXQbvArH2fH+0Ug==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
 
   '@capacitor/core@6.2.1':
     resolution: {integrity: sha512-urZwxa7hVE/BnA18oCFAdizXPse6fCKanQyEqpmz6cBJ2vObwMpyJDG5jBeoSsgocS9+Ax+9vb4ducWJn0y2qQ==}
@@ -1802,6 +1810,10 @@ snapshots:
       '@capacitor/core': 6.2.1
     optionalDependencies:
       firebase: 12.15.0
+
+  '@capacitor/app@6.0.3(@capacitor/core@6.2.1)':
+    dependencies:
+      '@capacitor/core': 6.2.1
 
   '@capacitor/core@6.2.1':
     dependencies:

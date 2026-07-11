@@ -223,12 +223,12 @@ export default function PaymentPage() {
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder={t("payment.couponPlaceholder")}
-                        className="flex-1 h-11 rounded-xl px-3.5 outline-none border text-sm focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase placeholder:normal-case"
+                        className="flex-1 min-w-0 h-11 rounded-xl px-3.5 outline-none border text-sm focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase placeholder:normal-case"
                       />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={!couponCode.trim() || couponLoading}
-                        className="px-4 rounded-xl border border-gold/40 text-gold text-xs font-semibold disabled:opacity-40 transition-opacity flex items-center gap-1.5"
+                        className="shrink-0 whitespace-nowrap px-4 rounded-xl border border-gold/40 text-gold text-xs font-semibold disabled:opacity-40 transition-opacity flex items-center gap-1.5"
                       >
                         {couponLoading ? <Loader2 size={14} className="animate-spin" /> : t("payment.apply")}
                       </button>

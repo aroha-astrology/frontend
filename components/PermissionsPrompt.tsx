@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MapPin, Bell } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { api } from "@/lib/api";
 
@@ -24,33 +26,52 @@ const ASKED_KEY = "aroha:permissionsAsked:v2";
 export default function PermissionsPrompt() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { markResolved } = usePermissionsPrompt();
   const geo = useGeolocation();
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Determines up front (independent of profile-completion, which only
+  // gates whether we actually SHOW the prompt) whether this prompt applies
+  // at all this session, so other first-launch UI (the home tour) knows
+  // whether it needs to wait on this or can proceed immediately.
   useEffect(() => {
-    if (!user?.profileCompletedAt) return;
     if (typeof window === "undefined") return;
-    if (window.localStorage.getItem(ASKED_KEY)) return;
+    if (window.localStorage.getItem(ASKED_KEY)) {
+      markResolved();
+      return;
+    }
 
     let cancelled = false;
     (async () => {
       try {
         const { Capacitor } = await import("@capacitor/core");
-        if (!cancelled && Capacitor.isNativePlatform()) setVisible(true);
+        if (cancelled) return;
+        if (!Capacitor.isNativePlatform()) {
+          markResolved();
+          return;
+        }
+        if (user?.profileCompletedAt) setVisible(true);
       } catch {
         // @capacitor/core not resolvable (e.g. plain web build) — never show.
+        if (!cancelled) markResolved();
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [user?.profileCompletedAt]);
+  }, [user?.profileCompletedAt, markResolved]);
 
   const dismiss = () => {
     window.localStorage.setItem(ASKED_KEY, "1");
     setVisible(false);
+    markResolved();
   };
+
+  // Hardware back press while the prompt is open counts as "not now", same
+  // as tapping the dismiss button — it should never fall through to exiting
+  // the app or navigating away from underneath the modal.
+  useDismissOnBackPress(visible, dismiss);
 
   const enable = async () => {
     setBusy(true);
@@ -109,6 +130,7 @@ export default function PermissionsPrompt() {
         dismiss();
       } else {
         setVisible(false); // hide for this session, but allow a retry next launch
+        markResolved(); // still unblocks the tour etc. for this session
       }
       setBusy(false);
     }

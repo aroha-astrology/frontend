@@ -24,7 +24,6 @@ export default function TopBar({ rightContent }: { rightContent?: React.ReactNod
           <Menu size={20} />
         </IconButton>
         <div className="flex items-center gap-2">
-          {rightContent}
           <LanguagePicker />
           <ThemeSwitch />
           {user && (
@@ -41,6 +40,9 @@ export default function TopBar({ rightContent }: { rightContent?: React.ReactNod
           </IconButton>
         </div>
       </div>
+      {rightContent && (
+        <div className="w-full max-w-lg mx-auto px-5 pb-2 relative z-10">{rightContent}</div>
+      )}
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
       <AppMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

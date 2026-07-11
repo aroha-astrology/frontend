@@ -4,10 +4,13 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
+import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import AuthGuard from "@/components/AuthGuard";
 import BottomNavigation from "@/components/BottomNavigation";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
+import BackButtonListener from "@/components/BackButtonListener";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -65,11 +68,16 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <LanguageProvider>
             <AuthProvider>
-              <AuthGuard>
-                <PageTransition>{children}</PageTransition>
-                <BottomNavigation />
-                <PermissionsPrompt />
-              </AuthGuard>
+              <PermissionsPromptProvider>
+                <BackHandlerProvider>
+                  <AuthGuard>
+                    <PageTransition>{children}</PageTransition>
+                    <BottomNavigation />
+                    <PermissionsPrompt />
+                  </AuthGuard>
+                  <BackButtonListener />
+                </BackHandlerProvider>
+              </PermissionsPromptProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 
 /**
  * Slide-in side panel triggered by the top-left hamburger.
@@ -24,6 +25,9 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  // Close on hardware back press instead of exiting the app/navigating away.
+  useDismissOnBackPress(open, onClose);
 
   const handleSignOut = async () => {
     try {

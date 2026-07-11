@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { TOUR_STEPS, TOUR_DONE_KEY } from "./tour-steps";
 
 interface Rect {
@@ -32,6 +33,15 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => setMounted(true), []);
 
+  const finish = useCallback(() => {
+    localStorage.setItem(TOUR_DONE_KEY, "1");
+    onFinish();
+  }, [onFinish]);
+
+  // Hardware back press dismisses the tour the same as tapping X, instead of
+  // falling through to the app-exit/previous-route default.
+  useDismissOnBackPress(true, finish);
+
   const step = TOUR_STEPS[stepIndex]!;
 
   useEffect(() => {
@@ -51,11 +61,6 @@ export default function AppTour({ onFinish }: { onFinish: () => void }) {
   }, [step.target]);
 
   if (!mounted) return null;
-
-  const finish = () => {
-    localStorage.setItem(TOUR_DONE_KEY, "1");
-    onFinish();
-  };
 
   const goNext = () => {
     if (stepIndex === TOUR_STEPS.length - 1) {

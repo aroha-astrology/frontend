@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { BellOff, X } from "lucide-react";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 
 /**
  * Bottom sheet opened from the home top-bar bell icon. There's no
@@ -11,6 +12,9 @@ import { BellOff, X } from "lucide-react";
  */
 export default function NotificationsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+
+  // Close on hardware back press instead of exiting the app/navigating away.
+  useDismissOnBackPress(open, onClose);
 
   return (
     <AnimatePresence>

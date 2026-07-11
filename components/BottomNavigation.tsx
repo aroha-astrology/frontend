@@ -14,7 +14,10 @@ export default function BottomNavigation() {
   if (hidden) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-20 rounded-t-[2.5rem]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-20 rounded-t-[2.5rem] transform-gpu"
+      style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
+    >
       <div className="relative grid grid-cols-5 h-full max-w-lg mx-auto items-center">
         
         <Link href="/" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/" ? "text-gold" : "text-muted")}>

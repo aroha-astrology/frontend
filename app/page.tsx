@@ -16,20 +16,25 @@ import TopBar from "@/components/TopBar";
 import AppTour from "@/components/tour/AppTour";
 import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
+import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 
 export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
+  const { resolved: permissionsResolved } = usePermissionsPrompt();
   const [tourOpen, setTourOpen] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
   // Show the tour right after onboarding (?tour=1) or once for any existing
   // user who hasn't seen it yet — but never twice, tracked via localStorage.
   // Gated on the splash finishing first so it doesn't spotlight content that's
-  // still hidden behind the loading logo.
+  // still hidden behind the loading logo, and on the permissions prompt
+  // having resolved first so the two overlays never stack (the tour should
+  // appear after the user enables/dismisses permissions, not on top of it).
   useEffect(() => {
     if (!splashDone) return;
+    if (!permissionsResolved) return;
     const alreadySeen = localStorage.getItem(TOUR_DONE_KEY) === "1";
     if (alreadySeen) return;
 
@@ -39,7 +44,7 @@ export default function HomePage() {
     } else if (user?.profileCompletedAt) {
       setTourOpen(true);
     }
-  }, [splashDone, user]);
+  }, [splashDone, permissionsResolved, user]);
 
   const finishTour = () => {
     setTourOpen(false);

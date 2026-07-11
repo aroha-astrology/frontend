@@ -9,7 +9,12 @@ import BrandLogo from "./ui/BrandLogo";
 const SPLASH_SHOWN_KEY = "aroha_splash_shown";
 
 export default function SplashScreen({ onDone }: { onDone?: () => void } = {}) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof sessionStorage !== "undefined") {
+      return sessionStorage.getItem(SPLASH_SHOWN_KEY) !== "1";
+    }
+    return true;
+  });
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { isDaily, type ForecastData, PLANET_EMOJI, QUALITY_BADGE_KEYS } from "./types";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import CategoryRatingRow from "./CategoryRatingRow";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 type ViewMode = "plain" | "technical";
 const CATEGORY_ORDER = ["overall", "health", "career", "marriage", "finance", "education"] as const;
@@ -34,7 +35,7 @@ export default function ForecastDetailModal({
             {sign.symbol}
           </div>
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold font-display text-foreground">{sign.name}</h2>
+            <h2 className="text-lg font-semibold font-display text-foreground">{zodiacSignLabel(t, sign.name)}</h2>
             <p className="text-xs text-muted truncate">
               {daily ? forecast.date : `${forecast.periodStart} – ${forecast.periodEnd}`} &middot; {sign.dates}
             </p>

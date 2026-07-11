@@ -19,6 +19,7 @@ import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
 import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
 import VargaChartTabs from "@/components/ui/VargaChartTabs";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -199,7 +200,9 @@ function PlainPlanetPills({ planets }: { planets: any[] }) {
           >
             <span className="text-gold text-xs">{PLANET_GLYPHS[p.planet] ?? ""}</span>
             <span className="font-semibold text-foreground">{p.planet}</span>
-            <span className="text-muted">in {p.sign}, H{p.house}</span>
+            <span className="text-muted">
+              {t("kundli.planetSignHouse", { sign: zodiacSignLabel(t, p.sign), house: p.house })}
+            </span>
             {p.isRetrograde && <span className="text-purple-400 text-[9px]">R</span>}
           </div>
         ))}
@@ -227,10 +230,11 @@ function KundliHeaderCard({
   // charts) rather than hiding the pill.
   const sunSign = westernSunSign(sun?.longitude, ayanamsaValue) ?? sun?.sign;
 
+  const rawAscendantSign = ascendant?.ascendantSign ?? ascendant?.sign;
   const pills = [
-    { label: t("kundli.ascendant"), value: ascendant?.ascendantSign ?? ascendant?.sign },
-    { label: t("kundli.moonSign"), value: moon?.sign },
-    { label: t("kundli.sunSign"), value: sunSign },
+    { label: t("kundli.ascendant"), value: rawAscendantSign && zodiacSignLabel(t, rawAscendantSign) },
+    { label: t("kundli.moonSign"), value: moon?.sign && zodiacSignLabel(t, moon.sign) },
+    { label: t("kundli.sunSign"), value: sunSign && zodiacSignLabel(t, sunSign) },
     { label: t("kundli.nakshatra"), value: moon?.nakshatra },
   ].filter((p) => p.value);
 

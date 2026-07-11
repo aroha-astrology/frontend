@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export interface ZodiacSign {
   /** Sign index matching the backend (0 = Aries, 11 = Pisces). */
   index: number;
@@ -29,3 +31,8 @@ export const zodiac: ZodiacSign[] = [
   { index: 10, symbol: "♒", name: "Aquarius", vedicName: "Kumbha", dates: "Jan 20 – Feb 18", ruler: "Saturn", element: "Air" },
   { index: 11, symbol: "♓", name: "Pisces", vedicName: "Meena", dates: "Feb 19 – Mar 20", ruler: "Jupiter", element: "Water" },
 ];
+
+/** Localizes a zodiac sign's English name (e.g. "Aries") via the `zodiac.signs.*` i18n keys. */
+export function zodiacSignLabel(t: TFunction, englishName: string): string {
+  return t(`zodiac.signs.${englishName.toLowerCase()}`, { defaultValue: englishName });
+}

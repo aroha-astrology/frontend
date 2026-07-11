@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import ZodiacSilhouette from "./ZodiacSilhouette";
 import BrandLogo from "./ui/BrandLogo";
@@ -17,10 +17,13 @@ export default function SplashScreen({ onDone }: { onDone?: () => void } = {}) {
   // the app's default — avoids a flash of the wrong background on first paint.
   const isLight = mounted && resolvedTheme === "light";
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Only play the full multi-second splash once per browser session —
     // repeat visits to "/" (e.g. tapping Home in the bottom nav) shouldn't
-    // replay the logo animation every time.
+    // replay the logo animation every time. This must run as a layout
+    // effect (before paint), not a regular effect — otherwise the initial
+    // `visible=true` render still paints for one frame, flashing the logo
+    // over the home screen on every repeat visit.
     if (sessionStorage.getItem(SPLASH_SHOWN_KEY) === "1") {
       setVisible(false);
       onDone?.();

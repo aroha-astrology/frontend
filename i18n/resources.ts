@@ -357,6 +357,7 @@ export const resources = {
         doshasFound_plural: "{{count}} Doshas found",
         doshasNone: "No doshas detected",
         planetsGlance: "Planets at a Glance",
+        planetSignHouse: "in {{sign}}, H{{house}}",
         doshaBlurb: {
           low: "A mild influence — generally manageable with awareness.",
           medium: "A moderate influence that deserves attention in key life areas.",
@@ -399,6 +400,22 @@ export const resources = {
           insightsTitle: "Insights",
           insightsLoading: "Generating your personalized insight…",
           askAstrologer: "Ask an Astrologer",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "Aries",
+          taurus: "Taurus",
+          gemini: "Gemini",
+          cancer: "Cancer",
+          leo: "Leo",
+          virgo: "Virgo",
+          libra: "Libra",
+          scorpio: "Scorpio",
+          sagittarius: "Sagittarius",
+          capricorn: "Capricorn",
+          aquarius: "Aquarius",
+          pisces: "Pisces",
         },
       },
       payment: {
@@ -578,6 +595,7 @@ export const resources = {
         doshasFound_plural: "{{count}} दोष मिले",
         doshasNone: "कोई दोष नहीं मिला",
         planetsGlance: "ग्रहों पर एक नजर",
+        planetSignHouse: "{{sign}} में, H{{house}}",
         doshaBlurb: {
           low: "एक हल्का प्रभाव — सामान्यतः जागरूकता से प्रबंधनीय।",
           medium: "एक मध्यम प्रभाव जो प्रमुख जीवन क्षेत्रों में ध्यान देने योग्य है।",
@@ -620,6 +638,22 @@ export const resources = {
           insightsTitle: "जानकारी",
           insightsLoading: "आपकी व्यक्तिगत जानकारी तैयार की जा रही है…",
           askAstrologer: "ज्योतिषी से पूछें",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "मेष",
+          taurus: "वृषभ",
+          gemini: "मिथुन",
+          cancer: "कर्क",
+          leo: "सिंह",
+          virgo: "कन्या",
+          libra: "तुला",
+          scorpio: "वृश्चिक",
+          sagittarius: "धनु",
+          capricorn: "मकर",
+          aquarius: "कुंभ",
+          pisces: "मीन",
         },
       },
       kundliPage: {
@@ -1063,6 +1097,7 @@ export const resources = {
         doshasFound: "{{count}} দোষ পাওয়া গেছে",
         doshasNone: "কোনো দোষ সনাক্ত হয়নি",
         planetsGlance: "গ্রহের এক নজর",
+        planetSignHouse: "{{sign}}-এ, H{{house}}",
         doshaBlurb: {
           low: "একটি হালকা প্রভাব — সাধারণত সচেতনতার সাথে পরিচালনযোগ्य।",
           medium: "একটি মাঝারি প্রভাব যা মূল জীবন ক্ষেত্রে মনোযোগ দেওয়ার যোগ্য।",
@@ -1105,6 +1140,22 @@ export const resources = {
           insightsTitle: "অন্তর্দৃষ্টি",
           insightsLoading: "আপনার ব্যক্তিগত অন্তর্দৃষ্টি তৈরি করা হচ্ছে…",
           askAstrologer: "জ্যোতিষীর কাছে জিজ্ঞাসা করুন",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "মেষ",
+          taurus: "বৃষ",
+          gemini: "মিথুন",
+          cancer: "কর্কট",
+          leo: "সিংহ",
+          virgo: "কন্যা",
+          libra: "তুলা",
+          scorpio: "বৃশ্চিক",
+          sagittarius: "ধনু",
+          capricorn: "মকর",
+          aquarius: "কুম্ভ",
+          pisces: "মীন",
         },
       },
       kundliPage: {
@@ -1548,6 +1599,7 @@ export const resources = {
         doshasFound: "{{count}} दोष आढळला",
         doshasNone: "कोणताही दोष आढळला नाही",
         planetsGlance: "ग्रहांवर एक नजर",
+        planetSignHouse: "{{sign}} मध्ये, H{{house}}",
         doshaBlurb: {
           low: "एक सौम्य प्रभाव — साधारणपणे जागृतीने व्यवस्थापनीय.",
           medium: "एक मध्यम प्रभाव जो मुख्य जीवन क्षेत्रात लक्ष देण्यास योग्य.",
@@ -1590,6 +1642,22 @@ export const resources = {
           insightsTitle: "अंतर्दृष्टी",
           insightsLoading: "तुमची वैयक्तिक अंतर्दृष्टी तयार होत आहे…",
           askAstrologer: "ज्योतिषाला विचारा",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "मेष",
+          taurus: "वृषभ",
+          gemini: "मिथुन",
+          cancer: "कर्क",
+          leo: "सिंह",
+          virgo: "कन्या",
+          libra: "तूळ",
+          scorpio: "वृश्चिक",
+          sagittarius: "धनु",
+          capricorn: "मकर",
+          aquarius: "कुंभ",
+          pisces: "मीन",
         },
       },
       kundliPage: {
@@ -2033,6 +2101,7 @@ export const resources = {
         doshasFound: "{{count}} దోషం కనుగొన్నారు",
         doshasNone: "ఏ దోషాలు గుర్తించబడలేదు",
         planetsGlance: "గ్రహాల ప్రత్యక్షం",
+        planetSignHouse: "{{sign}}లో, H{{house}}",
         doshaBlurb: { low: "ఒక స్వల్ప ప్రభావం — సాధారణంగా అవగాహనతో నిర్వహించవచ్చు.", medium: "ఒక మధ్యమ ప్రభావం ముఖ్య జీవిత రంగాలలో దృష్టి అర్హం.", high: "ఒక శక్తివంతమైన ప్రభావం — శాస్త్రీయ పరిహారాలు మరియు అవగాహన సూచించబడింది." },
         house: {
           names: {
@@ -2071,6 +2140,22 @@ export const resources = {
           insightsTitle: "అంతర్దృష్టులు",
           insightsLoading: "మీ వ్యక్తిగత అంతర్దృష్టిని రూపొందిస్తున్నాము…",
           askAstrologer: "జ్యోతిష్కుడిని అడగండి",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "మేషం",
+          taurus: "వృషభం",
+          gemini: "మిథునం",
+          cancer: "కర్కాటకం",
+          leo: "సింహం",
+          virgo: "కన్య",
+          libra: "తుల",
+          scorpio: "వృశ్చికం",
+          sagittarius: "ధనుస్సు",
+          capricorn: "మకరం",
+          aquarius: "కుంభం",
+          pisces: "మీనం",
         },
       },
       kundliPage: {
@@ -2514,6 +2599,7 @@ export const resources = {
         doshasFound: "{{count}} தோஷம் கண்டறியப்பட்டது",
         doshasNone: "தோஷங்கள் ஏதும் கண்டறியப்படவில்லை",
         planetsGlance: "கிரகங்கள் ஒரு பார்வை",
+        planetSignHouse: "{{sign}}ல், H{{house}}",
         doshaBlurb: {
           low: "ஒரு மிதமான தாக்கம் — பொதுவாக விழிப்புணருடன் நிர்வகிக்கலாம்.",
           medium: "முக்கிய வாழ்க்கை தளங்களில் கவனம் தேவைப்படும் ஒரு மிதமான தாக்கம்.",
@@ -2556,6 +2642,22 @@ export const resources = {
           insightsTitle: "நுண்ணறிவு",
           insightsLoading: "உங்கள் தனிப்பட்ட நுண்ணறிவை உருவாக்குகிறோம்…",
           askAstrologer: "ஜோதிடரிடம் கேளுங்கள்",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "மேஷம்",
+          taurus: "ரிஷபம்",
+          gemini: "மிதுனம்",
+          cancer: "கடகம்",
+          leo: "சிம்மம்",
+          virgo: "கன்னி",
+          libra: "துலாம்",
+          scorpio: "விருச்சிகம்",
+          sagittarius: "தனுசு",
+          capricorn: "மகரம்",
+          aquarius: "கும்பம்",
+          pisces: "மீனம்",
         },
       },
       kundliPage: {
@@ -2999,6 +3101,7 @@ export const resources = {
         doshasFound: "{{count}} દોષ મળ્યો",
         doshasNone: "કોઈ દોષ મળ્યો નથી",
         planetsGlance: "ગ્રહોની એક ઝલક",
+        planetSignHouse: "{{sign}}માં, H{{house}}",
         doshaBlurb: { low: "એક હળવો પ્રભાવ — સામાન્યરીતે જાગૃતતાથી વ્યવસ્થાપનીય.", medium: "એક મધ્યમ પ્રભાવ જે મુખ્ય જીવન ક્ષેત્રોમાં ધ્યાન આપવા યોગ્ય.", high: "એક શક્તિશાળી પ્રભાવ — શાસ્ત્રોક્ત ઉઘા અને જાગૃતતા સૂચવાય છે." },
         house: {
           names: {
@@ -3037,6 +3140,22 @@ export const resources = {
           insightsTitle: "સૂઝ",
           insightsLoading: "તમારી વ્યક્તિગત સૂઝ તૈયાર થઈ રહી છે…",
           askAstrologer: "જ્યોતિષીને પૂછો",
+        },
+      },
+      zodiac: {
+        signs: {
+          aries: "મેષ",
+          taurus: "વૃષભ",
+          gemini: "મિથુન",
+          cancer: "કર્ક",
+          leo: "સિંહ",
+          virgo: "કન્યા",
+          libra: "તુલા",
+          scorpio: "વૃશ્ચિક",
+          sagittarius: "ધનુ",
+          capricorn: "મકર",
+          aquarius: "કુંભ",
+          pisces: "મીન",
         },
       },
       kundliPage: {

@@ -9,6 +9,7 @@ import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import { useKundli } from "@/hooks/useKundli";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 function SkeletonCard() {
   return (
@@ -89,7 +90,7 @@ export default function HoroscopeSlider() {
               </div>
               <div>
                 <h3 className="text-foreground text-sm font-semibold tracking-wide font-display">
-                  {sign.name}
+                  {zodiacSignLabel(t, sign.name)}
                 </h3>
                 <p className="text-[9px] text-muted leading-tight">{sign.dates}</p>
               </div>

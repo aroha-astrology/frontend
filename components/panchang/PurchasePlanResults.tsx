@@ -47,7 +47,9 @@ function PurchasePlanCard({ plan, onDelete }: { plan: PurchasePlan; onDelete: (i
               <Loader2 size={12} className="animate-spin" /> {t("purchasePlan.analyzing")}
             </span>
           )}
-          {plan.status === "error" && <span className="text-[10px] text-red-400">{t("purchasePlan.error")}</span>}
+          {(plan.status === "error" || (plan.status === "done" && !isAnalysis(plan.analysis))) && (
+            <span className="text-[10px] text-red-400">{t("purchasePlan.error")}</span>
+          )}
           
           {confirmDelete ? (
             <div className="flex items-center gap-1 bg-red-500/10 rounded-lg px-2 py-1">

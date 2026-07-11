@@ -568,13 +568,14 @@ export const api = {
    * `result.status`: "ready" (200), "generating"/"failed" (202, poll again),
    * or "forbidden" (403, house isn't unlocked).
    */
-  houseInsight: (house: number) => houseInsightRequest(house),
+  houseInsight: (house: number, language?: string) => houseInsightRequest(house, language),
 
   /** Poll `houseInsight(house)` until "ready"/"failed"/"forbidden", or `timeoutMs` elapses. */
   pollHouseInsight: (
     house: number,
+    language?: string,
     opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
-  ) => pollHouseInsight(house, opts),
+  ) => pollHouseInsight(house, language, opts),
 
   /** Panchang data. */
   panchang: (lat?: number, lon?: number, date?: string) => {
@@ -741,11 +742,12 @@ async function pollHoroscope(
 
 // ─── House insight helpers ────────────────────────────────────────────────────
 
-async function houseInsightRequest(house: number): Promise<HouseInsightResult> {
+async function houseInsightRequest(house: number, language?: string): Promise<HouseInsightResult> {
   const headers: Record<string, string> = { ...(await authHeader()) };
+  const qs = language ? `?language=${encodeURIComponent(language)}` : "";
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/kundli/houses/${house}/insight`, {
+    res = await fetch(`${BASE_URL}/v1/kundli/houses/${house}/insight${qs}`, {
       method: "GET",
       headers,
       cache: "no-store",
@@ -770,13 +772,14 @@ async function houseInsightRequest(house: number): Promise<HouseInsightResult> {
 
 async function pollHouseInsight(
   house: number,
+  language?: string,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<HouseInsightResult> {
   const interval = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
-    const r = await houseInsightRequest(house);
+    const r = await houseInsightRequest(house, language);
     if (r.status !== "generating") return r;
     if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
     await new Promise((res) => setTimeout(res, interval));

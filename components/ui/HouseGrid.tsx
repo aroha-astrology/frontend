@@ -65,7 +65,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, credit
             <button
               key={h.house}
               onClick={() => onHouseClick(h)}
-              className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[100px] ${
+              className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[100px] overflow-hidden ${
                 isUnlocked
                   ? 'bg-surface border-gold/20 hover:border-gold/40'
                   : 'bg-surface/40 border-border/50 hover:border-gold/30 hover:bg-surface/60 opacity-80'
@@ -84,13 +84,13 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, credit
                 )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className={`text-base font-bold font-display ${isUnlocked ? 'text-foreground' : 'text-foreground/70'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className={`text-base font-bold font-display min-w-0 break-words ${isUnlocked ? 'text-foreground' : 'text-foreground/70'}`}>
                   {name}
                 </span>
-                
+
                 {isUnlocked && (
-                  <div className="flex -space-x-1.5">
+                  <div className="flex -space-x-1.5 shrink-0">
                     {h.planets.length > 0 ? (
                       h.planets.slice(0, 3).map((p, i) => (
                          <div key={p} className="w-6 h-6 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] text-gold z-[1]" style={{ zIndex: 10 - i }}>

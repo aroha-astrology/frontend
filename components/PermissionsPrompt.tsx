@@ -82,8 +82,16 @@ export default function PermissionsPrompt() {
     // so the prompt reappears next launch instead of silently never retrying.
     let permanent = false;
     try {
-      geo.request();
-
+      // Request notification permission (a native Android runtime-permission
+      // dialog) fully to completion before touching geolocation. Android can
+      // only have one requestPermissions() call in flight per Activity at a
+      // time — firing geo.request() first (its getCurrentPosition() call
+      // triggers the WebView's own native location-permission dialog) used
+      // to race with FirebaseMessaging.requestPermissions() below, which
+      // made Android silently reject the second call ("Can request only one
+      // set of permissions at a time"), so the notification dialog never
+      // appeared and requestPermissions() resolved to "prompt" instead of a
+      // real answer.
       let Capacitor: typeof import("@capacitor/core").Capacitor;
       let FirebaseMessaging: typeof import("@capacitor-firebase/messaging").FirebaseMessaging;
       try {
@@ -123,6 +131,11 @@ export default function PermissionsPrompt() {
       }
       // Any other status (e.g. "prompt"/"prompt-with-rationale") falls through
       // with permanent=false, so this counts as inconclusive, not declined.
+
+      // Only now, once the notification permission dialog has fully
+      // resolved, request location — see the note above about why these
+      // can't run concurrently.
+      geo.request();
     } catch (err) {
       console.error("[PermissionsPrompt] enable() failed", err);
     } finally {

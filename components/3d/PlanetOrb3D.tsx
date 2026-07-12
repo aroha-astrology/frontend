@@ -114,8 +114,19 @@ function PlanetModel({ url }: { url: string }) {
     // UNCHANGED axial tilt for the whole system.
     <group rotation={[0.32, 0, 0.12]}>
       <group ref={groupRef}>
-        {/* ── ASSET SWAP: the NASA glTF (ships with its own NASA/JPL textures) ── */}
-        <primitive object={model} />
+        {/* ── ASSET SWAP: the NASA glTF (ships with its own NASA/JPL textures) ──
+            dispose={null}: `model` is a clone of `scene`, which useGLTF/useLoader
+            caches and shares across every future mount of this same url (the
+            cycle repeats through all 9 bodies forever). Without this, R3F's
+            default auto-dispose-on-unmount destroys the geometry/material/
+            textures the clone shares with that cache when we swap to the next
+            body every 5s — so a planet's SECOND appearance renders from
+            already-disposed GPU resources. Repeated dispose+reuse like that is
+            what was corrupting the GPU driver state and eventually taking down
+            the whole WebGL context (reproduced live: a burst of "Shader
+            compilation failed" / "Pipeline create failed" immediately preceding
+            "THREE.WebGLRenderer: Context Lost", after a few minutes of cycling). */}
+        <primitive object={model} dispose={null} />
       </group>
     </group>
   );
@@ -164,6 +175,22 @@ export default function PlanetOrb3D({
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0, 2.7], fov: 45 }}
+      onCreated={({ gl }) => {
+        // WebGL only auto-restores a lost context if the "webglcontextlost"
+        // listener calls preventDefault() — without it (the previous state:
+        // no listener at all) a loss is permanent until the whole page
+        // reloads. This is a safety net on top of the dispose={null} fix
+        // above; a loss from unrelated memory pressure should now at least
+        // recover instead of leaving a dead canvas (and, per the WebView bug
+        // this surfaced, an unresponsive rest-of-page) behind.
+        gl.domElement.addEventListener("webglcontextlost", (e) => {
+          e.preventDefault();
+          console.warn("PlanetOrb3D: WebGL context lost, attempting to restore");
+        });
+        gl.domElement.addEventListener("webglcontextrestored", () => {
+          console.warn("PlanetOrb3D: WebGL context restored");
+        });
+      }}
     >
       {/* UNCHANGED lighting rig ───────────────────────────────────────────── */}
       {/* soft fill so the night side blends into black instead of cutting hard */}

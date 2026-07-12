@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck } from "lucide-react";
+import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck, MessageCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 
@@ -97,6 +97,12 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                 href="/profile"
                 icon={<User size={16} />}
                 label={t("menu.profile")}
+                onClick={onClose}
+              />
+              <DrawerLink
+                href="/chat-history"
+                icon={<MessageCircle size={16} />}
+                label={t("menu.chatHistory", "Chat History")}
                 onClick={onClose}
               />
               <DrawerLink

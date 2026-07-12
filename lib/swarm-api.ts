@@ -145,7 +145,12 @@ export interface ChatErrorEvent {
   data: { message: string };
 }
 
-export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent;
+export interface ChatSessionIdEvent {
+  type: "session_id";
+  data: { sessionId: string };
+}
+
+export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent | ChatSessionIdEvent;
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
@@ -229,6 +234,8 @@ export async function* streamChat(
     history?: ChatHistoryTurn[];
     /** Running summary returned by a prior turn's `summary` event. */
     summary?: string;
+    /** Existing session ID to continue. */
+    sessionId?: string;
     /** "direct" (short, default) or "details" (long-form, structured). */
     detailLevel?: ChatDetailLevel;
   },
@@ -251,6 +258,7 @@ export async function* streamChat(
         history: opts?.history ?? [],
         detailLevel: opts?.detailLevel ?? "direct",
         ...(opts?.summary ? { summary: opts.summary } : {}),
+        ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
       }),
     });
 

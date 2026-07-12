@@ -11,6 +11,7 @@ import { streamChat, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/sw
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
+import { getFirebaseAuth } from "@/lib/firebase";
 import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
@@ -100,8 +101,8 @@ export default function ChatConversation() {
   const [thinkingIdx, setThinkingIdx] = useState(0);
   const [detailLevel, setDetailLevel] = useState<ChatDetailLevel>("direct");
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  const [showAutoAnalyzeModal, setShowAutoAnalyzeModal] = useState(false);
+  
+  const sessionIdRef = useRef<string | undefined>(undefined);
 
   // Cycle the "thinking" label while waiting for the first token, so the
   // wait doesn't feel like a stalled/frozen request.
@@ -122,6 +123,53 @@ export default function ChatConversation() {
   // avoids re-asking things the user already answered earlier in the thread.
   const historyRef = useRef<ChatHistoryTurn[]>([]);
   const summaryRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    // Check if we have a sessionId in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sid = urlParams.get("sessionId");
+    
+    if (sid && !sessionIdRef.current) {
+      sessionIdRef.current = sid;
+      // Fetch session from backend
+      const auth = getFirebaseAuth();
+      auth.currentUser?.getIdToken().then((token) => {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in").replace(/\/$/, "");
+        fetch(`${baseUrl}/v1/chat/sessions/${sid}`, {
+          headers: {
+            Authorization: `Bearer ${token || ""}`,
+          },
+        })
+          .then((res) => {
+            if (res.ok) return res.json();
+            throw new Error("Failed to load session");
+          })
+          .then((session) => {
+            if (session && session.history) {
+              historyRef.current = session.history;
+              summaryRef.current = session.summary;
+              const loadedMessages: Message[] = [
+                {
+                  role: "assistant",
+                  content: t("aiChatPage.personaGreeting", {
+                    name: t(ASTROLOGER.nameKey),
+                    specialty: t(ASTROLOGER.specialtyKey),
+                  }),
+                },
+              ];
+              for (const h of session.history) {
+                loadedMessages.push({
+                  role: h.role,
+                  content: h.content,
+                });
+              }
+              setMessages(loadedMessages);
+            }
+          })
+          .catch(console.error);
+      });
+    }
+  }, [t]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -160,6 +208,7 @@ export default function ChatConversation() {
       const stream = streamChat(msg, {
         history: historyForThisTurn,
         summary: summaryForThisTurn,
+        sessionId: sessionIdRef.current,
         detailLevel,
       });
       let fullContent = "";
@@ -197,6 +246,12 @@ export default function ChatConversation() {
             return next;
           });
           break;
+        } else if (event.type === "session_id") {
+          sessionIdRef.current = event.data.sessionId;
+          // Update URL without reloading
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.set("sessionId", event.data.sessionId);
+          window.history.replaceState({}, "", newUrl.toString());
         } else if (event.type === "done") {
           break;
         }
@@ -268,9 +323,6 @@ export default function ChatConversation() {
     if (pending) {
       sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
       sendMessage(pending);
-    } else {
-      // By default, ask if they want a full chart analysis
-      setShowAutoAnalyzeModal(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -467,42 +519,6 @@ export default function ChatConversation() {
           </div>
         </div>
       </div>
-
-      {/* Auto-Analyze Modal */}
-      {showAutoAnalyzeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-          <div 
-            className="rounded-2xl p-6 max-w-sm w-full shadow-2xl relative border"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-          >
-            <h3 className="text-lg font-bold text-gold mb-2">{t("aiChatPage.analyzeModalTitle", "Analyze Your Chart?")}</h3>
-            <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--foreground)" }}>
-              {t("aiChatPage.analyzeModalDesc", "Would you like the AI to generate a complete analysis of your birth chart?")} <br/><br/>
-              <span className="font-semibold text-yellow-500">
-                {t("aiChatPage.analyzeModalCost", "2 credits will be charged for this request.")}
-              </span>
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setShowAutoAnalyzeModal(false)}
-                className="px-4 py-2 text-sm font-semibold transition-colors hover:brightness-125"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {t("common.cancel", "Cancel")}
-              </button>
-              <button
-                onClick={() => {
-                  setShowAutoAnalyzeModal(false);
-                  sendMessage(t("aiChatPage.autoAnalyzePrompt", "Please analyze my birth chart in detail."));
-                }}
-                className="px-5 py-2 text-sm font-bold bg-gold text-black rounded-full hover:brightness-110 transition-all"
-              >
-                {t("common.confirm", "Confirm")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

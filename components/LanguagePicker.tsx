@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LANGUAGES, useLanguage } from "@/providers/language-provider";
 import IconButton from "@/components/ui/IconButton";
 
-export default function LanguagePicker() {
+export default function LanguagePicker({ align = "right" }: { align?: "left" | "right" }) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export default function LanguagePicker() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-44 rounded-2xl border border-gold/20 bg-card shadow-xl overflow-hidden z-50"
+            className={`absolute ${align === "left" ? "left-0" : "right-0"} mt-2 w-44 rounded-2xl border border-gold/20 bg-card shadow-xl overflow-hidden z-50`}
           >
             {LANGUAGES.map((l) => {
               const active = l.code === lang;

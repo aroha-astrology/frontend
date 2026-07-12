@@ -10,7 +10,6 @@ import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
-import TopBar from "@/components/TopBar";
 import Card from "@/components/ui/Card";
 import { QUALITY_BADGE_KEYS, type Timescale } from "@/components/horoscope/types";
 import { zodiacSignLabel } from "@/data/zodiac";
@@ -148,7 +147,6 @@ export default function HoroscopePage() {
 
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
-      <TopBar />
       <div className="px-5 pt-4">
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
 

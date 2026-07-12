@@ -13,7 +13,7 @@ import NorthIndianChart from "@/components/ui/NorthIndianChart";
 import SouthIndianChart from "@/components/ui/SouthIndianChart";
 import PlanetsTable from "@/components/ui/PlanetsTable";
 import HouseGrid from "@/components/ui/HouseGrid";
-import TopBar from "@/components/TopBar";
+import { useTopBarRightContent } from "@/providers/topbar-provider";
 import HouseUnlockDrawer from "@/components/ui/HouseUnlockDrawer";
 import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
@@ -448,6 +448,10 @@ export default function KundliPage() {
   const inputClass =
     "w-full h-14 rounded-2xl px-4 outline-none border text-sm transition-colors focus:border-gold/60 bg-surface border-border text-foreground";
 
+  // Only offer the Plain/Technical toggle once a chart actually exists to
+  // switch views on — not during the loading/onboarding-form states below.
+  useTopBarRightContent(hasData && chartData ? <ViewModeToggle mode={viewMode} onChange={setViewMode} /> : null);
+
   // ── Loading ──
   if (kundliLoading && !hasFresh) {
     return (
@@ -466,9 +470,6 @@ export default function KundliPage() {
 
   return (
     <main className="min-h-screen pb-28 bg-background">
-      <TopBar 
-         rightContent={<ViewModeToggle mode={viewMode} onChange={setViewMode} />} 
-      />
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
 
         {/* ── CHART VIEW ── */}

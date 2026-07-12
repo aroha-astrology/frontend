@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePeriod } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -13,9 +14,15 @@ const POLL_TIMEOUT_MS = 60_000;
  * Fetches (and polls until ready) the user's personalized horoscope for a
  * given period. Shared by the /horoscope page's PersonalizedCard and the
  * Home page's TodayReading card, so both surfaces poll the same way.
+ *
+ * Sends the current UI language on every request rather than relying on
+ * `user.contentLanguage` (that field is never updated by the in-app language
+ * switcher — see the house-insight hook for the same pattern), so AI-generated
+ * text actually re-translates when the user switches language mid-session.
  */
 export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
   const { firebaseUser, loading: authLoading } = useAuth();
+  const { i18n } = useTranslation();
   const [state, setState] = useState<PersonalizedHoroscopeState>("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
 
@@ -30,7 +37,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
 
     const poll = () => {
       api
-        .horoscope(period)
+        .horoscope(period, i18n.language)
         .then((res) => {
           if (cancelled) return;
           if (res.status === "ready") {
@@ -63,7 +70,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, period]);
+  }, [authLoading, firebaseUser, period, i18n.language]);
 
   return { state, data };
 }

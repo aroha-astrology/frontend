@@ -65,8 +65,10 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
             className="fixed left-0 top-0 bottom-0 z-[70] w-[84%] max-w-[340px] bg-card border-r border-gold/20 shadow-2xl flex flex-col"
           >
-            {/* Header */}
-            <div className="flex items-start justify-between px-5 pt-6 pb-5 border-b border-gold/10">
+            {/* Header — extra top padding clears the device status bar, which this
+                fixed-to-top panel sits directly under (unlike in-page content that
+                gets natural clearance from the page's own top padding). */}
+            <div className="flex items-start justify-between px-5 pt-11 pb-5 border-b border-gold/10">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold/80 to-purple-600/60 flex items-center justify-center text-[#1a0e00] font-display text-lg shrink-0">
                   {initial}

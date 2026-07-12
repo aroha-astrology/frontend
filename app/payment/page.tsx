@@ -9,7 +9,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
-import { api, type CreditPack, type CouponValidation } from "@/lib/api";
+import { api, ApiError, type CreditPack, type CouponValidation } from "@/lib/api";
 
 function formatRupees(paise: number): string {
   const rupees = paise / 100;
@@ -125,8 +125,10 @@ export default function PaymentPage() {
       await api.confirmOrder(order.id);
       await refreshUser();
       setSuccess({ credits: selectedPack.credits });
-    } catch {
-      setPayError(t("payment.genericError"));
+    } catch (err) {
+      setPayError(
+        err instanceof ApiError && err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"),
+      );
     } finally {
       setPaying(false);
     }

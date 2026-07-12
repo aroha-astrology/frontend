@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { Send, Wallet } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -15,11 +15,15 @@ import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
 const CHAT_MESSAGE_COST = 2;
+/** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. */
+const LOW_CREDIT_THRESHOLD = 8;
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   isError?: boolean;
+  /** Canned "recharge to continue" reply — sent without ever hitting the AI. */
+  isOutOfCredit?: boolean;
 }
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
@@ -63,6 +67,19 @@ function renderMessageContent(content: string) {
       {content}
     </ReactMarkdown>
   );
+}
+
+/**
+ * The backend prompt (scholar.ts OUTPUT_STYLE) asks the model to end a reply
+ * with an optional suggested follow-up on its own line, prefixed "Ask next:"
+ * — split it out so it renders as a tappable chip instead of literal text in
+ * the bubble. Only applied once a message has finished streaming (checked by
+ * the caller) so a not-yet-complete "Ask next: Wh" mid-stream doesn't flicker.
+ */
+function splitFollowUp(content: string): { text: string; followUp: string | null } {
+  const match = content.match(/\n *Ask next:\s*(.+?)\s*$/i);
+  if (!match) return { text: content, followUp: null };
+  return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
 }
 
 export default function ChatConversation() {
@@ -110,7 +127,20 @@ export default function ChatConversation() {
 
   const sendMessage = useCallback(async (text?: string) => {
     const msg = text ?? input;
-    if (!msg.trim() || streaming || !canAfford) return;
+    if (!msg.trim() || streaming) return;
+
+    // Out of credits: still show the message as sent (rather than silently
+    // dropping it, which reads as the app being broken) but reply with a
+    // canned recharge prompt instead of spending a real request on the LLM.
+    if (!canAfford) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: msg },
+        { role: "assistant", content: t("aiChatPage.outOfCreditReply"), isOutOfCredit: true },
+      ]);
+      setInput("");
+      return;
+    }
 
     // Add user message + empty assistant placeholder in one update
     setMessages((prev) => [
@@ -275,45 +305,69 @@ export default function ChatConversation() {
             if (streaming && i === messages.length - 1 && msg.role === "assistant" && !msg.content) {
               return null;
             }
+            const isLastStreaming = streaming && i === messages.length - 1;
+            const { text: assistantText, followUp } =
+              msg.role === "assistant" && !isLastStreaming ? splitFollowUp(msg.content) : { text: msg.content, followUp: null };
             return (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
+              className={msg.role === "user" ? "flex flex-col items-end" : "flex flex-col items-start"}
             >
-              {msg.role === "assistant" && (
-                <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
-                  {ASTROLOGER.avatar}
+              <div className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                {msg.role === "assistant" && (
+                  <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
+                    {ASTROLOGER.avatar}
+                  </div>
+                )}
+                <div
+                  className={
+                    msg.role === "user"
+                      ? "bg-yellow-500 text-black rounded-[16px_16px_3px_16px] px-4 py-3 max-w-[80%] text-sm"
+                      : `rounded-[16px_16px_16px_3px] px-4 py-3 max-w-[92%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
+                  }
+                  style={
+                    msg.role !== "user"
+                      ? { background: "var(--surface)", borderColor: msg.isError ? undefined : "var(--border)", color: msg.isError ? "#f87171" : undefined }
+                      : {}
+                  }
+                >
+                  {msg.role === "assistant" ? renderMessageContent(assistantText) : msg.content}
+                  {/* Cursor while streaming — only once tokens have actually started
+                      arriving. Before that, `msg.content` is still empty and the
+                      dedicated typing indicator below is showing instead; without
+                      this guard both rendered at once, showing an empty bubble with
+                      a lone blinking "|" alongside the "Consulting the stars..." bubble. */}
+                  {isLastStreaming && msg.role === "assistant" && msg.content && (
+                    <span className="inline-block w-0.5 h-4 bg-yellow-500 animate-pulse ml-0.5 align-middle" />
+                  )}
+                  {/* Sent indicator — single check only; there's no "read" concept for an AI reply */}
+                  {msg.role === "user" && (
+                    <span className="block text-right text-[10px] text-black/50 mt-0.5 leading-none">✓ {t("aiChatPage.sent")}</span>
+                  )}
+                  {msg.isOutOfCredit && (
+                    <Link
+                      href="/payment"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold border border-gold/40 rounded-full px-3 py-1.5 hover:bg-gold/10 transition-colors"
+                    >
+                      <Wallet size={13} />
+                      {t("aiChatPage.recharge")}
+                    </Link>
+                  )}
                 </div>
-              )}
-              <div
-                className={
-                  msg.role === "user"
-                    ? "bg-yellow-500 text-black rounded-[16px_16px_3px_16px] px-4 py-3 max-w-[80%] text-sm"
-                    : `rounded-[16px_16px_16px_3px] px-4 py-3 max-w-[92%] text-sm border ${msg.isError ? "border-red-500/50" : ""}`
-                }
-                style={
-                  msg.role !== "user"
-                    ? { background: "var(--surface)", borderColor: msg.isError ? undefined : "var(--border)", color: msg.isError ? "#f87171" : undefined }
-                    : {}
-                }
-              >
-                {msg.role === "assistant" ? renderMessageContent(msg.content) : msg.content}
-                {/* Cursor while streaming — only once tokens have actually started
-                    arriving. Before that, `msg.content` is still empty and the
-                    dedicated typing indicator below is showing instead; without
-                    this guard both rendered at once, showing an empty bubble with
-                    a lone blinking "|" alongside the "Consulting the stars..." bubble. */}
-                {streaming && i === messages.length - 1 && msg.role === "assistant" && msg.content && (
-                  <span className="inline-block w-0.5 h-4 bg-yellow-500 animate-pulse ml-0.5 align-middle" />
-                )}
-                {/* Sent indicator — single check only; there's no "read" concept for an AI reply */}
-                {msg.role === "user" && (
-                  <span className="block text-right text-[10px] text-black/50 mt-0.5 leading-none">✓ {t("aiChatPage.sent")}</span>
-                )}
               </div>
+              {/* Suggested follow-up — tappable, sends it as the next message */}
+              {followUp && (
+                <button
+                  onClick={() => sendMessage(followUp)}
+                  disabled={streaming}
+                  className="ml-9 mt-1.5 max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
+                >
+                  {followUp}
+                </button>
+              )}
             </motion.div>
             );
           })}
@@ -365,16 +419,23 @@ export default function ChatConversation() {
       {/* Input bar */}
       <div className="fixed bottom-[96px] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
-          {canAfford ? (
-            <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">
-              {t("aiChatPage.costPerMessage", { cost: CHAT_MESSAGE_COST })}
-            </p>
-          ) : (
+          {!canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">
               {t("aiChatPage.notEnoughCreditsToAsk")} &middot;{" "}
               <Link href="/payment" className="underline underline-offset-2">
                 {t("payment.buyCredits")}
               </Link>
+            </p>
+          ) : (user?.credits ?? 0) < LOW_CREDIT_THRESHOLD ? (
+            <p className="text-center text-[11px] text-yellow-500 mb-1.5">
+              {t("aiChatPage.lowCreditWarning", { credits: user?.credits ?? 0 })}{" "}
+              <Link href="/payment" className="underline underline-offset-2">
+                {t("payment.buyCredits")}
+              </Link>
+            </p>
+          ) : (
+            <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">
+              {t("aiChatPage.costPerMessage", { cost: CHAT_MESSAGE_COST })}
             </p>
           )}
           <div className="flex gap-3">
@@ -383,7 +444,6 @@ export default function ChatConversation() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder={t("aiChatPage.inputPlaceholder")}
-              disabled={!canAfford}
               className="flex-1 h-14 rounded-full px-5 outline-none border text-sm disabled:opacity-50"
               style={{
                 background: "var(--surface)",
@@ -393,7 +453,7 @@ export default function ChatConversation() {
             />
             <button
               onClick={() => sendMessage()}
-              disabled={!input.trim() || streaming || !canAfford}
+              disabled={!input.trim() || streaming}
               className="h-14 w-14 rounded-full bg-yellow-500 text-black flex items-center justify-center disabled:opacity-40 transition-opacity"
             >
               <Send size={20} />

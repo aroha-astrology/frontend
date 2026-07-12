@@ -101,6 +101,8 @@ export default function ChatConversation() {
   const [detailLevel, setDetailLevel] = useState<ChatDetailLevel>("direct");
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const [showAutoAnalyzeModal, setShowAutoAnalyzeModal] = useState(false);
+
   // Cycle the "thinking" label while waiting for the first token, so the
   // wait doesn't feel like a stalled/frozen request.
   useEffect(() => {
@@ -263,9 +265,13 @@ export default function ChatConversation() {
   // astrologer already has context instead of starting from a blank chat.
   useEffect(() => {
     const pending = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
-    if (!pending) return;
-    sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
-    sendMessage(pending);
+    if (pending) {
+      sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
+      sendMessage(pending);
+    } else {
+      // By default, ask if they want a full chart analysis
+      setShowAutoAnalyzeModal(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -461,6 +467,42 @@ export default function ChatConversation() {
           </div>
         </div>
       </div>
+
+      {/* Auto-Analyze Modal */}
+      {showAutoAnalyzeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div 
+            className="rounded-2xl p-6 max-w-sm w-full shadow-2xl relative border"
+            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+          >
+            <h3 className="text-lg font-bold text-gold mb-2">{t("aiChatPage.analyzeModalTitle", "Analyze Your Chart?")}</h3>
+            <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--foreground)" }}>
+              {t("aiChatPage.analyzeModalDesc", "Would you like the AI to generate a complete analysis of your birth chart?")} <br/><br/>
+              <span className="font-semibold text-yellow-500">
+                {t("aiChatPage.analyzeModalCost", "2 credits will be charged for this request.")}
+              </span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowAutoAnalyzeModal(false)}
+                className="px-4 py-2 text-sm font-semibold transition-colors hover:brightness-125"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAutoAnalyzeModal(false);
+                  sendMessage(t("aiChatPage.autoAnalyzePrompt", "Please analyze my birth chart in detail."));
+                }}
+                className="px-5 py-2 text-sm font-bold bg-gold text-black rounded-full hover:brightness-110 transition-all"
+              >
+                {t("common.confirm", "Confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

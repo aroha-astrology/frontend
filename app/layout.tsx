@@ -13,6 +13,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
+import PushNotificationListener from "@/components/PushNotificationListener";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -81,6 +82,7 @@ export default function RootLayout({
                     </AuthGuard>
                   </TopBarProvider>
                   <BackButtonListener />
+                  <PushNotificationListener />
                 </BackHandlerProvider>
               </PermissionsPromptProvider>
             </AuthProvider>

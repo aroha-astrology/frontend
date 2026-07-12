@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Car, Home, Building2, Package } from "lucide-react";
 import { api, ApiError, type PurchasePlanCategory } from "@/lib/api";
@@ -36,6 +36,16 @@ export default function PurchasePlanModal({ isOpen, panchangDate, onClose, onSub
   const [deliveryDate, setDeliveryDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (step === "submitted") {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
 
   const CATEGORIES: { id: PurchasePlanCategory; icon: React.ReactNode; label: string; sub: string }[] = [
     {

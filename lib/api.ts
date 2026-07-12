@@ -95,6 +95,8 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
+  birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  currentLocation?: PlaceOfBirth | null;
   locale?: string;
   birthTimeSource?: string;
   relationshipStatus?: string;

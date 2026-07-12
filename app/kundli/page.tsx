@@ -71,9 +71,9 @@ function normalizeKundli(
       (chart.chart as any)?.ascendant ??
       null;
 
-    // REST: dasha lives at top-level k.dasha.vimshottari
+    // REST: dasha lives at top-level k.dasha
     const dashaTop = k.dasha as Record<string, any> | null;
-    const dasha = dashaTop?.vimshottari ?? dashaTop ?? null;
+    const dasha = dashaTop?.vimshottari ? dashaTop : (dashaTop ? { vimshottari: dashaTop } : null);
 
     // REST: yogas live at k.yogas.yogas[]
     const yogaTop = k.yogas as Record<string, any> | null;
@@ -100,10 +100,12 @@ function normalizeKundli(
     const swarmDasha = ch.dasha;
     const dasha = swarmDasha
       ? {
-          mahadashas: swarmDasha.mahadashaSequence ?? [],
-          currentMahadasha: swarmDasha.currentMahadasha ?? null,
-          currentAntardasha: swarmDasha.currentAntardasha ?? null,
-          currentPratyantardasha: null,
+          vimshottari: {
+            mahadashas: swarmDasha.mahadashaSequence ?? [],
+            currentMahadasha: swarmDasha.currentMahadasha ?? null,
+            currentAntardasha: swarmDasha.currentAntardasha ?? null,
+            currentPratyantardasha: null,
+          }
         }
       : null;
 
@@ -259,9 +261,10 @@ function KundliHeaderCard({
 /** Plain-mode current dasha reading — sentence-style */
 function PlainDashaCard({ dasha }: { dasha: any }) {
   const { t } = useTranslation();
-  const maha = dasha?.currentMahadasha?.planet ?? dasha?.currentMahadasha?.lord;
-  const antar = dasha?.currentAntardasha?.planet ?? dasha?.currentAntardasha?.lord;
-  const mahaEnd = dasha?.currentMahadasha?.end ?? dasha?.currentMahadasha?.endDate;
+  const vim = dasha?.vimshottari || dasha;
+  const maha = vim?.currentMahadasha?.planet ?? vim?.currentMahadasha?.lord;
+  const antar = vim?.currentAntardasha?.planet ?? vim?.currentAntardasha?.lord;
+  const mahaEnd = vim?.currentMahadasha?.end ?? vim?.currentMahadasha?.endDate;
 
   if (!maha) return null;
 

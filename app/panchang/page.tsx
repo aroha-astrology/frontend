@@ -467,7 +467,7 @@ export default function PanchangPage() {
             )}
 
             {/* Planning to Buy */}
-            <Card className="p-4 border-gold/15">
+            <Card id="purchase-plans" className="p-4 border-gold/15">
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div>
                   <p className="text-sm font-display text-foreground">{t("horoscope.panchang.planningToBuyTitle")}</p>

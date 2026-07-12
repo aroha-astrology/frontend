@@ -402,17 +402,20 @@ export default function KundliPage() {
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
+    if (!resolvedPlace) {
+      setFormError(t("common.selectPlaceFromList"));
+      return;
+    }
     setGenerating(true);
     setFormError(null);
     setFreshResult(null);
     try {
-      const geo = resolvedPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
       const birth: BirthInput = {
         date: form.date,
         time: form.time || "12:00",
-        latitude: geo.lat,
-        longitude: geo.lon,
-        timezone: geo.tz,
+        latitude: resolvedPlace.lat,
+        longitude: resolvedPlace.lon,
+        timezone: resolvedPlace.tz,
       };
       const response = await swarmApi.onboarding(birth);
       setFreshResult(response);
@@ -504,10 +507,9 @@ export default function KundliPage() {
               </div>
               <div className="max-w-[380px] mx-auto">
                 {chartStyle === "north" ? (
-                  <NorthIndianChart 
-                     chartData={{ houses, planets }} 
-                     title="Lagna (D1)" 
-                     showMeanings 
+                  <NorthIndianChart
+                     chartData={{ houses, planets }}
+                     title="Lagna (D1)"
                      onHouseClick={(houseNum) => {
                         const h = houses.find((x) => x.house === houseNum);
                         if (!h) return;
@@ -635,7 +637,8 @@ export default function KundliPage() {
                 inputClassName={inputClass}
                 onSelect={(place) => {
                   setResolvedPlace(place);
-                  setForm((f) => ({ ...f, place: place.name }));
+                  setForm((f) => ({ ...f, place: place?.name ?? "" }));
+                  if (place) setFormError(null);
                 }}
               />
               <button

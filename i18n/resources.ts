@@ -4,7 +4,7 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", selectPlaceFromList: "Please select a place from the list" },
       legal: {
         terms: "Terms of Service",
         privacy: "Privacy Policy",
@@ -538,7 +538,7 @@ export const resources = {
         done: "हो गया",
         genericError: "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
       },
-      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस" },
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस", selectPlaceFromList: "कृपया सूची में से एक स्थान चुनें" },
       legal: {
         terms: "सेवा की शर्तें",
         privacy: "गोपनीयता नीति",
@@ -1047,7 +1047,7 @@ export const resources = {
         done: "সম্পন্ন",
         genericError: "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
       },
-      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান" },
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান", selectPlaceFromList: "অনুগ্রহ করে তালিকা থেকে একটি স্থান নির্বাচন করুন" },
       legal: {
         terms: "পরিষেবার শর্তাবলী",
         privacy: "গোপনীয়তা নীতি",
@@ -1553,7 +1553,7 @@ export const resources = {
         done: "झाले",
         genericError: "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.",
       },
-      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे" },
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे", selectPlaceFromList: "कृपया यादीतून एक ठिकाण निवडा" },
       legal: {
         terms: "सेवा अटी",
         privacy: "गोपनीयता धोरण",
@@ -2059,7 +2059,7 @@ export const resources = {
         done: "పూర్తయింది",
         genericError: "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
       },
-      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు" },
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు", selectPlaceFromList: "దయచేసి జాబితా నుండి ఒక ప్రదేశాన్ని ఎంచుకోండి" },
       legal: {
         terms: "సేవా నిబంధనలు",
         privacy: "గోప్యతా విధానం",
@@ -2561,7 +2561,7 @@ export const resources = {
         done: "முடிந்தது",
         genericError: "ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
       },
-      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்" },
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்", selectPlaceFromList: "பட்டியலில் இருந்து ஒரு இடத்தைத் தேர்ந்தெடுக்கவும்" },
       legal: {
         terms: "சேவை விதிமுறைகள்",
         privacy: "தனியுரிமைக் கொள்கை",
@@ -3067,7 +3067,7 @@ export const resources = {
         done: "થઈ ગયું",
         genericError: "કંઈક ખોટું થયું. કૃપા કરી ફરી પ્રયાસ કરો.",
       },
-      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ" },
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ", selectPlaceFromList: "કૃપા કરી યાદીમાંથી એક સ્થળ પસંદ કરો" },
       legal: {
         terms: "સેવાની શરતો",
         privacy: "ગોપનીયતા નીતિ",

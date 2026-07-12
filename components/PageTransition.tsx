@@ -20,7 +20,16 @@ export default function PageTransition({ children }: { children: React.ReactNode
   if (index !== -1) prevIndexRef.current = index;
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    // No `mode="wait"`: that mode holds the new page unmounted until the
+    // outgoing page's exit animation fully resolves, and a second nav tap
+    // while the first exit is still playing (rapid taps, a slow device, a
+    // tab switch during the ~220ms window) can leave that exit promise
+    // never resolving — the URL/pathname changes (the tap "worked"), but
+    // the gate AnimatePresence is waiting on never opens, so the new page
+    // never mounts. Default (sync) mode mounts the new page immediately
+    // regardless of the old one's exit state, trading a brief crossfade
+    // overlap for never getting stuck.
+    <AnimatePresence initial={false}>
       <motion.div
         key={pathname}
         initial={{ x: direction * 24, opacity: 0 }}

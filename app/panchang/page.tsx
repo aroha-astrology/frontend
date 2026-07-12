@@ -21,7 +21,6 @@ import SectionTitle from "@/components/SectionTitle";
 import MonthlyPanchangCalendar from "@/components/panchang/MonthlyPanchangCalendar";
 import PurchasePlanModal from "@/components/panchang/PurchasePlanModal";
 import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
-import TopBar from "@/components/TopBar";
 import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 
@@ -116,6 +115,16 @@ export default function PanchangPage() {
   const [userData, setUserData] = useState<PanchangData | null>(null);
   const [userState, setUserState] = useState<"idle" | "loading" | "ready" | "unavailable">("idle");
   const [source, setSource] = useState<"reference" | "mine">("reference");
+
+  // Prefer the user's actual location by default — request it as soon as the
+  // page opens rather than waiting for a manual "Your Location" tap. `source`
+  // auto-switches to "mine" below once this resolves (see the userData
+  // effect); if permission is denied/unavailable it silently stays on the
+  // Delhi reference data already loading in parallel.
+  useEffect(() => {
+    if (geo.status === "idle") geo.request();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
@@ -224,21 +233,12 @@ export default function PanchangPage() {
 
   return (
     <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
-      <TopBar />
       <div className="px-5 pt-4">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
 
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
-            <button
-              onClick={() => setSource("reference")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                source === "reference" ? "bg-gold text-[#1a0e00]" : "text-muted"
-              }`}
-            >
-              <MapPin size={12} /> {t("horoscope.panchang.referenceLocation")}
-            </button>
             <button
               onClick={() => (userData ? setSource("mine") : geo.request())}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
@@ -249,6 +249,14 @@ export default function PanchangPage() {
               {geo.status === "requesting" || userState === "loading"
                 ? t("horoscope.panchang.locating")
                 : t("horoscope.panchang.yourLocation")}
+            </button>
+            <button
+              onClick={() => setSource("reference")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                source === "reference" ? "bg-gold text-[#1a0e00]" : "text-muted"
+              }`}
+            >
+              <MapPin size={12} /> {t("horoscope.panchang.referenceLocation")}
             </button>
           </div>
           {geo.status === "denied" && <span className="text-[11px] text-muted">{t("horoscope.panchang.locationDenied")}</span>}

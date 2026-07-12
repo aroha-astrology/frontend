@@ -6,7 +6,9 @@ import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
+import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
+import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
@@ -70,11 +72,14 @@ export default function RootLayout({
             <AuthProvider>
               <PermissionsPromptProvider>
                 <BackHandlerProvider>
-                  <AuthGuard>
-                    <PageTransition>{children}</PageTransition>
-                    <BottomNavigation />
-                    <PermissionsPrompt />
-                  </AuthGuard>
+                  <TopBarProvider>
+                    <AuthGuard>
+                      <TopBar />
+                      <PageTransition>{children}</PageTransition>
+                      <BottomNavigation />
+                      <PermissionsPrompt />
+                    </AuthGuard>
+                  </TopBarProvider>
                   <BackButtonListener />
                 </BackHandlerProvider>
               </PermissionsPromptProvider>

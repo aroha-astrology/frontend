@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Menu, Bell, Coins } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
@@ -10,12 +11,29 @@ import LanguagePicker from "@/components/LanguagePicker";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { useAuth } from "@/providers/auth-provider";
+import { useTopBarContext } from "@/providers/topbar-provider";
 
-export default function TopBar({ rightContent }: { rightContent?: React.ReactNode }) {
+/** The 4 tab routes that use this shared header — kundli/home/horoscope/panchang
+ * each opt into a right-side slot via `useTopBarRightContent`; every other
+ * route (ai-chat, profile, settings, onboarding, etc.) has its own header. */
+const TOPBAR_ROUTES = ["/", "/kundli", "/horoscope", "/panchang"];
+
+/**
+ * Rendered once in the root layout (like BottomNavigation) rather than per
+ * page, so it stays mounted — with its own state (open menu/notifications)
+ * intact — across tab navigation instead of unmounting/remounting inside
+ * PageTransition's animated container. That keeps it visible during route
+ * loading instead of vanishing into a full-screen loading.tsx spinner.
+ */
+export default function TopBar() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const pathname = usePathname();
+  const { rightContent } = useTopBarContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  if (!TOPBAR_ROUTES.includes(pathname)) return null;
 
   return (
     <>
@@ -24,7 +42,7 @@ export default function TopBar({ rightContent }: { rightContent?: React.ReactNod
           <Menu size={20} />
         </IconButton>
         <div className="flex items-center gap-2">
-          <LanguagePicker />
+          <LanguagePicker align="left" />
           <ThemeSwitch />
           {user && (
             <Link

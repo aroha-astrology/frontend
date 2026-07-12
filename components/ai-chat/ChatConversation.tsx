@@ -267,7 +267,15 @@ export default function ChatConversation() {
       {/* Messages */}
       <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
         <AnimatePresence initial={false}>
-          {messages.map((msg, i) => (
+          {messages.map((msg, i) => {
+            // The empty assistant placeholder pushed at send-time renders as a
+            // content-less bubble until the first token arrives — while
+            // streaming, that gap is already covered by the typing indicator
+            // below, so skip it here instead of showing both at once.
+            if (streaming && i === messages.length - 1 && msg.role === "assistant" && !msg.content) {
+              return null;
+            }
+            return (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 16 }}
@@ -293,8 +301,12 @@ export default function ChatConversation() {
                 }
               >
                 {msg.role === "assistant" ? renderMessageContent(msg.content) : msg.content}
-                {/* Show cursor while streaming the last message */}
-                {streaming && i === messages.length - 1 && msg.role === "assistant" && (
+                {/* Cursor while streaming — only once tokens have actually started
+                    arriving. Before that, `msg.content` is still empty and the
+                    dedicated typing indicator below is showing instead; without
+                    this guard both rendered at once, showing an empty bubble with
+                    a lone blinking "|" alongside the "Consulting the stars..." bubble. */}
+                {streaming && i === messages.length - 1 && msg.role === "assistant" && msg.content && (
                   <span className="inline-block w-0.5 h-4 bg-yellow-500 animate-pulse ml-0.5 align-middle" />
                 )}
                 {/* Sent indicator — single check only; there's no "read" concept for an AI reply */}
@@ -303,7 +315,8 @@ export default function ChatConversation() {
                 )}
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </AnimatePresence>
 
         {/* Typing indicator — shown only when streaming hasn't started producing content yet */}

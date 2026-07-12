@@ -549,8 +549,8 @@ export const api = {
    * Unexpected status codes still throw `ApiError` (e.g. 404 if a period
    * genuinely has no reading and isn't being generated).
    */
-  horoscope: (period: PersonalizedHoroscopePeriod = "daily") =>
-    horoscopeRequest(period),
+  horoscope: (period: PersonalizedHoroscopePeriod = "daily", language?: string) =>
+    horoscopeRequest(period, language),
 
   /**
    * Poll `horoscope(period)` until it returns "ready" or "failed", or
@@ -559,7 +559,7 @@ export const api = {
    */
   pollHoroscope: (
     period: PersonalizedHoroscopePeriod = "daily",
-    opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+    opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
   ) => pollHoroscope(period, opts),
 
   /**
@@ -698,11 +698,12 @@ async function pollKundli(
 
 // ─── Horoscope helpers ────────────────────────────────────────────────────────
 
-async function horoscopeRequest(period: PersonalizedHoroscopePeriod): Promise<HoroscopeResult> {
+async function horoscopeRequest(period: PersonalizedHoroscopePeriod, language?: string): Promise<HoroscopeResult> {
   const headers: Record<string, string> = { ...(await authHeader()) };
+  const langQs = language ? `&language=${encodeURIComponent(language)}` : "";
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}`, { method: "GET", headers, cache: "no-store" });
+    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}${langQs}`, { method: "GET", headers, cache: "no-store" });
   } catch {
     throw new ApiError(0, "network_error", "Could not reach the server");
   }
@@ -726,13 +727,13 @@ async function horoscopeRequest(period: PersonalizedHoroscopePeriod): Promise<Ho
 
 async function pollHoroscope(
   period: PersonalizedHoroscopePeriod,
-  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
 ): Promise<HoroscopeResult> {
   const interval = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
-    const r = await horoscopeRequest(period);
+    const r = await horoscopeRequest(period, opts.language);
     if (r.status !== "generating") return r;
     if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
     await new Promise((res) => setTimeout(res, interval));

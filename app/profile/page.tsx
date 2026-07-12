@@ -284,7 +284,7 @@ export default function ProfilePage() {
                   inputClassName={inputClass}
                   onSelect={(place) => {
                     setResolvedPlace(place);
-                    setForm((f) => (f ? { ...f, placeName: place.name } : f));
+                    setForm((f) => (f ? { ...f, placeName: place?.name ?? "" } : f));
                   }}
                 />
                 {form.placeName && (

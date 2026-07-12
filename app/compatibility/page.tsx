@@ -76,29 +76,30 @@ export default function CompatibilityPage() {
 
   const check = async () => {
     if (!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || !consented) return;
+    if (!resolvedBoyPlace || !resolvedGirlPlace) {
+      setError(t("common.selectPlaceFromList"));
+      return;
+    }
 
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const geo1 = resolvedBoyPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
-      const geo2 = resolvedGirlPlace ?? { lat: 28.6139, lon: 77.209, tz: "Asia/Kolkata" };
-
       const person1: BirthInput = {
         date: form.boy.dob,
         time: form.boy.time || "12:00",
-        latitude: geo1.lat,
-        longitude: geo1.lon,
-        timezone: geo1.tz,
+        latitude: resolvedBoyPlace.lat,
+        longitude: resolvedBoyPlace.lon,
+        timezone: resolvedBoyPlace.tz,
       };
 
       const person2: BirthInput = {
         date: form.girl.dob,
         time: form.girl.time || "12:00",
-        latitude: geo2.lat,
-        longitude: geo2.lon,
-        timezone: geo2.tz,
+        latitude: resolvedGirlPlace.lat,
+        longitude: resolvedGirlPlace.lon,
+        timezone: resolvedGirlPlace.tz,
       };
 
       const response = await matchmaking(person1, person2);
@@ -189,9 +190,10 @@ export default function CompatibilityPage() {
           inputClassName={inputClass}
           inputStyle={style}
           onSelect={(place) => {
-            updatePerson(who, "place", place.name);
+            updatePerson(who, "place", place?.name ?? "");
             if (who === "boy") setResolvedBoyPlace(place);
             else setResolvedGirlPlace(place);
+            if (place) setError(null);
           }}
         />
       )}
@@ -257,7 +259,10 @@ export default function CompatibilityPage() {
 
           <button
             onClick={check}
-            disabled={!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || !consented || loading}
+            disabled={
+              !form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob ||
+              !resolvedBoyPlace || !resolvedGirlPlace || !consented || loading
+            }
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
           >
             {loading ? t("compatibilityPage.computing") : t("compatibilityPage.checkBtn")}

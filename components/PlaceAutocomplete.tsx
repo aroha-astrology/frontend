@@ -7,7 +7,10 @@ import { usePlaceAutocomplete, type PlaceSuggestion } from "@/hooks/usePlaceAuto
 import type { PlaceOfBirth } from "@/lib/api";
 
 interface PlaceAutocompleteProps {
-  onSelect: (place: PlaceOfBirth) => void;
+  /** Fires with the resolved place on selection, or `null` when a previous
+   * selection is invalidated by further editing — callers must treat `null`
+   * as "no valid place chosen" rather than keeping stale coordinates around. */
+  onSelect: (place: PlaceOfBirth | null) => void;
   placeholder?: string;
   /** Optional className applied to the outer wrapper */
   className?: string;
@@ -102,25 +105,53 @@ export default function PlaceAutocomplete({
   // second tap can't fire a second, overlapping select() while one is
   // already in flight.
   const resolving = geocodingId !== null;
+  // Typed text that doesn't match an actual selection — submitting this as-is
+  // would silently geocode to nothing (callers that used to fall back to a
+  // default location instead now require a real selection; see compatibility
+  // and kundli pages). Re-derived on every render (not frozen at blur time)
+  // so it clears itself the moment a real selection resolves, even though
+  // it's only surfaced after the field has been touched once.
+  const [touched, setTouched] = useState(false);
+  const unresolved = query.trim().length > 0 && selectedPlace?.name !== query;
+  // Suppress while a click-selected suggestion is still geocoding — blur
+  // fires the instant a suggestion row is clicked (before that async
+  // resolution finishes), which would otherwise flash the warning.
+  const showSelectWarning = touched && unresolved && !resolving;
 
   return (
     <div ref={wrapperRef} className={`relative ${className ?? ""}`}>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          if (selectedPlace) clearSelection();
-        }}
-        onFocus={() => {
-          if (suggestions.length > 0) setOpen(true);
-        }}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        className={inputClassName}
-        style={inputStyle}
-        autoComplete="off"
-      />
+      <div className="relative">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (selectedPlace) {
+              clearSelection();
+              notifiedRef.current = null;
+              onSelect(null);
+            }
+          }}
+          onFocus={() => {
+            if (suggestions.length > 0) setOpen(true);
+          }}
+          onBlur={() => setTouched(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={inputClassName}
+          style={inputStyle}
+          autoComplete="off"
+        />
+        {loading && (
+          <Loader2
+            size={16}
+            className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-gold/60 pointer-events-none"
+          />
+        )}
+      </div>
+      {showSelectWarning && (
+        <p className="mt-1 ml-1 text-xs text-red-400">{t("common.selectPlaceFromList")}</p>
+      )}
 
       {/* Dropdown */}
       {open && (suggestions.length > 0 || loading || showEmpty || selectError) && (

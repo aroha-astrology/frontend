@@ -77,7 +77,7 @@ export default function ChatHistoryPage() {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                onClick={() => router.push(`/ask-ai?sessionId=${session.id}`)}
+                onClick={() => router.push(`/ai-chat?sessionId=${session.id}`)}
                 className="bg-card/50 backdrop-blur-sm border border-gold/10 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-card transition-colors"
               >
                 <div className="flex-1 min-w-0 pr-4">

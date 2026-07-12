@@ -12,7 +12,6 @@ import MatchMakingCard from "@/components/MatchMakingCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
-import TopBar from "@/components/TopBar";
 import AppTour from "@/components/tour/AppTour";
 import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
@@ -60,8 +59,6 @@ export default function HomePage() {
       {tourOpen && <AppTour onFinish={finishTour} />}
 
       <div className="relative z-10">
-        <TopBar />
-
         {/* Personalized greeting header */}
         <GreetingHeader />
 

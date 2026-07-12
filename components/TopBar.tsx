@@ -37,7 +37,7 @@ export default function TopBar() {
 
   return (
     <>
-      <div className="flex justify-between items-center px-5 pt-8 pb-4 relative z-10 w-full max-w-lg mx-auto">
+      <div className="flex justify-between items-center px-5 pt-8 pb-4 relative z-20 w-full max-w-lg mx-auto">
         <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
           <Menu size={20} />
         </IconButton>

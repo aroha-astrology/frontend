@@ -453,7 +453,16 @@ export default function KundliPage() {
 
   // Only offer the Plain/Technical toggle once a chart actually exists to
   // switch views on — not during the loading/onboarding-form states below.
-  useTopBarRightContent(hasData && chartData ? <ViewModeToggle mode={viewMode} onChange={setViewMode} /> : null);
+  // Memoized: JSX is a new object every render, and useTopBarRightContent's
+  // effect re-fires whenever this reference changes — without memoizing on
+  // the values that actually matter, it was re-running (and pushing a new
+  // setRightContent update into the TopBar's unrelated subtree) on every
+  // single render of this page, for the page's entire lifetime.
+  const topBarRightContent = useMemo(
+    () => (hasData && chartData ? <ViewModeToggle mode={viewMode} onChange={setViewMode} /> : null),
+    [hasData, chartData, viewMode],
+  );
+  useTopBarRightContent(topBarRightContent);
 
   // ── Loading ──
   if (kundliLoading && !hasFresh) {

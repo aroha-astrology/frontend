@@ -84,7 +84,7 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
 }
 
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
   const canAfford = (user?.credits ?? 0) >= CHAT_MESSAGE_COST;
   const [messages, setMessages] = useState<Message[]>([

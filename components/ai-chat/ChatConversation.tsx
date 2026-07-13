@@ -83,7 +83,7 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
   return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
 }
 
-export default function ChatConversation() {
+export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t } = useTranslation();
   const { user, refresh } = useAuth();
   const canAfford = (user?.credits ?? 0) >= CHAT_MESSAGE_COST;
@@ -210,6 +210,7 @@ export default function ChatConversation() {
         summary: summaryForThisTurn,
         sessionId: sessionIdRef.current,
         detailLevel,
+        chartId,
       });
       let fullContent = "";
       let hadError = false;

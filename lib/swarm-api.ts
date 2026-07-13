@@ -238,6 +238,8 @@ export async function* streamChat(
     sessionId?: string;
     /** "direct" (short, default) or "details" (long-form, structured). */
     detailLevel?: ChatDetailLevel;
+    /** User's Kundli chart ID for grounding AI responses in birth chart data. */
+    chartId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -259,6 +261,7 @@ export async function* streamChat(
         detailLevel: opts?.detailLevel ?? "direct",
         ...(opts?.summary ? { summary: opts.summary } : {}),
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
+        ...(opts?.chartId ? { chartId: opts.chartId } : {}),
       }),
     });
 

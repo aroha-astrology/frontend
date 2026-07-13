@@ -528,9 +528,9 @@ export const api = {
    * Moon-sign forecast for a zodiac sign (0-11). `period` defaults to daily;
    * weekly/monthly/yearly are aggregates of the daily engine output.
    */
-  moonSignForecast: (signIndex: number, period: "daily" | "weekly" | "monthly" | "yearly" = "daily") =>
+  moonSignForecast: (signIndex: number, period: "daily" | "weekly" | "monthly" | "yearly" = "daily", language?: string) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}?period=${period}`, { auth: true }),
+    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}?period=${period}${language ? `&language=${language}` : ''}`, { auth: true }),
 
   /**
    * Current user's natal kundli. Returns a discriminated union — caller must
@@ -605,10 +605,10 @@ export const api = {
     request<{ planId: string }>("/v1/purchase-plan/analyze", { method: "POST", body, auth: true }),
 
   /** Recent purchase-plan analyses for the current user. */
-  purchasePlanList: () => request<{ plans: PurchasePlan[] }>("/v1/purchase-plan", { auth: true }),
+  purchasePlanList: (language?: string) => request<{ plans: PurchasePlan[] }>(`/v1/purchase-plan${language ? `?language=${language}` : ''}`, { auth: true }),
 
   /** Poll target for a single purchase-plan analysis. */
-  purchasePlanGet: (id: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}`, { auth: true }),
+  purchasePlanGet: (id: string, language?: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}${language ? `?language=${language}` : ''}`, { auth: true }),
 
   /** Delete a purchase-plan analysis. */
   purchasePlanDelete: (id: string) => request<void>(`/v1/purchase-plan/${id}`, { method: "DELETE", auth: true }),

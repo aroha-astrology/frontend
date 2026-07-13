@@ -103,7 +103,7 @@ function isCurrentlyActive(start: string, end: string): boolean {
 }
 
 export default function PanchangPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
 
@@ -178,16 +178,15 @@ export default function PanchangPage() {
   const [plansLoaded, setPlansLoaded] = useState(false);
 
   const loadPlans = useCallback(async () => {
-    if (plansLoaded) return;
     try {
-      const res = await api.purchasePlanList();
+      const res = await api.purchasePlanList(i18n.language);
       setPlans(res.plans);
     } catch {
       // silent — the section just shows no history yet
     } finally {
       setPlansLoaded(true);
     }
-  }, [plansLoaded]);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (!authLoading && firebaseUser) loadPlans();

@@ -211,6 +211,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         sessionId: sessionIdRef.current,
         detailLevel,
         chartId,
+        locale: i18n.language,
       });
       let fullContent = "";
       let hadError = false;

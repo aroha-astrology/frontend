@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 /** Bottom-nav tab order — determines slide direction between them. */
-const TAB_ORDER = ["/", "/kundli", "/ai-chat", "/horoscope", "/panchang"];
+const TAB_ORDER = ["/", "/vastu", "/ai-chat", "/horoscope", "/panchang"];
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

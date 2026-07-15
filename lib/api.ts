@@ -473,6 +473,26 @@ export interface RemedyItem {
   planet?: string;
 }
 
+// ─── Vastu ────────────────────────────────────────────────────────────────────
+
+export interface VastuAnalyzeBody {
+  /** room type → the direction(s) it occupies, e.g. { kitchen: ["SE"] }. */
+  roomLayout: Record<string, string[]>;
+  /** Free-form extra context: door/window facings, notes, overall score. */
+  roomDetails?: Record<string, unknown>;
+}
+
+export interface VastuPlan {
+  id: string;
+  status: "pending" | "processing" | "done" | "error";
+  overallScore: number | null;
+  roomLayout: Record<string, string[]>;
+  analysis: Record<string, unknown> | null;
+  errorMessage: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -612,6 +632,21 @@ export const api = {
 
   /** Delete a purchase-plan analysis. */
   purchasePlanDelete: (id: string) => request<void>(`/v1/purchase-plan/${id}`, { method: "DELETE", auth: true }),
+
+  /** Request AI Vastu remedies for a floor plan — returns immediately with a planId to poll. */
+  vastuAnalyze: (body: VastuAnalyzeBody) =>
+    request<{ planId: string }>("/v1/vastu/analyze", { method: "POST", body, auth: true }),
+
+  /** Recent Vastu plans for the current user. */
+  vastuList: (language?: string) =>
+    request<{ plans: VastuPlan[] }>(`/v1/vastu${language ? `?language=${language}` : ""}`, { auth: true }),
+
+  /** Poll target for a single Vastu analysis. */
+  vastuGet: (id: string, language?: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}${language ? `?language=${language}` : ""}`, { auth: true }),
+
+  /** Delete a Vastu plan. */
+  vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),
 
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as

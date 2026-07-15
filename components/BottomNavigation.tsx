@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, Sparkles, Moon, CalendarDays } from "lucide-react";
+import { Home, Compass, Sparkles, Moon, CalendarDays } from "lucide-react";
 import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
 
@@ -25,9 +25,9 @@ export default function BottomNavigation() {
           <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.home")}</span>
         </Link>
         
-        <Link href="/kundli" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/kundli" ? "text-gold" : "text-muted")}>
-          <LayoutGrid size={22} />
-          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.kundli")}</span>
+        <Link href="/vastu" data-tour="nav-vastu" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/vastu" ? "text-gold" : "text-muted")}>
+          <Compass size={22} />
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.vastu")}</span>
         </Link>
         
         {/* Central Ask AI button */}

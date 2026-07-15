@@ -10,6 +10,8 @@
 
 Spec: `docs/superpowers/specs/2026-07-15-help-bug-report-design.md`
 
+**⚠ Known pre-existing baseline breakage — read before running any verification step below.** As of `origin/main` commit `96daf37`, `cd backend && npm run typecheck` already reports **60 pre-existing errors** and `npm test` already reports **21 of 31 test files failing (3 of 59 individual tests failing)**, entirely unrelated to this feature — in `scripts/`, `src/lib/chat-grounding.ts`, `src/modules/astro/*`, `src/modules/health-report/*`, `src/modules/horoscope/horoscope.service.ts`, `src/modules/telegram-bot/telegram-bot.commands.ts`, `test/health-report.spec.ts`, `test/helpers/mocks.ts`, and `test/telegram-bot.spec.ts`. None of these files are touched by this plan. **Every "Expected: no errors" / "Expected: PASS" checkpoint in this plan means "no *new* errors/failures beyond this pre-existing baseline, and the specific new test(s) just added pass"** — not a fully clean `typecheck`/`test` run. Do not attempt to fix any of the pre-existing errors above; they're out of scope for this feature. If a typecheck or test run shows failures, check whether each one is in this known list before treating it as something you introduced.
+
 ---
 
 ## Task 1: Database schema — `bug_reports` table
@@ -283,16 +285,18 @@ git commit -m "feat(backend): add bug-reports repo"
 
 ## Task 6: Telegram `sendPhoto`
 
+**Important — this backend's real test layout differs from what a generic Node project might use:** tests live flat under `backend/test/`, named `*.spec.ts` (mostly) or `*.test.ts`, importing source via relative paths like `../src/...` — **not** colocated `*.test.ts` files next to the source (`vitest.config.ts`'s `test.include` is `['test/**/*.{test,spec}.ts']` only; a colocated file under `src/` is silently never run). `test/setup.ts` is loaded automatically before every test file and sets baseline env vars (`DATABASE_URL`, `CRON_SECRET`, Firebase test values, etc.) — see it for the full list. Every task below that adds a test follows this real layout.
+
 **Files:**
 - Modify: `backend/src/lib/notifications/telegram.ts`
-- Create: `backend/src/lib/notifications/telegram.test.ts`
+- Create: `backend/test/telegram.spec.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../config/env.js', () => ({
+vi.mock('../src/config/env.js', () => ({
   env: { TELEGRAM_BOT_TOKEN: 'test-token', TELEGRAM_ALERT_CHAT_ID: '12345' },
 }));
 
@@ -300,7 +304,7 @@ vi.mock('node:fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue(Buffer.from('fake-image-bytes')),
 }));
 
-import { sendPhoto } from './telegram.js';
+import { sendPhoto } from '../src/lib/notifications/telegram.js';
 
 describe('sendPhoto', () => {
   beforeEach(() => {
@@ -333,9 +337,9 @@ describe('sendPhoto', () => {
   });
 
   it('returns false without throwing when TELEGRAM_BOT_TOKEN is missing', async () => {
-    vi.doMock('../../config/env.js', () => ({ env: {} }));
+    vi.doMock('../src/config/env.js', () => ({ env: {} }));
     vi.resetModules();
-    const { sendPhoto: sendPhotoNoToken } = await import('./telegram.js');
+    const { sendPhoto: sendPhotoNoToken } = await import('../src/lib/notifications/telegram.js');
 
     const result = await sendPhotoNoToken('/tmp/fake.jpg', 'a caption');
 
@@ -347,10 +351,10 @@ describe('sendPhoto', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd backend && npx vitest run src/lib/notifications/telegram.test.ts
+cd backend && npx vitest run test/telegram.spec.ts
 ```
 
-Expected: FAIL — `sendPhoto` is not exported from `./telegram.js`.
+Expected: FAIL — `sendPhoto` is not exported from `../src/lib/notifications/telegram.js`.
 
 - [ ] **Step 3: Implement `sendPhoto`**
 
@@ -401,7 +405,7 @@ export async function sendPhoto(
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-cd backend && npx vitest run src/lib/notifications/telegram.test.ts
+cd backend && npx vitest run test/telegram.spec.ts
 ```
 
 Expected: PASS (3 tests).
@@ -409,7 +413,7 @@ Expected: PASS (3 tests).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/lib/notifications/telegram.ts backend/src/lib/notifications/telegram.test.ts
+git add backend/src/lib/notifications/telegram.ts backend/test/telegram.spec.ts
 git commit -m "feat(backend): add telegram sendPhoto"
 ```
 
@@ -417,127 +421,12 @@ git commit -m "feat(backend): add telegram sendPhoto"
 
 ## Task 7: Bug report service
 
+This task implements the service with no dedicated test file of its own — the codebase's real convention (confirmed by reading `test/cron.spec.ts`) is to exercise a module's logic through an HTTP-level test against the mounted route (`createApp().request(...)`), not an isolated unit test per service file. Task 8 provides that coverage, exercising this service transitively through `POST /v1/bug-reports`, and Task 9 covers `cleanupOldBugReports` the same way through the cron endpoint. This task is implementation-only.
+
 **Files:**
 - Create: `backend/src/modules/bug-reports/bug-reports.service.ts`
-- Create: `backend/src/modules/bug-reports/bug-reports.service.test.ts`
 
-- [ ] **Step 1: Write the failing test**
-
-```ts
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const insertBugReport = vi.fn();
-const deleteBugReportsOlderThan = vi.fn();
-vi.mock('./bug-reports.repo.js', () => ({ insertBugReport, deleteBugReportsOlderThan }));
-
-const saveScreenshot = vi.fn();
-const deleteScreenshot = vi.fn();
-const screenshotPath = vi.fn((filename: string) => `/uploads/${filename}`);
-vi.mock('./bug-reports.storage.js', () => ({ saveScreenshot, deleteScreenshot, screenshotPath }));
-
-const sendPhoto = vi.fn();
-const sendAlert = vi.fn();
-vi.mock('../../lib/notifications/telegram.js', () => ({
-  sendPhoto,
-  sendAlert,
-  escapeMarkdown: (s: string) => s,
-}));
-
-import { cleanupOldBugReports, submitBugReport, validateScreenshot } from './bug-reports.service.js';
-
-const fields = { category: 'bug' as const, description: 'It crashed' };
-
-function fakeFile(overrides: Partial<{ type: string; size: number }> = {}): File {
-  return {
-    type: overrides.type ?? 'image/png',
-    size: overrides.size ?? 1024,
-    arrayBuffer: async () => new ArrayBuffer(8),
-  } as File;
-}
-
-describe('validateScreenshot', () => {
-  it('rejects disallowed mime types', () => {
-    expect(() => validateScreenshot(fakeFile({ type: 'application/pdf' }))).toThrow();
-  });
-
-  it('rejects files over 5MB', () => {
-    expect(() => validateScreenshot(fakeFile({ size: 6 * 1024 * 1024 }))).toThrow();
-  });
-
-  it('accepts a valid jpeg under the size limit', () => {
-    expect(() => validateScreenshot(fakeFile({ type: 'image/jpeg', size: 1024 }))).not.toThrow();
-  });
-});
-
-describe('submitBugReport', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    insertBugReport.mockResolvedValue({
-      id: 'report-1',
-      userId: 'user-1',
-      category: 'bug',
-      description: 'It crashed',
-      screenshotFilename: null,
-      createdAt: new Date('2026-07-15T00:00:00Z'),
-    });
-  });
-
-  it('saves the screenshot and sends a Telegram photo when one is attached', async () => {
-    saveScreenshot.mockResolvedValue('abc.png');
-
-    await submitBugReport('user-1', fields, fakeFile());
-
-    expect(saveScreenshot).toHaveBeenCalled();
-    expect(insertBugReport).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user-1', screenshotFilename: 'abc.png' }),
-    );
-    expect(sendPhoto).toHaveBeenCalled();
-    expect(sendAlert).not.toHaveBeenCalled();
-  });
-
-  it('sends a text-only Telegram alert when no screenshot is attached', async () => {
-    await submitBugReport('user-1', fields, null);
-
-    expect(saveScreenshot).not.toHaveBeenCalled();
-    expect(insertBugReport).toHaveBeenCalledWith(expect.objectContaining({ screenshotFilename: null }));
-    expect(sendAlert).toHaveBeenCalled();
-    expect(sendPhoto).not.toHaveBeenCalled();
-  });
-
-  it('still returns the saved report when the Telegram send fails', async () => {
-    sendAlert.mockRejectedValue(new Error('telegram down'));
-
-    const result = await submitBugReport('user-1', fields, null);
-
-    expect(result.id).toBe('report-1');
-  });
-});
-
-describe('cleanupOldBugReports', () => {
-  it('deletes screenshot files only for rows that had one', async () => {
-    deleteBugReportsOlderThan.mockResolvedValue([
-      { id: '1', screenshotFilename: 'a.png' },
-      { id: '2', screenshotFilename: null },
-    ]);
-
-    const result = await cleanupOldBugReports();
-
-    expect(deleteScreenshot).toHaveBeenCalledTimes(1);
-    expect(deleteScreenshot).toHaveBeenCalledWith('a.png');
-    expect(result.deleted).toBe(2);
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-```bash
-cd backend && npx vitest run src/modules/bug-reports/bug-reports.service.test.ts
-```
-
-Expected: FAIL — `./bug-reports.service.js` doesn't exist yet.
-
-- [ ] **Step 3: Implement the service**
+- [ ] **Step 1: Implement the service**
 
 ```ts
 import { Errors } from '../../lib/errors.js';
@@ -630,30 +519,231 @@ export async function cleanupOldBugReports(): Promise<{ deleted: number }> {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 2: Verify it compiles**
 
 ```bash
-cd backend && npx vitest run src/modules/bug-reports/bug-reports.service.test.ts
+cd backend && npm run typecheck
 ```
 
-Expected: PASS (7 tests).
+Expected: no errors (nothing calls this module yet, so nothing exercises it — Task 8 does that).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add backend/src/modules/bug-reports/bug-reports.service.ts backend/src/modules/bug-reports/bug-reports.service.test.ts
+git add backend/src/modules/bug-reports/bug-reports.service.ts
 git commit -m "feat(backend): add bug-reports service"
 ```
 
 ---
 
-## Task 8: Routes + mount in app
+## Task 8: Routes + mount in app + HTTP-level test
 
 **Files:**
 - Create: `backend/src/modules/bug-reports/bug-reports.routes.ts`
 - Modify: `backend/src/app.ts`
+- Create: `backend/test/bug-reports.spec.ts`
 
-- [ ] **Step 1: Write the routes file**
+This is the real TDD checkpoint for the feature: the test below drives `POST /v1/bug-reports` through the actual Hono app (`createApp().request(...)`), the same way `test/cron.spec.ts` drives `/internal/cron/horoscopes` and `/v1/horoscope` — mocking `firebase-admin` + the users repo for auth (copied verbatim from `test/cron.spec.ts`'s pattern), plus the bug-reports repo/storage/telegram modules so nothing touches a real DB, disk, or network.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { makeDecodedToken, makeUserRow } from './helpers/mocks.js';
+
+const state = vi.hoisted(() => ({
+  verifyIdToken: vi.fn(),
+  findUserByFirebaseUid: vi.fn(),
+  insertBugReport: vi.fn(),
+  saveScreenshot: vi.fn(),
+  deleteScreenshot: vi.fn(),
+  sendPhoto: vi.fn(),
+  sendAlert: vi.fn(),
+}));
+
+vi.mock('../src/config/db.js', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sqlClient: any = (..._args: unknown[]) => Promise.resolve([]);
+  sqlClient.end = vi.fn().mockResolvedValue(undefined);
+  return { db: {}, sqlClient };
+});
+
+vi.mock('firebase-admin/app', () => ({
+  cert: vi.fn(() => ({})),
+  getApps: vi.fn(() => []),
+  initializeApp: vi.fn(() => ({})),
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn(() => ({ verifyIdToken: state.verifyIdToken })),
+}));
+
+vi.mock('../src/modules/users/users.repo.js', () => ({
+  findUserByFirebaseUid: state.findUserByFirebaseUid,
+  findActiveUserByFirebaseUid: vi.fn(),
+  findActiveUserById: vi.fn(),
+  findUserByPhoneE164: vi.fn(),
+  insertUser: vi.fn(),
+  updateUserById: vi.fn(),
+  updateUserWithConsentLog: vi.fn(),
+  softDeleteUserById: vi.fn(),
+  softDeleteBirthProfilesByOwner: vi.fn(),
+  revokeDeviceTokensByUser: vi.fn(),
+}));
+
+vi.mock('../src/modules/bug-reports/bug-reports.repo.js', () => ({
+  insertBugReport: state.insertBugReport,
+  deleteBugReportsOlderThan: vi.fn(),
+}));
+
+vi.mock('../src/modules/bug-reports/bug-reports.storage.js', () => ({
+  saveScreenshot: state.saveScreenshot,
+  deleteScreenshot: state.deleteScreenshot,
+  screenshotPath: (filename: string) => `/uploads/${filename}`,
+}));
+
+vi.mock('../src/lib/notifications/telegram.js', () => ({
+  sendPhoto: state.sendPhoto,
+  sendAlert: state.sendAlert,
+  escapeMarkdown: (s: string) => s,
+}));
+
+const { createApp } = await import('../src/app.js');
+
+const AUTH = { Authorization: 'Bearer token' } as const;
+
+describe('POST /v1/bug-reports', () => {
+  beforeEach(() => {
+    state.verifyIdToken.mockReset().mockResolvedValue(makeDecodedToken('uid-1'));
+    state.findUserByFirebaseUid
+      .mockReset()
+      .mockResolvedValue(makeUserRow({ id: 'user-1', firebaseUid: 'uid-1' }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    state.insertBugReport.mockReset().mockImplementation(async (values: any) => ({
+      id: 'report-1',
+      userId: values.userId,
+      category: values.category,
+      description: values.description,
+      screenshotFilename: values.screenshotFilename,
+      createdAt: new Date('2026-07-15T00:00:00Z'),
+    }));
+    state.saveScreenshot.mockReset().mockResolvedValue('abc.png');
+    state.deleteScreenshot.mockReset();
+    state.sendPhoto.mockReset().mockResolvedValue(true);
+    state.sendAlert.mockReset().mockResolvedValue(true);
+  });
+
+  it('requires auth', async () => {
+    const form = new FormData();
+    form.append('category', 'bug');
+    form.append('description', 'It crashed');
+
+    const res = await createApp().request('/v1/bug-reports', { method: 'POST', body: form });
+    expect(res.status).toBe(401);
+  });
+
+  it('accepts a report with no screenshot and sends a text-only Telegram alert', async () => {
+    const form = new FormData();
+    form.append('category', 'bug');
+    form.append('description', 'It crashed');
+
+    const res = await createApp().request('/v1/bug-reports', {
+      method: 'POST',
+      headers: AUTH,
+      body: form,
+    });
+
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as { id: string; receivedAt: string };
+    expect(body.id).toBe('report-1');
+    expect(state.insertBugReport).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-1', screenshotFilename: null }),
+    );
+    expect(state.saveScreenshot).not.toHaveBeenCalled();
+    expect(state.sendAlert).toHaveBeenCalled();
+    expect(state.sendPhoto).not.toHaveBeenCalled();
+  });
+
+  it('accepts a report with a screenshot and sends a Telegram photo', async () => {
+    const form = new FormData();
+    form.append('category', 'feedback');
+    form.append('description', 'Love the app');
+    form.append('screenshot', new File([new Uint8Array(1024)], 'shot.png', { type: 'image/png' }));
+
+    const res = await createApp().request('/v1/bug-reports', {
+      method: 'POST',
+      headers: AUTH,
+      body: form,
+    });
+
+    expect(res.status).toBe(201);
+    expect(state.saveScreenshot).toHaveBeenCalled();
+    expect(state.insertBugReport).toHaveBeenCalledWith(
+      expect.objectContaining({ screenshotFilename: 'abc.png' }),
+    );
+    expect(state.sendPhoto).toHaveBeenCalled();
+    expect(state.sendAlert).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty description with 400', async () => {
+    const form = new FormData();
+    form.append('category', 'bug');
+    form.append('description', '');
+
+    const res = await createApp().request('/v1/bug-reports', {
+      method: 'POST',
+      headers: AUTH,
+      body: form,
+    });
+
+    expect(res.status).toBe(400);
+    expect(state.insertBugReport).not.toHaveBeenCalled();
+  });
+
+  it('rejects a disallowed screenshot mime type with 400', async () => {
+    const form = new FormData();
+    form.append('category', 'bug');
+    form.append('description', 'It crashed');
+    form.append('screenshot', new File(['not an image'], 'shot.txt', { type: 'text/plain' }));
+
+    const res = await createApp().request('/v1/bug-reports', {
+      method: 'POST',
+      headers: AUTH,
+      body: form,
+    });
+
+    expect(res.status).toBe(400);
+    expect(state.insertBugReport).not.toHaveBeenCalled();
+  });
+
+  it('rejects a screenshot over 5MB with 400', async () => {
+    const form = new FormData();
+    form.append('category', 'bug');
+    form.append('description', 'It crashed');
+    const oversized = new Uint8Array(5 * 1024 * 1024 + 1);
+    form.append('screenshot', new File([oversized], 'shot.png', { type: 'image/png' }));
+
+    const res = await createApp().request('/v1/bug-reports', {
+      method: 'POST',
+      headers: AUTH,
+      body: form,
+    });
+
+    expect(res.status).toBe(400);
+    expect(state.insertBugReport).not.toHaveBeenCalled();
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+cd backend && npx vitest run test/bug-reports.spec.ts
+```
+
+Expected: FAIL — `POST /v1/bug-reports` doesn't exist yet (404s), and the mocked modules (`bug-reports.repo.js`, `bug-reports.storage.js`) don't exist yet either.
+
+- [ ] **Step 3: Write the routes file**
 
 ```ts
 import { OpenAPIHono } from '@hono/zod-openapi';
@@ -691,7 +781,7 @@ bugReportsRouter.post('/bug-reports', async (c) => {
 });
 ```
 
-- [ ] **Step 2: Mount the router**
+- [ ] **Step 4: Mount the router**
 
 In `backend/src/app.ts`, add the import next to the other module imports:
 
@@ -707,18 +797,18 @@ And mount it next to `feedbackRouter`:
   app.route('/v1', bugReportsRouter);
 ```
 
-- [ ] **Step 3: Verify it compiles**
+- [ ] **Step 5: Run test to verify it passes**
 
 ```bash
-cd backend && npm run typecheck
+cd backend && npx vitest run test/bug-reports.spec.ts
 ```
 
-Expected: no errors.
+Expected: PASS (6 tests).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add backend/src/modules/bug-reports/bug-reports.routes.ts backend/src/app.ts
+git add backend/src/modules/bug-reports/bug-reports.routes.ts backend/src/app.ts backend/test/bug-reports.spec.ts
 git commit -m "feat(backend): expose POST /v1/bug-reports"
 ```
 
@@ -728,9 +818,74 @@ git commit -m "feat(backend): expose POST /v1/bug-reports"
 
 **Files:**
 - Modify: `backend/src/modules/cron/cron.routes.ts`
+- Modify: `backend/test/cron.spec.ts` (append to the existing file — it already tests multiple `/internal/cron/*` routes in one place, this follows that precedent rather than creating a new file)
 - Create: `backend/scripts/cron-cleanup-bug-reports.sh`
 
-- [ ] **Step 1: Add the cron route**
+- [ ] **Step 1: Write the failing test**
+
+In `backend/test/cron.spec.ts`, add `cleanupOldBugReports: vi.fn(),` to the existing `state` object, right before its closing `}));`:
+
+```ts
+const state = vi.hoisted(() => ({
+  verifyIdToken: vi.fn(),
+  findUserByFirebaseUid: vi.fn(),
+  runHoroscopeBatch: vi.fn(),
+  runAllHoroscopeBatches: vi.fn(),
+  requestHoroscopeGeneration: vi.fn(),
+  toHoroscopeDto: vi.fn(),
+  isStaleGenerating: vi.fn(),
+  currentPeriodStart: vi.fn(),
+  periodKeyFor: vi.fn(),
+  findHoroscope: vi.fn(),
+  findKundliByUserId: vi.fn(),
+  cleanupOldBugReports: vi.fn(),
+}));
+```
+
+Then add a new `vi.mock` block, right after the existing `vi.mock('../src/modules/kundli/kundli.repo.js', ...)` block and before the `const { createApp } = await import('../src/app.js');` line:
+
+```ts
+vi.mock('../src/modules/bug-reports/bug-reports.service.js', () => ({
+  cleanupOldBugReports: state.cleanupOldBugReports,
+}));
+```
+
+Finally, add this new `describe` block at the very end of the file (after the closing `});` of the last `describe('GET /v1/horoscope', ...)` block):
+
+```ts
+describe('POST /internal/cron/cleanup-bug-reports', () => {
+  beforeEach(() => {
+    state.cleanupOldBugReports.mockReset().mockResolvedValue({ deleted: 2 });
+  });
+
+  it('rejects with 403 when the cron secret is missing', async () => {
+    const res = await createApp().request('/internal/cron/cleanup-bug-reports', { method: 'POST' });
+    expect(res.status).toBe(403);
+    expect(state.cleanupOldBugReports).not.toHaveBeenCalled();
+  });
+
+  it('runs the cleanup and returns the deleted count', async () => {
+    const res = await createApp().request('/internal/cron/cleanup-bug-reports', {
+      method: 'POST',
+      headers: { 'X-Cron-Secret': SECRET, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(200);
+    expect((await res.json()) as { deleted: number }).toEqual({ deleted: 2 });
+    expect(state.cleanupOldBugReports).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+cd backend && npx vitest run test/cron.spec.ts
+```
+
+Expected: FAIL — `POST /internal/cron/cleanup-bug-reports` doesn't exist yet (404s), and `../src/modules/bug-reports/bug-reports.service.js` doesn't export anything the mock can bind cleanly against.
+
+- [ ] **Step 3: Add the cron route**
 
 In `backend/src/modules/cron/cron.routes.ts`, add to the imports:
 
@@ -769,7 +924,15 @@ cronRouter.openapi(cleanupBugReportsRoute, async (c) => {
 });
 ```
 
-- [ ] **Step 2: Write the wrapper script**
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+cd backend && npx vitest run test/cron.spec.ts
+```
+
+Expected: PASS (all tests in the file, including the 2 new ones).
+
+- [ ] **Step 5: Write the wrapper script**
 
 ```bash
 #!/usr/bin/env bash
@@ -810,7 +973,7 @@ Save this to `backend/scripts/cron-cleanup-bug-reports.sh` and make it executabl
 chmod +x backend/scripts/cron-cleanup-bug-reports.sh
 ```
 
-- [ ] **Step 3: Verify it compiles**
+- [ ] **Step 6: Verify it compiles**
 
 ```bash
 cd backend && npm run typecheck
@@ -818,10 +981,10 @@ cd backend && npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add backend/src/modules/cron/cron.routes.ts backend/scripts/cron-cleanup-bug-reports.sh
+git add backend/src/modules/cron/cron.routes.ts backend/test/cron.spec.ts backend/scripts/cron-cleanup-bug-reports.sh
 git commit -m "feat(backend): add 7-day bug-report cleanup cron"
 ```
 
@@ -1422,7 +1585,7 @@ git commit -m "feat(frontend): add bug report form page"
 cd backend && npm run typecheck && npm test
 ```
 
-Expected: typecheck clean, all vitest suites pass (including the new `telegram.test.ts` and `bug-reports.service.test.ts`).
+Expected: the pre-existing baseline breakage noted at the top of this plan (60 typecheck errors, 21 failing test files) is still present and unchanged, PLUS all new/modified files from this plan are clean: `test/telegram.spec.ts`, `test/bug-reports.spec.ts`, and the new assertions added to `test/cron.spec.ts` all pass; no new typecheck errors appear in any `bug-reports/*`, `telegram.ts`, `cron.routes.ts`, `app.ts`, `env.ts`, or `schema.ts` file.
 
 - [ ] **Step 2: Frontend build**
 

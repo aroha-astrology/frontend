@@ -12,7 +12,6 @@ import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
 import { getFirebaseAuth } from "@/lib/firebase";
-import SegmentedToggle from "@/components/ui/SegmentedToggle";
 
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
 const CHAT_MESSAGE_COST = 2;
@@ -99,7 +98,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
-  const [detailLevel, setDetailLevel] = useState<ChatDetailLevel>("direct");
+  // All chats use "direct" mode; the Direct/Details toggle was removed.
+  const detailLevel: ChatDetailLevel = "direct";
   const bottomRef = useRef<HTMLDivElement>(null);
   
   const sessionIdRef = useRef<string | undefined>(undefined);
@@ -342,16 +342,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
           {t("aiChatPage.disclosure")}
         </p>
-        <div className="flex justify-center mt-3">
-          <SegmentedToggle
-            value={detailLevel}
-            onChange={setDetailLevel}
-            options={[
-              { value: "direct", label: t("aiChatPage.toggle.direct") },
-              { value: "details", label: t("aiChatPage.toggle.details") },
-            ]}
-          />
-        </div>
       </div>
 
       {/* Messages */}

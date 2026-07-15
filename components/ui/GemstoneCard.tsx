@@ -49,6 +49,28 @@ const STRENGTH_STYLES: Record<GemstoneStrength, string> = {
   strong: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
 };
 
+/** Fallback % for reports cached before preferencePercent existed. */
+const STRENGTH_FALLBACK_PCT: Record<GemstoneStrength, number> = { weak: 80, average: 45, strong: 20 };
+
+/** A compact conic-gradient ring showing how strongly the stone is preferred. */
+function PreferenceRing({ pct }: { pct: number }) {
+  const { t } = useTranslation();
+  const color = pct >= 66 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#9ca3af";
+  return (
+    <div className="shrink-0 flex flex-col items-center gap-0.5">
+      <div
+        className="w-11 h-11 rounded-full grid place-items-center"
+        style={{ background: `conic-gradient(${color} ${pct * 3.6}deg, rgba(120,120,120,0.18) 0deg)` }}
+      >
+        <div className="w-8 h-8 rounded-full bg-card grid place-items-center">
+          <span className="text-[11px] font-bold text-foreground">{pct}%</span>
+        </div>
+      </div>
+      <span className="text-[8px] uppercase tracking-wider text-muted">{t("kundli.gemstone.suited")}</span>
+    </div>
+  );
+}
+
 function GemRow({ gem }: { gem: GemstoneItem }) {
   const { t } = useTranslation();
   const facts: { label: string; value: string }[] = [
@@ -80,6 +102,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
           </p>
           {gem.note && <p className="text-xs text-foreground/90 mt-2 leading-relaxed">{gem.note}</p>}
         </div>
+        <PreferenceRing pct={gem.preferencePercent ?? STRENGTH_FALLBACK_PCT[gem.strength]} />
       </div>
 
       {/* Facts */}

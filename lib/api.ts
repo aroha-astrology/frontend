@@ -372,6 +372,8 @@ export interface GemstoneItem {
   strength: GemstoneStrength;
   /** True = strongly recommended (weak/afflicted planet); false = optional. */
   recommended: boolean;
+  /** 0-100 — how strongly this gemstone is preferred for the user (headline %). May be absent on reports cached before this field existed. */
+  preferencePercent?: number;
   reason: string;
   /** AI-authored personal note (already in the requested language). */
   note: string;

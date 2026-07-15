@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
@@ -68,26 +69,28 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <LanguageProvider>
-            <AuthProvider>
-              <PermissionsPromptProvider>
-                <BackHandlerProvider>
-                  <TopBarProvider>
-                    <AuthGuard>
-                      <TopBar />
-                      <PageTransition>{children}</PageTransition>
-                      <BottomNavigation />
-                      <PermissionsPrompt />
-                    </AuthGuard>
-                  </TopBarProvider>
-                  <BackButtonListener />
-                  <PushNotificationListener />
-                </BackHandlerProvider>
-              </PermissionsPromptProvider>
-            </AuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <LanguageProvider>
+              <AuthProvider>
+                <PermissionsPromptProvider>
+                  <BackHandlerProvider>
+                    <TopBarProvider>
+                      <AuthGuard>
+                        <TopBar />
+                        <PageTransition>{children}</PageTransition>
+                        <BottomNavigation />
+                        <PermissionsPrompt />
+                      </AuthGuard>
+                    </TopBarProvider>
+                    <BackButtonListener />
+                    <PushNotificationListener />
+                  </BackHandlerProvider>
+                </PermissionsPromptProvider>
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

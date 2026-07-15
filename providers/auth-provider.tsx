@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, signOut as fbSignOut, type User as FirebaseUser } from "firebase/auth";
+import posthog from "posthog-js";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
 import { api, type SessionResponse, type User } from "@/lib/api";
 
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .createSession()
       .then((res) => {
         setUser(res.user);
+        posthog.identify(res.user.id);
         return res;
       })
       .finally(() => {
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await fbSignOut(getFirebaseAuth());
+    posthog.reset();
     setUser(null);
     setFirebaseUser(null);
     if (typeof window !== "undefined") {

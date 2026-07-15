@@ -9,8 +9,6 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { api, type PlaceOfBirth, type KundliReady } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import Card from "@/components/ui/Card";
-import NorthIndianChart from "@/components/ui/NorthIndianChart";
-import SouthIndianChart from "@/components/ui/SouthIndianChart";
 import PlanetsTable from "@/components/ui/PlanetsTable";
 import HouseGrid from "@/components/ui/HouseGrid";
 import { useTopBarRightContent } from "@/providers/topbar-provider";
@@ -19,11 +17,13 @@ import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
 import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
 import VargaChartTabs from "@/components/ui/VargaChartTabs";
+import ChartCarousel from "@/components/ui/ChartCarousel";
+import GemstoneCard from "@/components/ui/GemstoneCard";
+import { computeDivisionalCharts } from "@/lib/divisional-charts";
 import { zodiacSignLabel } from "@/data/zodiac";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ChartStyle = "north" | "south";
 type ViewMode = "plain" | "technical";
 
 interface FormData {
@@ -82,8 +82,14 @@ function normalizeKundli(
     // REST: doshas live at k.doshas directly
     const doshas: DoshaAnalysis | null = (k.doshas as DoshaAnalysis) ?? null;
 
+    // The backend computes but never stores divisional charts (chartData never
+    // carries `divisionalCharts`), so recompute them client-side from the natal
+    // planet longitudes. Prefer backend data if a future version starts sending it.
+    const backendVargas = chart.divisionalCharts as Record<string, any> | undefined;
     const divisionalCharts: Record<string, any> =
-      (chart.divisionalCharts as Record<string, any>) ?? {};
+      backendVargas && Object.keys(backendVargas).length > 0
+        ? backendVargas
+        : computeDivisionalCharts(planets, ascendant);
 
     const ayanamsaValue = typeof chart.ayanamsaValue === "number" ? chart.ayanamsaValue : null;
 
@@ -113,7 +119,8 @@ function normalizeKundli(
       typeof (ch.chart as any)?.ayanamsaValue === "number" ? (ch.chart as any).ayanamsaValue : null;
 
     // Swarm onboarding does not reliably carry yoga/dosha data — return empty;
-    // user must reload to hit REST path.
+    // user must reload to hit REST path. Divisional charts, however, are pure
+    // math off the natal longitudes we already have, so compute them here too.
     return {
       planets,
       houses,
@@ -121,7 +128,7 @@ function normalizeKundli(
       dasha,
       yogas: [],
       doshas: null,
-      divisionalCharts: {},
+      divisionalCharts: computeDivisionalCharts(planets, ascendant),
       ayanamsaValue,
     };
   }
@@ -390,7 +397,6 @@ export default function KundliPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   // Chart / display state
-  const [chartStyle, setChartStyle] = useState<ChartStyle>("north");
   const [viewMode, setViewMode] = useState<ViewMode>("plain");
 
   // Credits/unlocked-houses are the authoritative server values on the
@@ -500,49 +506,18 @@ export default function KundliPage() {
               />
             )}
 
-            {/* 2. Chart at the top */}
-            <Card className="p-4">
-              <div className="flex justify-center gap-2 mb-4">
-                {(["north", "south"] as ChartStyle[]).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setChartStyle(s)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                      chartStyle === s
-                        ? "bg-gold text-black"
-                        : "bg-gold/10 text-gold/60"
-                    }`}
-                  >
-                    {s === "north" ? "North Indian" : "South Indian"}
-                  </button>
-                ))}
-              </div>
-              <div className="max-w-[380px] mx-auto">
-                {chartStyle === "north" ? (
-                  <NorthIndianChart
-                     chartData={{ houses, planets }}
-                     title="Lagna (D1)"
-                     onHouseClick={(houseNum) => {
-                        const h = houses.find((x) => x.house === houseNum);
-                        if (!h) return;
-                        setSelectedHouse(h);
-                        setIsDrawerOpen(true);
-                     }}
-                  />
-                ) : (
-                  <SouthIndianChart 
-                     chartData={{ houses, planets }} 
-                     title="Lagna (D1)" 
-                     onHouseClick={(houseNum) => {
-                        const h = houses.find((x) => x.house === houseNum);
-                        if (!h) return;
-                        setSelectedHouse(h);
-                        setIsDrawerOpen(true);
-                     }}
-                  />
-                )}
-              </div>
-            </Card>
+            {/* 2. Chart carousel — Rashi (D1) / Navamsa (D9) / Dasamsa (D10) */}
+            <ChartCarousel
+              natalHouses={houses}
+              natalPlanets={planets}
+              divisionalCharts={divisionalCharts}
+              onHouseClick={(houseNum) => {
+                const h = houses.find((x) => x.house === houseNum);
+                if (!h) return;
+                setSelectedHouse(h);
+                setIsDrawerOpen(true);
+              }}
+            />
 
             {viewMode === "plain" ? (
               <>
@@ -561,7 +536,10 @@ export default function KundliPage() {
 
                 {/* Current Dasha */}
                 {dasha && <PlainDashaCard dasha={dasha} />}
-                
+
+                {/* Gemstone recommendations — credit-gated, all unlock in one go */}
+                <GemstoneCard />
+
                 {/* Yogas & Doshas */}
                 <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
                 

@@ -42,6 +42,8 @@ export interface User {
   credits: number;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
+  /** True once the user has spent credits to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
+  gemstoneUnlocked: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -347,6 +349,54 @@ export interface HouseInsightForbidden {
 /** Unified surface returned by `api.houseInsight()` — caller branches on `status`. */
 export type HouseInsightResult = HouseInsightReady | HouseInsightPending | HouseInsightForbidden;
 
+// ─── Gemstone report ─────────────────────────────────────────────────────────
+
+export type GemstoneStrength = "weak" | "average" | "strong";
+
+export interface GemstoneItem {
+  planet: string;
+  planetHindi: string;
+  gemstone: string;
+  gemstoneHindi: string;
+  alternativeStones: string[];
+  finger: string;
+  metal: string;
+  dayToWear: string;
+  mantra: string;
+  mantraCount: number;
+  weightCarats: string;
+  /** Hex accent used to tint the stone's gem visual. */
+  color: string;
+  dos: string[];
+  donts: string[];
+  strength: GemstoneStrength;
+  /** True = strongly recommended (weak/afflicted planet); false = optional. */
+  recommended: boolean;
+  reason: string;
+  /** AI-authored personal note (already in the requested language). */
+  note: string;
+}
+
+/** 200 body: the personalized gemstone report is ready. */
+export interface GemstoneReportReady {
+  status: "ready";
+  intro: string;
+  gems: GemstoneItem[];
+}
+
+/** 202 body: generation just started in the background, or the last attempt failed. */
+export interface GemstonePending {
+  status: "generating" | "failed";
+}
+
+/** 403: the report isn't unlocked yet — distinct from "failed" so the UI doesn't retry-poll it. */
+export interface GemstoneForbidden {
+  status: "forbidden";
+}
+
+/** Unified surface returned by `api.gemstone()` — caller branches on `status`. */
+export type GemstoneResult = GemstoneReportReady | GemstonePending | GemstoneForbidden;
+
 // ─── Billing / credit purchases ────────────────────────────────────────────────
 
 export interface CreditPack {
@@ -536,6 +586,23 @@ export const api = {
       body: { houseNumber },
       auth: true,
     }),
+
+  /**
+   * Spend credits to unlock the full gemstone report (whole report, one-time).
+   * Throws ApiError with status 409 if the user has insufficient credits or the
+   * report is already unlocked. Caller should re-fetch the user (`refresh()`
+   * from useAuth) afterward to pick up the updated credits/gemstoneUnlocked.
+   */
+  unlockGemstone: () =>
+    request<{ success: boolean }>("/v1/me/unlock-gemstone", { method: "POST", auth: true }),
+
+  /**
+   * Current user's personalized gemstone report — generated lazily the first
+   * time it's requested after unlocking, cached forever after. Caller branches
+   * on `result.status`: "ready" (200), "generating"/"failed" (202, poll again),
+   * or "forbidden" (403, not unlocked yet).
+   */
+  gemstone: (language?: string) => gemstoneRequest(language),
 
   /** Register/refresh this device's FCM push token. */
   registerDeviceToken: (body: RegisterDeviceTokenBody) =>
@@ -806,6 +873,34 @@ async function houseInsightRequest(house: number, language?: string): Promise<Ho
   const data = text ? safeJson(text) : null;
   if (res.status === 200) return data as HouseInsightReady;
   if (res.status === 202) return data as HouseInsightPending;
+  const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+    ?.error;
+  throw new ApiError(
+    res.status,
+    err?.code ?? "http_error",
+    err?.message ?? `Request failed (${res.status})`,
+    err?.requestId,
+  );
+}
+
+async function gemstoneRequest(language?: string): Promise<GemstoneResult> {
+  const headers: Record<string, string> = { ...(await authHeader()) };
+  const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/v1/gemstone${qs}`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  if (res.status === 403) return { status: "forbidden" };
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (res.status === 200) return data as GemstoneReportReady;
+  if (res.status === 202) return data as GemstonePending;
   const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
     ?.error;
   throw new ApiError(

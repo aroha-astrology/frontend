@@ -1,77 +1,92 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-type CompassStatus = "idle" | "active" | "denied" | "unsupported";
+export type CompassState = "idle" | "reading" | "aligned" | "unsupported" | "denied";
 
 interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
   webkitCompassHeading?: number;
 }
 type PermFn = () => Promise<"granted" | "denied">;
 
+function readingFrom(e: DeviceOrientationEvent): number | null {
+  const evt = e as DeviceOrientationEventiOS;
+  if (typeof evt.webkitCompassHeading === "number") return evt.webkitCompassHeading;
+  if (typeof e.alpha === "number") return (360 - e.alpha) % 360;
+  return null;
+}
+
 /**
- * Live device-compass heading (degrees, real-world bearing of the phone's top
- * edge). Works inside the Capacitor WebView via the Web DeviceOrientation API;
- * gracefully reports "unsupported" on desktop so the caller can fall back to
- * manual rotation.
- *
- * @param onHeading called on every reading while active.
+ * Capture-and-hold device compass. Instead of streaming a jittery live heading
+ * (which fluctuated wildly and could read impossible values), `capture()`
+ * samples for ~1.5s, takes a circular average to smooth sensor noise, sets the
+ * orientation ONCE, then stops. One tap, one stable result — much easier to use.
  */
-export function useCompass(onHeading: (deg: number) => void) {
-  const [status, setStatus] = useState<CompassStatus>("idle");
-  const cbRef = useRef(onHeading);
-  cbRef.current = onHeading;
+export function useCompass() {
+  const [state, setState] = useState<CompassState>("idle");
+  const busy = useRef(false);
 
   const supported =
     typeof window !== "undefined" && typeof window.DeviceOrientationEvent !== "undefined";
 
-  const handler = useCallback((e: DeviceOrientationEvent) => {
-    const evt = e as DeviceOrientationEventiOS;
-    let heading: number | null = null;
-    if (typeof evt.webkitCompassHeading === "number") {
-      heading = evt.webkitCompassHeading; // iOS: already clockwise from north
-    } else if (typeof e.alpha === "number") {
-      heading = (360 - e.alpha) % 360; // Android absolute: derive bearing
-    }
-    if (heading != null && !Number.isNaN(heading)) {
-      cbRef.current(((heading % 360) + 360) % 360);
-    }
-  }, []);
-
-  const stop = useCallback(() => {
-    if (typeof window === "undefined") return;
-    window.removeEventListener("deviceorientationabsolute", handler as EventListener);
-    window.removeEventListener("deviceorientation", handler as EventListener);
-    setStatus("idle");
-  }, [handler]);
-
-  const start = useCallback(async (): Promise<CompassStatus> => {
-    if (!supported) {
-      setStatus("unsupported");
-      return "unsupported";
-    }
-    // iOS 13+ requires an explicit permission gesture.
-    const reqPerm = (window.DeviceOrientationEvent as unknown as { requestPermission?: PermFn })
-      .requestPermission;
-    if (typeof reqPerm === "function") {
-      try {
-        const res = await reqPerm();
-        if (res !== "granted") {
-          setStatus("denied");
-          return "denied";
-        }
-      } catch {
-        setStatus("denied");
-        return "denied";
+  const capture = useCallback(
+    async (durationMs = 1500): Promise<{ status: CompassState; heading?: number }> => {
+      if (busy.current) return { status: state };
+      if (!supported) {
+        setState("unsupported");
+        return { status: "unsupported" };
       }
-    }
-    window.addEventListener("deviceorientationabsolute", handler as EventListener);
-    window.addEventListener("deviceorientation", handler as EventListener);
-    setStatus("active");
-    return "active";
-  }, [supported, handler]);
 
-  useEffect(() => stop, [stop]);
+      const reqPerm = (window.DeviceOrientationEvent as unknown as { requestPermission?: PermFn })
+        .requestPermission;
+      if (typeof reqPerm === "function") {
+        try {
+          if ((await reqPerm()) !== "granted") {
+            setState("denied");
+            return { status: "denied" };
+          }
+        } catch {
+          setState("denied");
+          return { status: "denied" };
+        }
+      }
 
-  return { supported, status, start, stop };
+      busy.current = true;
+      setState("reading");
+
+      // Circular average of all readings in the window smooths magnetometer noise.
+      let sumSin = 0;
+      let sumCos = 0;
+      let count = 0;
+      const onEvt = (e: DeviceOrientationEvent) => {
+        const h = readingFrom(e);
+        if (h == null || Number.isNaN(h)) return;
+        const rad = (h * Math.PI) / 180;
+        sumSin += Math.sin(rad);
+        sumCos += Math.cos(rad);
+        count++;
+      };
+      window.addEventListener("deviceorientationabsolute", onEvt as EventListener);
+      window.addEventListener("deviceorientation", onEvt as EventListener);
+
+      await new Promise((r) => setTimeout(r, durationMs));
+
+      window.removeEventListener("deviceorientationabsolute", onEvt as EventListener);
+      window.removeEventListener("deviceorientation", onEvt as EventListener);
+      busy.current = false;
+
+      if (count === 0) {
+        setState("unsupported");
+        return { status: "unsupported" };
+      }
+      const heading = (((Math.atan2(sumSin, sumCos) * 180) / Math.PI) % 360 + 360) % 360;
+      setState("aligned");
+      return { status: "aligned", heading };
+    },
+    [supported, state],
+  );
+
+  const reset = useCallback(() => setState("idle"), []);
+
+  return { supported, state, capture, reset };
 }

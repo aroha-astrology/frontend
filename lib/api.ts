@@ -480,6 +480,10 @@ export interface VastuAnalyzeBody {
   roomLayout: Record<string, string[]>;
   /** Free-form extra context: door/window facings, notes, overall score. */
   roomDetails?: Record<string, unknown>;
+  /** e.g. "rectangle" or "L-shaped, cut corner facing NE". */
+  houseShape?: string;
+  /** The full editable CAD plan, stored for reload. */
+  layout?: Record<string, unknown>;
 }
 
 export interface VastuPlan {
@@ -644,6 +648,10 @@ export const api = {
   /** Poll target for a single Vastu analysis. */
   vastuGet: (id: string, language?: string) =>
     request<VastuPlan>(`/v1/vastu/${id}${language ? `?language=${language}` : ""}`, { auth: true }),
+
+  /** Ask one free follow-up question about a completed Vastu report. */
+  vastuAsk: (id: string, question: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question }, auth: true }),
 
   /** Delete a Vastu plan. */
   vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),

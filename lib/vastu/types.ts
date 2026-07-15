@@ -12,6 +12,15 @@ export type Zone = Dir8 | "C";
 /** Which edge of a room rectangle a door/window sits on. */
 export type Wall = "top" | "right" | "bottom" | "left";
 
+/** A rectangle corner (screen: tl=top-left … br=bottom-right). */
+export type Corner = "tl" | "tr" | "br" | "bl";
+
+/** A point in plot-relative units. */
+export interface Pt {
+  x: number;
+  y: number;
+}
+
 /** A door or window attached to a room wall. */
 export interface Fixture {
   id: string;
@@ -35,14 +44,15 @@ export interface Room {
 
 /** The whole floor plan / save payload. */
 export interface Plan {
-  /** Plot width in units. */
-  widthU: number;
-  /** Plot height in units. */
-  heightU: number;
+  /**
+   * The house outline as a polygon of >= 3 vertices (plot-relative units). The
+   * user can add/drag/remove corners, so the plot can be any N-sided shape.
+   */
+  plot: Pt[];
   /**
    * Real-world compass bearing (degrees clockwise from north) that the plan's
    * screen-up currently points to. 0 = screen-up is true north. Set by the
-   * compass lock or the manual-rotate control; every direction computation
+   * compass alignment or manual-rotate control; every direction computation
    * adds this so rotating the plan re-rates every room consistently.
    */
   northOffsetDeg: number;
@@ -51,11 +61,13 @@ export interface Plan {
 
 /** Default plot + room sizing (units). */
 export const PLAN_DEFAULTS = {
-  widthU: 12,
-  heightU: 12,
+  /** Default plot span (square side), in units. */
+  span: 12,
   roomW: 4,
   roomH: 3,
   /** Snap grid, in units, for drag/resize. */
   gridU: 0.5,
   minRoomU: 1.5,
+  minSides: 3,
+  maxSides: 12,
 } as const;

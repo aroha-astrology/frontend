@@ -21,7 +21,15 @@ type Drag =
   | { kind: "vertex"; index: number }
   | { kind: "pan"; startClient: Pt; startPan: Pt; unitPerPx: number; moved: boolean };
 
+interface Pinch {
+  startDist: number;
+  startZoom: number;
+  /** Plot-unit point under the initial finger midpoint (kept under the fingers). */
+  worldMid: Pt;
+}
+
 const MAX_ZOOM = 3;
+const MIN_ZOOM = 1;
 
 function nearestWall(room: Room, u: Pt): { wall: Wall; t: number } {
   const dTop = Math.abs(u.y - room.y);
@@ -35,6 +43,8 @@ function nearestWall(room: Room, u: Pt): { wall: Wall; t: number } {
   if (min === dLeft) return { wall: "left", t: c01((u.y - room.y) / room.h) };
   return { wall: "right", t: c01((u.y - room.y) / room.h) };
 }
+
+const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 export default function PlanCanvas({
   plan,
@@ -57,6 +67,8 @@ export default function PlanCanvas({
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<Drag | null>(null);
+  const pointers = useRef<Map<number, Pt>>(new Map());
+  const pinchRef = useRef<Pinch | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Pt>({ x: 0, y: 0 });
   const [selVertex, setSelVertex] = useState<number | null>(null);
@@ -70,30 +82,67 @@ export default function PlanCanvas({
   const minX = center.x - viewSize / 2 + pan.x;
   const minY = center.y - viewSize / 2 + pan.y;
 
-  function toUnit(e: React.PointerEvent): Pt {
+  function toUnit(clientX: number, clientY: number): Pt {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
     const ctm = svg.getScreenCTM();
     if (!ctm) return { x: 0, y: 0 };
     const p = svg.createSVGPoint();
-    p.x = e.clientX;
-    p.y = e.clientY;
+    p.x = clientX;
+    p.y = clientY;
     const u = p.matrixTransform(ctm.inverse());
     return { x: u.x, y: u.y };
   }
   const capture = (e: React.PointerEvent) => svgRef.current?.setPointerCapture(e.pointerId);
+  const multi = () => pointers.current.size >= 2;
 
+  // Apply a zoom level while keeping `worldPt` under the given client position.
+  function zoomAround(newZoom: number, worldPt: Pt, clientX: number, clientY: number) {
+    const rect = svgRef.current?.getBoundingClientRect();
+    const nz = clampZoom(newZoom);
+    const vs = (2 * H) / nz;
+    const fracX = rect ? (clientX - rect.left) / rect.width : 0.5;
+    const fracY = rect ? (clientY - rect.top) / rect.height : 0.5;
+    const lim = H;
+    const px = Math.max(-lim, Math.min(lim, worldPt.x - center.x + vs / 2 - fracX * vs));
+    const py = Math.max(-lim, Math.min(lim, worldPt.y - center.y + vs / 2 - fracY * vs));
+    setZoom(nz);
+    setPan(nz === 1 ? { x: 0, y: 0 } : { x: px, y: py });
+  }
+
+  // ── Pointer bookkeeping (capture phase runs before child stopPropagation) ──
+  const onDownCapture = (e: React.PointerEvent) => {
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      dragRef.current = null; // a 2nd finger cancels any single-finger drag
+      const [a, b] = [...pointers.current.values()];
+      const midClient = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      pinchRef.current = {
+        startDist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+        startZoom: zoom,
+        worldMid: toUnit(midClient.x, midClient.y),
+      };
+    }
+  };
+  const onUpCapture = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinchRef.current = null;
+  };
+
+  // ── Single-pointer gestures (guarded off while pinching) ───────────────────
   const onBodyDown = (e: React.PointerEvent, roomId: string) => {
     e.stopPropagation();
+    if (multi()) return;
     onSelect(roomId);
     setSelVertex(null);
     const room = plan.rooms.find((r) => r.id === roomId);
     if (!room) return;
-    dragRef.current = { kind: "move", roomId, startUnit: toUnit(e), startX: room.x, startY: room.y };
+    dragRef.current = { kind: "move", roomId, startUnit: toUnit(e.clientX, e.clientY), startX: room.x, startY: room.y };
     capture(e);
   };
   const onHandleDown = (e: React.PointerEvent, roomId: string, corner: Corner) => {
     e.stopPropagation();
+    if (multi()) return;
     onSelect(roomId);
     const room = plan.rooms.find((r) => r.id === roomId);
     if (!room) return;
@@ -106,22 +155,24 @@ export default function PlanCanvas({
   };
   const onFixtureDown = (e: React.PointerEvent, roomId: string, fixtureId: string) => {
     e.stopPropagation();
+    if (multi()) return;
     onSelect(roomId);
     dragRef.current = { kind: "fixture", roomId, fixtureId };
     capture(e);
   };
   const onVertexDown = (e: React.PointerEvent, index: number) => {
     e.stopPropagation();
+    if (multi()) return;
     setSelVertex(index);
     onSelect(null);
     dragRef.current = { kind: "vertex", index };
     capture(e);
   };
   const onBackgroundDown = (e: React.PointerEvent) => {
+    if (multi()) return;
     if (zoom > 1) {
       const rect = svgRef.current?.getBoundingClientRect();
-      const unitPerPx = rect ? viewSize / rect.width : 1;
-      dragRef.current = { kind: "pan", startClient: { x: e.clientX, y: e.clientY }, startPan: pan, unitPerPx, moved: false };
+      dragRef.current = { kind: "pan", startClient: { x: e.clientX, y: e.clientY }, startPan: pan, unitPerPx: rect ? viewSize / rect.width : 1, moved: false };
       capture(e);
     } else {
       onSelect(null);
@@ -130,6 +181,18 @@ export default function PlanCanvas({
   };
 
   const onMove = (e: React.PointerEvent) => {
+    if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Pinch takes priority over any single-finger gesture.
+    const pinch = pinchRef.current;
+    if (pinch && pointers.current.size >= 2) {
+      const [a, b] = [...pointers.current.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      zoomAround(pinch.startZoom * (dist / pinch.startDist), pinch.worldMid, mid.x, mid.y);
+      return;
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
     if (drag.kind === "pan") {
@@ -143,7 +206,7 @@ export default function PlanCanvas({
       });
       return;
     }
-    const u = toUnit(e);
+    const u = toUnit(e.clientX, e.clientY);
     if (drag.kind === "move") {
       dispatch({ type: "moveRoom", id: drag.roomId, x: drag.startX + (u.x - drag.startUnit.x), y: drag.startY + (u.y - drag.startUnit.y) });
     } else if (drag.kind === "resize") {
@@ -159,15 +222,33 @@ export default function PlanCanvas({
   };
 
   const endDrag = (e: React.PointerEvent) => {
+    onUpCapture(e);
     const drag = dragRef.current;
     if (drag) {
       if (drag.kind === "pan" && !drag.moved) {
         onSelect(null);
         setSelVertex(null);
       }
-      svgRef.current?.releasePointerCapture(e.pointerId);
+      try {
+        svgRef.current?.releasePointerCapture(e.pointerId);
+      } catch {
+        /* pointer already released */
+      }
       dragRef.current = null;
     }
+  };
+
+  const onWheel = (e: React.WheelEvent) => {
+    const worldPt = toUnit(e.clientX, e.clientY);
+    zoomAround(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), worldPt, e.clientX, e.clientY);
+  };
+
+  // Zoom buttons keep the canvas centre fixed.
+  const zoomStep = (delta: number) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    const cxClient = rect ? rect.left + rect.width / 2 : 0;
+    const cyClient = rect ? rect.top + rect.height / 2 : 0;
+    zoomAround(zoom + delta, toUnit(cxClient, cyClient), cxClient, cyClient);
   };
 
   // 3×3 guide lines across the plot bbox.
@@ -190,19 +271,20 @@ export default function PlanCanvas({
         viewBox={`${minX} ${minY} ${viewSize} ${viewSize}`}
         className="w-full h-auto aspect-square select-none text-foreground"
         style={{ touchAction: "none" }}
+        onPointerDownCapture={onDownCapture}
+        onPointerUpCapture={onUpCapture}
+        onPointerCancelCapture={onUpCapture}
         onPointerDown={onBackgroundDown}
         onPointerMove={onMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onWheel={onWheel}
       >
-        {/* Plot outline polygon */}
         <path d={plotOutlinePath(plan)} fill="rgba(212,175,55,0.03)" stroke="rgba(212,175,55,0.5)" strokeWidth={0.13} strokeLinejoin="round" />
         {gridLines}
 
-        {/* Brahmasthan centre */}
         <circle cx={center.x} cy={center.y} r={0.5} fill="none" stroke="rgba(212,175,55,0.5)" strokeWidth={0.06} strokeDasharray="0.2 0.2" />
 
-        {/* Rooms */}
         {plan.rooms.map((room) => {
           const rating = ratingById[room.id];
           if (!rating) return null;
@@ -211,7 +293,6 @@ export default function PlanCanvas({
           );
         })}
 
-        {/* Editable plot vertices (drag a corner to reshape) */}
         {plan.plot.map((v, i) => {
           const isSel = selVertex === i;
           return (
@@ -221,6 +302,7 @@ export default function PlanCanvas({
                 <g
                   onPointerDown={(e) => {
                     e.stopPropagation();
+                    if (multi()) return;
                     dispatch({ type: "deleteVertex", index: i });
                     setSelVertex(null);
                   }}
@@ -237,12 +319,11 @@ export default function PlanCanvas({
         <CompassRing cx={center.x} cy={center.y} radius={ringRadius} northOffsetDeg={plan.northOffsetDeg} locked={locked} />
       </svg>
 
-      {/* Zoom controls */}
       <div className="absolute bottom-3 right-3 flex flex-col gap-1.5">
-        <button onClick={() => setZoom((z) => Math.min(MAX_ZOOM, +(z + 0.5).toFixed(1)))} disabled={zoom >= MAX_ZOOM} aria-label="Zoom in" className="w-9 h-9 rounded-full bg-card/85 border border-gold/25 text-gold flex items-center justify-center backdrop-blur disabled:opacity-40">
+        <button onClick={() => zoomStep(0.5)} disabled={zoom >= MAX_ZOOM} aria-label="Zoom in" className="w-9 h-9 rounded-full bg-card/85 border border-gold/25 text-gold flex items-center justify-center backdrop-blur disabled:opacity-40">
           <Plus size={16} />
         </button>
-        <button onClick={() => { const nz = Math.max(1, +(zoom - 0.5).toFixed(1)); setZoom(nz); if (nz === 1) setPan({ x: 0, y: 0 }); }} disabled={zoom <= 1} aria-label="Zoom out" className="w-9 h-9 rounded-full bg-card/85 border border-gold/25 text-gold flex items-center justify-center backdrop-blur disabled:opacity-40">
+        <button onClick={() => zoomStep(-0.5)} disabled={zoom <= 1} aria-label="Zoom out" className="w-9 h-9 rounded-full bg-card/85 border border-gold/25 text-gold flex items-center justify-center backdrop-blur disabled:opacity-40">
           <Minus size={16} />
         </button>
       </div>

@@ -4,16 +4,20 @@ import { useEffect, Suspense, type ReactNode } from "react";
 import posthog from "posthog-js";
 import { usePathname, useSearchParams } from "next/navigation";
 
-function initPostHog() {
-  if (typeof window === "undefined" || posthog.__loaded) return;
+// Runs once at module-evaluation time (before any component mounts), so it
+// can't race with PostHogPageView's effect — React fires child effects
+// before parent effects, so init()'ing from PostHogProvider's own useEffect
+// would still be too late for the very first pageview.
+if (typeof window !== "undefined") {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  if (!key) return;
-  posthog.init(key, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
-    persistence: "localStorage+cookie",
-    person_profiles: "identified_only",
-    capture_pageview: false,
-  });
+  if (key && !posthog.__loaded) {
+    posthog.init(key, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+      persistence: "localStorage+cookie",
+      person_profiles: "identified_only",
+      capture_pageview: false,
+    });
+  }
 }
 
 function PostHogPageView() {
@@ -24,17 +28,13 @@ function PostHogPageView() {
     if (!pathname || !posthog.__loaded) return;
     const query = searchParams?.toString();
     const url = query ? `${pathname}?${query}` : pathname;
-    posthog.capture("$pageview", { $current_url: window.location.origin + url });
+    posthog.capture("$pageview", { $current_url: window.location.origin + url }, { send_instantly: true });
   }, [pathname, searchParams]);
 
   return null;
 }
 
 export function PostHogProvider({ children }: { children: ReactNode }) {
-  useEffect(() => {
-    initPostHog();
-  }, []);
-
   return (
     <>
       <Suspense fallback={null}>

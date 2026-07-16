@@ -15,6 +15,7 @@ import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
+import GooglePlayPurchaseReconciler from "@/components/GooglePlayPurchaseReconciler";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -85,6 +86,7 @@ export default function RootLayout({
                     </TopBarProvider>
                     <BackButtonListener />
                     <PushNotificationListener />
+                    <GooglePlayPurchaseReconciler />
                   </BackHandlerProvider>
                 </PermissionsPromptProvider>
               </AuthProvider>

@@ -222,6 +222,32 @@ export async function matchmaking(
 }
 
 /**
+ * POST /v1/chat/feedback — thumbs up/down on an assistant reply. `up` just
+ * increments a counter; `down` also saves the question/answer for review and
+ * pings the team's Telegram alert chat server-side.
+ * Never throws — a failed vote must never surface as a chat error. Callers
+ * should call this fire-and-forget.
+ */
+export async function sendChatFeedback(opts: {
+  vote: "up" | "down";
+  sessionId?: string;
+  question?: string;
+  answer?: string;
+  locale?: string;
+}): Promise<void> {
+  try {
+    const headers = await authHeaders();
+    await fetch(`${BASE_URL}/v1/chat/feedback`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(opts),
+    });
+  } catch {
+    // best-effort — see doc comment above
+  }
+}
+
+/**
  * POST /v1/chat — SSE streaming chat with the AI Jyotish Scholar.
  * Yields parsed SSE events: { type: "token"|"done"|"error", data }.
  * Groups tokens into ~2-line chunks for better chat-like UX.

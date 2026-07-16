@@ -59,7 +59,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen pb-28 bg-background">
+    <main className="min-h-screen pb-tab-safe bg-background">
       <div className="px-5 pt-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

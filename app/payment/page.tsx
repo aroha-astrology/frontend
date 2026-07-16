@@ -160,7 +160,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <main className="cosmic-bg min-h-screen pb-28 relative overflow-hidden text-foreground">
+    <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
 
       <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto">

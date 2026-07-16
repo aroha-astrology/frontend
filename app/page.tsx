@@ -51,7 +51,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="cosmic-bg min-h-screen pb-28 relative overflow-hidden text-foreground">
+    <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       {/* Backgrounds */}
       <ParticleBackground />
       <MoonBackground />

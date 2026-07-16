@@ -146,7 +146,7 @@ export default function HoroscopePage() {
   const selectedForecast = selected !== null ? forecasts[selected] : null;
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
 

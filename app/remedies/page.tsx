@@ -77,7 +77,7 @@ export default function RemediesPage() {
   }, []);
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10">
         <SectionTitle
           title={t("remediesPage.title")}

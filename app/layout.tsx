@@ -56,6 +56,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
+  // Required for env(safe-area-inset-*) to resolve to anything but 0 — the
+  // Android shell draws edge-to-edge under the system nav bar.
+  viewportFit: "cover" as const,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FAF7F0" },
     { media: "(prefers-color-scheme: dark)", color: "#05060A" },

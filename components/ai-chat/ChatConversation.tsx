@@ -467,7 +467,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       </div>
 
       {/* Input bar */}
-      <div className="fixed bottom-[96px] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
+      <div className="fixed bottom-[calc(var(--tab-bar-h)+1rem)] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
           {!canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">

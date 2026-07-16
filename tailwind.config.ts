@@ -28,6 +28,11 @@ const config: Config = {
         border: "var(--border)",
         secondary: "var(--secondary)",
       },
+      spacing: {
+        sab: "var(--sab)",
+        "tab-bar": "var(--tab-bar-h)",
+        "tab-safe": "calc(var(--tab-bar-h) + 2rem)",
+      },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
         "display-decorative": ["var(--font-display-decorative)", "serif"],

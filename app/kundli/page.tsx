@@ -490,7 +490,7 @@ export default function KundliPage() {
   }
 
   return (
-    <main className="min-h-screen pb-28 bg-background">
+    <main className="min-h-screen pb-tab-safe bg-background">
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
 
         {/* ── CHART VIEW ── */}

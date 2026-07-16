@@ -231,7 +231,7 @@ export default function PanchangPage() {
   const adhik = findAdhikMaas(selectedDate);
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
 

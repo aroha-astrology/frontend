@@ -230,7 +230,8 @@ export default function VastuPlanner() {
   return (
     <div className="flex flex-col gap-4">
       {fullscreen ? (
-        <div className="fixed inset-0 z-[80] bg-background overflow-y-auto px-3 pt-3 pb-24">{editor}</div>
+        // Sits above the nav bar (z-50), so pb clears the system bar, not the nav.
+        <div className="fixed inset-0 z-[80] bg-background overflow-y-auto px-3 pt-3 pb-[calc(6rem+var(--sab))]">{editor}</div>
       ) : (
         <Card className="p-4">{editor}</Card>
       )}

@@ -1,13 +1,16 @@
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { LangCode } from "@/providers/language-provider";
 
 /**
  * Text-to-speech is behind this interface, not called directly from
  * components, because Web Speech API support inside the Android app's
- * Capacitor WebView is unconfirmed (it's a long-standing open Chromium bug —
- * https://issues.chromium.org/issues/40417848 — that works in Chrome but can
- * be silently broken in an embedded WebView). If real-device testing shows
- * it's dead there, a native Capacitor plugin backend can be added here
- * without touching any UI code — callers only ever see `getTtsBackend()`.
+ * Capacitor WebView is confirmed broken on real devices (a long-standing
+ * open Chromium bug — https://issues.chromium.org/issues/40417848 — the
+ * speaker icon was silently hiding itself in the app despite working in a
+ * plain browser). `getTtsBackend()` now prefers the native plugin
+ * (`mobile/android`'s `TtsPlugin.java`, wrapping `android.speech.tts.
+ * TextToSpeech` directly) whenever running inside the Capacitor app, and
+ * falls back to `speechSynthesis` only on plain web.
  */
 export interface TtsBackend {
   isAvailable(): boolean;
@@ -127,14 +130,62 @@ class SpeechSynthesisBackend implements TtsBackend {
   }
 }
 
+interface TtsPluginInterface {
+  isLanguageAvailable(options: { lang: string }): Promise<{ available: boolean }>;
+  speak(options: { text: string; lang: string }): Promise<void>;
+  stop(): Promise<void>;
+}
+
+/**
+ * Local native plugin registered in mobile/android's MainActivity (not an
+ * npm package) — same pattern as lib/play-billing.ts's PlayBilling plugin.
+ */
+const NativeTts = registerPlugin<TtsPluginInterface>("Tts");
+
+class NativeTtsBackend implements TtsBackend {
+  isAvailable(): boolean {
+    return Capacitor.isNativePlatform();
+  }
+
+  async hasVoiceFor(lang: LangCode): Promise<boolean> {
+    try {
+      const { available } = await NativeTts.isLanguageAvailable({ lang: LANG_BCP47[lang][0] });
+      return available;
+    } catch {
+      return false;
+    }
+  }
+
+  async speak(text: string, lang: LangCode): Promise<void> {
+    try {
+      await NativeTts.speak({ text: stripMarkdownForSpeech(text), lang: LANG_BCP47[lang][0] });
+    } catch {
+      // best-effort — a failed native speak call shouldn't surface as a chat error
+    }
+  }
+
+  stop(): void {
+    NativeTts.stop().catch(() => {});
+  }
+}
+
 let backend: TtsBackend | null | undefined;
 
 /**
  * Returns null if no TTS backend is usable in this environment — callers
  * should hide the speaker affordance entirely rather than show a dead button.
+ * Prefers the native plugin inside the Capacitor app; falls back to
+ * speechSynthesis on plain web.
  */
 export function getTtsBackend(): TtsBackend | null {
   if (backend !== undefined) return backend;
+
+  const nativeBackend = new NativeTtsBackend();
+  if (nativeBackend.isAvailable()) {
+    backend = nativeBackend;
+    return backend;
+  }
+
   const speechSynthesisBackend = new SpeechSynthesisBackend();
   backend = speechSynthesisBackend.isAvailable() ? speechSynthesisBackend : null;
   return backend;

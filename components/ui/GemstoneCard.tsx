@@ -11,8 +11,8 @@ import { useGemstone } from "@/hooks/useGemstone";
 
 const UNLOCK_COST = 10;
 
-/** A small faceted-gem SVG tinted in the stone's colour — used as the per-stone "image". */
-function GemVisual({ color, size = 46 }: { color: string; size?: number }) {
+/** Faceted-gem SVG tinted in the stone's colour — the fallback when no photo is available. */
+function GemGlyph({ color, size }: { color: string; size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" role="img" aria-hidden="true" className="shrink-0">
       <defs>
@@ -31,6 +31,30 @@ function GemVisual({ color, size = 46 }: { color: string; size?: number }) {
       <line x1="8" y1="15" x2="40" y2="15" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="0.6" />
     </svg>
   );
+}
+
+/**
+ * Per-stone visual. Renders the real gemstone photo at /gemstones/<planet>.png
+ * when a planet is given; falls back to the tinted faceted-gem glyph if there's
+ * no planet (locked teaser) or the image fails to load.
+ */
+function GemVisual({ color, planet, size = 46 }: { color: string; planet?: string; size?: number }) {
+  const [imgError, setImgError] = useState(false);
+  if (planet && !imgError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/gemstones/${planet.toLowerCase()}.png`}
+        alt=""
+        width={size}
+        height={size}
+        onError={() => setImgError(true)}
+        className="shrink-0 rounded-xl object-contain"
+        style={{ width: size, height: size, background: `${color}14` }}
+      />
+    );
+  }
+  return <GemGlyph color={color} size={size} />;
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
@@ -84,7 +108,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
   return (
     <div className={`rounded-2xl border p-3.5 ${gem.recommended ? "border-gold/25 bg-gold/[0.04]" : "border-border bg-surface/40"}`}>
       <div className="flex items-start gap-3">
-        <GemVisual color={gem.color} />
+        <GemVisual color={gem.color} planet={gem.planet} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold text-foreground">{gem.gemstone}</span>

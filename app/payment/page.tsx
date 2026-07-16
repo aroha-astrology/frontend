@@ -122,7 +122,19 @@ export default function PaymentPage() {
     setPayError(null);
     try {
       const order = await api.checkout(selectedPack.id, couponApplied ? couponResult?.code : undefined);
-      await api.confirmOrder(order.id);
+
+      const { Capacitor } = await import("@capacitor/core");
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
+        const { PlayBilling } = await import("@/lib/play-billing");
+        const purchase = await PlayBilling.purchaseProduct({ productId: selectedPack.id });
+        await api.confirmGooglePlayOrder({
+          purchaseToken: purchase.purchaseToken,
+          productId: purchase.productId,
+        });
+      } else {
+        await api.confirmOrder(order.id);
+      }
+
       await refreshUser();
       setSuccess({ credits: selectedPack.credits });
     } catch (err) {

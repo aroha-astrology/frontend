@@ -60,19 +60,25 @@ the Android Publisher API:
 New function in `billing.service.ts`:
 
 ```
-confirmGooglePlayPurchase(orderId, userId, { purchaseToken, productId })
+confirmGooglePlayPurchase(userId, { purchaseToken, productId })
 ```
 
-Flow: load the pending order for `orderId`/`userId` (`findOrderByIdForUser`)
-→ reject if `productId !== order.packId` → call Google to verify the token
-→ call the **existing** `confirmOrderAndGrantCredits(orderId, userId,
-purchaseToken)` (grants credits, appends ledger row, marks order paid,
-already safe to call twice) → consume the purchase on Google's side.
+Deliberately takes no order ID — see "Crash/interruption recovery" below for
+why. Flow: look up the most recent order for `(userId, packId = productId)`
+(new repo function `findLatestOrderForPack`, any status) → if none exists,
+404 → if its status is `'pending'`, verify the token with Google, call the
+**existing** `confirmOrderAndGrantCredits(order.id, userId, purchaseToken)`
+(grants credits, appends ledger row, marks order paid, already safe to call
+twice), then consume the purchase on Google's side → if its status is
+already `'paid'` with a matching `gatewayPaymentId`, this is a safe replay
+(e.g. a retried reconciliation call): return the existing result without
+calling Google again → any other state (`'paid'` with a different token,
+`'failed'`, `'cancelled'`) is a genuine conflict.
 
 New route in `billing.routes.ts`:
 
 ```
-POST /billing/orders/{id}/confirm-google-play
+POST /billing/confirm-google-play
 body: { purchaseToken: string, productId: string }
 ```
 
@@ -81,30 +87,40 @@ stays reserved for a future web gateway.
 
 ### 3. Mobile app + shared frontend
 
-- Add a Capacitor Play Billing plugin — `@capgo/capacitor-native-purchases`
-  (Play Billing Library 7.x; exact version pinned against this project's
-  Capacitor 6 during implementation) — to `mobile/android` (native side) and
-  as a `frontend` dependency, mirroring the existing
-  `@capacitor-firebase/messaging` pattern exactly: `Capacitor.isNativePlatform()`
-  gate, dynamic `import()` (see `frontend/components/PermissionsPrompt.tsx`).
-  This works because Capacitor's JS bridge is injected into the webview even
-  though it's loading the remote Vercel URL, not bundled local files —
-  already proven by how push-notification permissions work today.
+- No maintained, vendor-neutral Capacitor plugin exposes a real Android
+  purchase token on Capacitor 6 (checked during planning — the natural
+  candidate, `@capgo/native-purchases`, turned out to be a thin RevenueCat
+  wrapper whose `Transaction` type on this major version is just a bare
+  `transactionId`). Instead: a small **local, unpublished Capacitor plugin**
+  (`PlayBillingPlugin`, Java, registered directly in `MainActivity` — no npm
+  package) wrapping Google's official Play Billing Library
+  (`com.android.billingclient:billing`) directly, exposing exactly two
+  methods: `purchaseProduct({ productId })` (launches the purchase flow,
+  resolves with `{ productId, purchaseToken, orderId }`) and
+  `queryUnconsumedPurchases()` (lists `PURCHASED`-state in-app purchases
+  Play still has pending consumption). A matching `frontend/lib/play-billing.ts`
+  wraps it via `@capacitor/core`'s `registerPlugin`, called only behind
+  `Capacitor.isNativePlatform()` — same gating pattern as
+  `@capacitor-firebase/messaging` (see `frontend/components/PermissionsPrompt.tsx`).
 - `frontend/app/payment/page.tsx`'s `handlePay` branches on platform:
   - **Native Android**: `api.checkout()` creates the pending order (unchanged
-    call) → launch the native purchase flow for `selectedPack.id` as the
-    product ID → on success, call the new
-    `api.confirmGooglePlayOrder(order.id, { purchaseToken, productId })`.
+    call, still needed so a record exists to grant credits against) → launch
+    the native purchase flow for `selectedPack.id` as the product ID → on
+    success, call the new
+    `api.confirmGooglePlayOrder({ purchaseToken, productId })` — no order ID
+    passed; the backend finds the matching order itself (see above).
   - **Web/browser**: unchanged — still shows the existing "not live yet"
     error, since web payments are out of scope this round.
 - **Crash/interruption recovery**: if the app is killed after Google charges
   the user but before the confirm call reaches the backend, credits would be
-  stuck un-granted. On app start (native Android only), query Play Billing's
-  native list of unconsumed purchases and retry the confirm-google-play call
-  for any purchase token that doesn't have a matching locally-cleared
-  record (tracked via Capacitor Preferences, cleared only after a successful
-  confirm response). This is the one genuinely tricky edge case in the
-  feature and gets its own test coverage in the implementation plan.
+  stuck un-granted. Because the backend looks up the order by `(userId,
+  productId)` rather than requiring a client-remembered order ID, recovery
+  needs no local persistence: a new component mounted once at app root
+  (alongside `PushNotificationListener` in `app/layout.tsx`), native-Android-only,
+  calls `queryUnconsumedPurchases()` on mount and replays
+  `confirmGooglePlayOrder` for each result. Safe to run on every app start —
+  the idempotent-replay branch above makes a no-op of purchases already
+  granted.
 
 ### 4. Testing
 

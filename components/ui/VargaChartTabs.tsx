@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import NorthIndianChart from './NorthIndianChart';
 import Card from './Card';
 import { buildVargaRenderData, VARGA_KEYS, type VargaData } from '@/lib/divisional-charts';
@@ -19,6 +20,7 @@ const VARGA_LABELS: Record<string, string> = {
 };
 
 export default function VargaChartTabs({ divisionalCharts, className = '' }: VargaChartTabsProps) {
+  const { t } = useTranslation();
   const available = VARGA_KEYS.filter((v) => divisionalCharts[v]);
   const [active, setActive] = useState<string>(available[0] ?? 'D1');
 
@@ -26,13 +28,13 @@ export default function VargaChartTabs({ divisionalCharts, className = '' }: Var
   if (!varga) return null;
 
   const chartData = buildVargaRenderData(varga);
-  const label = VARGA_LABELS[active] ?? active;
+  const label = t(`divisionalCharts.labels.${active}`, VARGA_LABELS[active] ?? active);
 
   return (
     <Card className={`p-4 ${className}`}>
       <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-primary mb-3 flex items-center gap-2">
         <span className="text-accent text-xs">✦</span>
-        Divisional Charts
+        {t('divisionalCharts.title', 'Divisional Charts')}
         <span className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
       </h3>
 

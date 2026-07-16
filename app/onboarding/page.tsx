@@ -49,16 +49,14 @@ function isValidTob(v: string) {
   const [h, m] = v.split(":").map(Number);
   return h >= 0 && h <= 23 && m >= 0 && m <= 59;
 }
-function formatDobInput(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 8);
-  if (d.length <= 2) return d;
-  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
-  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+/** "1991-08-05" (native date input) -> "05/08/1991" (what `answers.dob` stores). */
+function isoToDob(iso: string) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
 }
-function formatTobInput(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 4);
-  if (d.length <= 2) return d;
-  return `${d.slice(0, 2)}:${d.slice(2)}`;
+/** Native date inputs clamp to `max`, so a birth date can never be in the future. */
+function todayIso() {
+  return new Date().toLocaleDateString("en-CA");
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -193,9 +191,10 @@ export default function OnboardingPage() {
 
     if (step === 2) { // name
       await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
-    } else if (step === 3) { // dob
-      if (!isValidDob(val)) { setInputErr(t("onboarding.invalidDob")); return; }
-      await advance({ dob: val }, val, Q[3]);
+    } else if (step === 3) { // dob — the date input holds ISO; store DD/MM/YYYY
+      const dob = isoToDob(val);
+      if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
+      await advance({ dob }, dob, Q[3]);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
       await advance({ tob: val }, val, Q[4]);
@@ -433,23 +432,29 @@ export default function OnboardingPage() {
               {inputErr && <p className="text-[12px] text-red-400 pl-1">{inputErr}</p>}
               <div className="flex items-center gap-2 rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md px-4 py-1 focus-within:border-gold/45 transition-colors">
                 <input
-                  type={step === 2 ? "text" : "tel"}
-                  inputMode={step === 2 ? "text" : "numeric"}
+                  type={step === 2 ? "text" : step === 3 ? "date" : "time"}
                   value={textInput}
+                  min={step === 3 ? "1900-01-01" : undefined}
+                  max={step === 3 ? todayIso() : undefined}
                   onChange={(e) => {
                     setInputErr("");
-                    if (step === 3) setTextInput(formatDobInput(e.target.value));
-                    else if (step === 4) setTextInput(formatTobInput(e.target.value));
-                    else setTextInput(e.target.value);
+                    setTextInput(e.target.value);
+                  }}
+                  // Open the calendar/clock on a tap anywhere in the field, not
+                  // just on the small native indicator. Throws without user
+                  // activation and is absent on older engines — the indicator
+                  // still works, so swallow it.
+                  onClick={(e) => {
+                    if (step === 2) return;
+                    try { e.currentTarget.showPicker(); } catch { /* fall back to the native indicator */ }
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
-                  placeholder={
-                    step === 2 ? t("onboarding.step2hint") :
-                    step === 3 ? t("onboarding.step3hint") :
-                    t("onboarding.step4hint")
-                  }
+                  // placeholder does not render on date/time inputs; those show
+                  // the browser's own dd/mm/yyyy hint. The bot's question above
+                  // the field carries the instruction.
+                  placeholder={step === 2 ? t("onboarding.step2hint") : undefined}
                   className="flex-1 bg-transparent py-3 text-[15px] text-foreground placeholder:text-muted/40 outline-none"
-                  autoFocus
+                  autoFocus={step === 2}
                 />
                 <button
                   onClick={handleTextSubmit}
@@ -549,7 +554,7 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="absolute inset-x-0 bottom-0 z-30 rounded-t-3xl border-t border-x border-gold/20 bg-card/95 backdrop-blur-2xl px-6 pt-6 pb-10 shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
+            className="absolute inset-x-0 bottom-0 z-30 rounded-t-3xl border-t border-x border-gold/20 bg-card/95 backdrop-blur-2xl px-6 pt-6 pb-[calc(2.5rem+var(--sab))] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
           >
             {/* Handle */}
             <div className="w-10 h-1 rounded-full bg-gold/30 mx-auto mb-5" />

@@ -29,6 +29,8 @@ interface Message {
   isError?: boolean;
   /** Canned "recharge to continue" reply — sent without ever hitting the AI. */
   isOutOfCredit?: boolean;
+  /** The canned persona-intro bubble, not a real AI reply — no listen/feedback icons on it. */
+  isGreeting?: boolean;
 }
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
@@ -99,6 +101,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         name: t(ASTROLOGER.nameKey),
         specialty: t(ASTROLOGER.specialtyKey),
       }),
+      isGreeting: true,
     },
   ]);
   const [input, setInput] = useState("");
@@ -215,6 +218,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                     name: t(ASTROLOGER.nameKey),
                     specialty: t(ASTROLOGER.specialtyKey),
                   }),
+                  isGreeting: true,
                 },
               ];
               for (const h of session.history) {
@@ -391,7 +395,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, []);
 
   return (
-    <main className="min-h-screen pb-44 flex flex-col" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-52 flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header — the astrologer's identity */}
       <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="text-center">
@@ -406,7 +410,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       </div>
 
       {/* Messages */}
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
+      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-10">
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => {
             // The empty assistant placeholder pushed at send-time renders as a
@@ -469,9 +473,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                   )}
                 </div>
               </div>
-              {/* Listen / feedback icons — only on settled, real assistant replies. */}
-              {msg.role === "assistant" && !isLastStreaming && !msg.isError && !msg.isOutOfCredit && (
-                <div className="ml-9 mt-1.5 flex items-center gap-3">
+              {/* Listen / feedback icons — only on settled, real assistant replies (not the canned greeting). */}
+              {msg.role === "assistant" && !isLastStreaming && !msg.isError && !msg.isOutOfCredit && !msg.isGreeting && (
+                <div className="ml-9 mt-1.5 flex flex-wrap items-center gap-3">
                   {ttsBackend && (
                     <button
                       onClick={() => handleSpeak(msg, assistantText)}

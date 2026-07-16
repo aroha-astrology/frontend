@@ -122,13 +122,38 @@ export default function PaymentPage() {
     setPayError(null);
     try {
       const order = await api.checkout(selectedPack.id, couponApplied ? couponResult?.code : undefined);
-      await api.confirmOrder(order.id);
+
+      let isNativeAndroid = false;
+      try {
+        const { Capacitor } = await import("@capacitor/core");
+        isNativeAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+      } catch {
+        // @capacitor/core not resolvable — plain web build, definitely not native.
+      }
+
+      if (isNativeAndroid) {
+        const { PlayBilling } = await import("@/lib/play-billing");
+        const purchase = await PlayBilling.purchaseProduct({ productId: selectedPack.id });
+        await api.confirmGooglePlayOrder({
+          purchaseToken: purchase.purchaseToken,
+          productId: purchase.productId,
+        });
+      } else {
+        await api.confirmOrder(order.id);
+      }
+
       await refreshUser();
       setSuccess({ credits: selectedPack.credits });
     } catch (err) {
-      setPayError(
-        err instanceof ApiError && err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"),
-      );
+      const isUserCancelled =
+        err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
+      if (isUserCancelled) {
+        // User backed out of the Play purchase sheet — not an error, nothing to show.
+      } else {
+        setPayError(
+          err instanceof ApiError && err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"),
+        );
+      }
     } finally {
       setPaying(false);
     }

@@ -770,6 +770,14 @@ export const api = {
       method: "POST",
       auth: true,
     }),
+
+  /** Confirm a Google Play purchase (Android app only) and grant its credits. */
+  confirmGooglePlayOrder: (params: { purchaseToken: string; productId: string }) =>
+    request<{ order: Order; credits: number }>("/v1/billing/confirm-google-play", {
+      method: "POST",
+      body: params,
+      auth: true,
+    }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

@@ -52,10 +52,20 @@ interface Dosha {
   meta?: string; // e.g. phase, cancellation, type
 }
 
+// Backend severity vocabulary is 'none' | 'mild' | 'moderate' | 'severe' (see
+// astro-engine dosha detectors) — translate it rather than silently bucketing
+// every unrecognized value to 'medium', which previously made every dosha
+// look identically "moderate" regardless of its real computed severity.
+function sev(s?: string): 'low' | 'medium' | 'high' {
+  if (s === 'high' || s === 'medium' || s === 'low') return s;
+  if (s === 'mild') return 'low';
+  if (s === 'moderate') return 'medium';
+  if (s === 'severe') return 'high';
+  return 'medium';
+}
+
 function extractDoshas(analysis: DoshaAnalysis): Dosha[] {
   const out: Dosha[] = [];
-  const sev = (s?: string): 'low' | 'medium' | 'high' =>
-    s === 'high' || s === 'medium' || s === 'low' ? s : 'medium';
 
   if (analysis.mangal?.present) {
     out.push({ key: 'mangal', label: 'Mangal Dosha', severity: sev(analysis.mangal.severity), description: analysis.mangal.description, meta: analysis.mangal.cancellation ? `Cancellation: ${analysis.mangal.cancellation}` : undefined });
@@ -93,6 +103,24 @@ const PLAIN_BLURB: Record<string, string> = {
   high: 'A strong influence — classical remedies and awareness are advised.',
 };
 
+// Jargon cleanup for plain mode — mirrors YogaCard's plainify() so a dosha's
+// real, chart-specific description is simplified rather than thrown away.
+const JARGON: [RegExp, string][] = [
+  [/\blagna\b/gi, 'rising sign'],
+  [/\bkendra\b/gi, 'key life area'],
+  [/\bconjunct\b/gi, 'closely aligned with'],
+  [/\baspected by\b/gi, 'influenced by'],
+  [/\bexalted?\b/gi, 'at peak strength'],
+  [/\bdebilitated?\b/gi, 'weakened'],
+  [/\blord\b/gi, 'ruling planet'],
+];
+
+function plainify(text: string): string {
+  let out = text;
+  for (const [re, rep] of JARGON) out = out.replace(re, rep);
+  return out;
+}
+
 interface DoshaCardProps {
   doshas: DoshaAnalysis;
   mode?: 'plain' | 'technical';
@@ -126,9 +154,9 @@ export default function DoshaCard({ doshas, mode = 'technical', className = '' }
                 )}
               </div>
               <p className="text-[11px] text-muted leading-relaxed">
-                {mode === 'plain'
-                  ? PLAIN_BLURB[d.severity]
-                  : (d.description ?? PLAIN_BLURB[d.severity])}
+                {d.description
+                  ? (mode === 'plain' ? plainify(d.description) : d.description)
+                  : PLAIN_BLURB[d.severity]}
               </p>
               {mode === 'technical' && d.meta && (
                 <p className="text-[10px] text-muted/60 mt-1">{d.meta}</p>

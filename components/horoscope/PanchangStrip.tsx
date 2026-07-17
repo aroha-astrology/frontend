@@ -5,7 +5,12 @@ import { useTranslation } from "react-i18next";
 import { Sun, Sunset } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
+
+/** Delhi/NCR — same national reference point GET /astro/panchang defaults to server-side. */
+const REFERENCE_LAT = 28.6139;
+const REFERENCE_LON = 77.209;
 
 interface PanchangFacts {
   date: string;
@@ -26,17 +31,26 @@ function nameOf(field: { name?: string } | null | undefined): string | null {
 /** Daily Panchang strip (Tithi, Vaar, Nakshatra, Yoga, Karana, sunrise/sunset, Rahu Kaal) — same across all four chart styles (spec 3.1). */
 export default function PanchangStrip() {
   const { t } = useTranslation();
-  const { firebaseUser, user, loading: authLoading } = useAuth();
+  const { firebaseUser, loading: authLoading } = useAuth();
+  const geo = useGeolocation();
   const [data, setData] = useState<PanchangFacts | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
+
+  // Request live location once on mount — same pattern as the full Panchang
+  // page (app/panchang/page.tsx). Falls back to the Delhi reference point
+  // while pending/denied rather than the user's birth place, which is
+  // frequently a different city than where they currently are.
+  useEffect(() => {
+    if (geo.status === "idle") geo.request();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
 
-    const place = user?.placeOfBirth;
-    const lat = place?.lat ?? 28.6139;
-    const lon = place?.lon ?? 77.209;
+    const lat = geo.coords?.lat ?? REFERENCE_LAT;
+    const lon = geo.coords?.lon ?? REFERENCE_LON;
 
     api
       .panchang(lat, lon)
@@ -50,7 +64,7 @@ export default function PanchangStrip() {
       });
 
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, user?.placeOfBirth]);
+  }, [authLoading, firebaseUser, geo.coords]);
 
   if (state === "loading") {
     return (

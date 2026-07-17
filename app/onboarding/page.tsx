@@ -29,12 +29,13 @@ interface Answers {
   dob: string;
   tob: string;
   timeSource: string;
+  accuracy: string;
   place: string;
   gender: string;
   status: string;
 }
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,16 +49,14 @@ function isValidTob(v: string) {
   const [h, m] = v.split(":").map(Number);
   return h >= 0 && h <= 23 && m >= 0 && m <= 59;
 }
-function formatDobInput(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 8);
-  if (d.length <= 2) return d;
-  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
-  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+/** "1991-08-05" (native date input) -> "05/08/1991" (what `answers.dob` stores). */
+function isoToDob(iso: string) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
 }
-function formatTobInput(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 4);
-  if (d.length <= 2) return d;
-  return `${d.slice(0, 2)}:${d.slice(2)}`;
+/** Native date inputs clamp to `max`, so a birth date can never be in the future. */
+function todayIso() {
+  return new Date().toLocaleDateString("en-CA");
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -166,9 +165,10 @@ export default function OnboardingPage() {
     2: t("onboarding.step3q"),
     3: t("onboarding.step4q"),
     4: t("onboarding.step5q"),
-    5: t("onboarding.step6q"),
-    6: t("onboarding.step7q"),
-    7: t("onboarding.step8q"),
+    5: t("onboarding.step5_5q", "How confident are you in this birth time?"),
+    6: t("onboarding.step6q"),
+    7: t("onboarding.step7q"),
+    8: t("onboarding.step8q"),
   };
 
   // ── Kick off the conversation
@@ -181,19 +181,20 @@ export default function OnboardingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Progress indicator (0-based step vs 1-8)
+  // ── Progress indicator (0-based step vs 1-9)
   const progress = Math.min(step - 1, TOTAL_STEPS - 1);
 
-  // ── Text submit (steps 2, 3, 4, 6)
+  // ── Text submit (steps 2, 3, 4, 7)
   const handleTextSubmit = async () => {
     const val = textInput.trim();
     if (!val) return;
 
     if (step === 2) { // name
       await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
-    } else if (step === 3) { // dob
-      if (!isValidDob(val)) { setInputErr(t("onboarding.invalidDob")); return; }
-      await advance({ dob: val }, val, Q[3]);
+    } else if (step === 3) { // dob — the date input holds ISO; store DD/MM/YYYY
+      const dob = isoToDob(val);
+      if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
+      await advance({ dob }, dob, Q[3]);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
       await advance({ tob: val }, val, Q[4]);
@@ -228,7 +229,18 @@ export default function OnboardingPage() {
     await advance({ timeSource: key }, label, Q[5]);
   };
 
-  // ── Gender (step 7)
+  // ── Accuracy (step 6)
+  const ACCURACIES = [
+    { key: "exact", label: t("onboarding.step5_5exact", "Exact") },
+    { key: "approximate", label: t("onboarding.step5_5approx", "Approximate") },
+    { key: "unknown", label: t("onboarding.step5_5unknown", "Unknown") },
+  ];
+
+  const handleAccuracy = async (key: string, label: string) => {
+    await advance({ accuracy: key }, label, Q[6]);
+  };
+
+  // ── Gender (step 8)
   const GENDERS = [
     { key: "male",   label: t("onboarding.step7male") },
     { key: "female", label: t("onboarding.step7female") },
@@ -236,10 +248,10 @@ export default function OnboardingPage() {
   ];
 
   const handleGender = async (key: string, label: string) => {
-    await advance({ gender: key }, label, Q[7]);
+    await advance({ gender: key }, label, Q[8]);
   };
 
-  // ── Relationship status (step 8)
+  // ── Relationship status (step 9)
   const STATUSES = [
     { key: "single",   label: t("onboarding.step8single") },
     { key: "dating",   label: t("onboarding.step8dating") },
@@ -280,15 +292,38 @@ export default function OnboardingPage() {
           certificate: "birth_certificate",
           hospital: "hospital_record",
           family: "family_memory",
-          approximate: "rectified",
+          approximate: "unknown", // mapped from approximate source
         };
         body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
       }
-      if (answers.status) body.relationshipStatus = answers.status;
+      if (answers.accuracy) {
+        body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
+      }
+      if (answers.status) {
+        const statusMap: Record<string, string> = {
+          dating: "in_relationship",
+          other: "prefer_not_to_say",
+        };
+        body.relationshipStatus = statusMap[answers.status] ?? answers.status;
+      }
+      
+      if ("geolocation" in navigator) {
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          });
+          body.currentLocation = {
+             lat: pos.coords.latitude,
+             lon: pos.coords.longitude,
+             name: "Current Location",
+             tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+          };
+        } catch (e) {
+          // ignore
+        }
+      }
+
       body.onboardingStatus = "completed";
-      // Gates chat/onboarding-analysis/forecast/matchmaking server-side
-      // (requireConsent middleware) — must be sent explicitly, the checkbox
-      // above is the only place this is ever granted.
       body.consent = {
         dataProcessing: true,
         terms: { version: "1.0.0" },
@@ -296,14 +331,7 @@ export default function OnboardingPage() {
       };
 
       await api.updateMe(body);
-      // Refresh the shared auth-context user BEFORE navigating — AuthGuard
-      // reads user.profileCompletedAt on every route change, and a stale
-      // (pre-onboarding) cached user bounces this navigation straight back
-      // to /onboarding.
       await refresh();
-      // Fire-and-forget kundli warm-up: the home page polls /v1/kundli on
-      // mount, but kicking the regenerate here means the result is usually
-      // ready by the time the user lands there.
       api.regenerateKundli().catch(() => {});
       router.replace("/?tour=1");
     } catch {
@@ -404,23 +432,29 @@ export default function OnboardingPage() {
               {inputErr && <p className="text-[12px] text-red-400 pl-1">{inputErr}</p>}
               <div className="flex items-center gap-2 rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md px-4 py-1 focus-within:border-gold/45 transition-colors">
                 <input
-                  type={step === 2 ? "text" : "tel"}
-                  inputMode={step === 2 ? "text" : "numeric"}
+                  type={step === 2 ? "text" : step === 3 ? "date" : "time"}
                   value={textInput}
+                  min={step === 3 ? "1900-01-01" : undefined}
+                  max={step === 3 ? todayIso() : undefined}
                   onChange={(e) => {
                     setInputErr("");
-                    if (step === 3) setTextInput(formatDobInput(e.target.value));
-                    else if (step === 4) setTextInput(formatTobInput(e.target.value));
-                    else setTextInput(e.target.value);
+                    setTextInput(e.target.value);
+                  }}
+                  // Open the calendar/clock on a tap anywhere in the field, not
+                  // just on the small native indicator. Throws without user
+                  // activation and is absent on older engines — the indicator
+                  // still works, so swallow it.
+                  onClick={(e) => {
+                    if (step === 2) return;
+                    try { e.currentTarget.showPicker(); } catch { /* fall back to the native indicator */ }
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
-                  placeholder={
-                    step === 2 ? t("onboarding.step2hint") :
-                    step === 3 ? t("onboarding.step3hint") :
-                    t("onboarding.step4hint")
-                  }
+                  // placeholder does not render on date/time inputs; those show
+                  // the browser's own dd/mm/yyyy hint. The bot's question above
+                  // the field carries the instruction.
+                  placeholder={step === 2 ? t("onboarding.step2hint") : undefined}
                   className="flex-1 bg-transparent py-3 text-[15px] text-foreground placeholder:text-muted/40 outline-none"
-                  autoFocus
+                  autoFocus={step === 2}
                 />
                 <button
                   onClick={handleTextSubmit}
@@ -433,8 +467,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 6: place autocomplete */}
-          {step === 6 && (
+          {/* Step 7: place autocomplete */}
+          {step === 7 && (
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
               inputClassName="w-full bg-transparent py-3 px-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
@@ -446,7 +480,7 @@ export default function OnboardingPage() {
                 setResolvedPlace(place);
                 setAnswers((a) => ({ ...a, place: place.name }));
                 userSay(place.name);
-                botSay(Q[6]).then(() => setStep(7));
+                botSay(Q[7]).then(() => setStep(8));
               }}
             />
           )}
@@ -466,8 +500,23 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 7: gender */}
-          {step === 7 && (
+          {/* Step 6: accuracy */}
+          {step === 6 && (
+            <div className="grid grid-cols-3 gap-2">
+              {ACCURACIES.map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => handleAccuracy(s.key, s.label)}
+                  className="py-3.5 px-3 rounded-xl border border-gold/20 bg-card/80 text-[13px] text-foreground text-center hover:border-gold/50 hover:bg-gold/8 transition-all active:scale-95"
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Step 8: gender */}
+          {step === 8 && (
             <div className="flex gap-2">
               {GENDERS.map((g) => (
                 <button
@@ -481,8 +530,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 8: relationship status */}
-          {step === 8 && (
+          {/* Step 9: relationship status */}
+          {step === 9 && (
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((s) => (
                 <button
@@ -505,7 +554,7 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="absolute inset-x-0 bottom-0 z-30 rounded-t-3xl border-t border-x border-gold/20 bg-card/95 backdrop-blur-2xl px-6 pt-6 pb-10 shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
+            className="absolute inset-x-0 bottom-0 z-30 rounded-t-3xl border-t border-x border-gold/20 bg-card/95 backdrop-blur-2xl px-6 pt-6 pb-[calc(2.5rem+var(--sab))] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
           >
             {/* Handle */}
             <div className="w-10 h-1 rounded-full bg-gold/30 mx-auto mb-5" />

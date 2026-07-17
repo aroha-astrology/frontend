@@ -103,7 +103,7 @@ function isCurrentlyActive(start: string, end: string): boolean {
 }
 
 export default function PanchangPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
 
@@ -178,16 +178,15 @@ export default function PanchangPage() {
   const [plansLoaded, setPlansLoaded] = useState(false);
 
   const loadPlans = useCallback(async () => {
-    if (plansLoaded) return;
     try {
-      const res = await api.purchasePlanList();
+      const res = await api.purchasePlanList(i18n.language);
       setPlans(res.plans);
     } catch {
       // silent — the section just shows no history yet
     } finally {
       setPlansLoaded(true);
     }
-  }, [plansLoaded]);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (!authLoading && firebaseUser) loadPlans();
@@ -232,7 +231,7 @@ export default function PanchangPage() {
   const adhik = findAdhikMaas(selectedDate);
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
 
@@ -467,7 +466,7 @@ export default function PanchangPage() {
             )}
 
             {/* Planning to Buy */}
-            <Card className="p-4 border-gold/15">
+            <Card id="purchase-plans" className="p-4 border-gold/15">
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div>
                   <p className="text-sm font-display text-foreground">{t("horoscope.panchang.planningToBuyTitle")}</p>

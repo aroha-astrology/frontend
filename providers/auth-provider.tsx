@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, signOut as fbSignOut, type User as FirebaseUser } from "firebase/auth";
+import posthog from "posthog-js";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
 import { api, type SessionResponse, type User } from "@/lib/api";
 
@@ -60,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .createSession()
       .then((res) => {
         setUser(res.user);
+        // Identify by opaque user ID only — no name or other PII as a
+        // PostHog person property (see 2026-07-17 audit).
+        posthog.identify(res.user.id);
         return res;
       })
       .finally(() => {
@@ -71,11 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = async () => {
     if (!getFirebaseAuth().currentUser) return;
-    setUser(await api.getMe());
+    const freshUser = await api.getMe();
+    setUser(freshUser);
   };
 
   const signOut = async () => {
     await fbSignOut(getFirebaseAuth());
+    posthog.reset();
     setUser(null);
     setFirebaseUser(null);
     if (typeof window !== "undefined") {

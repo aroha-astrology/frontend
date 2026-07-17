@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
@@ -13,6 +14,9 @@ import BottomNavigation from "@/components/BottomNavigation";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
+import PushNotificationListener from "@/components/PushNotificationListener";
+import GooglePlayPurchaseReconciler from "@/components/GooglePlayPurchaseReconciler";
+import AnalyticsConsentBanner from "@/components/AnalyticsConsentBanner";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -53,6 +57,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
+  // Required for env(safe-area-inset-*) to resolve to anything but 0 — the
+  // Android shell draws edge-to-edge under the system nav bar.
+  viewportFit: "cover" as const,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FAF7F0" },
     { media: "(prefers-color-scheme: dark)", color: "#05060A" },
@@ -67,25 +74,30 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <LanguageProvider>
-            <AuthProvider>
-              <PermissionsPromptProvider>
-                <BackHandlerProvider>
-                  <TopBarProvider>
-                    <AuthGuard>
-                      <TopBar />
-                      <PageTransition>{children}</PageTransition>
-                      <BottomNavigation />
-                      <PermissionsPrompt />
-                    </AuthGuard>
-                  </TopBarProvider>
-                  <BackButtonListener />
-                </BackHandlerProvider>
-              </PermissionsPromptProvider>
-            </AuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <LanguageProvider>
+              <AuthProvider>
+                <PermissionsPromptProvider>
+                  <BackHandlerProvider>
+                    <TopBarProvider>
+                      <AuthGuard>
+                        <TopBar />
+                        <PageTransition>{children}</PageTransition>
+                        <BottomNavigation />
+                        <PermissionsPrompt />
+                      </AuthGuard>
+                    </TopBarProvider>
+                    <BackButtonListener />
+                    <PushNotificationListener />
+                    <GooglePlayPurchaseReconciler />
+                    <AnalyticsConsentBanner />
+                  </BackHandlerProvider>
+                </PermissionsPromptProvider>
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

@@ -51,8 +51,8 @@ export default function BottomSheetModal({
 
         <div className="px-5 py-4">{children}</div>
 
-        {/* Bottom padding for mobile — clears the fixed bottom nav bar (h-20) */}
-        <div className="h-24" />
+        {/* Bottom padding for mobile — clears the fixed bottom nav bar */}
+        <div className="h-tab-safe" />
       </motion.div>
     </motion.div>,
     document.body,

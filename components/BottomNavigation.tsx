@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, Sparkles, Moon, CalendarDays } from "lucide-react";
+import { Home, Compass, Sparkles, Moon, CalendarDays } from "lucide-react";
 import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
 
@@ -15,9 +15,11 @@ export default function BottomNavigation() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-20 rounded-t-[2.5rem] transform-gpu"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-tab-bar pb-sab rounded-t-[2.5rem] transform-gpu"
       style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
     >
+      {/* h-full resolves against the nav's content box, which excludes pb-sab —
+          so the row self-limits to the bar and never enters the inset. */}
       <div className="relative grid grid-cols-5 h-full max-w-lg mx-auto items-center">
         
         <Link href="/" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/" ? "text-gold" : "text-muted")}>
@@ -25,9 +27,9 @@ export default function BottomNavigation() {
           <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.home")}</span>
         </Link>
         
-        <Link href="/kundli" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/kundli" ? "text-gold" : "text-muted")}>
-          <LayoutGrid size={22} />
-          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.kundli")}</span>
+        <Link href="/vastu" data-tour="nav-vastu" className={clsx("flex flex-col items-center justify-center gap-1 transition-colors", pathname === "/vastu" ? "text-gold" : "text-muted")}>
+          <Compass size={22} />
+          <span className="text-[10px] font-medium whitespace-nowrap">{t("nav.vastu")}</span>
         </Link>
         
         {/* Central Ask AI button */}

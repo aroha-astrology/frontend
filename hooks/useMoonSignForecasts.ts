@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { zodiac } from "@/data/zodiac";
 import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "react-i18next";
 import { forecastToRating, forecastToText, type ForecastData, type SignForecast, type Timescale } from "@/components/horoscope/types";
 
 const FALLBACK_TEXT = "Cosmic energies align for you today.";
@@ -21,6 +22,7 @@ function fallbackForecasts(): SignForecast[] {
 
 /** Fetches all 12 moon-sign forecasts for a given timescale, shared by the home slider and the /horoscope page. */
 export function useMoonSignForecasts(period: Timescale = "daily") {
+  const { i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const [forecasts, setForecasts] = useState<SignForecast[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export function useMoonSignForecasts(period: Timescale = "daily") {
     async function fetchAll() {
       try {
         const results = await Promise.allSettled(
-          zodiac.map((sign) => api.moonSignForecast(sign.index, period)),
+          zodiac.map((sign) => api.moonSignForecast(sign.index, period, i18n.language)),
         );
 
         if (cancelled) return;
@@ -71,7 +73,7 @@ export function useMoonSignForecasts(period: Timescale = "daily") {
 
     fetchAll();
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, period]);
+  }, [authLoading, firebaseUser, period, i18n.language]);
 
   return { forecasts, loading };
 }

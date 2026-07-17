@@ -42,6 +42,8 @@ export interface User {
   credits: number;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
+  /** True once the user has spent credits to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
+  gemstoneUnlocked: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +97,8 @@ export interface UpdateMeBody {
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
+  birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  currentLocation?: PlaceOfBirth | null;
   locale?: string;
   birthTimeSource?: string;
   relationshipStatus?: string;
@@ -345,6 +349,56 @@ export interface HouseInsightForbidden {
 /** Unified surface returned by `api.houseInsight()` — caller branches on `status`. */
 export type HouseInsightResult = HouseInsightReady | HouseInsightPending | HouseInsightForbidden;
 
+// ─── Gemstone report ─────────────────────────────────────────────────────────
+
+export type GemstoneStrength = "weak" | "average" | "strong";
+
+export interface GemstoneItem {
+  planet: string;
+  planetHindi: string;
+  gemstone: string;
+  gemstoneHindi: string;
+  alternativeStones: string[];
+  finger: string;
+  metal: string;
+  dayToWear: string;
+  mantra: string;
+  mantraCount: number;
+  weightCarats: string;
+  /** Hex accent used to tint the stone's gem visual. */
+  color: string;
+  dos: string[];
+  donts: string[];
+  strength: GemstoneStrength;
+  /** True = strongly recommended (weak/afflicted planet); false = optional. */
+  recommended: boolean;
+  /** 0-100 — how strongly this gemstone is preferred for the user (headline %). May be absent on reports cached before this field existed. */
+  preferencePercent?: number;
+  reason: string;
+  /** AI-authored personal note (already in the requested language). */
+  note: string;
+}
+
+/** 200 body: the personalized gemstone report is ready. */
+export interface GemstoneReportReady {
+  status: "ready";
+  intro: string;
+  gems: GemstoneItem[];
+}
+
+/** 202 body: generation just started in the background, or the last attempt failed. */
+export interface GemstonePending {
+  status: "generating" | "failed";
+}
+
+/** 403: the report isn't unlocked yet — distinct from "failed" so the UI doesn't retry-poll it. */
+export interface GemstoneForbidden {
+  status: "forbidden";
+}
+
+/** Unified surface returned by `api.gemstone()` — caller branches on `status`. */
+export type GemstoneResult = GemstoneReportReady | GemstonePending | GemstoneForbidden;
+
 // ─── Billing / credit purchases ────────────────────────────────────────────────
 
 export interface CreditPack {
@@ -471,6 +525,30 @@ export interface RemedyItem {
   planet?: string;
 }
 
+// ─── Vastu ────────────────────────────────────────────────────────────────────
+
+export interface VastuAnalyzeBody {
+  /** room type → the direction(s) it occupies, e.g. { kitchen: ["SE"] }. */
+  roomLayout: Record<string, string[]>;
+  /** Free-form extra context: door/window facings, notes, overall score. */
+  roomDetails?: Record<string, unknown>;
+  /** e.g. "rectangle" or "L-shaped, cut corner facing NE". */
+  houseShape?: string;
+  /** The full editable CAD plan, stored for reload. */
+  layout?: Record<string, unknown>;
+}
+
+export interface VastuPlan {
+  id: string;
+  status: "pending" | "processing" | "done" | "error";
+  overallScore: number | null;
+  roomLayout: Record<string, string[]>;
+  analysis: Record<string, unknown> | null;
+  errorMessage: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -495,7 +573,7 @@ export const api = {
   updateMe: (body: UpdateMeBody) =>
     request<User>("/v1/me", { method: "PATCH", body, auth: true }),
 
-  /** Soft-delete the current account. */
+  /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
 
   /**
@@ -510,6 +588,23 @@ export const api = {
       body: { houseNumber },
       auth: true,
     }),
+
+  /**
+   * Spend credits to unlock the full gemstone report (whole report, one-time).
+   * Throws ApiError with status 409 if the user has insufficient credits or the
+   * report is already unlocked. Caller should re-fetch the user (`refresh()`
+   * from useAuth) afterward to pick up the updated credits/gemstoneUnlocked.
+   */
+  unlockGemstone: () =>
+    request<{ success: boolean }>("/v1/me/unlock-gemstone", { method: "POST", auth: true }),
+
+  /**
+   * Current user's personalized gemstone report — generated lazily the first
+   * time it's requested after unlocking, cached forever after. Caller branches
+   * on `result.status`: "ready" (200), "generating"/"failed" (202, poll again),
+   * or "forbidden" (403, not unlocked yet).
+   */
+  gemstone: (language?: string) => gemstoneRequest(language),
 
   /** Register/refresh this device's FCM push token. */
   registerDeviceToken: (body: RegisterDeviceTokenBody) =>
@@ -526,9 +621,9 @@ export const api = {
    * Moon-sign forecast for a zodiac sign (0-11). `period` defaults to daily;
    * weekly/monthly/yearly are aggregates of the daily engine output.
    */
-  moonSignForecast: (signIndex: number, period: "daily" | "weekly" | "monthly" | "yearly" = "daily") =>
+  moonSignForecast: (signIndex: number, period: "daily" | "weekly" | "monthly" | "yearly" = "daily", language?: string) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}?period=${period}`, { auth: true }),
+    request<{ forecast: any }>(`/v1/forecast/moon-sign/${signIndex}?period=${period}${language ? `&language=${language}` : ''}`, { auth: true }),
 
   /**
    * Current user's natal kundli. Returns a discriminated union — caller must
@@ -568,13 +663,14 @@ export const api = {
    * `result.status`: "ready" (200), "generating"/"failed" (202, poll again),
    * or "forbidden" (403, house isn't unlocked).
    */
-  houseInsight: (house: number) => houseInsightRequest(house),
+  houseInsight: (house: number, language?: string) => houseInsightRequest(house, language),
 
   /** Poll `houseInsight(house)` until "ready"/"failed"/"forbidden", or `timeoutMs` elapses. */
   pollHouseInsight: (
     house: number,
+    language?: string,
     opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
-  ) => pollHouseInsight(house, opts),
+  ) => pollHouseInsight(house, language, opts),
 
   /** Panchang data. */
   panchang: (lat?: number, lon?: number, date?: string) => {
@@ -602,13 +698,32 @@ export const api = {
     request<{ planId: string }>("/v1/purchase-plan/analyze", { method: "POST", body, auth: true }),
 
   /** Recent purchase-plan analyses for the current user. */
-  purchasePlanList: () => request<{ plans: PurchasePlan[] }>("/v1/purchase-plan", { auth: true }),
+  purchasePlanList: (language?: string) => request<{ plans: PurchasePlan[] }>(`/v1/purchase-plan${language ? `?language=${language}` : ''}`, { auth: true }),
 
   /** Poll target for a single purchase-plan analysis. */
-  purchasePlanGet: (id: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}`, { auth: true }),
+  purchasePlanGet: (id: string, language?: string) => request<PurchasePlan>(`/v1/purchase-plan/${id}${language ? `?language=${language}` : ''}`, { auth: true }),
 
   /** Delete a purchase-plan analysis. */
   purchasePlanDelete: (id: string) => request<void>(`/v1/purchase-plan/${id}`, { method: "DELETE", auth: true }),
+
+  /** Request AI Vastu remedies for a floor plan — returns immediately with a planId to poll. */
+  vastuAnalyze: (body: VastuAnalyzeBody) =>
+    request<{ planId: string }>("/v1/vastu/analyze", { method: "POST", body, auth: true }),
+
+  /** Recent Vastu plans for the current user. */
+  vastuList: (language?: string) =>
+    request<{ plans: VastuPlan[] }>(`/v1/vastu${language ? `?language=${language}` : ""}`, { auth: true }),
+
+  /** Poll target for a single Vastu analysis. */
+  vastuGet: (id: string, language?: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}${language ? `?language=${language}` : ""}`, { auth: true }),
+
+  /** Ask one free follow-up question about a completed Vastu report. */
+  vastuAsk: (id: string, question: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question }, auth: true }),
+
+  /** Delete a Vastu plan. */
+  vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),
 
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as
@@ -653,6 +768,14 @@ export const api = {
   confirmOrder: (orderId: string) =>
     request<{ order: Order; credits: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
+      auth: true,
+    }),
+
+  /** Confirm a Google Play purchase (Android app only) and grant its credits. */
+  confirmGooglePlayOrder: (params: { purchaseToken: string; productId: string }) =>
+    request<{ order: Order; credits: number }>("/v1/billing/confirm-google-play", {
+      method: "POST",
+      body: params,
       auth: true,
     }),
 };
@@ -742,11 +865,12 @@ async function pollHoroscope(
 
 // ─── House insight helpers ────────────────────────────────────────────────────
 
-async function houseInsightRequest(house: number): Promise<HouseInsightResult> {
+async function houseInsightRequest(house: number, language?: string): Promise<HouseInsightResult> {
   const headers: Record<string, string> = { ...(await authHeader()) };
+  const qs = language ? `?language=${encodeURIComponent(language)}` : "";
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/kundli/houses/${house}/insight`, {
+    res = await fetch(`${BASE_URL}/v1/kundli/houses/${house}/insight${qs}`, {
       method: "GET",
       headers,
       cache: "no-store",
@@ -769,15 +893,44 @@ async function houseInsightRequest(house: number): Promise<HouseInsightResult> {
   );
 }
 
+async function gemstoneRequest(language?: string): Promise<GemstoneResult> {
+  const headers: Record<string, string> = { ...(await authHeader()) };
+  const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/v1/gemstone${qs}`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  if (res.status === 403) return { status: "forbidden" };
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (res.status === 200) return data as GemstoneReportReady;
+  if (res.status === 202) return data as GemstonePending;
+  const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+    ?.error;
+  throw new ApiError(
+    res.status,
+    err?.code ?? "http_error",
+    err?.message ?? `Request failed (${res.status})`,
+    err?.requestId,
+  );
+}
+
 async function pollHouseInsight(
   house: number,
+  language?: string,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<HouseInsightResult> {
   const interval = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
-    const r = await houseInsightRequest(house);
+    const r = await houseInsightRequest(house, language);
     if (r.status !== "generating") return r;
     if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
     await new Promise((res) => setTimeout(res, interval));

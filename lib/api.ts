@@ -573,7 +573,7 @@ export const api = {
   updateMe: (body: UpdateMeBody) =>
     request<User>("/v1/me", { method: "PATCH", body, auth: true }),
 
-  /** Soft-delete the current account. */
+  /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
 
   /**

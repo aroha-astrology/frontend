@@ -47,13 +47,6 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => {},
 });
 
-/** Keeps the PostHog person's name in sync with the app user. */
-function syncPosthogPerson(user: User) {
-  if (user.displayName) {
-    posthog.setPersonProperties({ name: user.displayName });
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -68,8 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .createSession()
       .then((res) => {
         setUser(res.user);
+        // Identify by opaque user ID only — no name or other PII as a
+        // PostHog person property (see 2026-07-17 audit).
         posthog.identify(res.user.id);
-        syncPosthogPerson(res.user);
         return res;
       })
       .finally(() => {
@@ -83,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!getFirebaseAuth().currentUser) return;
     const freshUser = await api.getMe();
     setUser(freshUser);
-    syncPosthogPerson(freshUser);
   };
 
   const signOut = async () => {

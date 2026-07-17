@@ -1,5 +1,11 @@
 # Aroha Astrology — PII & Data-Privacy Compliance Audit
 
+> **Superseded 2026-07-17** by the consolidated, re-verified audit at
+> `SECURITY_AND_PRIVACY_AUDIT.md` (repo root of `aroha-astrology`), which covers
+> security + PII + Indian DPDP/IT-Act compliance end-to-end across all sub-apps.
+> This file is kept for history only — several findings below (e.g. legal-text
+> placeholders) are now stale.
+
 **Date:** 2026-07-11
 **Scope:** Live TypeScript backend (`backend/src`), frontend (this repo), and mobile native shell (`C:\dev\aroha-astrology\mobile`).
 **Method:** Direct code read (schema, routes, services, middleware, legal content, Android manifest). No code was changed.

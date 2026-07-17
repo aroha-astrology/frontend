@@ -16,6 +16,9 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { getTtsBackend } from "@/lib/tts";
 import { LANGUAGES, type LangCode } from "@/providers/language-provider";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import { useKundli } from "@/hooks/useKundli";
+import { getUserMoonSign } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
 const CHAT_MESSAGE_COST = 2;
@@ -104,6 +107,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       isGreeting: true,
     },
   ]);
+  // Already-fetched-elsewhere kundli data (moon sign etc.) — reused here
+  // purely to personalize the opening greeting, no extra LLM call involved.
+  const { kundli } = useKundli();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
@@ -235,6 +241,30 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       });
     }
   }, [t]);
+
+  // Personalize the opening greeting once the user's kundli is available —
+  // e.g. "I see your Moon in Rohini" instead of a generic hello. Only touches
+  // the greeting while the chat is still in its pristine just-opened state
+  // (no loaded session, nothing sent yet), so it never rewrites a real
+  // conversation already in progress.
+  useEffect(() => {
+    if (sessionIdRef.current) return;
+    const moonSignEnglish = getUserMoonSign(kundli);
+    if (!moonSignEnglish) return;
+    setMessages((prev) => {
+      if (prev.length !== 1 || !prev[0]?.isGreeting) return prev;
+      return [
+        {
+          ...prev[0],
+          content: t("aiChatPage.personaGreetingWithMoon", {
+            name: t(ASTROLOGER.nameKey),
+            specialty: t(ASTROLOGER.specialtyKey),
+            moonSign: zodiacSignLabel(t, moonSignEnglish),
+          }),
+        },
+      ];
+    });
+  }, [kundli, t]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -523,6 +553,22 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             );
           })}
         </AnimatePresence>
+
+        {/* Conversation starters — only before the user has sent anything, so a
+            blank input box isn't the first thing a new chat asks of them. */}
+        {messages.length === 1 && !streaming && (
+          <div className="flex flex-wrap gap-2 ml-9">
+            {(["suggestion1", "suggestion2", "suggestion3", "suggestion4", "suggestion5"] as const).map((key) => (
+              <button
+                key={key}
+                onClick={() => sendMessage(t(`aiChatPage.${key}`))}
+                className="text-xs text-gold/90 border border-gold/25 rounded-full px-3 py-2 hover:bg-gold/10 transition-colors"
+              >
+                {t(`aiChatPage.${key}`)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Typing indicator — shown only when streaming hasn't started producing content yet */}
         {streaming && messages[messages.length - 1]?.role === "assistant" && !messages[messages.length - 1]?.content && (

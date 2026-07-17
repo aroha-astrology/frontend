@@ -354,27 +354,22 @@ export type HouseInsightResult = HouseInsightReady | HouseInsightPending | House
 export type GemstoneStrength = "weak" | "average" | "strong";
 
 export interface GemstoneItem {
+  /** Also the i18n lookup key — kundli.gemstone.data.<planet>.* — for all locale-dependent facts (name, alternatives, finger, metal, day, weight, dos, donts). */
   planet: string;
-  planetHindi: string;
-  gemstone: string;
-  gemstoneHindi: string;
-  alternativeStones: string[];
-  finger: string;
-  metal: string;
-  dayToWear: string;
+  /** Sanskrit chant text — locale-invariant, same for every language. */
   mantra: string;
-  mantraCount: number;
-  weightCarats: string;
+  /** Practical mantra practice: N times per day for N days (uniform across all 9 stones). */
+  mantraPerDay: number;
+  mantraDays: number;
   /** Hex accent used to tint the stone's gem visual. */
   color: string;
-  dos: string[];
-  donts: string[];
   strength: GemstoneStrength;
   /** True = strongly recommended (weak/afflicted planet); false = optional. */
   recommended: boolean;
   /** 0-100 — how strongly this gemstone is preferred for the user (headline %). May be absent on reports cached before this field existed. */
   preferencePercent?: number;
-  reason: string;
+  /** True only when this planet's chart-specific caution actually applies to this user — show the matching translated caution line only when true. */
+  conditionalCautionApplies: boolean;
   /** AI-authored personal note (already in the requested language). */
   note: string;
 }

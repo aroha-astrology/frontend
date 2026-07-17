@@ -97,12 +97,22 @@ function PreferenceRing({ pct }: { pct: number }) {
 
 function GemRow({ gem }: { gem: GemstoneItem }) {
   const { t } = useTranslation();
+  const dataKey = (field: string) => `kundli.gemstone.data.${gem.planet}.${field}`;
+  const displayName = t(dataKey("displayName"));
+  const gemName = t(dataKey("gemName"));
+  const alternatives = t(dataKey("alternatives"), { returnObjects: true }) as string[];
+  const dos = t(dataKey("dos"), { returnObjects: true }) as string[];
+  const staticDonts = t(dataKey("donts"), { returnObjects: true }) as string[];
+  const donts = gem.conditionalCautionApplies
+    ? [...staticDonts, t(dataKey("conditionalDont"))]
+    : staticDonts;
+
   const facts: { label: string; value: string }[] = [
-    { label: t("kundli.gemstone.alternatives"), value: gem.alternativeStones.join(", ") },
-    { label: t("kundli.gemstone.finger"), value: gem.finger },
-    { label: t("kundli.gemstone.metal"), value: gem.metal },
-    { label: t("kundli.gemstone.dayToWear"), value: gem.dayToWear },
-    { label: t("kundli.gemstone.weight"), value: gem.weightCarats },
+    { label: t("kundli.gemstone.alternatives"), value: alternatives.join(", ") },
+    { label: t("kundli.gemstone.finger"), value: t(dataKey("finger")) },
+    { label: t("kundli.gemstone.metal"), value: t(dataKey("metal")) },
+    { label: t("kundli.gemstone.dayToWear"), value: t(dataKey("dayToWear")) },
+    { label: t("kundli.gemstone.weight"), value: t(dataKey("weightCarats")) },
   ];
 
   return (
@@ -111,7 +121,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         <GemVisual color={gem.color} planet={gem.planet} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-bold text-foreground">{gem.gemstone}</span>
+            <span className="text-sm font-bold text-foreground">{gemName}</span>
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${STRENGTH_STYLES[gem.strength]}`}>
               {t(`kundli.gemstone.strength.${gem.strength}`)}
             </span>
@@ -122,7 +132,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
             )}
           </div>
           <p className="text-[11px] text-muted mt-0.5">
-            {t("kundli.gemstone.forPlanet", { planet: gem.planet })}
+            {t("kundli.gemstone.forPlanet", { planet: displayName })}
           </p>
           {gem.note && <p className="text-xs text-foreground/90 mt-2 leading-relaxed">{gem.note}</p>}
         </div>
@@ -146,7 +156,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         </p>
         <p className="text-xs text-gold font-medium italic">{gem.mantra}</p>
         <p className="text-[10px] text-muted mt-0.5">
-          {t("kundli.gemstone.mantraCount", { times: gem.mantraCount.toLocaleString() })}
+          {t("kundli.gemstone.mantraCount", { times: gem.mantraPerDay, days: gem.mantraDays })}
         </p>
       </div>
 
@@ -155,7 +165,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         <div>
           <p className="text-[10px] font-semibold text-emerald-400 mb-1">{t("kundli.gemstone.dos")}</p>
           <ul className="space-y-1">
-            {gem.dos.map((d, i) => (
+            {dos.map((d, i) => (
               <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
                 <span className="text-emerald-400 shrink-0">+</span>{d}
               </li>
@@ -165,7 +175,7 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         <div>
           <p className="text-[10px] font-semibold text-red-400 mb-1">{t("kundli.gemstone.donts")}</p>
           <ul className="space-y-1">
-            {gem.donts.map((d, i) => (
+            {donts.map((d, i) => (
               <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
                 <span className="text-red-400 shrink-0">−</span>{d}
               </li>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, ApiError, type HouseInsightResult } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -17,6 +18,7 @@ const POLL_TIMEOUT_MS = 60_000;
  */
 export function useHouseInsight(house: number | null) {
   const { firebaseUser, loading: authLoading } = useAuth();
+  const { i18n } = useTranslation();
   const [state, setState] = useState<HouseInsightState>("loading");
   const [data, setData] = useState<HouseInsightResult | null>(null);
 
@@ -35,7 +37,7 @@ export function useHouseInsight(house: number | null) {
 
     const poll = () => {
       api
-        .houseInsight(house)
+        .houseInsight(house, i18n.language)
         .then((res) => {
           if (cancelled) return;
           if (res.status === "ready") {
@@ -72,7 +74,7 @@ export function useHouseInsight(house: number | null) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, house]);
+  }, [authLoading, firebaseUser, house, i18n.language]);
 
   return { state, data };
 }

@@ -2,16 +2,23 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Send, Wallet } from "lucide-react";
+import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { streamChat, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
+import posthog from "posthog-js";
+import { streamChat, sendChatFeedback, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
-import SegmentedToggle from "@/components/ui/SegmentedToggle";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { getTtsBackend } from "@/lib/tts";
+import { LANGUAGES, type LangCode } from "@/providers/language-provider";
+import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import { useKundli } from "@/hooks/useKundli";
+import { getUserMoonSign } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
 const CHAT_MESSAGE_COST = 2;
@@ -19,11 +26,14 @@ const CHAT_MESSAGE_COST = 2;
 const LOW_CREDIT_THRESHOLD = 8;
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   isError?: boolean;
   /** Canned "recharge to continue" reply — sent without ever hitting the AI. */
   isOutOfCredit?: boolean;
+  /** The canned persona-intro bubble, not a real AI reply — no listen/feedback icons on it. */
+  isGreeting?: boolean;
 }
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
@@ -82,24 +92,32 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
   return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
 }
 
-export default function ChatConversation() {
-  const { t } = useTranslation();
+export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
+  const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
   const canAfford = (user?.credits ?? 0) >= CHAT_MESSAGE_COST;
   const [messages, setMessages] = useState<Message[]>([
     {
+      id: crypto.randomUUID(),
       role: "assistant",
       content: t("aiChatPage.personaGreeting", {
         name: t(ASTROLOGER.nameKey),
         specialty: t(ASTROLOGER.specialtyKey),
       }),
+      isGreeting: true,
     },
   ]);
+  // Already-fetched-elsewhere kundli data (moon sign etc.) — reused here
+  // purely to personalize the opening greeting, no extra LLM call involved.
+  const { kundli } = useKundli();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
-  const [detailLevel, setDetailLevel] = useState<ChatDetailLevel>("direct");
+  // All chats use "direct" mode; the Direct/Details toggle was removed.
+  const detailLevel: ChatDetailLevel = "direct";
   const bottomRef = useRef<HTMLDivElement>(null);
+  
+  const sessionIdRef = useRef<string | undefined>(undefined);
 
   // Cycle the "thinking" label while waiting for the first token, so the
   // wait doesn't feel like a stalled/frozen request.
@@ -121,6 +139,133 @@ export default function ChatConversation() {
   const historyRef = useRef<ChatHistoryTurn[]>([]);
   const summaryRef = useRef<string | undefined>(undefined);
 
+  // Per-message TTS + feedback state. Keyed by client-generated message id
+  // (see the Message interface above) rather than array index, since index
+  // keys shift as the conversation grows.
+  const ttsBackend = getTtsBackend();
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [voteMap, setVoteMap] = useState<Record<string, "up" | "down">>({});
+  const [missingVoiceLang, setMissingVoiceLang] = useState<LangCode | null>(null);
+
+  const handleSpeak = useCallback(async (msg: Message, spokenText: string) => {
+    if (!ttsBackend) return;
+    if (speakingId === msg.id) {
+      ttsBackend.stop();
+      setSpeakingId(null);
+      return;
+    }
+
+    const lang = i18n.language as LangCode;
+    const hasVoice = await ttsBackend.hasVoiceFor(lang);
+    if (!hasVoice) {
+      setMissingVoiceLang(lang);
+      return;
+    }
+
+    setSpeakingId(msg.id);
+    await ttsBackend.speak(spokenText, lang);
+    setSpeakingId((current) => (current === msg.id ? null : current));
+  }, [ttsBackend, speakingId, i18n.language]);
+
+  useEffect(() => {
+    return () => ttsBackend?.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleVote = useCallback((msg: Message, questionText: string | undefined, vote: "up" | "down") => {
+    if (voteMap[msg.id]) return;
+    setVoteMap((prev) => ({ ...prev, [msg.id]: vote }));
+
+    if (posthog.__loaded) {
+      posthog.capture("chat_feedback", {
+        vote,
+        locale: i18n.language,
+        session_id: sessionIdRef.current,
+      });
+    }
+
+    sendChatFeedback({
+      vote,
+      sessionId: sessionIdRef.current,
+      locale: i18n.language,
+      ...(vote === "down" ? { question: questionText, answer: msg.content } : {}),
+    });
+  }, [voteMap, i18n.language]);
+
+  useEffect(() => {
+    // Check if we have a sessionId in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sid = urlParams.get("sessionId");
+    
+    if (sid && !sessionIdRef.current) {
+      sessionIdRef.current = sid;
+      // Fetch session from backend
+      const auth = getFirebaseAuth();
+      auth.currentUser?.getIdToken().then((token) => {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in").replace(/\/$/, "");
+        fetch(`${baseUrl}/v1/chat/sessions/${sid}`, {
+          headers: {
+            Authorization: `Bearer ${token || ""}`,
+          },
+        })
+          .then((res) => {
+            if (res.ok) return res.json();
+            throw new Error("Failed to load session");
+          })
+          .then((session) => {
+            if (session && session.history) {
+              historyRef.current = session.history;
+              summaryRef.current = session.summary;
+              const loadedMessages: Message[] = [
+                {
+                  id: crypto.randomUUID(),
+                  role: "assistant",
+                  content: t("aiChatPage.personaGreeting", {
+                    name: t(ASTROLOGER.nameKey),
+                    specialty: t(ASTROLOGER.specialtyKey),
+                  }),
+                  isGreeting: true,
+                },
+              ];
+              for (const h of session.history) {
+                loadedMessages.push({
+                  id: crypto.randomUUID(),
+                  role: h.role,
+                  content: h.content,
+                });
+              }
+              setMessages(loadedMessages);
+            }
+          })
+          .catch(console.error);
+      });
+    }
+  }, [t]);
+
+  // Personalize the opening greeting once the user's kundli is available —
+  // e.g. "I see your Moon in Rohini" instead of a generic hello. Only touches
+  // the greeting while the chat is still in its pristine just-opened state
+  // (no loaded session, nothing sent yet), so it never rewrites a real
+  // conversation already in progress.
+  useEffect(() => {
+    if (sessionIdRef.current) return;
+    const moonSignEnglish = getUserMoonSign(kundli);
+    if (!moonSignEnglish) return;
+    setMessages((prev) => {
+      if (prev.length !== 1 || !prev[0]?.isGreeting) return prev;
+      return [
+        {
+          ...prev[0],
+          content: t("aiChatPage.personaGreetingWithMoon", {
+            name: t(ASTROLOGER.nameKey),
+            specialty: t(ASTROLOGER.specialtyKey),
+            moonSign: zodiacSignLabel(t, moonSignEnglish),
+          }),
+        },
+      ];
+    });
+  }, [kundli, t]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streaming]);
@@ -135,8 +280,8 @@ export default function ChatConversation() {
     if (!canAfford) {
       setMessages((prev) => [
         ...prev,
-        { role: "user", content: msg },
-        { role: "assistant", content: t("aiChatPage.outOfCreditReply"), isOutOfCredit: true },
+        { id: crypto.randomUUID(), role: "user", content: msg },
+        { id: crypto.randomUUID(), role: "assistant", content: t("aiChatPage.outOfCreditReply"), isOutOfCredit: true },
       ]);
       setInput("");
       return;
@@ -145,8 +290,8 @@ export default function ChatConversation() {
     // Add user message + empty assistant placeholder in one update
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: msg },
-      { role: "assistant", content: "" },
+      { id: crypto.randomUUID(), role: "user", content: msg },
+      { id: crypto.randomUUID(), role: "assistant", content: "" },
     ]);
     setInput("");
     setStreaming(true);
@@ -158,7 +303,10 @@ export default function ChatConversation() {
       const stream = streamChat(msg, {
         history: historyForThisTurn,
         summary: summaryForThisTurn,
+        sessionId: sessionIdRef.current,
         detailLevel,
+        chartId,
+        locale: i18n.language,
       });
       let fullContent = "";
       let hadError = false;
@@ -195,6 +343,12 @@ export default function ChatConversation() {
             return next;
           });
           break;
+        } else if (event.type === "session_id") {
+          sessionIdRef.current = event.data.sessionId;
+          // Update URL without reloading
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.set("sessionId", event.data.sessionId);
+          window.history.replaceState({}, "", newUrl.toString());
         } else if (event.type === "done") {
           break;
         }
@@ -245,7 +399,7 @@ export default function ChatConversation() {
             isError: true,
           };
         } else {
-          next.push({ role: "assistant", content: errorMsg, isError: true });
+          next.push({ id: crypto.randomUUID(), role: "assistant", content: errorMsg, isError: true });
         }
         return next;
       });
@@ -263,16 +417,17 @@ export default function ChatConversation() {
   // astrologer already has context instead of starting from a blank chat.
   useEffect(() => {
     const pending = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
-    if (!pending) return;
-    sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
-    sendMessage(pending);
+    if (pending) {
+      sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
+      sendMessage(pending);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <main className="min-h-screen pb-32 flex flex-col" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-52 flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header — the astrologer's identity */}
-      <div className="px-5 pt-10 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gold font-display">
             {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
@@ -282,20 +437,10 @@ export default function ChatConversation() {
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
           {t("aiChatPage.disclosure")}
         </p>
-        <div className="flex justify-center mt-3">
-          <SegmentedToggle
-            value={detailLevel}
-            onChange={setDetailLevel}
-            options={[
-              { value: "direct", label: t("aiChatPage.toggle.direct") },
-              { value: "details", label: t("aiChatPage.toggle.details") },
-            ]}
-          />
-        </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
+      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-10">
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => {
             // The empty assistant placeholder pushed at send-time renders as a
@@ -310,7 +455,7 @@ export default function ChatConversation() {
               msg.role === "assistant" && !isLastStreaming ? splitFollowUp(msg.content) : { text: msg.content, followUp: null };
             return (
             <motion.div
-              key={i}
+              key={msg.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -358,6 +503,42 @@ export default function ChatConversation() {
                   )}
                 </div>
               </div>
+              {/* Listen / feedback icons — only on settled, real assistant replies (not the canned greeting). */}
+              {msg.role === "assistant" && !isLastStreaming && !msg.isError && !msg.isOutOfCredit && !msg.isGreeting && (
+                <div className="ml-9 mt-1.5 flex flex-wrap items-center gap-3">
+                  {ttsBackend && (
+                    <button
+                      onClick={() => handleSpeak(msg, assistantText)}
+                      aria-label={t(speakingId === msg.id ? "aiChatPage.stopListening" : "aiChatPage.listen")}
+                      className="transition-colors"
+                      style={{ color: speakingId === msg.id ? "var(--gold, #eab308)" : "var(--text-muted)" }}
+                    >
+                      {speakingId === msg.id ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleVote(msg, messages[i - 1]?.role === "user" ? messages[i - 1]!.content : undefined, "up")}
+                    disabled={!!voteMap[msg.id]}
+                    aria-label={t("aiChatPage.helpful")}
+                    className="transition-colors disabled:opacity-40"
+                    style={{ color: voteMap[msg.id] === "up" ? "#22c55e" : "var(--text-muted)" }}
+                  >
+                    <ThumbsUp size={15} fill={voteMap[msg.id] === "up" ? "currentColor" : "none"} />
+                  </button>
+                  <button
+                    onClick={() => handleVote(msg, messages[i - 1]?.role === "user" ? messages[i - 1]!.content : undefined, "down")}
+                    disabled={!!voteMap[msg.id]}
+                    aria-label={t("aiChatPage.notHelpful")}
+                    className="transition-colors disabled:opacity-40"
+                    style={{ color: voteMap[msg.id] === "down" ? "#ef4444" : "var(--text-muted)" }}
+                  >
+                    <ThumbsDown size={15} fill={voteMap[msg.id] === "down" ? "currentColor" : "none"} />
+                  </button>
+                  {voteMap[msg.id] && (
+                    <span className="text-[10px] text-[var(--text-muted)]">{t("aiChatPage.feedbackThanks")}</span>
+                  )}
+                </div>
+              )}
               {/* Suggested follow-up — tappable, sends it as the next message */}
               {followUp && (
                 <button
@@ -372,6 +553,22 @@ export default function ChatConversation() {
             );
           })}
         </AnimatePresence>
+
+        {/* Conversation starters — only before the user has sent anything, so a
+            blank input box isn't the first thing a new chat asks of them. */}
+        {messages.length === 1 && !streaming && (
+          <div className="flex flex-wrap gap-2 ml-9">
+            {(["suggestion1", "suggestion2", "suggestion3", "suggestion4", "suggestion5"] as const).map((key) => (
+              <button
+                key={key}
+                onClick={() => sendMessage(t(`aiChatPage.${key}`))}
+                className="text-xs text-gold/90 border border-gold/25 rounded-full px-3 py-2 hover:bg-gold/10 transition-colors"
+              >
+                {t(`aiChatPage.${key}`)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Typing indicator — shown only when streaming hasn't started producing content yet */}
         {streaming && messages[messages.length - 1]?.role === "assistant" && !messages[messages.length - 1]?.content && (
@@ -417,7 +614,7 @@ export default function ChatConversation() {
       </div>
 
       {/* Input bar */}
-      <div className="fixed bottom-16 left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
+      <div className="fixed bottom-[calc(var(--tab-bar-h)+1rem)] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
           {!canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">
@@ -461,6 +658,43 @@ export default function ChatConversation() {
           </div>
         </div>
       </div>
+
+      {missingVoiceLang && (
+        <BottomSheetModal
+          onClose={() => setMissingVoiceLang(null)}
+          closeLabel={t("common.close")}
+          header={<h2 className="text-base font-semibold text-gold">{t("aiChatPage.voiceMissingTitle")}</h2>}
+        >
+          <p className="text-sm text-[var(--text-muted)] mb-4">
+            {t("aiChatPage.voiceMissingBody", {
+              language: LANGUAGES.find((l) => l.code === missingVoiceLang)?.native ?? missingVoiceLang,
+            })}
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                // market:// resolves to the Play Store app on Android; on a
+                // plain web browser (or if no app handles the scheme) nothing
+                // happens, so fall back to the https URL after a short delay.
+                const playUrl = "https://play.google.com/store/apps/details?id=com.google.android.tts";
+                window.location.href = "market://details?id=com.google.android.tts";
+                setTimeout(() => window.open(playUrl, "_blank"), 800);
+                setMissingVoiceLang(null);
+              }}
+              className="flex-1 h-11 rounded-full bg-yellow-500 text-black text-sm font-semibold"
+            >
+              {t("aiChatPage.voiceMissingDownload")}
+            </button>
+            <button
+              onClick={() => setMissingVoiceLang(null)}
+              className="flex-1 h-11 rounded-full border text-sm"
+              style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+            >
+              {t("aiChatPage.voiceMissingCancel")}
+            </button>
+          </div>
+        </BottomSheetModal>
+      )}
     </main>
   );
 }

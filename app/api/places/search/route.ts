@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isRateLimited, clientIp } from '@/lib/rate-limit';
 
 interface PostOffice {
   Name: string;
@@ -13,6 +14,10 @@ interface IndiaPostResponse {
 }
 
 export async function GET(req: NextRequest) {
+  if (isRateLimited(`places-search:${clientIp(req)}`, 30, 60_000)) {
+    return NextResponse.json([], { status: 429 });
+  }
+
   const input = req.nextUrl.searchParams.get('input')?.trim();
   if (!input || input.length < 2) return NextResponse.json([]);
 

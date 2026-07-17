@@ -7,7 +7,7 @@
 import { getFirebaseAuth } from "./firebase";
 
 const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://13.232.179.137:3000"
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
 ).replace(/\/$/, "");
 
 // ─── Error type ──────────────────────────────────────────────────────────────
@@ -145,7 +145,12 @@ export interface ChatErrorEvent {
   data: { message: string };
 }
 
-export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent;
+export interface ChatSessionIdEvent {
+  type: "session_id";
+  data: { sessionId: string };
+}
+
+export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent | ChatSessionIdEvent;
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
@@ -217,6 +222,32 @@ export async function matchmaking(
 }
 
 /**
+ * POST /v1/chat/feedback — thumbs up/down on an assistant reply. `up` just
+ * increments a counter; `down` also saves the question/answer for review and
+ * pings the team's Telegram alert chat server-side.
+ * Never throws — a failed vote must never surface as a chat error. Callers
+ * should call this fire-and-forget.
+ */
+export async function sendChatFeedback(opts: {
+  vote: "up" | "down";
+  sessionId?: string;
+  question?: string;
+  answer?: string;
+  locale?: string;
+}): Promise<void> {
+  try {
+    const headers = await authHeaders();
+    await fetch(`${BASE_URL}/v1/chat/feedback`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(opts),
+    });
+  } catch {
+    // best-effort — see doc comment above
+  }
+}
+
+/**
  * POST /v1/chat — SSE streaming chat with the AI Jyotish Scholar.
  * Yields parsed SSE events: { type: "token"|"done"|"error", data }.
  * Groups tokens into ~2-line chunks for better chat-like UX.
@@ -229,8 +260,12 @@ export async function* streamChat(
     history?: ChatHistoryTurn[];
     /** Running summary returned by a prior turn's `summary` event. */
     summary?: string;
+    /** Existing session ID to continue. */
+    sessionId?: string;
     /** "direct" (short, default) or "details" (long-form, structured). */
     detailLevel?: ChatDetailLevel;
+    /** User's Kundli chart ID for grounding AI responses in birth chart data. */
+    chartId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -251,6 +286,8 @@ export async function* streamChat(
         history: opts?.history ?? [],
         detailLevel: opts?.detailLevel ?? "direct",
         ...(opts?.summary ? { summary: opts.summary } : {}),
+        ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
+        ...(opts?.chartId ? { chartId: opts.chartId } : {}),
       }),
     });
 

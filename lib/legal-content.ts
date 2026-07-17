@@ -12,10 +12,13 @@
  * and ConsentGate (`terms: { version }`, `privacy: { version }`) and with the
  * backend GET /legal/current response.
  *
- * ⚠ Bracketed [PLACEHOLDER] values (legal entity, registered address,
- * grievance officer) MUST be filled in before these documents are legally
- * effective, and the whole text should be reviewed by qualified Indian
- * counsel — it is a considered draft, not legal advice.
+ * Legal entity (Aroha Astrology), registered office (Bangalore, India), and
+ * grievance contact (subir@arohaastrology.in) are filled in below. The
+ * grievance contact is deliberately email-only for now (no named officer) —
+ * IT Rules 2021 contemplates a named Grievance Officer; a name + designation
+ * is a known open item to add here once decided (2026-07-17). The whole text
+ * should also be reviewed by qualified Indian counsel — it is a considered
+ * draft, not legal advice.
  */
 
 export const LEGAL_VERSION = "1.0.0";
@@ -41,7 +44,7 @@ export const TERMS: LegalDoc = {
   slug: "terms",
   title: "Terms of Service",
   intro:
-    "These Terms of Service (“Terms”) are an electronic record under the Information Technology Act, 2000 and the rules made thereunder, and constitute a legally binding agreement between you and [AROHA LEGAL ENTITY NAME], having its registered office at [REGISTERED ADDRESS, INDIA] (“Aroha”, “we”, “us”). By creating an account or using the Aroha Astrology application and services (the “Service”), you accept these Terms. This electronic record does not require a physical or digital signature (Section 10A, IT Act, 2000).",
+    "These Terms of Service (“Terms”) are an electronic record under the Information Technology Act, 2000 and the rules made thereunder, and constitute a legally binding agreement between you and Aroha Astrology, having its registered office at Bangalore, India (“Aroha”, “we”, “us”). By creating an account or using the Aroha Astrology application and services (the “Service”), you accept these Terms. This electronic record does not require a physical or digital signature (Section 10A, IT Act, 2000).",
   sections: [
     {
       heading: "1. Eligibility",
@@ -121,13 +124,13 @@ export const TERMS: LegalDoc = {
     {
       heading: "13. Governing Law and Jurisdiction",
       paragraphs: [
-        "These Terms are governed by the laws of India. Subject to any mandatory consumer-protection forum available to you, the courts at [CITY, STATE], India shall have exclusive jurisdiction.",
+        "These Terms are governed by the laws of India. Subject to any mandatory consumer-protection forum available to you, the courts at Bangalore, Karnataka, India shall have exclusive jurisdiction.",
       ],
     },
     {
       heading: "14. Grievance Redressal",
       paragraphs: [
-        "For complaints or grievances about the Service or these Terms, contact our Grievance Officer: [GRIEVANCE OFFICER NAME], email: [grievance@aroha.app]. We acknowledge grievances within 72 hours and aim to resolve them within 15 working days, consistent with the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 and the DPDP Act, 2023.",
+        "For complaints or grievances about the Service or these Terms, contact us at: subir@arohaastrology.in. We acknowledge grievances within 72 hours and aim to resolve them within 15 working days, consistent with the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 and the DPDP Act, 2023.",
       ],
     },
   ],
@@ -141,7 +144,7 @@ export const PRIVACY: LegalDoc = {
   slug: "privacy",
   title: "Privacy Policy",
   intro:
-    "This Privacy Policy is the notice required under Section 5 of the Digital Personal Data Protection Act, 2023 (“DPDP Act”). [AROHA LEGAL ENTITY NAME], registered office [REGISTERED ADDRESS, INDIA], is the Data Fiduciary for personal data processed through the Aroha Astrology application (the “Service”). It also reflects reasonable security practices under Section 43A of the IT Act, 2000 and the SPDI Rules, 2011.",
+    "This Privacy Policy is the notice required under Section 5 of the Digital Personal Data Protection Act, 2023 (“DPDP Act”). Aroha Astrology, registered office Bangalore, India, is the Data Fiduciary for personal data processed through the Aroha Astrology application (the “Service”). It also reflects reasonable security practices under Section 43A of the IT Act, 2000 and the SPDI Rules, 2011.",
   sections: [
     {
       heading: "1. Personal Data We Collect",
@@ -206,7 +209,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: "10. Grievances and the Data Protection Board",
       paragraphs: [
-        "Grievance Officer: [GRIEVANCE OFFICER NAME], email: [grievance@aroha.app], address: [REGISTERED ADDRESS, INDIA]. We acknowledge within 72 hours and aim to resolve within 15 working days. If you are unsatisfied after exhausting this mechanism, you may complain to the Data Protection Board of India under the DPDP Act.",
+        "Grievances: contact us at subir@arohaastrology.in, address: Bangalore, India. We acknowledge within 72 hours and aim to resolve within 15 working days. If you are unsatisfied after exhausting this mechanism, you may complain to the Data Protection Board of India under the DPDP Act.",
       ],
     },
     {

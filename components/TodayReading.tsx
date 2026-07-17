@@ -34,6 +34,14 @@ export default function TodayReading() {
     );
   }
 
+  if (state === "empty") {
+    return (
+      <Card className="p-5 border-gold/10 text-center">
+        <p className="text-sm text-muted">{t("horoscope.personalizedEmpty")}</p>
+      </Card>
+    );
+  }
+
   // Guarded the same way as the /horoscope page's PersonalizedCard — a
   // truthy `structured` with no `categories.overall` (a still-inconsistent
   // stale row) must not render/crash here either.

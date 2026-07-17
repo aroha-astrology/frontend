@@ -9,7 +9,12 @@ import BrandLogo from "./ui/BrandLogo";
 const SPLASH_SHOWN_KEY = "aroha_splash_shown";
 
 export default function SplashScreen({ onDone }: { onDone?: () => void } = {}) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof sessionStorage !== "undefined") {
+      return sessionStorage.getItem(SPLASH_SHOWN_KEY) !== "1";
+    }
+    return true;
+  });
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -51,19 +56,6 @@ export default function SplashScreen({ onDone }: { onDone?: () => void } = {}) {
         >
           {/* Subtle star particle effect behind the wheel */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent opacity-50" />
-
-          {/* Massive rotating Zodiac Wheel in the background — screen-blend
-              brightens against the dark splash; on the light splash that blend
-              mode washes it out to nothing, so switch to multiply there. */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-            className={`absolute flex items-center justify-center pointer-events-none ${
-              isLight ? "opacity-15 mix-blend-multiply" : "opacity-20 mix-blend-screen"
-            }`}
-          >
-            <ZodiacSilhouette src="/zodiac_wheel.png" className="w-[800px] h-[800px] text-gold drop-shadow-[0_0_15px_rgba(223,181,100,0.3)]" />
-          </motion.div>
 
           {/* Central Logo and Branding */}
           <div className="relative z-10 flex flex-col items-center">

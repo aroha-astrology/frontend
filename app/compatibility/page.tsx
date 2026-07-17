@@ -201,7 +201,7 @@ export default function CompatibilityPage() {
   );
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-10">
         <motion.h1
           initial={{ opacity: 0 }}

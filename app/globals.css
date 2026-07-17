@@ -20,10 +20,20 @@
   --secondary: #121316;
 
   --text-muted: #a1a1aa;
+
+  /* Themes the native date/time picker popups + their field text. */
+  color-scheme: dark;
+
+  /* ── Layout metrics (theme-independent — do not duplicate in .light) ── */
+  /* 0px where there is no system nav bar, so --tab-bar-h collapses to 5rem. */
+  --sab: env(safe-area-inset-bottom, 0px);
+  --tab-bar-h: calc(5rem + var(--sab));
 }
 
 /* ── Light theme — luxury editorial, ivory paper ── */
 .light {
+  color-scheme: light;
+
   --background: #FAF7F0;
   --foreground: #1B1B1B;
   --surface: #FFFFFF;

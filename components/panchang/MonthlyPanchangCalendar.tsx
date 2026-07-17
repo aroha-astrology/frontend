@@ -151,17 +151,31 @@ export default function MonthlyPanchangCalendar({
               }`}
             >
               <span>{cell.day}</span>
-              {festivals.length > 0 ? (
-                <span className="text-[9px]">{festivals[0].emoji}</span>
-              ) : cell.isFullMoon ? (
-                <span className="text-[9px]">🌕</span>
-              ) : cell.isNewMoon ? (
-                <span className="text-[9px]">🌑</span>
-              ) : cell.isEkadashi ? (
-                <span className="text-[9px]">🪷</span>
-              ) : adhik ? (
-                <span className="text-[9px] opacity-70">🚫</span>
-              ) : null}
+              {(() => {
+                // Every marker shown here must use the SAME symbol as its legend
+                // entry below — festivals carry their own specific emoji in data
+                // (e.g. Raksha Bandhan is 🪢), so the grid uses a generic ✨ for
+                // "festival" instead, matching the legend exactly. A day can
+                // satisfy more than one of these at once (e.g. a festival that
+                // also falls on Ekadashi, or any marker inside an Adhik Maas
+                // month), so all that apply are shown, not just the first.
+                const icons: { symbol: string; dimmed?: boolean }[] = [];
+                if (festivals.length > 0) icons.push({ symbol: "✨" });
+                if (cell.isFullMoon) icons.push({ symbol: "🌕" });
+                if (cell.isNewMoon) icons.push({ symbol: "🌑" });
+                if (cell.isEkadashi) icons.push({ symbol: "🪷" });
+                if (adhik) icons.push({ symbol: "🚫", dimmed: true });
+                if (icons.length === 0) return null;
+                return (
+                  <span className="flex items-center gap-0.5 leading-none">
+                    {icons.map((icon, idx) => (
+                      <span key={idx} className={`text-[9px] ${icon.dimmed ? "opacity-70" : ""}`}>
+                        {icon.symbol}
+                      </span>
+                    ))}
+                  </span>
+                );
+              })()}
             </button>
           );
         })}

@@ -13,12 +13,12 @@
  * backend GET /legal/current response.
  *
  * Legal entity (Aroha Astrology), registered office (Bangalore, India), and
- * grievance contact (subir@arohaastrology.in) are filled in below. Note the
- * grievance contact is deliberately unnamed (email only, no named officer)
- * — IT Rules 2021 contemplates a named Grievance Officer, so confirm this
- * is acceptable before relying on it. The whole text should also be
- * reviewed by qualified Indian counsel — it is a considered draft, not
- * legal advice.
+ * grievance contact (subir@arohaastrology.in) are filled in below. The
+ * grievance contact is deliberately email-only for now (no named officer) —
+ * IT Rules 2021 contemplates a named Grievance Officer; a name + designation
+ * is a known open item to add here once decided (2026-07-17). The whole text
+ * should also be reviewed by qualified Indian counsel — it is a considered
+ * draft, not legal advice.
  */
 
 export const LEGAL_VERSION = "1.0.0";

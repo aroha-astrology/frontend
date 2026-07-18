@@ -9,19 +9,16 @@ import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
-import { api, ApiError, type CreditPack, type CouponValidation } from "@/lib/api";
+import { formatRupees } from "@/lib/format";
+import WalletBalance from "@/components/ui/WalletBalance";
+import { api, ApiError, type TopUpAmount, type CouponValidation } from "@/lib/api";
 
-function formatRupees(paise: number): string {
-  const rupees = paise / 100;
-  return `₹${Number.isInteger(rupees) ? rupees : rupees.toFixed(2)}`;
-}
-
-function PackCard({
-  pack,
+function TopUpCard({
+  amount,
   selected,
   onSelect,
 }: {
-  pack: CreditPack;
+  amount: TopUpAmount;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -35,22 +32,14 @@ function PackCard({
           : "border-gold/15 bg-surface/40 hover:border-gold/35"
       }`}
     >
-      {pack.popular && (
+      {amount.popular && (
         <span className="absolute -top-2.5 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gold text-[#1a0e00]">
           {t("payment.popular")}
         </span>
       )}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Sparkles size={14} className="text-gold" />
-            <span className="text-base font-bold font-display text-foreground">
-              {pack.credits} {t("payment.creditsUnit")}
-            </span>
-          </div>
-          <p className="text-xs text-muted mt-1">{pack.label}</p>
-        </div>
-        <span className="text-lg font-bold text-gold">{formatRupees(pack.priceInPaise)}</span>
+      <div className="flex items-center gap-1.5">
+        <Sparkles size={14} className="text-gold" />
+        <span className="text-lg font-bold text-gold">{formatRupees(amount.amountPaise)}</span>
       </div>
     </button>
   );
@@ -61,9 +50,9 @@ export default function PaymentPage() {
   const router = useRouter();
   const { user, refresh: refreshUser } = useAuth();
 
-  const [packs, setPacks] = useState<CreditPack[]>([]);
+  const [amounts, setAmounts] = useState<TopUpAmount[]>([]);
   const [packsLoading, setPacksLoading] = useState(true);
-  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+  const [selectedAmountId, setSelectedAmountId] = useState<string | null>(null);
 
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
@@ -71,38 +60,38 @@ export default function PaymentPage() {
 
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ credits: number } | null>(null);
+  const [success, setSuccess] = useState<{ walletBalancePaise: number } | null>(null);
 
   useEffect(() => {
     api
-      .billingPacks()
-      .then(({ packs }) => {
-        setPacks(packs);
-        setSelectedPackId((prev) => prev ?? packs.find((p) => p.popular)?.id ?? packs[0]?.id ?? null);
+      .billingTopUpAmounts()
+      .then(({ amounts }) => {
+        setAmounts(amounts);
+        setSelectedAmountId((prev) => prev ?? amounts.find((p) => p.popular)?.id ?? amounts[0]?.id ?? null);
       })
-      .catch(() => setPacks([]))
+      .catch(() => setAmounts([]))
       .finally(() => setPacksLoading(false));
   }, []);
 
-  const selectedPack = packs.find((p) => p.id === selectedPackId) ?? null;
+  const selectedAmount = amounts.find((p) => p.id === selectedAmountId) ?? null;
   const couponApplied = couponResult?.valid === true;
   const discountPaise = couponApplied ? couponResult?.discountPaise ?? 0 : 0;
   const finalPaise = couponApplied
-    ? couponResult?.finalAmountPaise ?? selectedPack?.priceInPaise ?? 0
-    : selectedPack?.priceInPaise ?? 0;
+    ? couponResult?.finalAmountPaise ?? selectedAmount?.amountPaise ?? 0
+    : selectedAmount?.amountPaise ?? 0;
 
-  function selectPack(id: string) {
-    setSelectedPackId(id);
+  function selectAmount(id: string) {
+    setSelectedAmountId(id);
     setCouponCode("");
     setCouponResult(null);
     setPayError(null);
   }
 
   async function handleApplyCoupon() {
-    if (!selectedPack || !couponCode.trim()) return;
+    if (!selectedAmount || !couponCode.trim()) return;
     setCouponLoading(true);
     try {
-      const result = await api.validateCoupon(couponCode.trim(), selectedPack.id);
+      const result = await api.validateCoupon(couponCode.trim(), selectedAmount.id);
       setCouponResult(result);
     } catch {
       setCouponResult({ valid: false, code: couponCode.trim() });
@@ -117,11 +106,11 @@ export default function PaymentPage() {
   }
 
   async function handlePay() {
-    if (!selectedPack) return;
+    if (!selectedAmount) return;
     setPaying(true);
     setPayError(null);
     try {
-      const order = await api.checkout(selectedPack.id, couponApplied ? couponResult?.code : undefined);
+      const order = await api.checkout(selectedAmount.id, couponApplied ? couponResult?.code : undefined);
 
       let isNativeAndroid = false;
       try {
@@ -133,7 +122,7 @@ export default function PaymentPage() {
 
       if (isNativeAndroid) {
         const { PlayBilling } = await import("@/lib/play-billing");
-        const purchase = await PlayBilling.purchaseProduct({ productId: selectedPack.id });
+        const purchase = await PlayBilling.purchaseProduct({ productId: selectedAmount.id });
         await api.confirmGooglePlayOrder({
           purchaseToken: purchase.purchaseToken,
           productId: purchase.productId,
@@ -143,7 +132,7 @@ export default function PaymentPage() {
       }
 
       await refreshUser();
-      setSuccess({ credits: selectedPack.credits });
+      setSuccess({ walletBalancePaise: selectedAmount.amountPaise });
     } catch (err) {
       const isUserCancelled =
         err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
@@ -177,9 +166,7 @@ export default function PaymentPage() {
             <Wallet size={16} className="text-gold" />
             <span className="text-xs text-muted">{t("payment.currentBalance")}</span>
           </div>
-          <span className="text-lg font-bold text-gold">
-            {user?.credits ?? 0} {t("payment.creditsUnit")}
-          </span>
+          <WalletBalance paise={user?.walletBalancePaise ?? 0} size="md" />
         </Card>
 
         {success ? (
@@ -195,7 +182,7 @@ export default function PaymentPage() {
               {t("payment.successTitle")}
             </h2>
             <p className="text-sm text-muted mb-8">
-              {t("payment.successBody", { credits: success.credits })}
+              {t("payment.successBody", { amount: formatRupees(success.walletBalancePaise) })}
             </p>
             <button
               onClick={() => router.back()}
@@ -216,18 +203,18 @@ export default function PaymentPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 mb-6">
-                {packs.map((pack) => (
-                  <PackCard
-                    key={pack.id}
-                    pack={pack}
-                    selected={pack.id === selectedPackId}
-                    onSelect={() => selectPack(pack.id)}
+                {amounts.map((amount) => (
+                  <TopUpCard
+                    key={amount.id}
+                    amount={amount}
+                    selected={amount.id === selectedAmountId}
+                    onSelect={() => selectAmount(amount.id)}
                   />
                 ))}
               </div>
             )}
 
-            {selectedPack && (
+            {selectedAmount && (
               <Card className="p-4 mb-4">
                 {/* Coupon */}
                 <div className="mb-4">
@@ -270,7 +257,7 @@ export default function PaymentPage() {
                 <div className="border-t border-gold/10 pt-3 space-y-1.5">
                   <div className="flex justify-between text-xs text-muted">
                     <span>{t("payment.packPrice")}</span>
-                    <span>{formatRupees(selectedPack.priceInPaise)}</span>
+                    <span>{formatRupees(selectedAmount.amountPaise)}</span>
                   </div>
                   {discountPaise > 0 && (
                     <div className="flex justify-between text-xs text-emerald-400">
@@ -292,7 +279,7 @@ export default function PaymentPage() {
 
             <button
               onClick={handlePay}
-              disabled={!selectedPack || paying}
+              disabled={!selectedAmount || paying}
               className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
             >
               {paying ? (
@@ -301,7 +288,7 @@ export default function PaymentPage() {
                   {t("payment.processing")}
                 </>
               ) : (
-                selectedPack && t("payment.payButton", { amount: formatRupees(finalPaise).replace("₹", "") })
+                selectedAmount && t("payment.payButton", { amount: formatRupees(finalPaise).replace("₹", "") })
               )}
             </button>
 

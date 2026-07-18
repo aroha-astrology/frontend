@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { Lock, Sparkles, ChevronRight } from 'lucide-react';
 import Card from './Card';
+import { formatRupees } from '@/lib/format';
 
 interface HouseData {
   house: number;
@@ -17,7 +18,7 @@ interface HouseGridProps {
   unlockedHouses: number[];
   onHouseClick: (house: HouseData) => void;
   className?: string;
-  credits: number;
+  balancePaise: number;
 }
 
 const PLANET_GLYPHS: Record<string, string> = {
@@ -25,7 +26,7 @@ const PLANET_GLYPHS: Record<string, string> = {
   Jupiter: '♃', Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋',
 };
 
-export default function HouseGrid({ houses, unlockedHouses, onHouseClick, credits, className = '' }: HouseGridProps) {
+export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balancePaise, className = '' }: HouseGridProps) {
   const { t } = useTranslation();
   const ordinals = t('kundli.house.ordinals', { returnObjects: true }) as string[];
 
@@ -47,7 +48,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, credit
          <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-emerald-400" />
             <span className="text-xs text-emerald-200">
-               {t('kundli.house.creditsAvailable', { credits })}
+               {t('kundli.house.creditsAvailable', { amount: formatRupees(balancePaise) })}
             </span>
          </div>
          <span className="text-[10px] text-emerald-400/80 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">

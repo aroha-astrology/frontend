@@ -105,10 +105,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(freshUser);
   };
 
-  /** Activate a profile and refresh local profile state. `User` has no `activeProfileId` field, so `profiles` alone is the source of truth for the active profile. */
+  /**
+   * Activate a profile and refresh local profile state. `User` has no
+   * `activeProfileId` field, so `profiles` alone is the source of truth for
+   * the active profile.
+   *
+   * Deliberately does NOT go through `refreshProfiles()` — that helper
+   * swallows fetch errors (correct for the auth-boot-flow call site), which
+   * would let this resolve "successfully" even if the post-activate refetch
+   * failed, leaving `profiles`/`activeProfile` silently stale. Here the
+   * refetch is unguarded so a failure rejects this promise and the caller
+   * (e.g. a profile switcher) can show an error/retry instead.
+   */
   const switchProfile = async (id: string) => {
     await api.activateProfile(id);
-    await refreshProfiles();
+    setProfiles(await api.listProfiles());
   };
 
   const signOut = async () => {

@@ -120,7 +120,8 @@ export type ProfileRelationship =
 
 /** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
 export interface Profile {
-  id: string; // literally 'primary' for the primary/self profile, else a uuid
+  /** Literally the string 'primary' for the account owner's own profile; a uuid for every added profile. */
+  id: string;
   isPrimary: boolean;
   /** Exactly one profile in the list has this true — the one currently driving kundli/horoscope/chat/etc. */
   isActive: boolean;
@@ -134,7 +135,13 @@ export interface Profile {
   createdAt: string; // ISO
 }
 
-/** POST /v1/profiles body — same birth-data shape as UpdateMeBody. `displayName` is the only required field. */
+/**
+ * POST /v1/profiles body — same birth-data fields as UpdateMeBody, with
+ * `displayName` as the only required one. Nullability differs in two spots
+ * though: `timeOfBirth` is nullable here (UpdateMeBody's isn't) and
+ * `placeOfBirth` is NOT nullable here (UpdateMeBody's is) — don't assume
+ * edit-profile form logic built against UpdateMeBody carries over 1:1.
+ */
 export interface CreateProfileBody {
   displayName: string;
   gender?: Gender;
@@ -625,11 +632,23 @@ export const api = {
   createProfile: (body: CreateProfileBody) =>
     request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
 
-  /** Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc. */
+  /**
+   * Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc.
+   * Throws ApiError with status 404 if `id` is unknown or not owned by this
+   * account. `useAuth()`'s `switchProfile()` already wraps this call with a
+   * profiles-list refresh (and propagates refresh failures) — call this
+   * directly only if you're intentionally opting out of that convenience.
+   */
   activateProfile: (id: string) =>
     request<Profile>(`/v1/profiles/${id}/activate`, { method: "POST", auth: true }),
 
-  /** Remove an added profile (uuid only — the primary profile can't be deleted). 404s if not found/not owned. */
+  /**
+   * Remove an added profile. `id` must be a uuid — the primary profile can't
+   * be deleted (passing 'primary', or an unknown/unowned uuid, 404s). This
+   * is the only enforcement; there's no compile-time guard against passing
+   * 'primary', so callers must check `!profile.isPrimary` before offering a
+   * delete action.
+   */
   deleteProfile: (id: string) =>
     request<void>(`/v1/profiles/${id}`, { method: "DELETE", auth: true }),
 

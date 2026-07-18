@@ -8,6 +8,7 @@ import { ArrowLeft, Pencil, Loader2, Sparkles } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
+import WalletBalance from "@/components/ui/WalletBalance";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
@@ -182,12 +183,10 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-gold" />
             <div>
-              <span className="text-[10px] text-muted uppercase tracking-wider block">
+              <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">
                 {t("payment.currentBalance")}
               </span>
-              <span className="text-base font-bold text-gold">
-                {user?.credits ?? 0} {t("payment.creditsUnit")}
-              </span>
+              <WalletBalance paise={user?.walletBalancePaise ?? 0} size="md" />
             </div>
           </div>
           <button

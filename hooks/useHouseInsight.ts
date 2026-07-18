@@ -17,7 +17,7 @@ const POLL_TIMEOUT_MS = 60_000;
  * requests for a house nobody is looking at.
  */
 export function useHouseInsight(house: number | null) {
-  const { firebaseUser, loading: authLoading } = useAuth();
+  const { firebaseUser, loading: authLoading, activeProfile } = useAuth();
   const { i18n } = useTranslation();
   const [state, setState] = useState<HouseInsightState>("loading");
   const [data, setData] = useState<HouseInsightResult | null>(null);
@@ -74,7 +74,7 @@ export function useHouseInsight(house: number | null) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, house, i18n.language]);
+  }, [authLoading, firebaseUser, house, i18n.language, activeProfile?.id]);
 
   return { state, data };
 }

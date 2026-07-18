@@ -17,7 +17,7 @@ const POLL_TIMEOUT_MS = 90_000;
  * changes (translate-on-read on the backend).
  */
 export function useGemstone(enabled: boolean) {
-  const { firebaseUser, loading: authLoading } = useAuth();
+  const { firebaseUser, loading: authLoading, activeProfile } = useAuth();
   const { i18n } = useTranslation();
   const [state, setState] = useState<GemstoneState>("idle");
   const [data, setData] = useState<GemstoneReportReady | null>(null);
@@ -74,7 +74,7 @@ export function useGemstone(enabled: boolean) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, enabled, i18n.language]);
+  }, [authLoading, firebaseUser, enabled, i18n.language, activeProfile?.id]);
 
   return { state, data };
 }

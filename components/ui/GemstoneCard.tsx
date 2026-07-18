@@ -195,6 +195,7 @@ export default function GemstoneCard() {
   const unlocked = user?.gemstoneUnlocked ?? false;
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   const { state, data } = useGemstone(unlocked);
 
@@ -203,6 +204,8 @@ export default function GemstoneCard() {
     if (!data?.gems) return [];
     return [...data.gems].sort((a, b) => Number(b.recommended) - Number(a.recommended));
   }, [data]);
+
+  const shownGems = expanded ? gems : gems.slice(0, 1);
 
   const handleUnlock = async () => {
     if (credits < UNLOCK_COST) {
@@ -294,10 +297,18 @@ export default function GemstoneCard() {
             <p className="text-xs text-foreground/90 leading-relaxed mb-4">{data.intro}</p>
           )}
           <div className="space-y-3">
-            {gems.map((gem) => (
+            {shownGems.map((gem) => (
               <GemRow key={gem.planet} gem={gem} />
             ))}
           </div>
+          {gems.length > 1 && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="mt-3 text-[11px] text-gold underline-offset-2 hover:underline"
+            >
+              {expanded ? t("kundli.gemstone.showLess") : t("kundli.gemstone.showAll", { count: gems.length })}
+            </button>
+          )}
           <p className="text-[9px] text-muted/70 text-center mt-4 leading-relaxed">
             {t("kundli.gemstone.disclaimer")}
           </p>

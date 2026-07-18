@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Sparkles,
   Trash2,
+  Wallet,
 } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -145,6 +146,9 @@ export default function SettingsPage() {
 
         {/* Account */}
         <SectionLabel>{t("settings.account")}</SectionLabel>
+        <div className="space-y-2.5 mb-2.5">
+          <SettingsLink href="/settings/history" icon={<Wallet size={16} />} label={t("settings.rechargeHistory")} />
+        </div>
         <Card className="p-1 mb-2.5">
           <button
             onClick={handleSignOut}

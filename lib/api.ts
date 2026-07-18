@@ -771,6 +771,9 @@ export const api = {
       body: params,
       auth: true,
     }),
+
+  /** The current user's own recharge/order history, most recent first. */
+  orderHistory: () => request<{ orders: Order[] }>("/v1/billing/orders", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

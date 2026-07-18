@@ -47,6 +47,18 @@ interface Answers {
 
 const TOTAL_STEPS = 9;
 
+/**
+ * The relationship-to-account-owner question, only reached in new-profile
+ * mode (`?mode=new-profile`). Deliberately fractional — it detours off the
+ * integer step sequence (between the existing "name" (2) and "DOB" (3)
+ * steps) so it can be inserted without renumbering any downstream step for
+ * the primary (non-new-profile) flow.
+ */
+const RELATIONSHIP_STEP = 2.5;
+
+/** Server-side cost (in credits) of POST /v1/profiles — see lib/api.ts `createProfile`. */
+const PROFILE_CREATION_COST = 20;
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isValidDob(v: string) {
@@ -67,6 +79,47 @@ function isoToDob(iso: string) {
 /** Native date inputs clamp to `max`, so a birth date can never be in the future. */
 function todayIso() {
   return new Date().toLocaleDateString("en-CA");
+}
+
+/**
+ * Maps the birth-data fields shared by both submit paths — the primary
+ * (`UpdateMeBody`) and new-profile (`CreateProfileBody`) branches of
+ * `handleConfirm` both accept this same shape, just as part of a larger,
+ * otherwise-different body. Mutates `body` in place; leaves each caller to
+ * set only the fields that differ between the two (displayName/relationship/
+ * addedWithConsent vs. locale/relationshipStatus/currentLocation/consent/etc).
+ */
+function applyBirthDataFields(
+  body: {
+    gender?: Gender;
+    dateOfBirth?: string;
+    timeOfBirth?: string | null;
+    placeOfBirth?: PlaceOfBirth | null;
+    birthTimeSource?: string;
+    birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  },
+  answers: Partial<Answers>,
+  resolvedPlace: PlaceOfBirth | null,
+) {
+  if (answers.gender) body.gender = answers.gender as Gender;
+  if (answers.dob) {
+    const [d, m, y] = answers.dob.split("/");
+    body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
+  }
+  if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
+  if (resolvedPlace) body.placeOfBirth = resolvedPlace;
+  if (answers.timeSource) {
+    const sourceMap: Record<string, string> = {
+      certificate: "birth_certificate",
+      hospital: "hospital_record",
+      family: "family_memory",
+      approximate: "unknown", // mapped from approximate source
+    };
+    body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
+  }
+  if (answers.accuracy) {
+    body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
+  }
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -164,8 +217,8 @@ function OnboardingPageInner() {
   };
 
   // Advance to next step after the user responds. `nextStep` overrides the
-  // default `s + 1` — used by new-profile mode to detour through the
-  // relationship sub-step (2.5) without renumbering any of the existing steps.
+  // default `s + 1` — used by new-profile mode to detour through
+  // RELATIONSHIP_STEP without renumbering any of the existing steps.
   const advance = async (ans: Partial<Answers>, userText: string, nextQ: string, nextStep?: number) => {
     setAnswers((a) => ({ ...a, ...ans }));
     userSay(userText);
@@ -196,8 +249,10 @@ function OnboardingPageInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Progress indicator (0-based step vs 1-9)
-  const progress = Math.min(step - 1, TOTAL_STEPS - 1);
+  // ── Progress indicator (0-based step vs 1-9). Math.floor absorbs
+  // RELATIONSHIP_STEP's fractional value so a dot still highlights as
+  // "current" on that screen; a no-op for every integer step.
+  const progress = Math.min(Math.floor(step) - 1, TOTAL_STEPS - 1);
 
   // ── Text submit (steps 2, 3, 4, 7)
   const handleTextSubmit = async () => {
@@ -206,11 +261,11 @@ function OnboardingPageInner() {
 
     if (step === 2) { // name
       if (isNewProfileMode) {
-        // Detour through the relationship sub-step (2.5) instead of going
-        // straight to DOB — inserted only for this mode, existing step
-        // numbers (3 onward) are untouched.
+        // Detour through the relationship sub-step instead of going straight
+        // to DOB — inserted only for this mode, existing step numbers (3
+        // onward) are untouched.
         const relationshipQ = t("onboarding.newProfile.relationshipQ").replace("{name}", val).replace("{{name}}", val);
-        await advance({ name: val }, val, relationshipQ, 2.5);
+        await advance({ name: val }, val, relationshipQ, RELATIONSHIP_STEP);
       } else {
         await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
       }
@@ -244,7 +299,7 @@ function OnboardingPageInner() {
     }, 800);
   };
 
-  // ── Relationship-to-account-owner (step 2.5 — new-profile mode only)
+  // ── Relationship-to-account-owner (RELATIONSHIP_STEP — new-profile mode only)
   const RELATIONSHIPS: { key: ProfileRelationship; label: string }[] = [
     { key: "partner", label: t("profileSwitcher.relationship.partner") },
     { key: "prospective_match", label: t("profileSwitcher.relationship.prospective_match") },
@@ -325,25 +380,7 @@ function OnboardingPageInner() {
     if (isNewProfileMode) {
       try {
         const body: CreateProfileBody = { displayName: answers.name! };
-        if (answers.gender) body.gender = answers.gender as Gender;
-        if (answers.dob) {
-          const [d, m, y] = answers.dob.split("/");
-          body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
-        }
-        if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
-        if (resolvedPlace) body.placeOfBirth = resolvedPlace;
-        if (answers.timeSource) {
-          const sourceMap: Record<string, string> = {
-            certificate: "birth_certificate",
-            hospital: "hospital_record",
-            family: "family_memory",
-            approximate: "unknown", // mapped from approximate source
-          };
-          body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
-        }
-        if (answers.accuracy) {
-          body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
-        }
+        applyBirthDataFields(body, answers, resolvedPlace);
         if (answers.relationship) {
           body.relationship = answers.relationship as ProfileRelationship;
         }
@@ -356,7 +393,7 @@ function OnboardingPageInner() {
         router.replace("/");
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {
-          setSubmitErr(t("onboarding.newProfile.insufficientCredits"));
+          setSubmitErr(t("onboarding.newProfile.insufficientCredits", { cost: PROFILE_CREATION_COST }));
         } else {
           setSubmitErr(t("onboarding.submitError"));
         }
@@ -368,26 +405,8 @@ function OnboardingPageInner() {
     try {
       const body: UpdateMeBody = {};
       if (answers.name) body.displayName = answers.name;
-      if (answers.gender) body.gender = answers.gender as Gender;
-      if (answers.dob) {
-        const [d, m, y] = answers.dob.split("/");
-        body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
-      }
-      if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
-      if (resolvedPlace) body.placeOfBirth = resolvedPlace;
+      applyBirthDataFields(body, answers, resolvedPlace);
       if (answers.language) body.locale = answers.language;
-      if (answers.timeSource) {
-        const sourceMap: Record<string, string> = {
-          certificate: "birth_certificate",
-          hospital: "hospital_record",
-          family: "family_memory",
-          approximate: "unknown", // mapped from approximate source
-        };
-        body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
-      }
-      if (answers.accuracy) {
-        body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
-      }
       if (answers.status) {
         const statusMap: Record<string, string> = {
           dating: "in_relationship",
@@ -556,8 +575,8 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 2.5: relationship-to-you (new-profile mode only) */}
-          {isNewProfileMode && step === 2.5 && (
+          {/* RELATIONSHIP_STEP: relationship-to-you (new-profile mode only) */}
+          {isNewProfileMode && step === RELATIONSHIP_STEP && (
             <div className="grid grid-cols-2 gap-2">
               {RELATIONSHIPS.map((r) => (
                 <button
@@ -708,7 +727,7 @@ function OnboardingPageInner() {
 
             {isNewProfileMode && (
               <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
-                {t("onboarding.newProfile.creditCost")}
+                {t("onboarding.newProfile.creditCost", { cost: PROFILE_CREATION_COST })}
               </p>
             )}
 
@@ -733,10 +752,10 @@ function OnboardingPageInner() {
               <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>
             )}
 
-            {isNewProfileMode && (user?.credits ?? 0) < 20 ? (
+            {isNewProfileMode && (user?.credits ?? 0) < PROFILE_CREATION_COST ? (
               <div>
                 <p className="mb-3 text-[12px] text-red-400 text-center">
-                  {t("onboarding.newProfile.insufficientCredits")}
+                  {t("onboarding.newProfile.insufficientCredits", { cost: PROFILE_CREATION_COST })}
                 </p>
                 <button
                   onClick={() => router.push("/payment")}

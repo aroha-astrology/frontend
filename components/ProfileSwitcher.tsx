@@ -79,6 +79,7 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
                   type="button"
                   onClick={() => handleSelect(profile)}
                   disabled={disabled}
+                  aria-current={profile.isActive ? "true" : undefined}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     profile.isActive ? "border-gold/50 bg-gold/10" : "border-gold/10 hover:border-gold/30"
                   }`}
@@ -106,7 +107,8 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
             <button
               type="button"
               onClick={handleCreate}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl border border-dashed border-gold/25 text-gold hover:bg-gold/5 transition-colors mt-1"
+              disabled={switchingId !== null}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl border border-dashed border-gold/25 text-gold hover:bg-gold/5 transition-colors mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="w-10 h-10 rounded-full bg-gold/5 border border-gold/20 flex items-center justify-center shrink-0">
                 <UserPlus size={18} />

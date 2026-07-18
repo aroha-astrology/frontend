@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Lock, Loader2, MessageCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHouseInsight } from '@/hooks/useHouseInsight';
+import { formatRupees } from '@/lib/format';
 
 interface HouseData {
   house: number;
@@ -20,12 +21,12 @@ interface HouseUnlockDrawerProps {
   onClose: () => void;
   house: HouseData | null;
   onUnlock: (houseNum: number) => Promise<void>;
-  credits: number;
-  unlockCost: number;
+  balancePaise: number;
+  unlockCostPaise: number;
   isUnlocked?: boolean;
 }
 
-export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, credits, unlockCost, isUnlocked = false }: HouseUnlockDrawerProps) {
+export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, balancePaise, unlockCostPaise, isUnlocked = false }: HouseUnlockDrawerProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const [unlocking, setUnlocking] = useState(false);
@@ -41,7 +42,7 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
   const ordinal = ordinals?.[house.house - 1] ?? `${house.house}`;
   const name = t(`kundli.house.names.${house.house}`);
   const hook = t(`kundli.house.hooks.${house.house}`);
-  const canAfford = credits >= unlockCost;
+  const canAfford = balancePaise >= unlockCostPaise;
 
   const handleUnlock = async () => {
     setUnlockError(null);
@@ -49,7 +50,7 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
     try {
       await onUnlock(house.house);
     } catch {
-      setUnlockError(t('kundli.house.notEnoughCredits'));
+      setUnlockError(t('kundli.house.notEnoughCredits', { amount: formatRupees(unlockCostPaise) }));
     } finally {
       setUnlocking(false);
     }
@@ -177,7 +178,7 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                             {t('kundli.house.unlockTitle', { ordinal })}
                           </h3>
                           <p className="text-xs text-muted mb-3 text-center">
-                            {t('kundli.house.unlockBody', { cost: unlockCost })}
+                            {t('kundli.house.unlockBody', { cost: formatRupees(unlockCostPaise) })}
                           </p>
                           {unlockError && (
                             <p className="text-xs text-red-400 mb-2 text-center">{unlockError}</p>
@@ -191,13 +192,13 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, cr
                               {unlocking ? (
                                 <Loader2 size={16} className="animate-spin" />
                               ) : (
-                                t('kundli.house.unlockButton', { cost: unlockCost })
+                                t('kundli.house.unlockButton', { cost: formatRupees(unlockCostPaise) })
                               )}
                             </button>
                           ) : (
                             <div className="w-full">
                               <p className="text-xs text-red-400 mb-2 text-center">
-                                {t('kundli.house.notEnoughCredits')}
+                                {t('kundli.house.notEnoughCredits', { amount: formatRupees(unlockCostPaise) })}
                               </p>
                               <button
                                 onClick={() => router.push('/payment')}

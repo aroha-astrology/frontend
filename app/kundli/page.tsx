@@ -403,11 +403,11 @@ export default function KundliPage() {
   // signed-in user row (POST /v1/me/unlock-house), not local state — refresh()
   // re-fetches them from GET /v1/me after a successful unlock.
   const { user, refresh: refreshUser } = useAuth();
-  const credits = user?.credits ?? 0;
+  const credits = user?.walletBalancePaise ?? 0;
   const unlockedHouses = user?.unlockedHouses ?? [];
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const UNLOCK_COST = 5;
+  const UNLOCK_COST_PAISE = 5000;
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
@@ -526,7 +526,7 @@ export default function KundliPage() {
                   <HouseGrid 
                     houses={houses} 
                     unlockedHouses={unlockedHouses}
-                    credits={credits}
+                    balancePaise={credits}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);
@@ -548,8 +548,8 @@ export default function KundliPage() {
                   isOpen={isDrawerOpen}
                   onClose={() => setIsDrawerOpen(false)}
                   house={selectedHouse}
-                  credits={credits}
-                  unlockCost={UNLOCK_COST}
+                  balancePaise={credits}
+                  unlockCostPaise={UNLOCK_COST_PAISE}
                   isUnlocked={selectedHouse ? unlockedHouses.includes(selectedHouse.house) : false}
                   onUnlock={async (houseNum) => {
                     await api.unlockHouse(houseNum);
@@ -566,7 +566,7 @@ export default function KundliPage() {
                   <HouseGrid 
                     houses={houses} 
                     unlockedHouses={unlockedHouses}
-                    credits={credits}
+                    balancePaise={credits}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);

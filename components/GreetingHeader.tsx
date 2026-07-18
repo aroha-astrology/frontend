@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { UserCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 
 function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "night" {
   if (hour < 12) return "morning";
@@ -15,17 +17,25 @@ function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "nigh
 /**
  * Compact personalized header at the top of the home dashboard — replaces
  * the old large centered logo hero. Shows a placeholder avatar (no
- * `photoURL` field exists on `User` yet) and a first-name greeting with a
- * time-of-day line. The credit balance lives in `TopBar` instead.
+ * `photoURL` field exists on `User`/`Profile` yet) and a first-name greeting
+ * with a time-of-day line. The credit balance lives in `TopBar` instead.
+ *
+ * The greeting reflects the active profile (falling back to the account
+ * owner) and, once profiles have loaded, is tappable to open a
+ * profile-switcher bottom sheet. Kept non-interactive while `profiles` is
+ * still null so there's no flash of a broken/empty switcher trigger before
+ * that first load resolves.
  */
 export default function GreetingHeader() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profiles, activeProfile } = useAuth();
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
-  const firstName = user?.displayName?.trim().split(/\s+/)[0] ?? null;
+  const displayName = activeProfile?.displayName ?? user?.displayName;
+  const firstName = displayName?.trim().split(/\s+/)[0] ?? null;
   const greetingKey = timeOfDayKey(new Date().getHours());
 
-  return (
+  const greeting = (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -42,5 +52,25 @@ export default function GreetingHeader() {
         <p className="text-muted text-xs">{t(`home.greeting.${greetingKey}`)}</p>
       </div>
     </motion.div>
+  );
+
+  // profiles === null means the first profiles fetch hasn't resolved yet —
+  // render the static greeting so there's nothing broken/empty to tap.
+  if (profiles === null) {
+    return greeting;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setSwitcherOpen(true)}
+        aria-label={t("profileSwitcher.title")}
+        className="w-full text-left appearance-none bg-transparent p-0 border-0"
+      >
+        {greeting}
+      </button>
+      <ProfileSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+    </>
   );
 }

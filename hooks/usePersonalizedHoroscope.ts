@@ -21,7 +21,7 @@ const POLL_TIMEOUT_MS = 60_000;
  * text actually re-translates when the user switches language mid-session.
  */
 export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
-  const { firebaseUser, loading: authLoading } = useAuth();
+  const { firebaseUser, loading: authLoading, activeProfile } = useAuth();
   const { i18n } = useTranslation();
   const [state, setState] = useState<PersonalizedHoroscopeState>("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
@@ -70,7 +70,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, period, i18n.language]);
+  }, [authLoading, firebaseUser, period, i18n.language, activeProfile?.id]);
 
   return { state, data };
 }

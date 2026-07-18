@@ -38,11 +38,11 @@ export interface User {
   profileCompletedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
-  /** Spendable balance for unlocking kundli house details (POST /v1/me/unlock-house). */
-  credits: number;
+  /** Wallet balance in paise, spendable for unlocking kundli house details (POST /v1/me/unlock-house). */
+  walletBalancePaise: number;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
-  /** True once the user has spent credits to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
+  /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
   createdAt: string;
   updatedAt: string;
@@ -104,6 +104,56 @@ export interface UpdateMeBody {
   relationshipStatus?: string;
   onboardingStatus?: string;
   consent?: ConsentInput;
+}
+
+// ─── Profiles (multi-profile) ─────────────────────────────────────────────────
+
+export type ProfileRelationship =
+  | "partner"
+  | "prospective_match"
+  | "spouse"
+  | "child"
+  | "parent"
+  | "sibling"
+  | "friend"
+  | "other";
+
+/** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
+export interface Profile {
+  /** Literally the string 'primary' for the account owner's own profile; a uuid for every added profile. */
+  id: string;
+  isPrimary: boolean;
+  /** Exactly one profile in the list has this true — the one currently driving kundli/horoscope/chat/etc. */
+  isActive: boolean;
+  /** Always null for the primary profile. */
+  relationship: ProfileRelationship | null;
+  displayName: string | null;
+  gender: Gender;
+  dateOfBirth: string | null; // YYYY-MM-DD
+  timeOfBirth: string | null; // HH:mm[:ss]
+  placeOfBirth: PlaceOfBirth | null;
+  createdAt: string; // ISO
+}
+
+/**
+ * POST /v1/profiles body — same birth-data fields as UpdateMeBody, with
+ * `displayName` as the only required one. Nullability differs in two spots
+ * though: `timeOfBirth` is nullable here (UpdateMeBody's isn't) and
+ * `placeOfBirth` is NOT nullable here (UpdateMeBody's is) — don't assume
+ * edit-profile form logic built against UpdateMeBody carries over 1:1.
+ */
+export interface CreateProfileBody {
+  displayName: string;
+  gender?: Gender;
+  dateOfBirth?: string; // YYYY-MM-DD
+  timeOfBirth?: string | null; // HH:mm[:ss]
+  placeOfBirth?: PlaceOfBirth;
+  birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  birthTimeSource?: string;
+  birthLocationAccuracy?: "exact" | "city" | "region" | "unknown";
+  relationship?: ProfileRelationship;
+  /** Owner attests they may store this person's birth data — the per-profile analogue of the account's own dataProcessing consent. */
+  addedWithConsent?: boolean;
 }
 
 // ─── Kundli ──────────────────────────────────────────────────────────────────
@@ -354,27 +404,22 @@ export type HouseInsightResult = HouseInsightReady | HouseInsightPending | House
 export type GemstoneStrength = "weak" | "average" | "strong";
 
 export interface GemstoneItem {
+  /** Also the i18n lookup key — kundli.gemstone.data.<planet>.* — for all locale-dependent facts (name, alternatives, finger, metal, day, weight, dos, donts). */
   planet: string;
-  planetHindi: string;
-  gemstone: string;
-  gemstoneHindi: string;
-  alternativeStones: string[];
-  finger: string;
-  metal: string;
-  dayToWear: string;
+  /** Sanskrit chant text — locale-invariant, same for every language. */
   mantra: string;
-  mantraCount: number;
-  weightCarats: string;
+  /** Practical mantra practice: N times per day for N days (uniform across all 9 stones). */
+  mantraPerDay: number;
+  mantraDays: number;
   /** Hex accent used to tint the stone's gem visual. */
   color: string;
-  dos: string[];
-  donts: string[];
   strength: GemstoneStrength;
   /** True = strongly recommended (weak/afflicted planet); false = optional. */
   recommended: boolean;
   /** 0-100 — how strongly this gemstone is preferred for the user (headline %). May be absent on reports cached before this field existed. */
   preferencePercent?: number;
-  reason: string;
+  /** True only when this planet's chart-specific caution actually applies to this user — show the matching translated caution line only when true. */
+  conditionalCautionApplies: boolean;
   /** AI-authored personal note (already in the requested language). */
   note: string;
 }
@@ -401,10 +446,9 @@ export type GemstoneResult = GemstoneReportReady | GemstonePending | GemstoneFor
 
 // ─── Billing / credit purchases ────────────────────────────────────────────────
 
-export interface CreditPack {
+export interface TopUpAmount {
   id: string;
-  credits: number;
-  priceInPaise: number;
+  amountPaise: number;
   currency: string;
   label: string;
   popular?: boolean;
@@ -425,7 +469,6 @@ export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
 export interface Order {
   id: string;
   packId: string;
-  credits: number;
   amountPaise: number;
   discountPaise: number;
   finalAmountPaise: number;
@@ -576,11 +619,44 @@ export const api = {
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
 
+  /** All profiles on this account — the primary (self) profile plus any added ones. */
+  listProfiles: () => request<Profile[]>("/v1/profiles", { auth: true }),
+
   /**
-   * Spend credits to unlock a kundli house's detail view. Throws ApiError
-   * with status 409 if the user has insufficient credits or the house is
+   * Add another birth-data profile (partner/family/etc) to this account.
+   * Throws ApiError with status 409 if the account has insufficient credits
+   * (creation costs credits, enforced server-side). Returns the new profile,
+   * already active. Caller should re-fetch profiles (e.g. `refreshProfiles()`
+   * from useAuth) afterward to pick up the new entry.
+   */
+  createProfile: (body: CreateProfileBody) =>
+    request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
+
+  /**
+   * Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc.
+   * Throws ApiError with status 404 if `id` is unknown or not owned by this
+   * account. `useAuth()`'s `switchProfile()` already wraps this call with a
+   * profiles-list refresh (and propagates refresh failures) — call this
+   * directly only if you're intentionally opting out of that convenience.
+   */
+  activateProfile: (id: string) =>
+    request<Profile>(`/v1/profiles/${id}/activate`, { method: "POST", auth: true }),
+
+  /**
+   * Remove an added profile. `id` must be a uuid — the primary profile can't
+   * be deleted (passing 'primary', or an unknown/unowned uuid, 404s). This
+   * is the only enforcement; there's no compile-time guard against passing
+   * 'primary', so callers must check `!profile.isPrimary` before offering a
+   * delete action.
+   */
+  deleteProfile: (id: string) =>
+    request<void>(`/v1/profiles/${id}`, { method: "DELETE", auth: true }),
+
+  /**
+   * Spend wallet balance to unlock a kundli house's detail view. Throws ApiError
+   * with status 409 if the user has insufficient balance or the house is
    * already unlocked. Caller should re-fetch the user (e.g. `refresh()`
-   * from useAuth) afterward to pick up the updated credits/unlockedHouses.
+   * from useAuth) afterward to pick up the updated wallet balance/unlockedHouses.
    */
   unlockHouse: (houseNumber: number) =>
     request<{ success: boolean }>("/v1/me/unlock-house", {
@@ -590,10 +666,10 @@ export const api = {
     }),
 
   /**
-   * Spend credits to unlock the full gemstone report (whole report, one-time).
-   * Throws ApiError with status 409 if the user has insufficient credits or the
+   * Spend wallet balance to unlock the full gemstone report (whole report, one-time).
+   * Throws ApiError with status 409 if the user has insufficient balance or the
    * report is already unlocked. Caller should re-fetch the user (`refresh()`
-   * from useAuth) afterward to pick up the updated credits/gemstoneUnlocked.
+   * from useAuth) afterward to pick up the updated wallet balance/gemstoneUnlocked.
    */
   unlockGemstone: () =>
     request<{ success: boolean }>("/v1/me/unlock-gemstone", { method: "POST", auth: true }),
@@ -740,10 +816,10 @@ export const api = {
   pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
     pollKundli(opts),
 
-  /** Purchasable credit packs. */
-  billingPacks: () => request<{ packs: CreditPack[] }>("/v1/billing/packs", { auth: true }),
+  /** Purchasable top-up amounts. */
+  billingTopUpAmounts: () => request<{ amounts: TopUpAmount[] }>("/v1/billing/top-up-amounts", { auth: true }),
 
-  /** Preview the discount a coupon would apply to a pack, without redeeming it. */
+  /** Preview the discount a coupon would apply to a top-up amount, without redeeming it. */
   validateCoupon: (code: string, packId: string) =>
     request<CouponValidation>("/v1/billing/coupons/validate", {
       method: "POST",
@@ -751,7 +827,7 @@ export const api = {
       auth: true,
     }),
 
-  /** Create a pending order for a credit pack (optionally with a coupon applied). */
+  /** Create a pending order for a top-up amount (optionally with a coupon applied). */
   checkout: (packId: string, couponCode?: string) =>
     request<Order>("/v1/billing/checkout", {
       method: "POST",
@@ -760,24 +836,27 @@ export const api = {
     }),
 
   /**
-   * Confirm payment for a pending order and grant its credits. MOCK — stands
-   * in for a real gateway webhook until Razorpay/Stripe is wired up; always
-   * succeeds for a pending order. Caller should `refresh()` (useAuth) after
-   * to pick up the updated credit balance.
+   * Confirm payment for a pending order and grant its value to the wallet.
+   * MOCK — stands in for a real gateway webhook until Razorpay/Stripe is
+   * wired up; always succeeds for a pending order. Caller should `refresh()`
+   * (useAuth) after to pick up the updated wallet balance.
    */
   confirmOrder: (orderId: string) =>
-    request<{ order: Order; credits: number }>(`/v1/billing/orders/${orderId}/confirm`, {
+    request<{ order: Order; walletBalancePaise: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
       auth: true,
     }),
 
-  /** Confirm a Google Play purchase (Android app only) and grant its credits. */
+  /** Confirm a Google Play purchase (Android app only) and grant its value to the wallet. */
   confirmGooglePlayOrder: (params: { purchaseToken: string; productId: string }) =>
-    request<{ order: Order; credits: number }>("/v1/billing/confirm-google-play", {
+    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/confirm-google-play", {
       method: "POST",
       body: params,
       auth: true,
     }),
+
+  /** The current user's own recharge/order history, most recent first. */
+  orderHistory: () => request<{ orders: Order[] }>("/v1/billing/orders", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

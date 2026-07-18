@@ -13,6 +13,37 @@ interface IndiaPostResponse {
   PostOffice: PostOffice[] | null;
 }
 
+// India Post's post-office names still use the pre-rename spelling for
+// several circles — every Bangalore post office is literally named
+// "... (Bangalore)"; none contain "Bengaluru" — so a name search for the
+// modern/official city name returns zero matches even though the place
+// obviously exists. Retry with the alternate name when the first search
+// comes up empty.
+const CITY_ALIASES: Record<string, string> = {
+  bengaluru: 'bangalore', bangalore: 'bengaluru',
+  mumbai: 'bombay', bombay: 'mumbai',
+  kolkata: 'calcutta', calcutta: 'kolkata',
+  chennai: 'madras', madras: 'chennai',
+  thiruvananthapuram: 'trivandrum', trivandrum: 'thiruvananthapuram',
+  kochi: 'cochin', cochin: 'kochi',
+  puducherry: 'pondicherry', pondicherry: 'puducherry',
+  vadodara: 'baroda', baroda: 'vadodara',
+  mysuru: 'mysore', mysore: 'mysuru',
+  prayagraj: 'allahabad', allahabad: 'prayagraj',
+  gurugram: 'gurgaon', gurgaon: 'gurugram',
+};
+
+async function fetchPostOffices(term: string): Promise<PostOffice[]> {
+  const isPincode = /^\d{6}$/.test(term);
+  const url = isPincode
+    ? `https://api.postalpincode.in/pincode/${term}`
+    : `https://api.postalpincode.in/postoffice/${encodeURIComponent(term)}`;
+  const res = await fetch(url);
+  const data: IndiaPostResponse[] = await res.json();
+  if (!data[0] || data[0].Status !== 'Success' || !data[0].PostOffice) return [];
+  return data[0].PostOffice;
+}
+
 export async function GET(req: NextRequest) {
   if (isRateLimited(`places-search:${clientIp(req)}`, 30, 60_000)) {
     return NextResponse.json([], { status: 429 });
@@ -21,21 +52,16 @@ export async function GET(req: NextRequest) {
   const input = req.nextUrl.searchParams.get('input')?.trim();
   if (!input || input.length < 2) return NextResponse.json([]);
 
-  const isPincode = /^\d{6}$/.test(input);
-  const url = isPincode
-    ? `https://api.postalpincode.in/pincode/${input}`
-    : `https://api.postalpincode.in/postoffice/${encodeURIComponent(input)}`;
-
   try {
-    const res = await fetch(url);
-    const data: IndiaPostResponse[] = await res.json();
-
-    if (!data[0] || data[0].Status !== 'Success' || !data[0].PostOffice) {
-      return NextResponse.json([]);
+    let postOffices = await fetchPostOffices(input);
+    if (postOffices.length === 0) {
+      const alias = CITY_ALIASES[input.toLowerCase()];
+      if (alias) postOffices = await fetchPostOffices(alias);
     }
+    if (postOffices.length === 0) return NextResponse.json([]);
 
     const seen = new Set<string>();
-    const results = data[0].PostOffice
+    const results = postOffices
       .map((po) => {
         const id = `${po.Name.trim()}-${po.District}-${po.Pincode}`;
         if (seen.has(id)) return null;

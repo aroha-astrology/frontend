@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api, type Kundli, type KundliResponse } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 
 const POLL_INTERVAL = 2000;
 
 export function useKundli() {
+  const { activeProfile } = useAuth();
   const [kundli, setKundli] = useState<Kundli | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function useKundli() {
       cancelled.current = true;
       if (timer.current) clearTimeout(timer.current);
     };
-  }, []);
+  }, [activeProfile?.id]);
 
   return { kundli, loading, error };
 }

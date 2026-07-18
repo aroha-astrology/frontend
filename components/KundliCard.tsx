@@ -21,7 +21,7 @@ import { useAuth } from "@/providers/auth-provider";
  */
 export default function KundliCard() {
   const { t } = useTranslation();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, activeProfile } = useAuth();
   const [result, setResult] = useState<KundliResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -47,7 +47,7 @@ export default function KundliCard() {
     })();
 
     return () => ctrl.abort();
-  }, [authLoading, user, t]);
+  }, [authLoading, user, t, activeProfile?.id]);
 
   // Hide entirely until a session exists — nothing to fetch.
   if (authLoading || !user) return null;

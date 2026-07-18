@@ -20,10 +20,12 @@ import { useKundli } from "@/hooks/useKundli";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
+import { formatRupees } from "@/lib/format";
+
 /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
-const CHAT_MESSAGE_COST = 2;
+const CHAT_MESSAGE_COST_PAISE = 2000;
 /** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. */
-const LOW_CREDIT_THRESHOLD = 8;
+const LOW_CREDIT_THRESHOLD_PAISE = 8000;
 
 interface Message {
   id: string;
@@ -95,7 +97,7 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
-  const canAfford = (user?.credits ?? 0) >= CHAT_MESSAGE_COST;
+  const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
@@ -623,16 +625,16 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 {t("payment.buyCredits")}
               </Link>
             </p>
-          ) : (user?.credits ?? 0) < LOW_CREDIT_THRESHOLD ? (
+          ) : (user?.walletBalancePaise ?? 0) < LOW_CREDIT_THRESHOLD_PAISE ? (
             <p className="text-center text-[11px] text-yellow-500 mb-1.5">
-              {t("aiChatPage.lowCreditWarning", { credits: user?.credits ?? 0 })}{" "}
+              {t("aiChatPage.lowCreditWarning", { amount: formatRupees(user?.walletBalancePaise ?? 0) })}{" "}
               <Link href="/payment" className="underline underline-offset-2">
                 {t("payment.buyCredits")}
               </Link>
             </p>
           ) : (
             <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">
-              {t("aiChatPage.costPerMessage", { cost: CHAT_MESSAGE_COST })}
+              {t("aiChatPage.costPerMessage", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
             </p>
           )}
           <div className="flex gap-3">

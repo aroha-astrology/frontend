@@ -106,6 +106,47 @@ export interface UpdateMeBody {
   consent?: ConsentInput;
 }
 
+// ─── Profiles (multi-profile) ─────────────────────────────────────────────────
+
+export type ProfileRelationship =
+  | "partner"
+  | "prospective_match"
+  | "spouse"
+  | "child"
+  | "parent"
+  | "sibling"
+  | "friend"
+  | "other";
+
+/** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
+export interface Profile {
+  id: string; // literally 'primary' for the primary/self profile, else a uuid
+  isPrimary: boolean;
+  /** Exactly one profile in the list has this true — the one currently driving kundli/horoscope/chat/etc. */
+  isActive: boolean;
+  /** Always null for the primary profile. */
+  relationship: ProfileRelationship | null;
+  displayName: string | null;
+  gender: Gender;
+  dateOfBirth: string | null; // YYYY-MM-DD
+  timeOfBirth: string | null; // HH:mm[:ss]
+  placeOfBirth: PlaceOfBirth | null;
+  createdAt: string; // ISO
+}
+
+/** POST /v1/profiles body — same birth-data shape as UpdateMeBody. `displayName` is the only required field. */
+export interface CreateProfileBody {
+  displayName: string;
+  gender?: Gender;
+  dateOfBirth?: string; // YYYY-MM-DD
+  timeOfBirth?: string | null; // HH:mm[:ss]
+  placeOfBirth?: PlaceOfBirth;
+  birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  birthTimeSource?: string;
+  birthLocationAccuracy?: "exact" | "city" | "region" | "unknown";
+  relationship?: ProfileRelationship;
+}
+
 // ─── Kundli ──────────────────────────────────────────────────────────────────
 
 export interface KundliReady {
@@ -570,6 +611,27 @@ export const api = {
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+
+  /** All profiles on this account — the primary (self) profile plus any added ones. */
+  listProfiles: () => request<Profile[]>("/v1/profiles", { auth: true }),
+
+  /**
+   * Add another birth-data profile (partner/family/etc) to this account.
+   * Throws ApiError with status 409 if the account has insufficient credits
+   * (creation costs credits, enforced server-side). Returns the new profile,
+   * already active. Caller should re-fetch profiles (e.g. `refreshProfiles()`
+   * from useAuth) afterward to pick up the new entry.
+   */
+  createProfile: (body: CreateProfileBody) =>
+    request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
+
+  /** Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc. */
+  activateProfile: (id: string) =>
+    request<Profile>(`/v1/profiles/${id}/activate`, { method: "POST", auth: true }),
+
+  /** Remove an added profile (uuid only — the primary profile can't be deleted). 404s if not found/not owned. */
+  deleteProfile: (id: string) =>
+    request<void>(`/v1/profiles/${id}`, { method: "DELETE", auth: true }),
 
   /**
    * Spend credits to unlock a kundli house's detail view. Throws ApiError

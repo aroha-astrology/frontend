@@ -11,7 +11,7 @@ import {
 import { onAuthStateChanged, signOut as fbSignOut, type User as FirebaseUser } from "firebase/auth";
 import posthog from "posthog-js";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
-import { api, type SessionResponse, type User } from "@/lib/api";
+import { api, type Profile, type SessionResponse, type User } from "@/lib/api";
 
 /**
  * Bridges Firebase auth state to the backend app user.
@@ -28,10 +28,18 @@ interface AuthContextValue {
   user: User | null;
   /** True until the initial auth state has been resolved. */
   loading: boolean;
+  /** All profiles on this account (primary + additional), or null until first loaded. */
+  profiles: Profile[] | null;
+  /** The currently-active profile (derived: profiles?.find(p => p.isActive) ?? null). */
+  activeProfile: Profile | null;
   /** Create/fetch the backend session for the current Firebase user. */
   establishSession: () => Promise<SessionResponse>;
   /** Re-fetch the app user from the backend. */
   refresh: () => Promise<void>;
+  /** Re-fetch the profiles list from the backend. */
+  refreshProfiles: () => Promise<void>;
+  /** Activate a profile (by id, or 'primary') and refresh local state. */
+  switchProfile: (id: string) => Promise<void>;
   /** Sign out of Firebase and clear state. */
   signOut: () => Promise<void>;
 }
@@ -40,30 +48,48 @@ const AuthContext = createContext<AuthContextValue>({
   firebaseUser: null,
   user: null,
   loading: true,
+  profiles: null,
+  activeProfile: null,
   establishSession: async () => {
     throw new Error("AuthProvider not mounted");
   },
   refresh: async () => {},
+  refreshProfiles: async () => {},
+  switchProfile: async () => {},
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [profiles, setProfiles] = useState<Profile[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Dedupe concurrent session exchanges (listener + page can race on login).
   const inFlight = useRef<Promise<SessionResponse> | null>(null);
 
+  /** Re-fetch the profiles list. Non-fatal on failure — leaves `profiles` as-is rather than breaking auth. */
+  const refreshProfiles = async () => {
+    if (!getFirebaseAuth().currentUser) return;
+    try {
+      const list = await api.listProfiles();
+      setProfiles(list);
+    } catch (err) {
+      // Non-fatal — don't let a profiles-fetch failure break the auth flow.
+      console.error("Failed to load profiles", err);
+    }
+  };
+
   const establishSession = (): Promise<SessionResponse> => {
     if (inFlight.current) return inFlight.current;
     const p = api
       .createSession()
-      .then((res) => {
+      .then(async (res) => {
         setUser(res.user);
         // Identify by opaque user ID only — no name or other PII as a
         // PostHog person property (see 2026-07-17 audit).
         posthog.identify(res.user.id);
+        await refreshProfiles();
         return res;
       })
       .finally(() => {
@@ -79,11 +105,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(freshUser);
   };
 
+  /** Activate a profile and refresh local profile state. `User` has no `activeProfileId` field, so `profiles` alone is the source of truth for the active profile. */
+  const switchProfile = async (id: string) => {
+    await api.activateProfile(id);
+    await refreshProfiles();
+  };
+
   const signOut = async () => {
     await fbSignOut(getFirebaseAuth());
     posthog.reset();
     setUser(null);
     setFirebaseUser(null);
+    setProfiles(null);
     if (typeof window !== "undefined") {
       localStorage.clear();
     }
@@ -106,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setUser(null);
+        setProfiles(null);
       }
       setLoading(false);
     });
@@ -113,9 +147,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const activeProfile = profiles?.find((p) => p.isActive) ?? null;
+
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, user, loading, establishSession, refresh, signOut }}
+      value={{
+        firebaseUser,
+        user,
+        loading,
+        profiles,
+        activeProfile,
+        establishSession,
+        refresh,
+        refreshProfiles,
+        switchProfile,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api, type RemedyItem } from "@/lib/api";
 import { REMEDIES_FALLBACK } from "@/data/remedies-fallback";
 import SectionTitle from "@/components/SectionTitle";
+import { useAuth } from "@/providers/auth-provider";
 
 /** Map icon names from the backend to emoji for display. */
 const iconMap: Record<string, string> = {
@@ -49,11 +50,13 @@ function SkeletonCard() {
 
 export default function RemediesPage() {
   const { t } = useTranslation();
+  const { activeProfile } = useAuth();
   const [remedies, setRemedies] = useState<RemedyItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
 
     async function fetchRemedies() {
       try {
@@ -62,8 +65,8 @@ export default function RemediesPage() {
           setRemedies(data.remedies);
         }
       } catch {
-        // Endpoint not deployed yet (or a network failure) — fall back to a
-        // static list so the page always renders content.
+        // Endpoint unreachable (network failure) — fall back to a static
+        // list so the page always renders content.
         if (!cancelled) setRemedies(REMEDIES_FALLBACK);
       } finally {
         if (!cancelled) setLoading(false);
@@ -74,7 +77,7 @@ export default function RemediesPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeProfile?.id]);
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>

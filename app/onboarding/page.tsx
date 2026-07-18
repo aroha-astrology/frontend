@@ -389,7 +389,10 @@ function OnboardingPageInner() {
         await api.createProfile(body);
         // The new profile is already active server-side (per the createProfile
         // contract) — this just syncs local `profiles`/`activeProfile` state.
-        await refreshProfiles();
+        // Also refresh `user` — creation spent from the account's shared wallet
+        // balance, and refreshProfiles() alone wouldn't update the balance the
+        // TopBar/credit-affordability checks read off `user`.
+        await Promise.all([refreshProfiles(), refresh()]);
         router.replace("/");
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {

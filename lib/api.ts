@@ -38,11 +38,11 @@ export interface User {
   profileCompletedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
-  /** Spendable balance for unlocking kundli house details (POST /v1/me/unlock-house). */
-  credits: number;
+  /** Wallet balance in paise, spendable for unlocking kundli house details (POST /v1/me/unlock-house). */
+  walletBalancePaise: number;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
-  /** True once the user has spent credits to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
+  /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
   createdAt: string;
   updatedAt: string;
@@ -446,10 +446,9 @@ export type GemstoneResult = GemstoneReportReady | GemstonePending | GemstoneFor
 
 // ─── Billing / credit purchases ────────────────────────────────────────────────
 
-export interface CreditPack {
+export interface TopUpAmount {
   id: string;
-  credits: number;
-  priceInPaise: number;
+  amountPaise: number;
   currency: string;
   label: string;
   popular?: boolean;
@@ -470,7 +469,6 @@ export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
 export interface Order {
   id: string;
   packId: string;
-  credits: number;
   amountPaise: number;
   discountPaise: number;
   finalAmountPaise: number;
@@ -655,10 +653,10 @@ export const api = {
     request<void>(`/v1/profiles/${id}`, { method: "DELETE", auth: true }),
 
   /**
-   * Spend credits to unlock a kundli house's detail view. Throws ApiError
-   * with status 409 if the user has insufficient credits or the house is
+   * Spend wallet balance to unlock a kundli house's detail view. Throws ApiError
+   * with status 409 if the user has insufficient balance or the house is
    * already unlocked. Caller should re-fetch the user (e.g. `refresh()`
-   * from useAuth) afterward to pick up the updated credits/unlockedHouses.
+   * from useAuth) afterward to pick up the updated wallet balance/unlockedHouses.
    */
   unlockHouse: (houseNumber: number) =>
     request<{ success: boolean }>("/v1/me/unlock-house", {
@@ -668,10 +666,10 @@ export const api = {
     }),
 
   /**
-   * Spend credits to unlock the full gemstone report (whole report, one-time).
-   * Throws ApiError with status 409 if the user has insufficient credits or the
+   * Spend wallet balance to unlock the full gemstone report (whole report, one-time).
+   * Throws ApiError with status 409 if the user has insufficient balance or the
    * report is already unlocked. Caller should re-fetch the user (`refresh()`
-   * from useAuth) afterward to pick up the updated credits/gemstoneUnlocked.
+   * from useAuth) afterward to pick up the updated wallet balance/gemstoneUnlocked.
    */
   unlockGemstone: () =>
     request<{ success: boolean }>("/v1/me/unlock-gemstone", { method: "POST", auth: true }),
@@ -818,10 +816,10 @@ export const api = {
   pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
     pollKundli(opts),
 
-  /** Purchasable credit packs. */
-  billingPacks: () => request<{ packs: CreditPack[] }>("/v1/billing/packs", { auth: true }),
+  /** Purchasable top-up amounts. */
+  billingTopUpAmounts: () => request<{ amounts: TopUpAmount[] }>("/v1/billing/top-up-amounts", { auth: true }),
 
-  /** Preview the discount a coupon would apply to a pack, without redeeming it. */
+  /** Preview the discount a coupon would apply to a top-up amount, without redeeming it. */
   validateCoupon: (code: string, packId: string) =>
     request<CouponValidation>("/v1/billing/coupons/validate", {
       method: "POST",
@@ -829,7 +827,7 @@ export const api = {
       auth: true,
     }),
 
-  /** Create a pending order for a credit pack (optionally with a coupon applied). */
+  /** Create a pending order for a top-up amount (optionally with a coupon applied). */
   checkout: (packId: string, couponCode?: string) =>
     request<Order>("/v1/billing/checkout", {
       method: "POST",
@@ -838,24 +836,27 @@ export const api = {
     }),
 
   /**
-   * Confirm payment for a pending order and grant its credits. MOCK — stands
-   * in for a real gateway webhook until Razorpay/Stripe is wired up; always
-   * succeeds for a pending order. Caller should `refresh()` (useAuth) after
-   * to pick up the updated credit balance.
+   * Confirm payment for a pending order and grant its value to the wallet.
+   * MOCK — stands in for a real gateway webhook until Razorpay/Stripe is
+   * wired up; always succeeds for a pending order. Caller should `refresh()`
+   * (useAuth) after to pick up the updated wallet balance.
    */
   confirmOrder: (orderId: string) =>
-    request<{ order: Order; credits: number }>(`/v1/billing/orders/${orderId}/confirm`, {
+    request<{ order: Order; walletBalancePaise: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
       auth: true,
     }),
 
-  /** Confirm a Google Play purchase (Android app only) and grant its credits. */
+  /** Confirm a Google Play purchase (Android app only) and grant its value to the wallet. */
   confirmGooglePlayOrder: (params: { purchaseToken: string; productId: string }) =>
-    request<{ order: Order; credits: number }>("/v1/billing/confirm-google-play", {
+    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/confirm-google-play", {
       method: "POST",
       body: params,
       auth: true,
     }),
+
+  /** The current user's own recharge/order history, most recent first. */
+  orderHistory: () => request<{ orders: Order[] }>("/v1/billing/orders", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

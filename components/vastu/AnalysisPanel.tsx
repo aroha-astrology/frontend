@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
   Sparkles, Loader2, AlertTriangle, ListChecks, History, ChevronRight,
-  Star, Home, Wind, CheckCircle2, Send, Coins,
+  Star, Home, Wind, CheckCircle2, Send,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { RATING_META, TONE_CLASSES } from "@/lib/vastu/data";
 import type { PlanAnalysis } from "@/lib/vastu/analysis";
 import type { VastuPlan } from "@/lib/api";
+import { formatRupees } from "@/lib/format";
+import WalletBalance from "@/components/ui/WalletBalance";
 
 interface RoomAnalysisEntry {
   room?: string;
@@ -47,8 +49,8 @@ function scoreTone(score: number) {
 export default function AnalysisPanel(props: {
   analysis: PlanAnalysis;
   signedIn: boolean;
-  credits: number;
-  cost: number;
+  balancePaise: number;
+  costPaise: number;
   aiLoading: boolean;
   aiResult: VastuAiResult | null;
   aiError: string | null;
@@ -61,7 +63,7 @@ export default function AnalysisPanel(props: {
   askError: string | null;
 }) {
   const { t } = useTranslation();
-  const { analysis, signedIn, credits, cost, aiLoading, aiResult, aiError } = props;
+  const { analysis, signedIn, balancePaise, costPaise, aiLoading, aiResult, aiError } = props;
   const hasRooms = analysis.rooms.length > 0;
   const tone = scoreTone(analysis.overallScore);
 
@@ -108,8 +110,8 @@ export default function AnalysisPanel(props: {
       <GenerateCTA
         hasRooms={hasRooms}
         signedIn={signedIn}
-        credits={credits}
-        cost={cost}
+        balancePaise={balancePaise}
+        costPaise={costPaise}
         aiLoading={aiLoading}
         aiError={aiError}
         onGenerate={props.onGenerate}
@@ -146,20 +148,20 @@ export default function AnalysisPanel(props: {
   );
 }
 
-function GenerateCTA({ hasRooms, signedIn, credits, cost, aiLoading, aiError, onGenerate }: {
-  hasRooms: boolean; signedIn: boolean; credits: number; cost: number; aiLoading: boolean; aiError: string | null; onGenerate: () => void;
+function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, aiError, onGenerate }: {
+  hasRooms: boolean; signedIn: boolean; balancePaise: number; costPaise: number; aiLoading: boolean; aiError: string | null; onGenerate: () => void;
 }) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
-  const insufficient = credits < cost;
+  const insufficient = balancePaise < costPaise;
 
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles size={16} className="text-gold" />
         <h3 className="text-sm font-semibold text-gold font-display">{t("vastu.analysis.reportTitle")}</h3>
-        <span className="ml-auto flex items-center gap-1 text-[11px] text-muted">
-          <Coins size={12} className="text-gold" /> {credits}
+        <span className="ml-auto text-[11px] text-muted">
+          <WalletBalance paise={balancePaise} />
         </span>
       </div>
       <p className="text-[11px] text-muted mb-3">{t("vastu.analysis.reportBlurb")}</p>
@@ -172,14 +174,14 @@ function GenerateCTA({ hasRooms, signedIn, credits, cost, aiLoading, aiError, on
         </button>
       ) : insufficient || aiError === "INSUFFICIENT_CREDITS" ? (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-amber-400 text-center">{t("vastu.analysis.notEnough", { cost, credits })}</p>
+          <p className="text-xs text-amber-400 text-center">{t("vastu.analysis.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) })}</p>
           <Link href="/payment" className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold">
-            <Coins size={15} /> {t("vastu.analysis.getCredits")}
+            {t("vastu.analysis.getCredits")}
           </Link>
         </div>
       ) : confirming ? (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-foreground text-center">{t("vastu.analysis.confirmSpend", { cost })}</p>
+          <p className="text-xs text-foreground text-center">{t("vastu.analysis.confirmSpend", { cost: formatRupees(costPaise) })}</p>
           <div className="flex gap-2">
             <button onClick={() => setConfirming(false)} className="flex-1 rounded-xl border border-gold/20 text-muted px-4 py-2.5 text-sm font-medium">{t("common.no")}</button>
             <button onClick={() => { setConfirming(false); onGenerate(); }} className="flex-1 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-sm font-bold">{t("vastu.analysis.confirmYes")}</button>
@@ -188,7 +190,7 @@ function GenerateCTA({ hasRooms, signedIn, credits, cost, aiLoading, aiError, on
       ) : (
         <>
           <button onClick={() => setConfirming(true)} disabled={!hasRooms} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed">
-            <Sparkles size={15} /> {t("vastu.analysis.generate", { cost })}
+            <Sparkles size={15} /> {t("vastu.analysis.generate", { cost: formatRupees(costPaise) })}
           </button>
           {!hasRooms && <p className="mt-2 text-[11px] text-muted text-center">{t("vastu.analysis.empty")}</p>}
         </>

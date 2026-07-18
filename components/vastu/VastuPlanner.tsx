@@ -18,7 +18,7 @@ import AnalysisPanel, { type VastuAiResult } from "./AnalysisPanel";
 import { useCompass } from "./useCompass";
 
 const STORAGE_KEY = "vastu_plan";
-const CREDIT_COST = 5;
+const CREDIT_COST_PAISE = 5000;
 
 function buildPayload(plan: Plan) {
   const roomLayout = buildRoomLayout(plan);
@@ -239,8 +239,8 @@ export default function VastuPlanner() {
       <AnalysisPanel
         analysis={analysis}
         signedIn={!!user}
-        credits={user?.credits ?? 0}
-        cost={CREDIT_COST}
+        balancePaise={user?.walletBalancePaise ?? 0}
+        costPaise={CREDIT_COST_PAISE}
         aiLoading={aiLoading}
         aiResult={aiResult}
         aiError={aiError}

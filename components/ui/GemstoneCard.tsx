@@ -9,7 +9,9 @@ import { useAuth } from "@/providers/auth-provider";
 import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
 import { useGemstone } from "@/hooks/useGemstone";
 
-const UNLOCK_COST = 10;
+import { formatRupees } from "@/lib/format";
+
+const UNLOCK_COST_PAISE = 10000;
 
 /** Faceted-gem SVG tinted in the stone's colour — the fallback when no photo is available. */
 function GemGlyph({ color, size }: { color: string; size: number }) {
@@ -191,7 +193,7 @@ export default function GemstoneCard() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, refresh } = useAuth();
-  const credits = user?.credits ?? 0;
+  const credits = user?.walletBalancePaise ?? 0;
   const unlocked = user?.gemstoneUnlocked ?? false;
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
@@ -208,7 +210,7 @@ export default function GemstoneCard() {
   const shownGems = expanded ? gems : gems.slice(0, 1);
 
   const handleUnlock = async () => {
-    if (credits < UNLOCK_COST) {
+    if (credits < UNLOCK_COST_PAISE) {
       router.push("/payment");
       return;
     }
@@ -226,7 +228,7 @@ export default function GemstoneCard() {
 
   // ── Locked ──────────────────────────────────────────────────────────────
   if (!unlocked) {
-    const canAfford = credits >= UNLOCK_COST;
+    const canAfford = credits >= UNLOCK_COST_PAISE;
     return (
       <Card className="p-4">
         <Heading>{t("kundli.gemstone.title")}</Heading>
@@ -255,12 +257,12 @@ export default function GemstoneCard() {
           {unlocking
             ? t("kundli.gemstone.unlocking")
             : canAfford
-              ? t("kundli.gemstone.unlockButton", { cost: UNLOCK_COST })
+              ? t("kundli.gemstone.unlockButton", { cost: formatRupees(UNLOCK_COST_PAISE) })
               : t("kundli.gemstone.buyCredits")}
         </button>
         {!canAfford && (
           <p className="text-[10px] text-muted text-center mt-2">
-            {t("kundli.gemstone.notEnough", { cost: UNLOCK_COST })}
+            {t("kundli.gemstone.notEnough", { cost: formatRupees(UNLOCK_COST_PAISE) })}
           </p>
         )}
         {unlockError && <p className="text-[11px] text-red-400 text-center mt-2">{unlockError}</p>}

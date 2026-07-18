@@ -22,6 +22,7 @@ import {
   type PlaceOfBirth,
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import { formatRupees } from "@/lib/format";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,8 +57,8 @@ const TOTAL_STEPS = 9;
  */
 const RELATIONSHIP_STEP = 2.5;
 
-/** Server-side cost (in credits) of POST /v1/profiles — see lib/api.ts `createProfile`. */
-const PROFILE_CREATION_COST = 20;
+/** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. */
+const PROFILE_CREATION_COST_PAISE = 20000;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -396,7 +397,7 @@ function OnboardingPageInner() {
         router.replace("/");
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {
-          setSubmitErr(t("onboarding.newProfile.insufficientCredits", { cost: PROFILE_CREATION_COST }));
+          setSubmitErr(t("onboarding.newProfile.insufficientCredits", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) }));
         } else {
           setSubmitErr(t("onboarding.submitError"));
         }
@@ -728,9 +729,13 @@ function OnboardingPageInner() {
               ) : null)}
             </div>
 
+            <p className="mb-5 text-[12px] text-muted/90 leading-relaxed">
+              {t("onboarding.confirmAccuracyNote")}
+            </p>
+
             {isNewProfileMode && (
               <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
-                {t("onboarding.newProfile.creditCost", { cost: PROFILE_CREATION_COST })}
+                {t("onboarding.newProfile.creditCost", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })}
               </p>
             )}
 
@@ -755,10 +760,10 @@ function OnboardingPageInner() {
               <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>
             )}
 
-            {isNewProfileMode && (user?.credits ?? 0) < PROFILE_CREATION_COST ? (
+            {isNewProfileMode && (user?.walletBalancePaise ?? 0) < PROFILE_CREATION_COST_PAISE ? (
               <div>
                 <p className="mb-3 text-[12px] text-red-400 text-center">
-                  {t("onboarding.newProfile.insufficientCredits", { cost: PROFILE_CREATION_COST })}
+                  {t("onboarding.newProfile.insufficientCredits", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })}
                 </p>
                 <button
                   onClick={() => router.push("/payment")}

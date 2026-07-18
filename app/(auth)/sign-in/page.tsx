@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Sparkles } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
 import { usePhoneAuth, RECAPTCHA_CONTAINER_ID } from "@/hooks/usePhoneAuth";
 
@@ -192,12 +192,18 @@ export default function SignInPage() {
         </div>
 
         {step === "phone" && (
-          <p className="mt-6 text-center text-[13px] text-muted">
-            {t("auth.noAccount")}{" "}
-            <Link href="/sign-up" className="text-gold font-medium hover:text-gold-light transition-colors">
-              {t("auth.signUp")}
-            </Link>
-          </p>
+          <>
+            <p className="mt-6 text-center text-[13px] text-muted">
+              {t("auth.noAccount")}{" "}
+              <Link href="/sign-up" className="text-gold font-medium hover:text-gold-light transition-colors">
+                {t("auth.signUp")}
+              </Link>
+            </p>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[12px] text-gold/80">
+              <Sparkles size={12} />
+              {t("auth.newUserBonus")}
+            </p>
+          </>
         )}
       </motion.div>
     </main>

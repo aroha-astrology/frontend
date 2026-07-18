@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Menu, Bell, Coins } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -12,6 +12,7 @@ import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
+import WalletBalance from "@/components/ui/WalletBalance";
 
 /** The 4 tab routes that use this shared header — kundli/home/horoscope/panchang
  * each opt into a right-side slot via `useTopBarRightContent`; every other
@@ -49,8 +50,7 @@ export default function TopBar() {
               href="/payment"
               className="flex items-center gap-1.5 h-10 px-3 rounded-full bg-gold/10 border border-gold/25 text-gold text-sm font-semibold shrink-0"
             >
-              <Coins size={15} />
-              {user.credits}
+              <WalletBalance paise={user.walletBalancePaise} />
             </Link>
           )}
           <IconButton aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>

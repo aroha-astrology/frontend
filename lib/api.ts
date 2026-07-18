@@ -152,6 +152,8 @@ export interface CreateProfileBody {
   birthTimeSource?: string;
   birthLocationAccuracy?: "exact" | "city" | "region" | "unknown";
   relationship?: ProfileRelationship;
+  /** Owner attests they may store this person's birth data — the per-profile analogue of the account's own dataProcessing consent. */
+  addedWithConsent?: boolean;
 }
 
 // ─── Kundli ──────────────────────────────────────────────────────────────────

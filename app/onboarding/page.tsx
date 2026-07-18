@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Send, Check, ChevronRight, Loader2 } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
@@ -12,7 +12,15 @@ import LanguagePicker from "@/components/LanguagePicker";
 import ParticleBackground from "@/components/ParticleBackground";
 import { LANGUAGES, useLanguage, type LangCode } from "@/providers/language-provider";
 import { useAuth } from "@/providers/auth-provider";
-import { api, type Gender, type UpdateMeBody, type PlaceOfBirth } from "@/lib/api";
+import {
+  api,
+  ApiError,
+  type Gender,
+  type UpdateMeBody,
+  type CreateProfileBody,
+  type ProfileRelationship,
+  type PlaceOfBirth,
+} from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -26,6 +34,8 @@ interface Message {
 interface Answers {
   language: string;
   name: string;
+  /** New-profile mode only ("mode=new-profile") — the ProfileRelationship key (partner/child/etc). */
+  relationship: string;
   dob: string;
   tob: string;
   timeSource: string;
@@ -105,9 +115,12 @@ function TypingIndicator() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function OnboardingPage() {
+function OnboardingPageInner() {
   const { t } = useTranslation();
   const { setLang } = useLanguage();
+
+  const searchParams = useSearchParams();
+  const isNewProfileMode = searchParams.get("mode") === "new-profile";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [step, setStep] = useState(0);
@@ -121,7 +134,7 @@ export default function OnboardingPage() {
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { refresh, refreshProfiles, user } = useAuth();
 
   const msgId = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -150,12 +163,14 @@ export default function OnboardingPage() {
     setMessages((m) => [...m, { id: nextId(), from: "user", text }]);
   };
 
-  // Advance to next step after the user responds
-  const advance = async (ans: Partial<Answers>, userText: string, nextQ: string) => {
+  // Advance to next step after the user responds. `nextStep` overrides the
+  // default `s + 1` — used by new-profile mode to detour through the
+  // relationship sub-step (2.5) without renumbering any of the existing steps.
+  const advance = async (ans: Partial<Answers>, userText: string, nextQ: string, nextStep?: number) => {
     setAnswers((a) => ({ ...a, ...ans }));
     userSay(userText);
     await botSay(nextQ);
-    setStep((s) => s + 1);
+    setStep((s) => nextStep ?? s + 1);
   };
 
   // ── Step questions (resolved at render time so i18next re-renders on lang change)
@@ -190,7 +205,15 @@ export default function OnboardingPage() {
     if (!val) return;
 
     if (step === 2) { // name
-      await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
+      if (isNewProfileMode) {
+        // Detour through the relationship sub-step (2.5) instead of going
+        // straight to DOB — inserted only for this mode, existing step
+        // numbers (3 onward) are untouched.
+        const relationshipQ = t("onboarding.newProfile.relationshipQ").replace("{name}", val).replace("{{name}}", val);
+        await advance({ name: val }, val, relationshipQ, 2.5);
+      } else {
+        await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
+      }
     } else if (step === 3) { // dob — the date input holds ISO; store DD/MM/YYYY
       const dob = isoToDob(val);
       if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
@@ -206,7 +229,11 @@ export default function OnboardingPage() {
 
   // ── Language selection (step 1)
   const handleLanguage = async (code: LangCode, native: string) => {
-    setLang(code);
+    // In new-profile mode we're collecting someone else's birth data — don't
+    // change the account owner's own app-wide display language as a side
+    // effect. The answer is still recorded and the flow still advances the
+    // same way; it's just unused by CreateProfileBody (like handleStatus below).
+    if (!isNewProfileMode) setLang(code);
     userSay(native);
     setIsTyping(true);
     setTimeout(async () => {
@@ -215,6 +242,24 @@ export default function OnboardingPage() {
       setMessages((m) => [...m, { id: nextId(), from: "bot", text: t("onboarding.step2q") }]);
       setStep(2);
     }, 800);
+  };
+
+  // ── Relationship-to-account-owner (step 2.5 — new-profile mode only)
+  const RELATIONSHIPS: { key: ProfileRelationship; label: string }[] = [
+    { key: "partner", label: t("profileSwitcher.relationship.partner") },
+    { key: "prospective_match", label: t("profileSwitcher.relationship.prospective_match") },
+    { key: "spouse", label: t("profileSwitcher.relationship.spouse") },
+    { key: "child", label: t("profileSwitcher.relationship.child") },
+    { key: "parent", label: t("profileSwitcher.relationship.parent") },
+    { key: "sibling", label: t("profileSwitcher.relationship.sibling") },
+    { key: "friend", label: t("profileSwitcher.relationship.friend") },
+    { key: "other", label: t("profileSwitcher.relationship.other") },
+  ];
+
+  const handleRelationship = async (key: string, label: string) => {
+    // Rejoins the normal flow at step 3 (DOB) — Q[2] is the same DOB question
+    // asked right after the name step in the primary flow.
+    await advance({ relationship: key }, label, Q[2], 3);
   };
 
   // ── Time source (step 5)
@@ -276,6 +321,50 @@ export default function OnboardingPage() {
     if (!consented) return;
     setSubmitErr("");
     setSubmitting(true);
+
+    if (isNewProfileMode) {
+      try {
+        const body: CreateProfileBody = { displayName: answers.name! };
+        if (answers.gender) body.gender = answers.gender as Gender;
+        if (answers.dob) {
+          const [d, m, y] = answers.dob.split("/");
+          body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
+        }
+        if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
+        if (resolvedPlace) body.placeOfBirth = resolvedPlace;
+        if (answers.timeSource) {
+          const sourceMap: Record<string, string> = {
+            certificate: "birth_certificate",
+            hospital: "hospital_record",
+            family: "family_memory",
+            approximate: "unknown", // mapped from approximate source
+          };
+          body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
+        }
+        if (answers.accuracy) {
+          body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
+        }
+        if (answers.relationship) {
+          body.relationship = answers.relationship as ProfileRelationship;
+        }
+        body.addedWithConsent = consented;
+
+        await api.createProfile(body);
+        // The new profile is already active server-side (per the createProfile
+        // contract) — this just syncs local `profiles`/`activeProfile` state.
+        await refreshProfiles();
+        router.replace("/");
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          setSubmitErr(t("onboarding.newProfile.insufficientCredits"));
+        } else {
+          setSubmitErr(t("onboarding.submitError"));
+        }
+        setSubmitting(false);
+      }
+      return;
+    }
+
     try {
       const body: UpdateMeBody = {};
       if (answers.name) body.displayName = answers.name;
@@ -467,6 +556,21 @@ export default function OnboardingPage() {
             </div>
           )}
 
+          {/* Step 2.5: relationship-to-you (new-profile mode only) */}
+          {isNewProfileMode && step === 2.5 && (
+            <div className="grid grid-cols-2 gap-2">
+              {RELATIONSHIPS.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => handleRelationship(r.key, r.label)}
+                  className="py-3.5 px-3 rounded-xl border border-gold/20 bg-card/80 text-[13px] text-foreground text-center hover:border-gold/50 hover:bg-gold/8 transition-all active:scale-95"
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Step 7: place autocomplete */}
           {step === 7 && (
             <PlaceAutocomplete
@@ -560,7 +664,9 @@ export default function OnboardingPage() {
             <div className="w-10 h-1 rounded-full bg-gold/30 mx-auto mb-5" />
 
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-[20px] text-foreground">{t("onboarding.confirmTitle")}</h3>
+              <h3 className="font-display text-[20px] text-foreground">
+                {t(isNewProfileMode ? "onboarding.confirmTitleNewProfile" : "onboarding.confirmTitle")}
+              </h3>
               <button
                 onClick={() => {
                   setShowConfirm(false);
@@ -589,7 +695,9 @@ export default function OnboardingPage() {
                 { label: t("onboarding.labelTob"),     value: answers.tob },
                 { label: t("onboarding.labelPlace"),   value: answers.place },
                 { label: t("onboarding.labelGender"),  value: answers.gender },
-                { label: t("onboarding.labelStatus"),  value: answers.status },
+                isNewProfileMode
+                  ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label }
+                  : { label: t("onboarding.labelStatus"),  value: answers.status },
               ].map(({ label, value }) => value ? (
                 <div key={label} className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gold/10 bg-surface">
                   <span className="text-[12px] text-muted uppercase tracking-wider">{label}</span>
@@ -597,6 +705,12 @@ export default function OnboardingPage() {
                 </div>
               ) : null)}
             </div>
+
+            {isNewProfileMode && (
+              <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
+                {t("onboarding.newProfile.creditCost")}
+              </p>
+            )}
 
             <label className="flex items-start gap-2.5 mb-2 text-[12px] text-muted leading-relaxed cursor-pointer">
               <input
@@ -619,20 +733,42 @@ export default function OnboardingPage() {
               <p className="mb-3 text-[12px] text-red-400 text-center">{submitErr}</p>
             )}
 
-            <button
-              onClick={handleConfirm}
-              disabled={submitting || !consented}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#a67c00] via-[#D4AF37] to-[#f4d675] text-[#1a0e00] font-semibold text-[15px] tracking-wide flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(212,175,55,0.4)] disabled:opacity-50 active:scale-[0.98] transition-all"
-            >
-              {submitting ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <>{t("onboarding.confirmBtn")} <ChevronRight size={17} /></>
-              )}
-            </button>
+            {isNewProfileMode && (user?.credits ?? 0) < 20 ? (
+              <div>
+                <p className="mb-3 text-[12px] text-red-400 text-center">
+                  {t("onboarding.newProfile.insufficientCredits")}
+                </p>
+                <button
+                  onClick={() => router.push("/payment")}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-[#a67c00] via-[#D4AF37] to-[#f4d675] text-[#1a0e00] font-semibold text-[15px] tracking-wide flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(212,175,55,0.4)] active:scale-[0.98] transition-all"
+                >
+                  {t("payment.buyCredits")}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleConfirm}
+                disabled={submitting || !consented}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#a67c00] via-[#D4AF37] to-[#f4d675] text-[#1a0e00] font-semibold text-[15px] tracking-wide flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(212,175,55,0.4)] disabled:opacity-50 active:scale-[0.98] transition-all"
+              >
+                {submitting ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <>{t(isNewProfileMode ? "profileSwitcher.createProfile" : "onboarding.confirmBtn")} <ChevronRight size={17} /></>
+                )}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={null}>
+      <OnboardingPageInner />
+    </Suspense>
   );
 }

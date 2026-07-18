@@ -451,6 +451,13 @@ export const resources = {
         labelPlace: "Place of Birth",
         labelGender: "Gender",
         labelStatus: "Relationship",
+        labelRelation: "Relation to You",
+        newProfile: {
+          relationshipQ: "Wonderful! What's your relationship to {name}?",
+          creditCost: "Creating this profile costs 20 credits.",
+          insufficientCredits: "Not enough credits to create this profile.",
+        },
+        confirmTitleNewProfile: "Confirm New Profile",
       },
       kundli: {
         title: "Your Kundli",
@@ -1522,6 +1529,13 @@ export const resources = {
         labelPlace: "जन्म स्थान",
         labelGender: "लिंग",
         labelStatus: "रिश्ता",
+        labelRelation: "आपसे रिश्ता",
+        newProfile: {
+          relationshipQ: "आपका इस व्यक्ति से क्या रिश्ता है?",
+          creditCost: "यह प्रोफ़ाइल बनाने पर 20 क्रेडिट खर्च होंगे।",
+          insufficientCredits: "इस प्रोफ़ाइल को बनाने के लिए पर्याप्त क्रेडिट नहीं हैं।",
+        },
+        confirmTitleNewProfile: "नई प्रोफ़ाइल की पुष्टि करें",
       },
       tour: {
         welcomeTitle: "आरोहा में आपका स्वागत है ✨",
@@ -2263,6 +2277,13 @@ export const resources = {
         labelPlace: "জন্মস্থান",
         labelGender: "লিঙ্গ",
         labelStatus: "সম্পর্ক",
+        labelRelation: "আপনার সাথে সম্পর্ক",
+        newProfile: {
+          relationshipQ: "এই ব্যক্তির সাথে আপনার সম্পর্ক কী?",
+          creditCost: "এই প্রোফাইল তৈরি করতে ২০ ক্রেডিট খরচ হবে।",
+          insufficientCredits: "এই প্রোফাইল তৈরি করতে পর্যাপ্ত ক্রেডিট নেই।",
+        },
+        confirmTitleNewProfile: "নতুন প্রোফাইল নিশ্চিত করুন",
       },
       tour: {
         welcomeTitle: "Aroha-তে স্বাগতম ✨",
@@ -3004,6 +3025,13 @@ export const resources = {
         labelPlace: "जन्मस्थान",
         labelGender: "लिंग",
         labelStatus: "नाते",
+        labelRelation: "तुमच्याशी नाते",
+        newProfile: {
+          relationshipQ: "या व्यक्तीशी तुमचे काय नाते आहे?",
+          creditCost: "ही प्रोफाइल तयार करण्यासाठी 20 क्रेडिट्स खर्च होतील.",
+          insufficientCredits: "ही प्रोफाइल तयार करण्यासाठी पुरेसे क्रेडिट्स नाहीत.",
+        },
+        confirmTitleNewProfile: "नवीन प्रोफाइलची पुष्टी करा",
       },
       tour: {
         welcomeTitle: "Aroha मध्ये आपले स्वागत आहे ✨",
@@ -3741,6 +3769,13 @@ export const resources = {
         labelPlace: "జన్మ స్థలం",
         labelGender: "లింగం",
         labelStatus: "సంబంధం",
+        labelRelation: "మీతో సంబంధం",
+        newProfile: {
+          relationshipQ: "ఈ వ్యక్తితో మీ సంబంధం ఏమిటి?",
+          creditCost: "ఈ ప్రొఫైల్‌ను సృష్టించడానికి 20 క్రెడిట్‌లు ఖర్చవుతాయి.",
+          insufficientCredits: "ఈ ప్రొఫైల్‌ను సృష్టించడానికి సరిపడా క్రెడిట్‌లు లేవు.",
+        },
+        confirmTitleNewProfile: "కొత్త ప్రొఫైల్‌ను నిర్ధారించండి",
       },
       tour: {
         welcomeTitle: "Arohaకు స్వాగతం ✨",
@@ -4482,6 +4517,13 @@ export const resources = {
         labelPlace: "பிறந்த இடம்",
         labelGender: "பாலினம்",
         labelStatus: "உறவு",
+        labelRelation: "உங்களுடன் உறவு",
+        newProfile: {
+          relationshipQ: "இந்த நபருடன் உங்கள் உறவு என்ன?",
+          creditCost: "இந்த சுயவிவரத்தை உருவாக்க 20 கிரெடிட்கள் செலவாகும்.",
+          insufficientCredits: "இந்த சுயவிவரத்தை உருவாக்க போதுமான கிரெடிட்கள் இல்லை.",
+        },
+        confirmTitleNewProfile: "புதிய சுயவிவரத்தை உறுதிப்படுத்தவும்",
       },
       tour: {
         welcomeTitle: "Arohaவிற்கு வரவேற்கிறோம் ✨",
@@ -5219,6 +5261,13 @@ export const resources = {
         labelPlace: "જન્મ સ્થળ",
         labelGender: "જેન્ડર",
         labelStatus: "સંબંધ",
+        labelRelation: "તમારી સાથે સંબંધ",
+        newProfile: {
+          relationshipQ: "આ વ્યક્તિ સાથે તમારો શું સંબંધ છે?",
+          creditCost: "આ પ્રોફાઇલ બનાવવા માટે 20 ક્રેડિટ ખર્ચ થશે.",
+          insufficientCredits: "આ પ્રોફાઇલ બનાવવા માટે પૂરતા ક્રેડિટ નથી.",
+        },
+        confirmTitleNewProfile: "નવી પ્રોફાઇલની પુષ્ટિ કરો",
       },
       tour: {
         welcomeTitle: "Arohaમાં આપનું સ્વાગત છે ✨",

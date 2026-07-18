@@ -598,6 +598,10 @@ export default function OnboardingPage() {
               ) : null)}
             </div>
 
+            <p className="mb-5 text-[12px] text-muted/90 leading-relaxed">
+              {t("onboarding.confirmAccuracyNote")}
+            </p>
+
             <label className="flex items-start gap-2.5 mb-2 text-[12px] text-muted leading-relaxed cursor-pointer">
               <input
                 type="checkbox"

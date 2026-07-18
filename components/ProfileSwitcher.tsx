@@ -11,7 +11,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import type { Profile, ProfileRelationship } from "@/lib/api";
 
 /** Maps each relationship enum value to its i18n key under profileSwitcher.relationship. */
-const RELATIONSHIP_KEYS: Record<ProfileRelationship, string> = {
+export const RELATIONSHIP_KEYS: Record<ProfileRelationship, string> = {
   partner: "profileSwitcher.relationship.partner",
   prospective_match: "profileSwitcher.relationship.prospective_match",
   spouse: "profileSwitcher.relationship.spouse",

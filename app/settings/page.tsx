@@ -24,6 +24,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type Profile } from "@/lib/api";
+import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 
 function SettingsRow({
   icon,
@@ -66,7 +67,7 @@ function ProfileRow({ profile, onDelete }: { profile: Profile; onDelete: () => v
   const secondary = profile.isPrimary
     ? t("settings.profilePrimary")
     : profile.relationship
-      ? t(`profileSwitcher.relationship.${profile.relationship}`)
+      ? t(RELATIONSHIP_KEYS[profile.relationship])
       : null;
 
   return (

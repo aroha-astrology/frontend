@@ -14,10 +14,13 @@ import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
 import WalletBalance from "@/components/ui/WalletBalance";
 
-/** The 4 tab routes that use this shared header — kundli/home/horoscope/panchang
- * each opt into a right-side slot via `useTopBarRightContent`; every other
- * route (ai-chat, profile, settings, onboarding, etc.) has its own header. */
-const TOPBAR_ROUTES = ["/", "/kundli", "/horoscope", "/panchang"];
+/** The tab routes that use this shared header — home/vastu/horoscope/panchang
+ * (the current bottom-nav tabs), plus kundli, which is no longer a bottom-nav
+ * tab itself but is still linked to directly (KundliCard, menu drawer) and
+ * needs the same header. Each opts into a right-side slot via
+ * `useTopBarRightContent`; every other route (ai-chat, profile, settings,
+ * onboarding, etc.) has its own header. */
+const TOPBAR_ROUTES = ["/", "/kundli", "/vastu", "/horoscope", "/panchang"];
 
 /**
  * Rendered once in the root layout (like BottomNavigation) rather than per

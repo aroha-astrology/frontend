@@ -219,7 +219,7 @@ export default function SettingsPage() {
         {/* Account */}
         <SectionLabel>{t("settings.account")}</SectionLabel>
         <div className="space-y-2.5 mb-2.5">
-          <SettingsLink href="/settings/history" icon={<Wallet size={16} />} label={t("settings.rechargeHistory")} />
+          <SettingsLink href="/settings/history" icon={<Wallet size={16} />} label={t("settings.paymentHistory")} />
         </div>
         <Card className="p-1 mb-2.5">
           <button

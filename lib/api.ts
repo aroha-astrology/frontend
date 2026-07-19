@@ -61,16 +61,6 @@ export interface Notification {
   createdAt: string;
 }
 
-/** Wallet ledger entry (deposits/spends as a running delta) — powers the "Wallet History" screen
- *  at app/profile/orders/page.tsx. Distinct from the billing `Transaction` union below. */
-export interface WalletTransaction {
-  id: string;
-  delta: number;
-  reason: string;
-  balanceAfter: number;
-  createdAt: string;
-}
-
 export interface SessionResponse {
   user: User;
   created: boolean;
@@ -674,9 +664,6 @@ export const api = {
 
   /** Mark all notifications as read */
   markNotificationsRead: () => request<{ success: boolean }>("/v1/me/notifications/read", { method: "PATCH", auth: true }),
-
-  /** Get user wallet transactions */
-  getTransactions: () => request<WalletTransaction[]>("/v1/me/transactions", { auth: true }),
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),

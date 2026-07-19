@@ -4,28 +4,42 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownRight, History } from "lucide-react";
-import { api, type WalletTransaction } from "@/lib/api";
+import { api, type Transaction } from "@/lib/api";
 import IconButton from "@/components/ui/IconButton";
+import { formatRupees } from "@/lib/format";
 import { formatDistanceToNow } from "date-fns";
 import type { TFunction } from "i18next";
 
-/** Wallet transactions carry a backend-internal reason code — map known codes to
- *  a translated label, falling back to the raw code for anything not yet mapped. */
-function reasonLabel(reason: string, t: TFunction): string {
-  if (reason === "referral_bonus") return t("transactions.reasonReferralBonus", "Referral Bonus");
-  return reason;
+/** Kind → translated label, with an English fallback matching this page's existing pattern. */
+function kindLabel(t: TFunction, txn: Transaction): string {
+  switch (txn.kind) {
+    case "recharge": return t("transactions.reasonRecharge", "Recharge");
+    case "chat": return t("transactions.reasonChat", "AI Chat");
+    case "vastu_report": return t("transactions.reasonVastuReport", "Vastu Report");
+    case "gemstone_unlock": return t("transactions.reasonGemstoneUnlock", "Gemstone Report");
+    case "profile_creation": return t("transactions.reasonProfileCreation", "Additional Profile Created");
+    case "house_unlock": return t("transactions.reasonHouseUnlock", "House {{houseNumber}} Insight Unlock", { houseNumber: txn.houseNumber });
+    case "referral_bonus": return t("transactions.reasonReferralBonus", "Referral Bonus");
+  }
+}
+
+/** Whether this row represents money flowing INTO the wallet (shown in green with a + sign). */
+function isCredit(txn: Transaction): boolean {
+  if (txn.kind === "recharge") return true;
+  if (txn.kind === "referral_bonus") return true;
+  return txn.isRefund;
 }
 
 export default function TransactionsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getTransactions()
-      .then(setTransactions)
-      .catch(console.error)
+    api.transactionHistory()
+      .then(({ transactions }) => setTransactions(transactions))
+      .catch(() => setTransactions([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -57,25 +71,27 @@ export default function TransactionsPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {transactions.map(txn => {
-              const isPositive = txn.delta > 0;
+              const positive = isCredit(txn);
               return (
                 <div key={txn.id} className="p-4 rounded-2xl bg-surface border border-gold/10 flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isPositive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
-                    {isPositive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${positive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
+                    {positive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-foreground font-medium text-sm truncate">{reasonLabel(txn.reason, t)}</p>
+                    <p className="text-foreground font-medium text-sm truncate">{kindLabel(t, txn)}</p>
                     <p className="text-muted text-xs mt-0.5">
                       {formatDistanceToNow(new Date(txn.createdAt), { addSuffix: true })}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`font-semibold ${isPositive ? "text-green-500" : "text-foreground"}`}>
-                      {isPositive ? "+" : ""}₹{(txn.delta / 100).toFixed(0)}
+                    <p className={`font-semibold ${positive ? "text-green-500" : "text-foreground"}`}>
+                      {positive ? "+" : "-"}{formatRupees(txn.amountPaise)}
                     </p>
-                    <p className="text-muted text-[10px] mt-0.5">
-                      {t("transactions.balance", "Balance")}: ₹{(txn.balanceAfter / 100).toFixed(0)}
-                    </p>
+                    {txn.kind !== "recharge" && (
+                      <p className="text-muted text-[10px] mt-0.5">
+                        {t("transactions.balance", "Balance")}: {formatRupees(txn.balanceAfterPaise)}
+                      </p>
+                    )}
                   </div>
                 </div>
               );

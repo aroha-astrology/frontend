@@ -69,12 +69,6 @@ function Heading({ children }: { children: React.ReactNode }) {
   );
 }
 
-const STRENGTH_STYLES: Record<GemstoneStrength, string> = {
-  weak: "text-red-400 bg-red-500/10 border-red-500/20",
-  average: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-  strong: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-};
-
 /** Fallback % for reports cached before preferencePercent existed. */
 const STRENGTH_FALLBACK_PCT: Record<GemstoneStrength, number> = { weak: 80, average: 45, strong: 20 };
 
@@ -99,6 +93,7 @@ function PreferenceRing({ pct }: { pct: number }) {
 
 function GemRow({ gem }: { gem: GemstoneItem }) {
   const { t } = useTranslation();
+  const [showCareDetails, setShowCareDetails] = useState(false);
   const dataKey = (field: string) => `kundli.gemstone.data.${gem.planet}.${field}`;
   const displayName = t(dataKey("displayName"));
   const gemName = t(dataKey("gemName"));
@@ -126,14 +121,6 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold text-foreground">{gemName}</span>
-            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${STRENGTH_STYLES[gem.strength]}`}>
-              {t(`kundli.gemstone.strength.${gem.strength}`)}
-            </span>
-            {gem.recommended && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-gold/30 text-gold bg-gold/10 font-semibold uppercase tracking-wider">
-                {t("kundli.gemstone.recommendedTag")}
-              </span>
-            )}
           </div>
           <p className="text-[11px] text-muted mt-0.5">
             {t("kundli.gemstone.forPlanet", { planet: displayName })}
@@ -164,45 +151,57 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
         </p>
       </div>
 
-      {/* Do's / Don'ts */}
-      <div className="grid sm:grid-cols-2 gap-3 mt-3">
-        <div>
-          <p className="text-[10px] font-semibold text-emerald-400 mb-1">{t("kundli.gemstone.dos")}</p>
-          <ul className="space-y-1">
-            {dos.map((d, i) => (
-              <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
-                <span className="text-emerald-400 shrink-0">+</span>{d}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold text-red-400 mb-1">{t("kundli.gemstone.donts")}</p>
-          <ul className="space-y-1">
-            {donts.map((d, i) => (
-              <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
-                <span className="text-red-400 shrink-0">−</span>{d}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      {/* Do's / Don'ts + Verify Authenticity — collapsed by default, since
+          stacking all of this for every gem makes the card very long. */}
+      <button
+        type="button"
+        onClick={() => setShowCareDetails((v) => !v)}
+        className="mt-3 text-[11px] text-gold underline-offset-2 hover:underline"
+      >
+        {showCareDetails ? t("kundli.gemstone.hideCareDetails") : t("kundli.gemstone.showCareDetails")}
+      </button>
 
-      {/* Verify Authenticity */}
-      <div className="mt-3 pt-3 border-t border-border">
-        <p className="text-[10px] font-semibold text-sky-400 mb-1">{t("kundli.gemstone.verifyAuthenticity")}</p>
-        <ul className="space-y-1">
-          {verifyTips.map((v, i) => (
-            <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
-              <span className="text-sky-400 shrink-0">✓</span>{v}
-            </li>
-          ))}
-        </ul>
-        <p className="text-[10px] text-muted mt-2">
-          <span className="font-semibold text-foreground/80">{t("kundli.gemstone.originCountry")}: </span>
-          {originCountry}
-        </p>
-      </div>
+      {showCareDetails && (
+        <>
+          <div className="grid sm:grid-cols-2 gap-3 mt-3">
+            <div>
+              <p className="text-[10px] font-semibold text-emerald-400 mb-1">{t("kundli.gemstone.dos")}</p>
+              <ul className="space-y-1">
+                {dos.map((d, i) => (
+                  <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
+                    <span className="text-emerald-400 shrink-0">+</span>{d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-red-400 mb-1">{t("kundli.gemstone.donts")}</p>
+              <ul className="space-y-1">
+                {donts.map((d, i) => (
+                  <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
+                    <span className="text-red-400 shrink-0">−</span>{d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-[10px] font-semibold text-sky-400 mb-1">{t("kundli.gemstone.verifyAuthenticity")}</p>
+            <ul className="space-y-1">
+              {verifyTips.map((v, i) => (
+                <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
+                  <span className="text-sky-400 shrink-0">✓</span>{v}
+                </li>
+              ))}
+            </ul>
+            <p className="text-[10px] text-muted mt-2">
+              <span className="font-semibold text-foreground/80">{t("kundli.gemstone.originCountry")}: </span>
+              {originCountry}
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

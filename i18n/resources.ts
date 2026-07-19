@@ -563,6 +563,8 @@ export const resources = {
           disclaimer: "Advisory only, based on Vedic astrology — not medical or financial advice. Consult a qualified astrologer before wearing any gemstone, especially Blue Sapphire (Neelam).",
           showAll: "Show all {{count}} gemstones",
           showLess: "Show less",
+          showCareDetails: "Show care & verification tips",
+          hideCareDetails: "Hide care & verification tips",
           data: {
             Sun: {
               displayName: "Sun",
@@ -1116,6 +1118,8 @@ export const resources = {
           disclaimer: "यह केवल वैदिक ज्योतिष आधारित सलाह है — चिकित्सा या वित्तीय सलाह नहीं। कोई भी रत्न, विशेषकर नीलम, पहनने से पहले योग्य ज्योतिषी से परामर्श करें।",
           showAll: "सभी {{count}} रत्न दिखाएं",
           showLess: "कम दिखाएं",
+          showCareDetails: "देखभाल और सत्यापन युक्तियाँ दिखाएं",
+          hideCareDetails: "देखभाल और सत्यापन युक्तियाँ छिपाएं",
           data: {
             Sun: {
               displayName: "सूर्य",
@@ -1989,6 +1993,8 @@ export const resources = {
           disclaimer: "এটি কেবল বৈদিক জ্যোতিষ ভিত্তিক পরামর্শ — চিকিৎসা বা আর্থিক পরামর্শ নয়। যেকোনো রত্ন, বিশেষত নীলা, পরার আগে একজন যোগ্য জ্যোতিষীর পরামর্শ নিন।",
           showAll: "সব {{count}}টি রত্ন দেখান",
           showLess: "কম দেখান",
+          showCareDetails: "যত্ন ও যাচাইকরণ টিপস দেখান",
+          hideCareDetails: "যত্ন ও যাচাইকরণ টিপস লুকান",
           data: {
             Sun: {
               displayName: "সূর্য",
@@ -2862,6 +2868,8 @@ export const resources = {
           disclaimer: "हा केवळ वैदिक ज्योतिषावर आधारित सल्ला आहे — वैद्यकीय किंवा आर्थिक सल्ला नाही. कोणतेही रत्न, विशेषतः नीलम, घालण्यापूर्वी पात्र ज्योतिषाचा सल्ला घ्या.",
           showAll: "सर्व {{count}} रत्ने दाखवा",
           showLess: "कमी दाखवा",
+          showCareDetails: "काळजी आणि पडताळणी टिप्स दाखवा",
+          hideCareDetails: "काळजी आणि पडताळणी टिप्स लपवा",
           data: {
             Sun: {
               displayName: "सूर्य",
@@ -3735,6 +3743,8 @@ export const resources = {
           disclaimer: "ఇది కేవలం వైదిక జ్యోతిష్యం ఆధారిత సలహా మాత్రమే — వైద్య లేదా ఆర్థిక సలహా కాదు. ఏదైనా రత్నం, ముఖ్యంగా నీలం, ధరించే ముందు అర్హత గల జ్యోతిష్కుడిని సంప్రదించండి.",
           showAll: "అన్ని {{count}} రత్నాలు చూపించు",
           showLess: "తక్కువ చూపించు",
+          showCareDetails: "సంరక్షణ మరియు ధృవీకరణ చిట్కాలు చూపించు",
+          hideCareDetails: "సంరక్షణ మరియు ధృవీకరణ చిట్కాలు దాచు",
           data: {
             Sun: {
               displayName: "సూర్యుడు",
@@ -4604,6 +4614,8 @@ export const resources = {
           disclaimer: "இது வேத ஜோதிடத்தை அடிப்படையாகக் கொண்ட ஆலோசனை மட்டுமே — மருத்துவ அல்லது நிதி ஆலோசனை அல்ல. எந்த ரத்தினத்தையும், குறிப்பாக நீலம், அணிவதற்கு முன் தகுதியான ஜோதிடரை அணுகவும்.",
           showAll: "அனைத்து {{count}} ரத்தினங்களையும் காட்டு",
           showLess: "குறைவாகக் காட்டு",
+          showCareDetails: "பராமரிப்பு & சரிபார்ப்பு குறிப்புகளைக் காட்டு",
+          hideCareDetails: "பராமரிப்பு & சரிபார்ப்பு குறிப்புகளை மறை",
           data: {
             Sun: {
               displayName: "சூரியன்",
@@ -5477,6 +5489,8 @@ export const resources = {
           disclaimer: "આ ફક્ત વૈદિક જ્યોતિષ આધારિત સલાહ છે — તબીબી કે નાણાકીય સલાહ નથી. કોઈપણ રત્ન, ખાસ કરીને નીલમ, પહેરતાં પહેલાં લાયક જ્યોતિષીની સલાહ લો.",
           showAll: "બધા {{count}} રત્નો બતાવો",
           showLess: "ઓછું બતાવો",
+          showCareDetails: "કાળજી અને ચકાસણી ટિપ્સ બતાવો",
+          hideCareDetails: "કાળજી અને ચકાસણી ટિપ્સ છુપાવો",
           data: {
             Sun: {
               displayName: "સૂર્ય",

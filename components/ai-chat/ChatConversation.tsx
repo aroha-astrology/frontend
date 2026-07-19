@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown, FileDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -92,6 +92,19 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
   const match = content.match(/\n *Ask next:\s*(.+?)\s*$/i);
   if (!match) return { text: content, followUp: null };
   return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
+}
+
+/** Strip markdown syntax for a clean PDF plain-text fallback. */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s*/gm, "")          // headings
+    .replace(/\*\*(.+?)\*\*/g, "$1")        // bold
+    .replace(/\*(.+?)\*/g, "$1")            // italic
+    .replace(/`(.+?)`/g, "$1")              // inline code
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1")    // links
+    .replace(/^[-*+]\s+/gm, "• ")          // unordered list
+    .replace(/^\d+\.\s+/gm, (m) => m)      // ordered list (keep numbers)
+    .trim();
 }
 
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
@@ -421,6 +434,115 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     }
   }, [input, streaming, canAfford, t, detailLevel, refresh]);
 
+  /**
+   * Opens a new browser window with a print-ready HTML document that contains
+   * the full conversation, then triggers the browser print dialog (Save as PDF).
+   * Uses zero external dependencies — works on all modern browsers.
+   */
+  const downloadConversationAsPdf = useCallback(() => {
+    const astrologerName = t(ASTROLOGER.nameKey);
+    const astrologerSpecialty = t(ASTROLOGER.specialtyKey);
+    const now = new Date().toLocaleString(i18n.language, {
+      dateStyle: "long",
+      timeStyle: "short",
+    });
+
+    // Build the conversation HTML
+    const rows = messages
+      .filter((m) => !m.isGreeting) // skip canned greeting
+      .map((m) => {
+        const label = m.role === "user" ? "You" : astrologerName;
+        const bubbleColor = m.role === "user" ? "#92400e" : "#1c1917";
+        const labelColor = m.role === "user" ? "#d97706" : "#ca8a04";
+        const bodyText = m.role === "assistant" ? stripMarkdown(m.content) : m.content;
+        return `
+          <div class="message ${m.role}">
+            <span class="label" style="color:${labelColor}">${label}</span>
+            <div class="bubble" style="background:${bubbleColor}">
+              ${bodyText.replace(/\n/g, "<br/>")}
+            </div>
+          </div>`;
+      })
+      .join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="${i18n.language}">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat with ${astrologerName} — Aroha Astrology</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0c0a09;
+      color: #e7e5e4;
+      padding: 40px 32px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 1px solid #44403c;
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .header h1 { font-size: 22px; color: #eab308; font-weight: 600; }
+    .header p  { font-size: 12px; color: #a8a29e; margin-top: 4px; }
+    .header .meta { font-size: 11px; color: #78716c; margin-top: 10px; }
+    .message { margin-bottom: 20px; }
+    .label { font-size: 11px; font-weight: 600; letter-spacing: .04em;
+             text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .bubble {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 92%;
+      border: 1px solid #44403c;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .user .bubble  { margin-left: auto; border-radius: 16px 16px 4px 16px; }
+    .assistant .bubble { border-radius: 16px 16px 16px 4px; }
+    .user { text-align: right; }
+    .footer {
+      margin-top: 36px;
+      text-align: center;
+      font-size: 10px;
+      color: #57534e;
+      border-top: 1px solid #44403c;
+      padding-top: 12px;
+    }
+    @media print {
+      body { background: #fff; color: #111; padding: 20px; }
+      .bubble { background: #f5f5f4 !important; color: #111 !important; border-color: #d6d3d1 !important; }
+      .header h1 { color: #b45309; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>${ASTROLOGER.avatar} ${astrologerName}</h1>
+    <p>${astrologerSpecialty}</p>
+    <p class="meta">Exported on ${now}</p>
+  </div>
+  ${rows || '<p style="color:#78716c;text-align:center">No messages yet.</p>'}
+  <div class="footer">Aroha Astrology · AI-generated content is for guidance only.</div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) return; // popup blocked
+    win.document.write(html);
+    win.document.close();
+    // Give fonts/images a moment to load before triggering print
+    win.onload = () => win.print();
+    // Fallback if onload already fired
+    setTimeout(() => { try { win.print(); } catch { /* already closed */ } }, 600);
+  }, [messages, t, i18n.language]);
+
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
   // astrologer already has context instead of starting from a blank chat.
@@ -450,14 +572,30 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
 
   return (
     <main className="min-h-screen pb-52 flex flex-col" style={{ background: "var(--background)" }}>
-      {/* Header — the astrologer's identity */}
-      <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="text-center">
+      {/* Header — the astrologer's identity. The name row stays sticky so
+          there's always a visible top bar once the conversation scrolls;
+          the specialty/disclosure lines scroll away with the rest. */}
+      <div className="sticky top-0 z-20 px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+        <div className="relative flex items-center justify-center">
           <h1 className="text-2xl font-bold text-gold font-display">
             {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
           </h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">{t(ASTROLOGER.specialtyKey)}</p>
+          {/* Download PDF — only show once there is at least one real exchange */}
+          {messages.length > 1 && (
+            <button
+              onClick={downloadConversationAsPdf}
+              title="Download conversation as PDF"
+              aria-label="Download conversation as PDF"
+              className="absolute right-0 p-2 rounded-full transition-colors hover:bg-yellow-500/10"
+              style={{ color: "var(--text-muted)" }}
+            >
+              <FileDown size={18} />
+            </button>
+          )}
         </div>
+      </div>
+      <div className="px-5 pt-3 pb-1">
+        <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
         <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
           {t("aiChatPage.disclosure")}
         </p>

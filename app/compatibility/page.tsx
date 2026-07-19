@@ -206,8 +206,20 @@ export default function CompatibilityPage() {
         })
       : null;
 
+    // Both people's actual birth data — not just derived scores — so the AI
+    // has real grounding even when neither side was picked from a saved
+    // profile (compareProfileId below only covers the "self vs. one saved
+    // profile" case; this covers every other combination, including two
+    // manually-typed people).
+    const birthDetailsLine = (who: "boy" | "girl") => {
+      const p = form[who];
+      return `${t(who === "boy" ? "compatibilityPage.person1" : "compatibilityPage.person2")} — ${p.name}: ${t("compatibilityPage.dob")} ${p.dob}, ${t("compatibilityPage.tob")} ${p.time}, ${t("compatibilityPage.birthPlace")} ${p.place}`;
+    };
+
     const parts = [
       t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal }),
+      birthDetailsLine("boy"),
+      birthDetailsLine("girl"),
       ...kootaLines,
       ...(mangalLine ? [`${t("compatibilityPage.mangalDosha")}: ${mangalLine}`] : []),
       ...redFlags.map((k) => t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })),
@@ -466,14 +478,6 @@ export default function CompatibilityPage() {
                     {meaning && (
                       <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         {meaning}
-                      </p>
-                    )}
-                    {koota.description && (
-                      <p
-                        className="mt-1 text-xs leading-relaxed italic"
-                        style={{ color: "var(--text-muted)", opacity: 0.75 }}
-                      >
-                        {koota.description}
                       </p>
                     )}
                   </div>

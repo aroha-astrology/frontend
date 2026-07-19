@@ -214,7 +214,7 @@ export default function NorthIndianChart({
                 fontFamily="Cinzel, Georgia, serif">ASC</text>
             )}
             <text x={pos.numberX} y={pos.numberY} textAnchor="middle"
-              fill={isAscendant ? 'rgba(212,175,55,1)' : 'rgba(60,72,88,0.55)'}
+              fill={isAscendant ? 'rgba(212,175,55,1)' : 'rgba(225,226,235,0.9)'}
               fontSize="11" fontWeight={isAscendant ? '800' : '700'} fontFamily="DM Sans, sans-serif">
               {house.house}
             </text>

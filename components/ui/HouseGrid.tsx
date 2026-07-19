@@ -73,7 +73,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balanc
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-wider">
                   {t('kundli.house.numHouse', { ordinal })}
                 </span>
                 {!isUnlocked ? (

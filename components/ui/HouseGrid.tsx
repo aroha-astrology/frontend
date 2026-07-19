@@ -31,7 +31,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balanc
   const ordinals = t('kundli.house.ordinals', { returnObjects: true }) as string[];
 
   return (
-    <Card className={`p-0 overflow-hidden bg-transparent border-none shadow-none ${className}`}>
+    <Card className={`p-0 bg-transparent border-none shadow-none ${className}`}>
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-4 flex-1">
           <span className="text-gold">✦</span>

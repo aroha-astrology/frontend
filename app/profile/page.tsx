@@ -147,7 +147,7 @@ export default function ProfilePage() {
     if (!user?.referralCode) return;
     const text = t("referral.shareMessage", {
       code: user.referralCode,
-      url: `https://arohaastrology.in/app?ref=${user.referralCode}`,
+      url: `https://app.arohaastrology.in?ref=${user.referralCode}`,
     });
     if (navigator.share) {
       try {

@@ -130,6 +130,11 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
 
 const TIMESCALES: Timescale[] = ["daily", "weekly", "monthly", "yearly"];
 
+// Tomorrow's personalized reading is hidden for now — the backend produces
+// near-identical lucky-element output across periods, so this toggle is
+// disabled until that's fixed. Flip back on once resolved.
+const SHOW_TOMORROW_TOGGLE = false;
+
 export default function HoroscopePage() {
   const { t } = useTranslation();
   const [timescale, setTimescale] = useState<Timescale>("daily");
@@ -174,7 +179,7 @@ export default function HoroscopePage() {
         {/* Today/Tomorrow — personalized card only, so it only shows up
             alongside the "Today" tab (the moon-sign grid below has no
             tomorrow-specific data and stays on "daily" either way). */}
-        {timescale === "daily" && (
+        {SHOW_TOMORROW_TOGGLE && timescale === "daily" && (
           <div className="mt-3 flex gap-2">
             {(["daily", "tomorrow"] as const).map((p) => (
               <button

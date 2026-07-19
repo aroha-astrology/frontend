@@ -20,6 +20,10 @@ export function initPostHogIfConsented(): void {
       persistence: "localStorage+cookie",
       person_profiles: "identified_only",
       capture_pageview: false,
+      // Defaults to mirroring capture_pageview ('if_capture_pageview'), which
+      // would silently disable it here since pageviews are captured manually
+      // above — explicit true keeps bounce-rate/session-duration accurate.
+      capture_pageleave: true,
       autocapture: false,
       disable_session_recording: true,
     });

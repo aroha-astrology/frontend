@@ -254,6 +254,11 @@ export default function ProfilePage() {
           </Card>
         )}
 
+        <div className="text-center mb-2">
+          <span className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium">
+            You can edit your profile only once
+          </span>
+        </div>
         <Card className="p-4">
           {!editing ? (
             <div>

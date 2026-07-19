@@ -44,8 +44,29 @@ export interface User {
   unlockedHouses: number[];
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
+  /** Referral code for this user */
+  referralCode: string | null;
+  /** Source of the referral (who referred this user) */
+  referredByCode: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface Transaction {
+  id: string;
+  delta: number;
+  reason: string;
+  balanceAfter: number;
+  createdAt: string;
 }
 
 export interface SessionResponse {
@@ -615,6 +636,15 @@ export const api = {
   /** Update current user profile. */
   updateMe: (body: UpdateMeBody) =>
     request<User>("/v1/me", { method: "PATCH", body, auth: true }),
+
+  /** Get user notifications */
+  getNotifications: () => request<Notification[]>("/v1/me/notifications", { auth: true }),
+
+  /** Mark all notifications as read */
+  markNotificationsRead: () => request<{ success: boolean }>("/v1/me/notifications/read", { method: "PATCH", auth: true }),
+
+  /** Get user wallet transactions */
+  getTransactions: () => request<Transaction[]>("/v1/me/transactions", { auth: true }),
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),

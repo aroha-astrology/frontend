@@ -107,16 +107,18 @@ async function findTransactionsForUser(userId: string, limit = 50) {
     db.select().from(orders).where(eq(orders.userId, userId))
       .orderBy(desc(orders.createdAt)).limit(limit),
     db.select().from(walletTransactions)
-      .where(and(eq(walletTransactions.userId, userId), lt(walletTransactions.delta, 0)))
+      .where(and(eq(walletTransactions.userId, userId), not(like(walletTransactions.reason, 'purchase:%'))))
       .orderBy(desc(walletTransactions.createdAt)).limit(limit),
   ]);
   // map each to a common Transaction shape, merge, sort by createdAt desc, slice(0, limit)
 }
 ```
 
-`ledgerRows` is filtered to `delta < 0` specifically so recharge ledger
-rows (positive delta) aren't double-counted alongside the `orders` rows
-that already represent them.
+`ledgerRows` excludes `purchase:*`-reason rows specifically — **not**
+`delta < 0` — because a refund row has a *positive* delta (money going
+back) but still needs to show up here; only recharge-grant rows (also
+positive delta, reason `purchase:<packId>`) are already covered by the
+`orders` rows and would double-count if included.
 
 Reason string → transaction kind (backend-side, so the client never
 pattern-matches raw reason strings). A leading `refund:` is stripped and

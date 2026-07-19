@@ -44,6 +44,7 @@ interface Answers {
   place: string;
   gender: string;
   status: string;
+  referralCode?: string;
 }
 
 const TOTAL_STEPS = 9;
@@ -418,6 +419,9 @@ function OnboardingPageInner() {
         };
         body.relationshipStatus = statusMap[answers.status] ?? answers.status;
       }
+      if (answers.referralCode) {
+        body.referredByCode = answers.referralCode;
+      }
       
       if ("geolocation" in navigator) {
         try {
@@ -737,6 +741,21 @@ function OnboardingPageInner() {
               <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
                 {t("onboarding.newProfile.creditCost", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })}
               </p>
+            )}
+
+            {!isNewProfileMode && (
+              <div className="mb-4">
+                <label className="text-[11px] text-muted uppercase tracking-wider mb-1 block">
+                  {t("referral.codeInputLabel", "Referral Code (Optional)")}
+                </label>
+                <input
+                  type="text"
+                  value={answers.referralCode || ""}
+                  onChange={(e) => setAnswers(a => ({ ...a, referralCode: e.target.value.trim().toUpperCase() }))}
+                  placeholder={t("referral.codeInputPlaceholder", "Got a code? Enter it here")}
+                  className="w-full h-10 rounded-xl px-3.5 outline-none border text-[13px] focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase"
+                />
+              </div>
             )}
 
             <label className="flex items-start gap-2.5 mb-2 text-[12px] text-muted leading-relaxed cursor-pointer">

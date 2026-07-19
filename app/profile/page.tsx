@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Pencil, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Pencil, Loader2, Sparkles, Share2, Copy } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -62,6 +62,7 @@ export default function ProfilePage() {
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const GENDERS: { key: Exclude<Gender, null>; label: string }[] = [
     { key: "male", label: t("onboarding.step7male") },
@@ -142,6 +143,25 @@ export default function ProfilePage() {
     }
   }
 
+  function handleShare() {
+    if (!user?.referralCode) return;
+    const text = `Join Aroha Astrology using my referral code: ${user.referralCode} and we both get ₹50!\nhttps://arohaastrology.in/app`;
+    if (navigator.share) {
+      navigator.share({ title: "Aroha Astrology", text })
+        .catch(() => handleCopy());
+    } else {
+      handleCopy();
+    }
+  }
+
+  function handleCopy() {
+    if (!user?.referralCode) return;
+    navigator.clipboard.writeText(user.referralCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   // ── Loading ──
   if (loading) {
     return (
@@ -190,12 +210,49 @@ export default function ProfilePage() {
             </div>
           </div>
           <button
+            onClick={() => router.push("/profile/orders")}
+            className="px-4 py-2 rounded-xl bg-gold/10 text-gold text-xs font-bold"
+          >
+            {t("transactions.history", "History")}
+          </button>
+          <button
             onClick={() => router.push("/payment")}
             className="px-4 py-2 rounded-xl bg-gold text-[#1a0e00] text-xs font-bold"
           >
             {t("payment.buyCredits")}
           </button>
         </Card>
+
+        {user?.referralCode && (
+          <Card className="p-4 mb-4 flex flex-col gap-3 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full -mr-10 -mt-10 pointer-events-none" />
+            <div className="flex items-start justify-between z-10">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Share2 size={16} className="text-gold" />
+                  {t("referral.title", "Refer & Earn")}
+                </h3>
+                <p className="text-xs text-muted mt-1 max-w-[200px]">
+                  {t("referral.desc", "Share your code. You both get ₹50 when they join. Earn up to ₹2000!")}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 z-10">
+              <div className="flex-1 bg-surface border border-gold/20 rounded-xl px-3 py-2 flex items-center justify-between">
+                <span className="text-sm font-mono tracking-wider font-semibold">{user.referralCode}</span>
+                <button onClick={handleCopy} className="text-gold hover:text-gold/80 p-1">
+                  {copied ? <span className="text-[10px] font-bold">COPIED</span> : <Copy size={14} />}
+                </button>
+              </div>
+              <button 
+                onClick={handleShare}
+                className="bg-gold text-[#1a0e00] px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap"
+              >
+                {t("referral.shareBtn", "Share Now")}
+              </button>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-4">
           {!editing ? (

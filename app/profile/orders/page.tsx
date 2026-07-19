@@ -7,6 +7,14 @@ import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownRight, History } from "lucid
 import { api, type Transaction } from "@/lib/api";
 import IconButton from "@/components/ui/IconButton";
 import { formatDistanceToNow } from "date-fns";
+import type { TFunction } from "i18next";
+
+/** Wallet transactions carry a backend-internal reason code — map known codes to
+ *  a translated label, falling back to the raw code for anything not yet mapped. */
+function reasonLabel(reason: string, t: TFunction): string {
+  if (reason === "referral_bonus") return t("transactions.reasonReferralBonus", "Referral Bonus");
+  return reason;
+}
 
 export default function TransactionsPage() {
   const { t } = useTranslation();
@@ -56,7 +64,7 @@ export default function TransactionsPage() {
                     {isPositive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-foreground font-medium text-sm truncate">{txn.reason}</p>
+                    <p className="text-foreground font-medium text-sm truncate">{reasonLabel(txn.reason, t)}</p>
                     <p className="text-muted text-xs mt-0.5">
                       {formatDistanceToNow(new Date(txn.createdAt), { addSuffix: true })}
                     </p>
@@ -66,7 +74,7 @@ export default function TransactionsPage() {
                       {isPositive ? "+" : ""}₹{(txn.delta / 100).toFixed(0)}
                     </p>
                     <p className="text-muted text-[10px] mt-0.5">
-                      Bal: ₹{(txn.balanceAfter / 100).toFixed(0)}
+                      {t("transactions.balance", "Balance")}: ₹{(txn.balanceAfter / 100).toFixed(0)}
                     </p>
                   </div>
                 </div>

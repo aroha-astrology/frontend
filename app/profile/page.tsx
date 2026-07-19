@@ -145,7 +145,10 @@ export default function ProfilePage() {
 
   function handleShare() {
     if (!user?.referralCode) return;
-    const text = `Join Aroha Astrology using my referral code: ${user.referralCode} and we both get ₹50!\nhttps://arohaastrology.in/app`;
+    const text = t("referral.shareMessage", {
+      code: user.referralCode,
+      url: "https://arohaastrology.in/app",
+    });
     if (navigator.share) {
       navigator.share({ title: "Aroha Astrology", text })
         .catch(() => handleCopy());

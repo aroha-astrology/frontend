@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownRight, History } from "lucide-react";
-import { api, type Transaction } from "@/lib/api";
+import { api, type WalletTransaction } from "@/lib/api";
 import IconButton from "@/components/ui/IconButton";
 import { formatDistanceToNow } from "date-fns";
 import type { TFunction } from "i18next";
@@ -19,7 +19,7 @@ function reasonLabel(reason: string, t: TFunction): string {
 export default function TransactionsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

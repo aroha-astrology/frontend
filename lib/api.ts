@@ -61,7 +61,9 @@ export interface Notification {
   createdAt: string;
 }
 
-export interface Transaction {
+/** Wallet ledger entry (deposits/spends as a running delta) — powers the "Wallet History" screen
+ *  at app/profile/orders/page.tsx. Distinct from the billing `Transaction` union below. */
+export interface WalletTransaction {
   id: string;
   delta: number;
   reason: string;
@@ -502,6 +504,35 @@ export interface Order {
   paidAt: string | null;
 }
 
+export type TransactionKind =
+  | "recharge"
+  | "chat"
+  | "vastu_report"
+  | "gemstone_unlock"
+  | "profile_creation"
+  | "house_unlock"
+  | "referral_bonus";
+
+export type Transaction =
+  | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
+  | {
+      id: string;
+      kind: Exclude<TransactionKind, "recharge" | "house_unlock">;
+      createdAt: string;
+      amountPaise: number;
+      balanceAfterPaise: number;
+      isRefund: boolean;
+    }
+  | {
+      id: string;
+      kind: "house_unlock";
+      createdAt: string;
+      amountPaise: number;
+      balanceAfterPaise: number;
+      isRefund: boolean;
+      houseNumber: number;
+    };
+
 // ─── Error type ──────────────────────────────────────────────────────────────
 
 /** Normalised backend error (`{ error: { code, message, requestId } }`). */
@@ -645,7 +676,7 @@ export const api = {
   markNotificationsRead: () => request<{ success: boolean }>("/v1/me/notifications/read", { method: "PATCH", auth: true }),
 
   /** Get user wallet transactions */
-  getTransactions: () => request<Transaction[]>("/v1/me/transactions", { auth: true }),
+  getTransactions: () => request<WalletTransaction[]>("/v1/me/transactions", { auth: true }),
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
@@ -886,8 +917,9 @@ export const api = {
       auth: true,
     }),
 
-  /** The current user's own recharge/order history, most recent first. */
-  orderHistory: () => request<{ orders: Order[] }>("/v1/billing/orders", { auth: true }),
+  /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
+  transactionHistory: () =>
+    request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

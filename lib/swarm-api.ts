@@ -266,6 +266,13 @@ export async function* streamChat(
     detailLevel?: ChatDetailLevel;
     /** User's Kundli chart ID for grounding AI responses in birth chart data. */
     chartId?: string;
+    /**
+     * A birth_profiles row id (from /v1/profiles) to compare the caller's own
+     * chart against, enabling real Ashtakoota synastry grounding via
+     * buildSecondChartFacts. Only meaningful when the user is signed in and
+     * the target profile has relationship partner/spouse/prospective_match.
+     */
+    compareProfileId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -288,6 +295,7 @@ export async function* streamChat(
         ...(opts?.summary ? { summary: opts.summary } : {}),
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
+        ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),
       }),
     });
 

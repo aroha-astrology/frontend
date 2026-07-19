@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, BookUser } from "lucide-react";
 import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import type { PlaceOfBirth } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
-import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
+import { CHAT_PENDING_CONTEXT_KEY, type ChatPendingPayload } from "@/lib/chat-handoff";
+import BirthProfilePickerSheet from "@/components/compatibility/BirthProfilePickerSheet";
+import type { Profile } from "@/lib/api";
 
 interface PersonForm {
   name: string;
@@ -27,9 +29,24 @@ interface CompatForm {
 
 const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
 
+/**
+ * Maps backend koota names to their display label and i18n meaning key.
+ * Backend emits "GrahaMaitri" but the display label is "Maitri".
+ */
+const KOOTA_INFO: Record<string, { label: string; meaningKey: string }> = {
+  Varna:       { label: "Varna",      meaningKey: "compatibilityPage.kootaMeaning.Varna" },
+  Vashya:      { label: "Vashya",     meaningKey: "compatibilityPage.kootaMeaning.Vashya" },
+  Tara:        { label: "Tara",       meaningKey: "compatibilityPage.kootaMeaning.Tara" },
+  Yoni:        { label: "Yoni",       meaningKey: "compatibilityPage.kootaMeaning.Yoni" },
+  GrahaMaitri: { label: "Maitri",     meaningKey: "compatibilityPage.kootaMeaning.GrahaMaitri" },
+  Gana:        { label: "Gana",       meaningKey: "compatibilityPage.kootaMeaning.Gana" },
+  Bhakoot:     { label: "Bhakoot",    meaningKey: "compatibilityPage.kootaMeaning.Bhakoot" },
+  Nadi:        { label: "Nadi",       meaningKey: "compatibilityPage.kootaMeaning.Nadi" },
+};
+
 export default function CompatibilityPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profiles } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState<CompatForm>({
     boy: { ...emptyPerson },
@@ -48,29 +65,76 @@ export default function CompatibilityPage() {
   const [useMyDetails, setUseMyDetails] = useState(false);
   const hasSavedBirthDetails = !!user?.dateOfBirth;
 
+  // Per-side stored profile id — set when a profile is picked from the sheet
+  // or via "This is me"; cleared when any field is manually edited afterward.
+  const [boyProfileId, setBoyProfileId] = useState<string | null>(null);
+  const [girlProfileId, setGirlProfileId] = useState<string | null>(null);
+
+  // Picker sheet open state
+  const [boyPickerOpen, setBoyPickerOpen] = useState(false);
+  const [girlPickerOpen, setGirlPickerOpen] = useState(false);
+
   const updatePerson = (who: "boy" | "girl", field: keyof PersonForm, value: string) => {
+    // Editing any field after a profile was picked clears the stored profileId —
+    // the fields remain editable but we no longer treat this side as "still this profile".
+    if (who === "boy") setBoyProfileId(null);
+    else setGirlProfileId(null);
+
     setForm((prev) => ({
       ...prev,
       [who]: { ...prev[who], [field]: value },
     }));
   };
 
+  /** Fill one side of the form from a saved Profile. */
+  const applyProfile = (who: "boy" | "girl", profile: Profile) => {
+    const fields: PersonForm = {
+      name: profile.displayName ?? "",
+      dob: profile.dateOfBirth ?? "",
+      time: (profile.timeOfBirth ?? "").slice(0, 5),
+      place: profile.placeOfBirth?.name ?? "",
+    };
+    setForm((prev) => ({ ...prev, [who]: fields }));
+    if (who === "boy") {
+      setResolvedBoyPlace(profile.placeOfBirth ?? null);
+      setBoyProfileId(profile.id);
+    } else {
+      setResolvedGirlPlace(profile.placeOfBirth ?? null);
+      setGirlProfileId(profile.id);
+    }
+  };
+
   const toggleUseMyDetails = (checked: boolean) => {
     setUseMyDetails(checked);
     if (checked && user) {
+      // Fill the correct side based on the signed-in user's gender.
+      // Female → Girl's Details; male/other/unset → Boy's Details (default).
+      const who: "boy" | "girl" = user.gender === "female" ? "girl" : "boy";
       setForm((prev) => ({
         ...prev,
-        boy: {
+        [who]: {
           name: user.displayName ?? "",
           dob: user.dateOfBirth ?? "",
           time: (user.timeOfBirth ?? "").slice(0, 5),
           place: user.placeOfBirth?.name ?? "",
         },
       }));
-      setResolvedBoyPlace(user.placeOfBirth ?? null);
+      if (who === "boy") {
+        setResolvedBoyPlace(user.placeOfBirth ?? null);
+        // The primary profile's id is "primary" per the API contract.
+        const primaryProfile = profiles?.find((p) => p.isPrimary);
+        setBoyProfileId(primaryProfile?.id ?? "primary");
+      } else {
+        setResolvedGirlPlace(user.placeOfBirth ?? null);
+        const primaryProfile = profiles?.find((p) => p.isPrimary);
+        setGirlProfileId(primaryProfile?.id ?? "primary");
+      }
     } else {
-      setForm((prev) => ({ ...prev, boy: { ...emptyPerson } }));
-      setResolvedBoyPlace(null);
+      // Unchecked — clear the side that "This is me" had filled.
+      const who: "boy" | "girl" = user?.gender === "female" ? "girl" : "boy";
+      setForm((prev) => ({ ...prev, [who]: { ...emptyPerson } }));
+      if (who === "boy") { setResolvedBoyPlace(null); setBoyProfileId(null); }
+      else { setResolvedGirlPlace(null); setGirlProfileId(null); }
     }
   };
 
@@ -130,12 +194,40 @@ export default function CompatibilityPage() {
 
   const askAstrologer = () => {
     if (!result) return;
+
+    // Build a full-report message: all 8 koota scores + Mangal Dosha.
+    const kootaLines = result.kutaDetails.map(
+      (k) => `${KOOTA_INFO[k.name]?.label ?? k.name}: ${k.obtained}/${k.maximum}`,
+    );
+    const mangalLine = result.mangalDosha
+      ? t("compatibilityPage.mangalDoshaStatus", {
+          p1: result.mangalDosha.person1 ? t("common.yes") : t("common.no"),
+          p2: result.mangalDosha.person2 ? t("common.yes") : t("common.no"),
+        })
+      : null;
+
     const parts = [
       t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal }),
+      ...kootaLines,
+      ...(mangalLine ? [`${t("compatibilityPage.mangalDosha")}: ${mangalLine}`] : []),
       ...redFlags.map((k) => t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })),
       t("compatibilityPage.askAstrologerPrompt"),
     ];
-    sessionStorage.setItem(CHAT_PENDING_CONTEXT_KEY, parts.join(" "));
+    const message = parts.join(" | ");
+
+    // Set compareProfileId only when exactly one side's id is the user's own
+    // primary profile AND the other side has a picked (and not-edited) profile.
+    // This is the shape buildSecondChartFacts expects.
+    const primaryId = profiles?.find((p) => p.isPrimary)?.id ?? "primary";
+    let compareProfileId: string | undefined;
+    if (boyProfileId === primaryId && girlProfileId && girlProfileId !== primaryId) {
+      compareProfileId = girlProfileId;
+    } else if (girlProfileId === primaryId && boyProfileId && boyProfileId !== primaryId) {
+      compareProfileId = boyProfileId;
+    }
+
+    const payload: ChatPendingPayload = { message, ...(compareProfileId ? { compareProfileId } : {}) };
+    sessionStorage.setItem(CHAT_PENDING_CONTEXT_KEY, JSON.stringify(payload));
     router.push("/ai-chat");
   };
 
@@ -146,14 +238,27 @@ export default function CompatibilityPage() {
   const renderPersonFields = (who: "boy" | "girl", label: string, disabled = false) => (
     <div className="space-y-3">
       <p className="text-xs text-[var(--text-muted)] ml-1">{label}</p>
-      <input
-        placeholder={t("compatibilityPage.name")}
-        value={form[who].name}
-        onChange={(e) => updatePerson(who, "name", e.target.value)}
-        disabled={disabled}
-        className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
-        style={style}
-      />
+      {/* Name field with profile-picker icon button */}
+      <div className="relative flex items-center gap-1.5">
+        <input
+          placeholder={t("compatibilityPage.name")}
+          value={form[who].name}
+          onChange={(e) => updatePerson(who, "name", e.target.value)}
+          disabled={disabled}
+          className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed", "flex-1")}
+          style={style}
+        />
+        {!disabled && (
+          <button
+            type="button"
+            title={t("compatibilityPage.pickProfile")}
+            onClick={() => who === "boy" ? setBoyPickerOpen(true) : setGirlPickerOpen(true)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center border border-gold/25 bg-gold/5 text-gold hover:bg-gold/15 transition-colors shrink-0"
+          >
+            <BookUser size={18} />
+          </button>
+        )}
+      </div>
       <div>
         <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">{t("compatibilityPage.dob")}</label>
         <input
@@ -190,7 +295,9 @@ export default function CompatibilityPage() {
           inputClassName={inputClass}
           inputStyle={style}
           onSelect={(place) => {
-            updatePerson(who, "place", place?.name ?? "");
+            // PlaceAutocomplete fires onSelect on pick — don't clear profileId
+            // here since this isn't a manual text edit; just update the resolved place.
+            setForm((prev) => ({ ...prev, [who]: { ...prev[who], place: place?.name ?? "" } }));
             if (who === "boy") setResolvedBoyPlace(place);
             else setResolvedGirlPlace(place);
             if (place) setError(null);
@@ -243,8 +350,8 @@ export default function CompatibilityPage() {
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            {renderPersonFields("boy", t("compatibilityPage.person1"), useMyDetails)}
-            {renderPersonFields("girl", t("compatibilityPage.person2"))}
+            {renderPersonFields("boy", t("compatibilityPage.person1"), useMyDetails && user?.gender !== "female")}
+            {renderPersonFields("girl", t("compatibilityPage.person2"), useMyDetails && user?.gender === "female")}
           </div>
 
           <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer" style={{ color: "var(--text-muted)" }}>
@@ -333,16 +440,45 @@ export default function CompatibilityPage() {
               />
             </div>
 
-            {/* Koota scores */}
-            <div className="mt-5 space-y-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              {result.kutaDetails.map((koota) => (
-                <div key={koota.name} className="flex justify-between gap-3">
-                  <span>{koota.name}</span>
-                  <span className={`font-medium ${koota.obtained === 0 ? "text-red-400" : "text-gold"}`}>
-                    {koota.obtained}/{koota.maximum}
-                  </span>
-                </div>
-              ))}
+            {/* Koota scores with general meaning + result-specific description */}
+            <div className="mt-5 space-y-3">
+              {result.kutaDetails.map((koota) => {
+                const info = KOOTA_INFO[koota.name];
+                const displayLabel = info?.label ?? koota.name;
+                const meaningKey = info?.meaningKey;
+                const meaning = meaningKey ? t(meaningKey) : null;
+                return (
+                  <div
+                    key={koota.name}
+                    className="p-3 rounded-xl border"
+                    style={{ borderColor: "var(--border)", background: "var(--background)" }}
+                  >
+                    <div className="flex justify-between items-start gap-3">
+                      <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                        {displayLabel}
+                      </span>
+                      <span
+                        className={`text-sm font-bold shrink-0 ${koota.obtained === 0 ? "text-red-400" : "text-gold"}`}
+                      >
+                        {koota.obtained}/{koota.maximum}
+                      </span>
+                    </div>
+                    {meaning && (
+                      <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        {meaning}
+                      </p>
+                    )}
+                    {koota.description && (
+                      <p
+                        className="mt-1 text-xs leading-relaxed italic"
+                        style={{ color: "var(--text-muted)", opacity: 0.75 }}
+                      >
+                        {koota.description}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system */}
@@ -376,6 +512,20 @@ export default function CompatibilityPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Profile picker sheets */}
+      <BirthProfilePickerSheet
+        open={boyPickerOpen}
+        onClose={() => setBoyPickerOpen(false)}
+        genderFilter="male"
+        onSelect={(profile) => applyProfile("boy", profile)}
+      />
+      <BirthProfilePickerSheet
+        open={girlPickerOpen}
+        onClose={() => setGirlPickerOpen(false)}
+        genderFilter="female"
+        onSelect={(profile) => applyProfile("girl", profile)}
+      />
     </main>
   );
 }

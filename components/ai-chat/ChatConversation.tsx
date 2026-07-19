@@ -140,6 +140,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // avoids re-asking things the user already answered earlier in the thread.
   const historyRef = useRef<ChatHistoryTurn[]>([]);
   const summaryRef = useRef<string | undefined>(undefined);
+  // One-shot compareProfileId from the compatibility page handoff — consumed
+  // on the first streamChat call and then cleared so subsequent turns don't
+  // keep sending it (synastry grounding is only relevant for the first reply).
+  const pendingCompareProfileIdRef = useRef<string | undefined>(undefined);
 
   // Per-message TTS + feedback state. Keyed by client-generated message id
   // (see the Message interface above) rather than array index, since index
@@ -302,6 +306,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     const summaryForThisTurn = summaryRef.current;
 
     try {
+      const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
+      pendingCompareProfileIdRef.current = undefined;
       const stream = streamChat(msg, {
         history: historyForThisTurn,
         summary: summaryForThisTurn,
@@ -309,6 +315,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         detailLevel,
         chartId,
         locale: i18n.language,
+        ...(compareProfileIdForThisTurn ? { compareProfileId: compareProfileIdForThisTurn } : {}),
       });
       let fullContent = "";
       let hadError = false;
@@ -417,11 +424,26 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
   // astrologer already has context instead of starting from a blank chat.
+  // The payload is a JSON object { message: string; compareProfileId?: string }
+  // — compareProfileId, when present, is passed through to streamChat so the
+  // backend can ground the reply in a real synastry reading.
   useEffect(() => {
-    const pending = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
-    if (pending) {
+    const raw = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
+    if (raw) {
       sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
-      sendMessage(pending);
+      try {
+        const payload = JSON.parse(raw) as { message?: string; compareProfileId?: string };
+        if (payload.message) {
+          // Store compareProfileId for the first turn only; subsequent turns
+          // in the same chat session use normal context (no synastry grounding).
+          pendingCompareProfileIdRef.current = payload.compareProfileId;
+          sendMessage(payload.message);
+        }
+      } catch {
+        // Fallback: treat raw value as a plain message string (backward compat
+        // in case any other producer still writes a bare string).
+        sendMessage(raw);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

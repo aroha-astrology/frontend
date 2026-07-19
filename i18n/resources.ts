@@ -45,6 +45,7 @@ export const resources = {
         unnamed: "Unnamed",
         createProfile: "Create Profile",
         switchError: "Couldn't switch profiles. Try again.",
+        viewingLabel: "Profile: {{name}}",
         relationship: {
           partner: "Partner",
           prospective_match: "Prospective Match",
@@ -135,6 +136,7 @@ export const resources = {
           criticalDefects: "Critical Defects",
           elementBalance: "Element Balance",
           historyTitle: "Previous Plans",
+          historyEmpty: "No Vastu plan generated yet for {{name}}.",
           signInToAnalyze: "Sign in to get your AI Vastu report.",
           error: "Could not generate the report. Please try again.",
         },
@@ -985,6 +987,7 @@ export const resources = {
         unnamed: "अनाम",
         createProfile: "प्रोफ़ाइल बनाएं",
         switchError: "प्रोफ़ाइल बदल नहीं सके। पुनः प्रयास करें।",
+        viewingLabel: "प्रोफ़ाइल: {{name}}",
         relationship: {
           partner: "साथी",
           prospective_match: "संभावित जोड़ी",
@@ -1021,7 +1024,7 @@ export const resources = {
           good: "अच्छा वास्तु", needsWork: "सुधार की आवश्यकता", majorIssues: "बड़ी समस्याएँ",
           getRemedies: "AI उपाय प्राप्त करें", analyzing: "वास्तु विशेषज्ञ से परामर्श…", remediesTitle: "AI उपाय और समाधान",
           priorityActions: "प्राथमिक कार्य", criticalDefects: "गंभीर दोष", elementBalance: "तत्व संतुलन",
-          historyTitle: "पिछली योजनाएँ", signInToAnalyze: "AI उपाय के लिए साइन इन करें।", error: "उपाय उत्पन्न नहीं हो सके। पुनः प्रयास करें।",
+          historyTitle: "पिछली योजनाएँ", historyEmpty: "{{name}} के लिए अभी तक कोई वास्तु योजना नहीं बनाई गई है।", signInToAnalyze: "AI उपाय के लिए साइन इन करें।", error: "उपाय उत्पन्न नहीं हो सके। पुनः प्रयास करें।",
         },
         onboarding: {
           step1: "नीचे किसी कमरे पर टैप करके जोड़ें, फिर उसे स्थान पर खींचें।",
@@ -1843,6 +1846,7 @@ export const resources = {
         unnamed: "নামহীন",
         createProfile: "প্রোফাইল তৈরি করুন",
         switchError: "প্রোফাইল পরিবর্তন করা যায়নি। আবার চেষ্টা করুন।",
+        viewingLabel: "প্রোফাইল: {{name}}",
         relationship: {
           partner: "সঙ্গী",
           prospective_match: "সম্ভাব্য জুটি",
@@ -1879,7 +1883,7 @@ export const resources = {
           good: "ভালো বাস্তু", needsWork: "উন্নতি প্রয়োজন", majorIssues: "বড় সমস্যা",
           getRemedies: "AI প্রতিকার নিন", analyzing: "বাস্তু বিশেষজ্ঞের সাথে পরামর্শ…", remediesTitle: "AI প্রতিকার ও সমাধান",
           priorityActions: "অগ্রাধিকার পদক্ষেপ", criticalDefects: "গুরুতর ত্রুটি", elementBalance: "উপাদান ভারসাম্য",
-          historyTitle: "পূর্ববর্তী পরিকল্পনা", signInToAnalyze: "AI প্রতিকারের জন্য সাইন ইন করুন।", error: "প্রতিকার তৈরি করা যায়নি। আবার চেষ্টা করুন।",
+          historyTitle: "পূর্ববর্তী পরিকল্পনা", historyEmpty: "{{name}}-এর জন্য এখনও কোনো বাস্তু পরিকল্পনা তৈরি হয়নি।", signInToAnalyze: "AI প্রতিকারের জন্য সাইন ইন করুন।", error: "প্রতিকার তৈরি করা যায়নি। আবার চেষ্টা করুন।",
         },
         onboarding: {
           step1: "নীচে একটি ঘরে ট্যাপ করে যোগ করুন, তারপর টেনে স্থানে রাখুন।",
@@ -2699,6 +2703,7 @@ export const resources = {
         unnamed: "अनामिक",
         createProfile: "प्रोफाइल तयार करा",
         switchError: "प्रोफाइल बदलता आली नाही. पुन्हा प्रयत्न करा.",
+        viewingLabel: "प्रोफाइल: {{name}}",
         relationship: {
           partner: "जोडीदार",
           prospective_match: "संभाव्य जोडी",
@@ -2735,7 +2740,7 @@ export const resources = {
           good: "चांगले वास्तु", needsWork: "सुधारणा हवी", majorIssues: "मोठ्या समस्या",
           getRemedies: "AI उपाय मिळवा", analyzing: "वास्तु तज्ज्ञांचा सल्ला…", remediesTitle: "AI उपाय व उपाययोजना",
           priorityActions: "प्राधान्य कृती", criticalDefects: "गंभीर दोष", elementBalance: "तत्व संतुलन",
-          historyTitle: "मागील योजना", signInToAnalyze: "AI उपायांसाठी साइन इन करा.", error: "उपाय तयार करता आले नाहीत. पुन्हा प्रयत्न करा.",
+          historyTitle: "मागील योजना", historyEmpty: "{{name}} साठी अद्याप कोणतीही वास्तु योजना तयार केलेली नाही.", signInToAnalyze: "AI उपायांसाठी साइन इन करा.", error: "उपाय तयार करता आले नाहीत. पुन्हा प्रयत्न करा.",
         },
         onboarding: {
           step1: "खाली खोलीवर टॅप करून जोडा, नंतर जागी ओढा.",
@@ -3555,6 +3560,7 @@ export const resources = {
         unnamed: "పేరు లేదు",
         createProfile: "ప్రొఫైల్ సృష్టించండి",
         switchError: "ప్రొఫైల్ మార్చలేకపోయాము. మళ్ళీ ప్రయత్నించండి.",
+        viewingLabel: "ప్రొఫైల్: {{name}}",
         relationship: {
           partner: "భాగస్వామి",
           prospective_match: "సంభావ్య జోడి",
@@ -3591,7 +3597,7 @@ export const resources = {
           good: "మంచి వాస్తు", needsWork: "మెరుగుదల అవసరం", majorIssues: "పెద్ద సమస్యలు",
           getRemedies: "AI పరిహారాలు పొందు", analyzing: "వాస్తు నిపుణుడిని సంప్రదిస్తోంది…", remediesTitle: "AI పరిహారాలు & పరిష్కారాలు",
           priorityActions: "ప్రాధాన్య చర్యలు", criticalDefects: "తీవ్ర లోపాలు", elementBalance: "మూలక సమతుల్యత",
-          historyTitle: "మునుపటి ప్రణాళికలు", signInToAnalyze: "AI పరిహారాల కోసం సైన్ ఇన్ చేయండి.", error: "పరిహారాలు రూపొందించలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+          historyTitle: "మునుపటి ప్రణాళికలు", historyEmpty: "{{name}} కోసం ఇంకా ఏ వాస్తు ప్రణాళిక రూపొందించలేదు.", signInToAnalyze: "AI పరిహారాల కోసం సైన్ ఇన్ చేయండి.", error: "పరిహారాలు రూపొందించలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
         },
         onboarding: {
           step1: "కింద ఒక గదిపై ట్యాప్ చేసి జోడించి, స్థానంలోకి లాగండి.",
@@ -4407,6 +4413,7 @@ export const resources = {
         unnamed: "பெயர் இல்லை",
         createProfile: "சுயவிவரம் உருவாக்கு",
         switchError: "சுயவிவரத்தை மாற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+        viewingLabel: "சுயவிவரம்: {{name}}",
         relationship: {
           partner: "துணை",
           prospective_match: "சாத்தியமான இணை",
@@ -4443,7 +4450,7 @@ export const resources = {
           good: "நல்ல வாஸ்து", needsWork: "மேம்பாடு தேவை", majorIssues: "பெரிய சிக்கல்கள்",
           getRemedies: "AI தீர்வுகளைப் பெறு", analyzing: "வாஸ்து நிபுணரை அணுகுகிறது…", remediesTitle: "AI தீர்வுகள் & பரிகாரங்கள்",
           priorityActions: "முன்னுரிமை நடவடிக்கைகள்", criticalDefects: "கடுமையான குறைபாடுகள்", elementBalance: "பஞ்சபூத சமநிலை",
-          historyTitle: "முந்தைய திட்டங்கள்", signInToAnalyze: "AI தீர்வுகளுக்கு உள்நுழையவும்.", error: "தீர்வுகளை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+          historyTitle: "முந்தைய திட்டங்கள்", historyEmpty: "{{name}}க்காக இதுவரை எந்த வாஸ்து திட்டமும் உருவாக்கப்படவில்லை.", signInToAnalyze: "AI தீர்வுகளுக்கு உள்நுழையவும்.", error: "தீர்வுகளை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         },
         onboarding: {
           step1: "கீழே ஒரு அறையைத் தட்டிச் சேர்த்து, இடத்திற்கு இழுக்கவும்.",
@@ -5263,6 +5270,7 @@ export const resources = {
         unnamed: "અનામ",
         createProfile: "પ્રોફાઇલ બનાવો",
         switchError: "પ્રોફાઇલ બદલી શકાયું નહીં. ફરી પ્રયાસ કરો.",
+        viewingLabel: "પ્રોફાઇલ: {{name}}",
         relationship: {
           partner: "સાથી",
           prospective_match: "સંભવિત જોડી",
@@ -5299,7 +5307,7 @@ export const resources = {
           good: "સારું વાસ્તુ", needsWork: "સુધારો જરૂરી", majorIssues: "મોટી સમસ્યાઓ",
           getRemedies: "AI ઉપાય મેળવો", analyzing: "વાસ્તુ નિષ્ણાતની સલાહ…", remediesTitle: "AI ઉપાય અને ઉકેલ",
           priorityActions: "પ્રાથમિકતા ક્રિયાઓ", criticalDefects: "ગંભીર ખામીઓ", elementBalance: "તત્વ સંતુલન",
-          historyTitle: "અગાઉની યોજનાઓ", signInToAnalyze: "AI ઉપાય માટે સાઇન ઇન કરો.", error: "ઉપાય બનાવી શકાયા નથી. ફરી પ્રયાસ કરો.",
+          historyTitle: "અગાઉની યોજનાઓ", historyEmpty: "{{name}} માટે હજુ સુધી કોઈ વાસ્તુ યોજના બનાવવામાં આવી નથી.", signInToAnalyze: "AI ઉપાય માટે સાઇન ઇન કરો.", error: "ઉપાય બનાવી શકાયા નથી. ફરી પ્રયાસ કરો.",
         },
         onboarding: {
           step1: "નીચે ખંડ પર ટૅપ કરી ઉમેરો, પછી સ્થાને ખેંચો.",

@@ -34,7 +34,7 @@ function buildPayload(plan: Plan) {
 
 export default function VastuPlanner() {
   const { t } = useTranslation();
-  const { user, refresh } = useAuth();
+  const { user, activeProfile, refresh } = useAuth();
   const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -90,16 +90,23 @@ export default function VastuPlanner() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [history, setHistory] = useState<VastuPlan[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [asking, setAsking] = useState(false);
   const [askError, setAskError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setHistoryLoading(false);
+      return;
+    }
+    setHistoryLoading(true);
     try {
       const { plans } = await api.vastuList();
       setHistory(plans);
     } catch {
       /* best-effort */
+    } finally {
+      setHistoryLoading(false);
     }
   }, [user]);
 
@@ -107,7 +114,20 @@ export default function VastuPlanner() {
     void loadHistory();
   }, [loadHistory]);
 
+  // A generated report or in-flight AI state belongs to whichever profile was
+  // active when it was created — clear it on switch so a stale report from a
+  // different resident doesn't linger under the new profile's history list.
+  const activeProfileIdRef = useRef<string | null>(activeProfile?.id ?? null);
+  useEffect(() => {
+    activeProfileIdRef.current = activeProfile?.id ?? null;
+    setAiResult(null);
+    setActivePlanId(null);
+    setAiError(null);
+    setAskError(null);
+  }, [activeProfile?.id]);
+
   const onGenerate = useCallback(async () => {
+    const generationProfileId = activeProfileIdRef.current;
     setAiError(null);
     setAiResult(null);
     setActivePlanId(null);
@@ -120,7 +140,11 @@ export default function VastuPlanner() {
       while (Date.now() < deadline) {
         const p = await api.vastuGet(planId);
         if (p.status === "done" && p.analysis) {
-          setAiResult(p.analysis as VastuAiResult);
+          // The user may have switched profiles while this was in flight —
+          // don't paint a report generated for a different resident.
+          if (activeProfileIdRef.current === generationProfileId) {
+            setAiResult(p.analysis as VastuAiResult);
+          }
           void loadHistory();
           void refresh();
           return;
@@ -246,6 +270,8 @@ export default function VastuPlanner() {
         aiError={aiError}
         onGenerate={onGenerate}
         history={history}
+        historyLoading={historyLoading}
+        profileName={activeProfile?.displayName?.trim() || t("profileSwitcher.unnamed")}
         onViewHistory={onViewHistory}
         canAsk={!!activePlanId}
         onAsk={onAsk}

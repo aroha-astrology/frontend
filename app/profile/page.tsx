@@ -214,7 +214,7 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={() => router.push("/profile/orders")}
-            className="px-4 py-2 rounded-xl bg-gold/10 text-gold text-xs font-bold"
+            className="px-4 py-2 rounded-xl border border-gold/30 text-gold text-xs font-bold hover:bg-gold/10 transition-colors"
           >
             {t("transactions.history", "History")}
           </button>

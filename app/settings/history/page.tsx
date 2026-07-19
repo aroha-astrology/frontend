@@ -11,10 +11,10 @@ import { formatRupees } from "@/lib/format";
 
 function statusLabel(t: (key: string) => string, status: OrderStatus): string {
   switch (status) {
-    case "paid": return t("orderHistory.statusPaid");
-    case "pending": return t("orderHistory.statusPending");
-    case "failed": return t("orderHistory.statusFailed");
-    case "cancelled": return t("orderHistory.statusCancelled");
+    case "paid": return t("paymentHistory.statusPaid");
+    case "pending": return t("paymentHistory.statusPending");
+    case "failed": return t("paymentHistory.statusFailed");
+    case "cancelled": return t("paymentHistory.statusCancelled");
   }
 }
 

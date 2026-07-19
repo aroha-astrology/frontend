@@ -108,6 +108,8 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
   const donts = gem.conditionalCautionApplies
     ? [...staticDonts, t(dataKey("conditionalDont"))]
     : staticDonts;
+  const verifyTips = t(dataKey("howToVerify"), { returnObjects: true }) as string[];
+  const originCountry = t(dataKey("originCountry"));
 
   const facts: { label: string; value: string }[] = [
     { label: t("kundli.gemstone.alternatives"), value: alternatives.join(", ") },
@@ -185,6 +187,22 @@ function GemRow({ gem }: { gem: GemstoneItem }) {
           </ul>
         </div>
       </div>
+
+      {/* Verify Authenticity */}
+      <div className="mt-3 pt-3 border-t border-border">
+        <p className="text-[10px] font-semibold text-sky-400 mb-1">{t("kundli.gemstone.verifyAuthenticity")}</p>
+        <ul className="space-y-1">
+          {verifyTips.map((v, i) => (
+            <li key={i} className="flex gap-1.5 text-[10px] text-muted leading-snug">
+              <span className="text-sky-400 shrink-0">✓</span>{v}
+            </li>
+          ))}
+        </ul>
+        <p className="text-[10px] text-muted mt-2">
+          <span className="font-semibold text-foreground/80">{t("kundli.gemstone.originCountry")}: </span>
+          {originCountry}
+        </p>
+      </div>
     </div>
   );
 }
@@ -200,6 +218,14 @@ export default function GemstoneCard() {
   const [expanded, setExpanded] = useState(false);
 
   const { state, data } = useGemstone(unlocked);
+
+  // A stale/local `unlocked` flag can briefly disagree with the profile the
+  // backend actually scopes the report to (e.g. right after switching to a
+  // profile whose gemstone report isn't unlocked) — the API 403s with
+  // "forbidden" in that case. Fall through to the same locked UI rather than
+  // rendering nothing; re-unlocking is safe since the backend rejects a
+  // second charge for an already-unlocked profile (409).
+  const showLocked = !unlocked || state === "forbidden";
 
   // Recommended stones first, then the rest — preserves within-group order.
   const gems = useMemo(() => {
@@ -227,7 +253,7 @@ export default function GemstoneCard() {
   };
 
   // ── Locked ──────────────────────────────────────────────────────────────
-  if (!unlocked) {
+  if (showLocked) {
     const canAfford = credits >= UNLOCK_COST_PAISE;
     return (
       <Card className="p-4">

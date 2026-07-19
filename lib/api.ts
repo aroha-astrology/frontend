@@ -125,6 +125,7 @@ export interface UpdateMeBody {
   relationshipStatus?: string;
   onboardingStatus?: string;
   consent?: ConsentInput;
+  referredByCode?: string;
 }
 
 // ─── Profiles (multi-profile) ─────────────────────────────────────────────────

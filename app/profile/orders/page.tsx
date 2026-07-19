@@ -25,7 +25,7 @@ export default function TransactionsPage() {
     <div className="flex flex-col min-h-[100dvh] bg-background">
       {/* Top Bar */}
       <div className="sticky top-0 z-50 px-5 h-16 flex items-center gap-3 bg-background/80 backdrop-blur-md border-b border-gold/10">
-        <IconButton icon={ArrowLeft} onClick={() => router.back()} className="-ml-2" />
+        <IconButton onClick={() => router.back()} className="-ml-2"><ArrowLeft /></IconButton>
         <h1 className="text-xl font-display font-semibold text-foreground">
           {t("transactions.title", "Wallet History")}
         </h1>

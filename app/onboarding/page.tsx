@@ -23,6 +23,7 @@ import {
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { formatRupees } from "@/lib/format";
+import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -188,10 +189,21 @@ function OnboardingPageInner() {
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
+  const [refAutoApplied, setRefAutoApplied] = useState(false);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
 
   const msgId = useRef(0);
+
+  // Pick up a referral code carried in from a shared invite link (?ref=CODE),
+  // captured earlier by <ReferralCapture /> before any redirect could drop it.
+  useEffect(() => {
+    if (isNewProfileMode) return;
+    const code = getPendingReferralCode();
+    if (!code) return;
+    setAnswers((a) => (a.referralCode ? a : { ...a, referralCode: code }));
+    setRefAutoApplied(true);
+  }, [isNewProfileMode]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const nextId = () => ++msgId.current;
@@ -448,6 +460,7 @@ function OnboardingPageInner() {
 
       await api.updateMe(body);
       await refresh();
+      clearPendingReferralCode();
       api.regenerateKundli().catch(() => {});
       router.replace("/?tour=1");
     } catch {
@@ -751,10 +764,18 @@ function OnboardingPageInner() {
                 <input
                   type="text"
                   value={answers.referralCode || ""}
-                  onChange={(e) => setAnswers(a => ({ ...a, referralCode: e.target.value.trim().toUpperCase() }))}
+                  onChange={(e) => {
+                    setRefAutoApplied(false);
+                    setAnswers(a => ({ ...a, referralCode: e.target.value.trim().toUpperCase() }));
+                  }}
                   placeholder={t("referral.codeInputPlaceholder", "Got a code? Enter it here")}
                   className="w-full h-10 rounded-xl px-3.5 outline-none border text-[13px] focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase"
                 />
+                {refAutoApplied && (
+                  <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <Check size={12} /> {t("referral.autoApplied", "Applied automatically from your invite link")}
+                  </p>
+                )}
               </div>
             )}
 

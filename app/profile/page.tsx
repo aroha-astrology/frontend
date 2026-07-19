@@ -143,15 +143,20 @@ export default function ProfilePage() {
     }
   }
 
-  function handleShare() {
+  async function handleShare() {
     if (!user?.referralCode) return;
     const text = t("referral.shareMessage", {
       code: user.referralCode,
-      url: "https://arohaastrology.in/app",
+      url: `https://arohaastrology.in/app?ref=${user.referralCode}`,
     });
     if (navigator.share) {
-      navigator.share({ title: "Aroha Astrology", text })
-        .catch(() => handleCopy());
+      try {
+        await navigator.share({ title: "Aroha Astrology", text });
+      } catch (err) {
+        // User dismissed the native share sheet — that's a deliberate "no", not a failure.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        handleCopy();
+      }
     } else {
       handleCopy();
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Compass, Check, Loader2, RotateCcw, Minus, Plus } from "lucide-react";
+import { Compass, Check, Loader2, RotateCcw, RefreshCw, Lock, Minus, Plus } from "lucide-react";
 import { PLAN_DEFAULTS } from "@/lib/vastu/types";
 import type { CompassState } from "./useCompass";
 
@@ -25,6 +25,8 @@ export default function Toolbar({
   onRotate,
   compassState,
   onAlign,
+  onLock,
+  onRecalibrate,
   sides,
   onSides,
   widthU,
@@ -36,6 +38,8 @@ export default function Toolbar({
   onRotate: (deg: number) => void;
   compassState: CompassState;
   onAlign: () => void;
+  onLock: () => void;
+  onRecalibrate: () => void;
   sides: number;
   onSides: (n: number) => void;
   widthU: number;
@@ -45,20 +49,40 @@ export default function Toolbar({
 }) {
   const { t } = useTranslation();
   const reading = compassState === "reading";
-  const aligned = compassState === "aligned";
+  const locked = compassState === "locked";
   const sizeStep = PLAN_DEFAULTS.gridU * 2;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <button
-          onClick={onAlign}
-          disabled={reading}
-          className={"flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors disabled:opacity-70 " + (aligned ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-gold/10 text-gold border border-gold/30")}
-        >
-          {reading ? <Loader2 size={13} className="animate-spin" /> : aligned ? <Check size={13} /> : <Compass size={13} />}
-          {reading ? t("vastu.compass.reading") : aligned ? t("vastu.compass.aligned") : t("vastu.toolbar.useCompass")}
-        </button>
+        {locked ? (
+          <>
+            <span className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <Check size={13} />
+              {t("vastu.compass.aligned")}
+            </span>
+            <button onClick={onRecalibrate} className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-gold border border-gold/30 hover:bg-gold/10 transition-colors">
+              <RefreshCw size={13} />
+              {t("vastu.compass.recalibrate")}
+            </button>
+          </>
+        ) : reading ? (
+          <>
+            <span className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold bg-gold/10 text-gold border border-gold/30">
+              <Loader2 size={13} className="animate-spin" />
+              {t("vastu.compass.reading")}
+            </span>
+            <button onClick={onLock} className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors">
+              <Lock size={13} />
+              {t("vastu.toolbar.lock")}
+            </button>
+          </>
+        ) : (
+          <button onClick={onAlign} className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold bg-gold/10 text-gold border border-gold/30 transition-colors">
+            <Compass size={13} />
+            {t("vastu.toolbar.useCompass")}
+          </button>
+        )}
         <button onClick={onReset} className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted border border-gold/15 hover:text-gold transition-colors ml-auto">
           <RotateCcw size={13} />
           {t("vastu.toolbar.reset")}

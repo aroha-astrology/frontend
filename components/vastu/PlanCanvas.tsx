@@ -75,7 +75,9 @@ export default function PlanCanvas({
 
   const center = planCenter(plan);
   const ringRadius = maxVertexDist(plan) + 1.5;
-  const H = ringRadius + 1.1;
+  // Cardinal labels sit at ringRadius + 1.9 (see CompassRing) — the margin
+  // here must clear that plus glyph width/height or N/S/E/W get clipped.
+  const H = ringRadius + 2.6;
   const viewSize = (2 * H) / zoom;
   const bb = bbox(plan.plot);
 

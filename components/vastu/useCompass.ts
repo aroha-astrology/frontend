@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-export type CompassState = "idle" | "reading" | "aligned" | "unsupported" | "denied";
+export type CompassState = "idle" | "reading" | "locked" | "unsupported" | "denied";
 
 interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
   webkitCompassHeading?: number;
@@ -16,77 +16,91 @@ function readingFrom(e: DeviceOrientationEvent): number | null {
   return null;
 }
 
+// Shortest-path circular lerp so the needle doesn't spin the long way round
+// when a reading crosses the 0°/360° seam.
+function smooth(prev: number | null, next: number, factor = 0.35): number {
+  if (prev == null) return next;
+  const delta = (((next - prev + 180) % 360) + 360) % 360 - 180;
+  return (prev + delta * factor + 360) % 360;
+}
+
 /**
- * Capture-and-hold device compass. Instead of streaming a jittery live heading
- * (which fluctuated wildly and could read impossible values), `capture()`
- * samples for ~1.5s, takes a circular average to smooth sensor noise, sets the
- * orientation ONCE, then stops. One tap, one stable result — much easier to use.
+ * Live device compass. `start()` streams device-orientation readings
+ * continuously (lightly smoothed to tame magnetometer jitter) so the ring
+ * tracks the phone in real time. `lock()` freezes the current heading and
+ * stops listening; `recalibrate()` resumes live streaming from a fresh read.
  */
 export function useCompass() {
   const [state, setState] = useState<CompassState>("idle");
-  const busy = useRef(false);
+  const [heading, setHeading] = useState<number | null>(null);
+  const headingRef = useRef<number | null>(null);
+  const listenerRef = useRef<((e: Event) => void) | null>(null);
 
   const supported =
     typeof window !== "undefined" && typeof window.DeviceOrientationEvent !== "undefined";
 
-  const capture = useCallback(
-    async (durationMs = 1500): Promise<{ status: CompassState; heading?: number }> => {
-      if (busy.current) return { status: state };
-      if (!supported) {
-        setState("unsupported");
-        return { status: "unsupported" };
-      }
+  const stopListening = useCallback(() => {
+    if (listenerRef.current) {
+      window.removeEventListener("deviceorientationabsolute", listenerRef.current);
+      window.removeEventListener("deviceorientation", listenerRef.current);
+      listenerRef.current = null;
+    }
+  }, []);
 
-      const reqPerm = (window.DeviceOrientationEvent as unknown as { requestPermission?: PermFn })
-        .requestPermission;
-      if (typeof reqPerm === "function") {
-        try {
-          if ((await reqPerm()) !== "granted") {
-            setState("denied");
-            return { status: "denied" };
-          }
-        } catch {
+  const start = useCallback(async (): Promise<CompassState> => {
+    if (!supported) {
+      setState("unsupported");
+      return "unsupported";
+    }
+
+    const reqPerm = (window.DeviceOrientationEvent as unknown as { requestPermission?: PermFn })
+      .requestPermission;
+    if (typeof reqPerm === "function") {
+      try {
+        if ((await reqPerm()) !== "granted") {
           setState("denied");
-          return { status: "denied" };
+          return "denied";
         }
+      } catch {
+        setState("denied");
+        return "denied";
       }
+    }
 
-      busy.current = true;
-      setState("reading");
+    stopListening();
+    headingRef.current = null;
 
-      // Circular average of all readings in the window smooths magnetometer noise.
-      let sumSin = 0;
-      let sumCos = 0;
-      let count = 0;
-      const onEvt = (e: DeviceOrientationEvent) => {
-        const h = readingFrom(e);
-        if (h == null || Number.isNaN(h)) return;
-        const rad = (h * Math.PI) / 180;
-        sumSin += Math.sin(rad);
-        sumCos += Math.cos(rad);
-        count++;
-      };
-      window.addEventListener("deviceorientationabsolute", onEvt as EventListener);
-      window.addEventListener("deviceorientation", onEvt as EventListener);
+    const onEvt = (e: Event) => {
+      const h = readingFrom(e as DeviceOrientationEvent);
+      if (h == null || Number.isNaN(h)) return;
+      const next = smooth(headingRef.current, h);
+      headingRef.current = next;
+      setHeading(next);
+    };
+    listenerRef.current = onEvt;
+    window.addEventListener("deviceorientationabsolute", onEvt);
+    window.addEventListener("deviceorientation", onEvt);
+    setState("reading");
+    return "reading";
+  }, [supported, stopListening]);
 
-      await new Promise((r) => setTimeout(r, durationMs));
+  const lock = useCallback(() => {
+    stopListening();
+    setState((s) => (s === "reading" ? "locked" : s));
+  }, [stopListening]);
 
-      window.removeEventListener("deviceorientationabsolute", onEvt as EventListener);
-      window.removeEventListener("deviceorientation", onEvt as EventListener);
-      busy.current = false;
+  const recalibrate = useCallback(() => {
+    void start();
+  }, [start]);
 
-      if (count === 0) {
-        setState("unsupported");
-        return { status: "unsupported" };
-      }
-      const heading = (((Math.atan2(sumSin, sumCos) * 180) / Math.PI) % 360 + 360) % 360;
-      setState("aligned");
-      return { status: "aligned", heading };
-    },
-    [supported, state],
-  );
+  const reset = useCallback(() => {
+    stopListening();
+    headingRef.current = null;
+    setHeading(null);
+    setState("idle");
+  }, [stopListening]);
 
-  const reset = useCallback(() => setState("idle"), []);
+  useEffect(() => stopListening, [stopListening]);
 
-  return { supported, state, capture, reset };
+  return { supported, state, heading, start, lock, recalibrate, reset };
 }

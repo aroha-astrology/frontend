@@ -59,20 +59,25 @@ export default function VastuPlanner() {
     }
   }, [plan]);
 
-  // ── Compass (capture-and-hold) ─────────────────────────────────────────────
+  // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
   const [compassHint, setCompassHint] = useState<string | null>(null);
   const onAlign = useCallback(async () => {
     setCompassHint(null);
-    const res = await compass.capture();
-    if (res.status === "aligned" && res.heading != null) {
-      dispatch({ type: "setNorthOffset", deg: res.heading });
-    } else if (res.status === "unsupported") {
-      setCompassHint(t("vastu.compass.unavailable"));
-    } else if (res.status === "denied") {
-      setCompassHint(t("vastu.compass.permissionDenied"));
-    }
+    const status = await compass.start();
+    if (status === "unsupported") setCompassHint(t("vastu.compass.unavailable"));
+    else if (status === "denied") setCompassHint(t("vastu.compass.permissionDenied"));
   }, [compass, t]);
+  useEffect(() => {
+    if (compass.state === "reading" && compass.heading != null) {
+      dispatch({ type: "setNorthOffset", deg: compass.heading });
+    }
+  }, [compass.state, compass.heading]);
+  const onLock = useCallback(() => compass.lock(), [compass]);
+  const onRecalibrate = useCallback(() => {
+    setCompassHint(null);
+    compass.recalibrate();
+  }, [compass]);
   const onRotate = useCallback((deg: number) => {
     compass.reset();
     dispatch({ type: "setNorthOffset", deg });
@@ -193,6 +198,8 @@ export default function VastuPlanner() {
         onRotate={onRotate}
         compassState={compass.state}
         onAlign={onAlign}
+        onLock={onLock}
+        onRecalibrate={onRecalibrate}
         sides={plan.plot.length}
         onSides={(n) => dispatch({ type: "setSides", sides: n })}
         widthU={Math.round(bbox(plan.plot).w)}
@@ -222,7 +229,7 @@ export default function VastuPlanner() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           dispatch={dispatch}
-          locked={compass.state === "aligned"}
+          locked={compass.state === "locked"}
         />
       </div>
 
@@ -242,7 +249,11 @@ export default function VastuPlanner() {
         <p className="text-[11px] text-muted">{t("vastu.onboarding.step1")}</p>
       )}
 
-      {compassHint && <p className="text-[11px] text-amber-400">{compassHint}</p>}
+      {(compassHint || compass.state === "reading") && (
+        <p className="text-[11px] text-amber-400">
+          {compassHint ?? t("vastu.compass.locking")}
+        </p>
+      )}
 
       <div>
         <p className="text-[11px] text-muted mb-1.5">{t("vastu.palette.hint")}</p>

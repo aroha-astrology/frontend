@@ -24,6 +24,7 @@ import {
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { formatRupees } from "@/lib/format";
 import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
+import { LEGAL_VERSION } from "@/lib/legal-content";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -452,10 +453,13 @@ function OnboardingPageInner() {
       }
 
       body.onboardingStatus = "completed";
+      // Versions come from legal-content.ts rather than being restated here —
+      // the consent record must name the document text the user actually saw,
+      // and hardcoding drifted silently the last time that text changed.
       body.consent = {
         dataProcessing: true,
-        terms: { version: "1.0.0" },
-        privacy: { version: "1.0.0" },
+        terms: { version: LEGAL_VERSION },
+        privacy: { version: LEGAL_VERSION },
       };
 
       await api.updateMe(body);

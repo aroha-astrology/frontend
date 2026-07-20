@@ -7,6 +7,7 @@
 // client-side via Firebase (see providers/auth-provider).
 
 import { getFirebaseAuth } from "./firebase";
+import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 
 const BASE_URL = (
@@ -937,14 +938,16 @@ async function kundliRequest(method: "GET" | "POST", path: string): Promise<Kund
 async function pollKundli(
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<KundliResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await kundliRequest("GET", "/v1/kundli");
     if (r.status !== "pending" && r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }
 
@@ -981,14 +984,16 @@ async function pollHoroscope(
   period: PersonalizedHoroscopePeriod,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
 ): Promise<HoroscopeResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await horoscopeRequest(period, opts.language);
     if (r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }
 
@@ -1055,13 +1060,15 @@ async function pollHouseInsight(
   language?: string,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<HouseInsightResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await houseInsightRequest(house, language);
     if (r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }

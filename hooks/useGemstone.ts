@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type GemstoneReportReady } from "@/lib/api";
+import { nextPollDelay } from "@/lib/poll-backoff";
 import { useAuth } from "@/providers/auth-provider";
 
 export type GemstoneState = "idle" | "loading" | "generating" | "ready" | "forbidden" | "error";
 
-const POLL_INTERVAL_MS = 2500;
+const POLL_BASE_MS = 2500;
 const POLL_TIMEOUT_MS = 90_000;
 
 /**
@@ -34,6 +35,7 @@ export function useGemstone(enabled: boolean) {
     setData(null);
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
+    let attempt = 0;
 
     const poll = () => {
       api
@@ -55,11 +57,12 @@ export function useGemstone(enabled: boolean) {
           }
           // "generating" — keep polling until ready or timed out.
           setState("generating");
-          if (Date.now() + POLL_INTERVAL_MS > deadline) {
+          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
+          if (Date.now() + delay > deadline) {
             setState("error");
             return;
           }
-          timer = setTimeout(poll, POLL_INTERVAL_MS);
+          timer = setTimeout(poll, delay);
         })
         .catch((err) => {
           if (cancelled) return;

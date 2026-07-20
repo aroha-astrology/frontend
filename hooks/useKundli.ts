@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api, type Kundli, type KundliResponse } from "@/lib/api";
+import { nextPollDelay } from "@/lib/poll-backoff";
 import { useAuth } from "@/providers/auth-provider";
-
-const POLL_INTERVAL = 2000;
 
 export function useKundli() {
   const { activeProfile } = useAuth();
@@ -16,6 +15,7 @@ export function useKundli() {
 
   useEffect(() => {
     cancelled.current = false;
+    let attempt = 0;
 
     async function poll() {
       if (cancelled.current) return;
@@ -27,7 +27,7 @@ export function useKundli() {
           setKundli(result as Kundli);
           setLoading(false);
         } else if (result.status === "pending" || result.status === "generating") {
-          timer.current = setTimeout(poll, POLL_INTERVAL);
+          timer.current = setTimeout(poll, nextPollDelay(attempt++));
         } else if (result.status === "failed") {
           setError(result.message ?? "Kundli generation failed");
           setLoading(false);

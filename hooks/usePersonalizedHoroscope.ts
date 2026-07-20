@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePeriod } from "@/lib/api";
+import { nextPollDelay } from "@/lib/poll-backoff";
 import { useAuth } from "@/providers/auth-provider";
 
 export type PersonalizedHoroscopeState = "loading" | "generating" | "ready" | "empty" | "error";
 
-const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60_000;
 
 /**
@@ -34,6 +34,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
     setData(null);
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
+    let attempt = 0;
 
     const poll = () => {
       api
@@ -51,11 +52,12 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
           }
           // res.status === "generating" — keep polling until ready or timed out.
           setState("generating");
-          if (Date.now() + POLL_INTERVAL_MS > deadline) {
+          const delay = nextPollDelay(attempt++);
+          if (Date.now() + delay > deadline) {
             setState("empty");
             return;
           }
-          timer = setTimeout(poll, POLL_INTERVAL_MS);
+          timer = setTimeout(poll, delay);
         })
         .catch((err) => {
           if (cancelled) return;

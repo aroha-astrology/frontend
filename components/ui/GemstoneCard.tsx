@@ -8,6 +8,7 @@ import Card from "./Card";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
 import { useGemstone } from "@/hooks/useGemstone";
+import { purgeUserCache } from "@/lib/cache";
 
 import { formatRupees } from "@/lib/format";
 
@@ -244,6 +245,7 @@ export default function GemstoneCard() {
     try {
       await api.unlockGemstone();
       await refresh();
+      if (user) purgeUserCache(user.id, { scope: "gemstone" });
     } catch {
       setUnlockError(t("kundli.gemstone.unlockError"));
     } finally {

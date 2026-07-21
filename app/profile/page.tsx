@@ -12,6 +12,7 @@ import WalletBalance from "@/components/ui/WalletBalance";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
+import { purgeUserCache } from "@/lib/cache";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,13 @@ export default function ProfilePage() {
 
       // Birth details changed — the natal chart is now stale. Fire-and-forget,
       // same pattern as onboarding's post-updateMe warm-up.
-      if (birthChanged) api.regenerateKundli().catch(() => {});
+      if (birthChanged) {
+        api.regenerateKundli().catch(() => {});
+        // Everything chart-derived is stale now too — purge every cached
+        // client-side entry for this user (kundli/horoscope/gemstone/
+        // houseInsight/remedies) rather than waiting out each one's own TTL.
+        purgeUserCache(user.id);
+      }
 
       setEditing(false);
       setForm(null);

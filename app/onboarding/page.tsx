@@ -22,6 +22,7 @@ import {
   type PlaceOfBirth,
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
 import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
@@ -466,6 +467,11 @@ function OnboardingPageInner() {
       await refresh();
       clearPendingReferralCode();
       api.regenerateKundli().catch(() => {});
+      // Birth details were just set for the first time — same cache purge
+      // as profile/page.tsx's birth-detail edit path (nothing should have
+      // been cached yet this early, but this keeps the two call sites
+      // consistent rather than relying on that assumption).
+      if (user) purgeUserCache(user.id);
       router.replace("/?tour=1");
     } catch {
       setSubmitErr(t("onboarding.submitError"));

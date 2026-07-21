@@ -23,6 +23,10 @@ import PurchasePlanModal from "@/components/panchang/PurchasePlanModal";
 import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
 import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
+import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+
+/** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
+const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Delhi/NCR — the same national reference point GET /astro/panchang defaults to server-side. */
 const REFERENCE_LAT = 28.6139;
@@ -130,12 +134,25 @@ export default function PanchangPage() {
     if (authLoading || !firebaseUser) return;
     let cancelled = false;
     setRefState("loading");
+
+    // Hard cache (see lib/cache.ts): `date` (selectedDate) is always passed
+    // explicitly here — a fixed TTL, not periodExpiresAt('daily'), since a
+    // past/future date's panchang is immutable regardless of today's rollover.
+    const cacheKey = buildKey("panchang", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
+    const cached = cacheGet<PanchangData>(cacheKey);
+    if (cached) {
+      setRefData(cached);
+      setRefState("ready");
+      return;
+    }
+
     api
       .panchang(REFERENCE_LAT, REFERENCE_LON, selectedDate)
       .then((res) => {
         if (cancelled) return;
         setRefData(res);
         setRefState("ready");
+        cacheSet(cacheKey, res, Date.now() + PANCHANG_FIXED_TTL_MS);
       })
       .catch(() => {
         if (!cancelled) setRefState("unavailable");
@@ -149,6 +166,16 @@ export default function PanchangPage() {
     if (authLoading || !firebaseUser || !geo.coords) return;
     let cancelled = false;
     setUserState("loading");
+
+    const cacheKey = buildKey("panchang", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
+    const cached = cacheGet<PanchangData>(cacheKey);
+    if (cached) {
+      setUserData(cached);
+      setUserState("ready");
+      setSource("mine");
+      return;
+    }
+
     api
       .panchang(geo.coords.lat, geo.coords.lon, selectedDate)
       .then((res) => {
@@ -156,6 +183,7 @@ export default function PanchangPage() {
         setUserData(res);
         setUserState("ready");
         setSource("mine");
+        cacheSet(cacheKey, res, Date.now() + PANCHANG_FIXED_TTL_MS);
       })
       .catch(() => {
         if (!cancelled) setUserState("unavailable");

@@ -7,6 +7,10 @@ import { api, type PanchangMonthDay } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import { getFestivalsForDate } from "@/lib/panchang/hindu-festivals";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
+import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+
+/** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). */
+const PANCHANG_MONTH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface MonthlyPanchangCalendarProps {
   selectedDate: string; // YYYY-MM-DD
@@ -34,10 +38,30 @@ export default function MonthlyPanchangCalendar({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+
+    // Hard cache (see lib/cache.ts): fixed TTL regardless of which month is
+    // shown — every day in a requested month is immutable once computed.
+    const cacheKey = buildKey(
+      "panchangMonth",
+      cursor.year,
+      cursor.month,
+      lat != null ? roundCoord(lat) : undefined,
+      lon != null ? roundCoord(lon) : undefined,
+    );
+    const cached = cacheGet<PanchangMonthDay[]>(cacheKey);
+    if (cached) {
+      setDays(cached);
+      setLoading(false);
+      return;
+    }
+
     api
       .panchangMonth(cursor.year, cursor.month, lat, lon)
       .then((res) => {
-        if (!cancelled) setDays(res.days);
+        if (!cancelled) {
+          setDays(res.days);
+          cacheSet(cacheKey, res.days, Date.now() + PANCHANG_MONTH_TTL_MS);
+        }
       })
       .catch(() => {
         if (!cancelled) setDays(null);

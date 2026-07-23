@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
-import { streamChat, sendChatFeedback, type ChatHistoryTurn, type ChatDetailLevel } from "@/lib/swarm-api";
+import { streamChat, sendChatFeedback, type ChatDetailLevel } from "@/lib/swarm-api";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
@@ -143,16 +143,17 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     return () => clearInterval(id);
   }, [streaming]);
 
-  // Conversation memory sent to the backend on each turn. Refs (not state)
-  // because they're pure bookkeeping for the next request, not render input.
-  // The backend folds older turns into `summary` once the raw history gets
-  // long (see chat-compaction.ts) and tells us via a `summary` SSE event —
-  // when that happens we drop the folded turns from what we send next time,
-  // so the prompt (and therefore latency/timeout risk) stays bounded no
-  // matter how long the conversation runs. This is also how the assistant
-  // avoids re-asking things the user already answered earlier in the thread.
-  const historyRef = useRef<ChatHistoryTurn[]>([]);
-  const summaryRef = useRef<string | undefined>(undefined);
+  // The backend now owns conversation memory: it persists the full
+  // transcript server-side (keyed by sessionId) and internally folds older
+  // turns into a running summary once history gets long (see
+  // chat-compaction.ts) purely to bound what's sent to the model — that
+  // compaction never affects what's stored or shown here. The client used to
+  // carry its own history/summary buffer and reset it to just the latest
+  // turn on every `summary` SSE event, which meant the compacted
+  // MODEL-CONTEXT window silently became the permanently PERSISTED
+  // transcript, deleting older turns — see astro.routes.ts's chatRoute for
+  // the server-side half of the fix (loads the stored full history/summary
+  // instead of trusting a client-supplied buffer).
   // One-shot compareProfileId from the compatibility page handoff — consumed
   // on the first streamChat call and then cleared so subsequent turns don't
   // keep sending it (synastry grounding is only relevant for the first reply).
@@ -233,8 +234,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           })
           .then((session) => {
             if (session && session.history) {
-              historyRef.current = session.history;
-              summaryRef.current = session.summary;
               const loadedMessages: Message[] = [
                 {
                   id: crypto.randomUUID(),
@@ -315,15 +314,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     setInput("");
     setStreaming(true);
 
-    const historyForThisTurn = historyRef.current;
-    const summaryForThisTurn = summaryRef.current;
-
     try {
       const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
       pendingCompareProfileIdRef.current = undefined;
       const stream = streamChat(msg, {
-        history: historyForThisTurn,
-        summary: summaryForThisTurn,
         sessionId: sessionIdRef.current,
         detailLevel,
         chartId,
@@ -331,9 +325,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         ...(compareProfileIdForThisTurn ? { compareProfileId: compareProfileIdForThisTurn } : {}),
       });
       let fullContent = "";
-      let hadError = false;
-      let newSummary = summaryForThisTurn;
-      let summaryChanged = false;
 
       for await (const event of stream) {
         if (event.type === "token") {
@@ -347,11 +338,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             }
             return next;
           });
-        } else if (event.type === "summary") {
-          newSummary = event.data.summary;
-          summaryChanged = true;
         } else if (event.type === "error") {
-          hadError = true;
           setMessages((prev) => {
             const next = [...prev];
             const last = next[next.length - 1];
@@ -378,7 +365,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
 
       // If we got no content at all, show a fallback
       if (!fullContent) {
-        hadError = true;
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
@@ -391,23 +377,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           }
           return next;
         });
-      }
-
-      // Only remember a turn that actually completed — an error/fallback
-      // message isn't real conversation content and shouldn't be replayed
-      // back to the model as if the assistant said it.
-      if (!hadError && fullContent) {
-        summaryRef.current = newSummary;
-        historyRef.current = summaryChanged
-          ? [
-              { role: "user", content: msg },
-              { role: "assistant", content: fullContent },
-            ]
-          : [
-              ...historyForThisTurn,
-              { role: "user", content: msg },
-              { role: "assistant", content: fullContent },
-            ];
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");

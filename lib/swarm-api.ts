@@ -118,12 +118,6 @@ export interface MatchmakingResponse {
 /** Reply depth: "direct" (short, default) or "details" (long-form, structured). */
 export type ChatDetailLevel = "direct" | "details";
 
-/** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
-export interface ChatHistoryTurn {
-  role: "user" | "assistant";
-  content: string;
-}
-
 // Chat SSE events
 export interface ChatTokenEvent {
   type: "token";
@@ -256,11 +250,14 @@ export async function* streamChat(
   message: string,
   opts?: {
     locale?: string;
-    /** Recent turns to carry forward; omit turns already folded into `summary`. */
-    history?: ChatHistoryTurn[];
-    /** Running summary returned by a prior turn's `summary` event. */
-    summary?: string;
-    /** Existing session ID to continue. */
+    /**
+     * Existing session ID to continue — the backend loads the session's own
+     * stored full history/summary server-side, so the client no longer
+     * carries or sends its own history/summary buffer (see chatRoute in
+     * astro.routes.ts: the transcript is persisted by reading-and-appending
+     * to the stored record, not by re-saving whatever the client last had in
+     * memory).
+     */
     sessionId?: string;
     /** "direct" (short, default) or "details" (long-form, structured). */
     detailLevel?: ChatDetailLevel;
@@ -290,9 +287,7 @@ export async function* streamChat(
       body: JSON.stringify({
         message,
         locale: opts?.locale ?? "en",
-        history: opts?.history ?? [],
         detailLevel: opts?.detailLevel ?? "direct",
-        ...(opts?.summary ? { summary: opts.summary } : {}),
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
         ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),

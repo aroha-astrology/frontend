@@ -156,6 +156,7 @@ export default function CompatibilityPage() {
         latitude: resolvedBoyPlace.lat,
         longitude: resolvedBoyPlace.lon,
         timezone: resolvedBoyPlace.tz,
+        timeAccuracy: form.boy.time ? "exact" : "unknown",
       };
 
       const person2: BirthInput = {
@@ -164,6 +165,7 @@ export default function CompatibilityPage() {
         latitude: resolvedGirlPlace.lat,
         longitude: resolvedGirlPlace.lon,
         timezone: resolvedGirlPlace.tz,
+        timeAccuracy: form.girl.time ? "exact" : "unknown",
       };
 
       const response = await matchmaking(person1, person2);
@@ -192,6 +194,16 @@ export default function CompatibilityPage() {
   const verdictLabel =
     pct >= 75 ? t("compatibilityPage.excellentMatch") : pct >= 50 ? t("compatibilityPage.goodMatch") : t("compatibilityPage.needsAttention");
 
+  // A dosha that is present but classically cancelled (own sign, Jupiter
+  // aspect, a documented house+sign exception, etc.) reads as "Non-Manglik"
+  // here, not "Manglik" — matching how the classical conclusion is actually
+  // stated (present-but-rectified is not the same as actively Manglik).
+  const mangalStatusLabel = (type?: "partial" | "full" | "cancelled" | "none"): string => {
+    if (type === "cancelled") return t("compatibilityPage.mangalDoshaStatusCancelled");
+    if (type === "none" || !type) return t("compatibilityPage.mangalDoshaStatusNonManglik");
+    return t("compatibilityPage.mangalDoshaStatusManglik");
+  };
+
   const askAstrologer = () => {
     if (!result) return;
 
@@ -201,8 +213,8 @@ export default function CompatibilityPage() {
     );
     const mangalLine = result.mangalDosha
       ? t("compatibilityPage.mangalDoshaStatus", {
-          p1: result.mangalDosha.person1 ? t("common.yes") : t("common.no"),
-          p2: result.mangalDosha.person2 ? t("common.yes") : t("common.no"),
+          p1: mangalStatusLabel(result.mangalDosha.type1),
+          p2: mangalStatusLabel(result.mangalDosha.type2),
         })
       : null;
 
@@ -485,17 +497,37 @@ export default function CompatibilityPage() {
               })}
             </div>
 
-            {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system */}
+            {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system.
+                "Matched" is effective status: a dosha that's present but classically
+                cancelled counts as Non-Manglik, same as never having it. */}
             {result.mangalDosha && (
-              <div className="mt-4 flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                <span>{t("compatibilityPage.mangalDosha")}</span>
-                <span className={`font-medium whitespace-nowrap ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
-                  {t("compatibilityPage.mangalDoshaStatus", {
-                    p1: result.mangalDosha.person1 ? t("common.yes") : t("common.no"),
-                    p2: result.mangalDosha.person2 ? t("common.yes") : t("common.no"),
-                  })}
-                </span>
+              <div className="mt-4 p-3 rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                  <span>{t("compatibilityPage.mangalDosha")}</span>
+                  <span className={`font-medium whitespace-nowrap ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
+                    {t("compatibilityPage.mangalDoshaStatus", {
+                      p1: mangalStatusLabel(result.mangalDosha.type1),
+                      p2: mangalStatusLabel(result.mangalDosha.type2),
+                    })}
+                  </span>
+                </div>
+                {result.mangalDosha.type1 === "cancelled" && (
+                  <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    {result.mangalDosha.description1}
+                  </p>
+                )}
+                {result.mangalDosha.type2 === "cancelled" && (
+                  <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    {result.mangalDosha.description2}
+                  </p>
+                )}
               </div>
+            )}
+
+            {result.lagnaCaveat && (
+              <p className="mt-3 text-xs leading-relaxed text-amber-400">
+                ⓘ {t("compatibilityPage.lagnaCaveat")}
+              </p>
             )}
 
             <p className="mt-4 text-sm text-[var(--text-muted)] leading-relaxed">

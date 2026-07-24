@@ -502,7 +502,9 @@ export type TransactionKind =
   | "gemstone_unlock"
   | "profile_creation"
   | "house_unlock"
-  | "referral_bonus";
+  | "referral_bonus"
+  | "astrologer_booking"
+  | "pooja_booking";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
@@ -634,6 +636,83 @@ export interface VastuPlan {
   errorMessage: string | null;
   createdAt: string;
   completedAt: string | null;
+}
+
+// ─── Astrologers ────────────────────────────────────────────────────────────
+
+export interface Astrologer {
+  id: string;
+  displayName: string;
+  bio: string | null;
+  specialties: string[];
+  languages: string[];
+  photoUrl: string | null;
+  ratePaisePerSession: number;
+  verified: boolean;
+}
+
+export type AstrologerBookingStatus = "requested" | "confirmed" | "completed" | "declined" | "cancelled" | "refunded";
+
+export interface AstrologerBooking {
+  id: string;
+  astrologerId: string;
+  preferredTimeWindow: string;
+  notes: string | null;
+  status: AstrologerBookingStatus;
+  pricePaisePaid: number;
+  requestedAt: string;
+}
+
+// ─── Pooja booking ───────────────────────────────────────────────────────────
+
+export interface PoojaCatalogItem {
+  id: string;
+  name: string;
+  description: string;
+  deity: string | null;
+  basePricePaise: number;
+  durationMinutes: number;
+}
+
+export type PoojaBookingStatus = "requested" | "assigned" | "completed" | "cancelled" | "refunded";
+
+export interface PoojaBooking {
+  id: string;
+  poojaId: string;
+  panditId: string | null;
+  preferredDate: string;
+  shipAddress: string;
+  shipPincode: string;
+  status: PoojaBookingStatus;
+  pricePaisePaid: number;
+  notes: string | null;
+}
+
+// ─── Shagun affiliate shop ───────────────────────────────────────────────────
+
+export type ShagunProductCategory = "gemstone" | "rudraksha" | "yantra" | "mala" | "idol" | "puja-item" | "gift-set";
+
+export interface ShagunProduct {
+  id: string;
+  category: ShagunProductCategory;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  priceRangeText: string | null;
+}
+
+// ─── Booking chat (shared shape — a provider-portal app independently implements its own copy) ──
+
+export type BookingType = "astrologer" | "pooja";
+
+export interface BookingMessage {
+  id: string;
+  bookingType: BookingType;
+  bookingId: string;
+  senderRole: "customer" | "provider";
+  body: string;
+  readAt: string | null;
+  createdAt: string;
 }
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -908,6 +987,70 @@ export const api = {
   /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
   transactionHistory: () =>
     request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),
+
+  // ─── Astrologers ────────────────────────────────────────────────────────
+
+  /** All astrologers available for consultation booking. */
+  listAstrologers: () => request<Astrologer[]>("/v1/astrologers", { auth: true }),
+
+  /** Request a consultation booking with an astrologer. Spends wallet balance server-side. */
+  bookAstrologer: (astrologerId: string, body: { preferredTimeWindow: string; notes?: string }) =>
+    request<AstrologerBooking>(`/v1/astrologers/${astrologerId}/book`, { method: "POST", body, auth: true }),
+
+  /** Cancel a pending/confirmed astrologer booking. */
+  cancelAstrologerBooking: (astrologerId: string, bookingId: string) =>
+    request<AstrologerBooking>(`/v1/astrologers/${astrologerId}/bookings/${bookingId}/cancel`, {
+      method: "POST",
+      auth: true,
+    }),
+
+  /** The current user's astrologer bookings, most recent first. */
+  myAstrologerBookings: () => request<AstrologerBooking[]>("/v1/astrologers/bookings/me", { auth: true }),
+
+  // ─── Pooja booking ──────────────────────────────────────────────────────
+
+  /** The fixed pooja catalog. */
+  poojaCatalog: () => request<{ items: PoojaCatalogItem[] }>("/v1/pooja-bookings/catalog", { auth: true }),
+
+  /** Request a pooja booking. Spends wallet balance server-side. */
+  bookPooja: (body: { poojaId: string; preferredDate: string; shipAddress: string; shipPincode: string; notes?: string }) =>
+    request<PoojaBooking>("/v1/pooja-bookings", { method: "POST", body, auth: true }),
+
+  /** Cancel a pending/assigned pooja booking. */
+  cancelPoojaBooking: (id: string) => request<PoojaBooking>(`/v1/pooja-bookings/${id}/cancel`, { method: "POST", auth: true }),
+
+  /** The current user's pooja bookings, most recent first. */
+  myPoojaBookings: () => request<{ items: PoojaBooking[] }>("/v1/pooja-bookings/me", { auth: true }),
+
+  // ─── Shagun affiliate shop ──────────────────────────────────────────────
+
+  /** Shagun catalog, optionally filtered to one category. Browse-only — no cart, no checkout. */
+  shagunProducts: (category?: ShagunProductCategory) =>
+    request<{ items: ShagunProduct[] }>(`/v1/shagun/products${category ? `?category=${category}` : ""}`, { auth: true }),
+
+  /**
+   * Resolve the authenticated redirect URL for a Shagun product. Returns
+   * `{ redirectUrl }` as JSON rather than a raw 302 — the backend route
+   * requires a Bearer token, which only an authenticated `fetch()` can
+   * attach, so a plain `<a href>`/`window.open(url)` can't reach it directly.
+   * Caller should `window.open(result.redirectUrl, "_blank", "noopener,noreferrer")`.
+   */
+  shagunProductRedirect: (id: string) =>
+    request<{ redirectUrl: string }>(`/v1/shagun/products/${id}/redirect`, { auth: true }),
+
+  // ─── Booking chat ───────────────────────────────────────────────────────
+
+  /** Message history for a booking thread (astrologer or pooja), oldest first. */
+  listBookingMessages: (bookingType: BookingType, bookingId: string) =>
+    request<BookingMessage[]>(`/v1/bookings/${bookingType}/${bookingId}/messages`, { auth: true }),
+
+  /** Send a message on a booking thread. */
+  sendBookingMessage: (bookingType: BookingType, bookingId: string, body: string) =>
+    request<BookingMessage>(`/v1/bookings/${bookingType}/${bookingId}/messages`, {
+      method: "POST",
+      body: { body },
+      auth: true,
+    }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

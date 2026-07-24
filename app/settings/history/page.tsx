@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, Users, Flame } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
@@ -35,6 +35,8 @@ function kindIcon(kind: Transaction["kind"]) {
     case "profile_creation": return <UserPlus size={16} />;
     case "house_unlock": return <Home size={16} />;
     case "referral_bonus": return <Gift size={16} />;
+    case "astrologer_booking": return <Users size={16} />;
+    case "pooja_booking": return <Flame size={16} />;
   }
 }
 
@@ -47,6 +49,8 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "profile_creation": return t("paymentHistory.profileCreation");
     case "house_unlock": return t("paymentHistory.houseUnlock", { houseNumber: txn.houseNumber });
     case "referral_bonus": return t("paymentHistory.referralBonus");
+    case "astrologer_booking": return t("paymentHistory.astrologerBooking");
+    case "pooja_booking": return t("paymentHistory.poojaBooking");
   }
 }
 

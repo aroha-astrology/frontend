@@ -8,7 +8,7 @@ import GreetingHeader from "@/components/GreetingHeader";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
 import TodayReading from "@/components/TodayReading";
 import KundliCard from "@/components/KundliCard";
-import MatchMakingCard from "@/components/MatchMakingCard";
+import PromoLinkCard from "@/components/PromoLinkCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -85,7 +85,19 @@ export default function HomePage() {
 
         {/* Match Making */}
         <div className="px-5 mt-8 mb-6">
-          <MatchMakingCard />
+          <PromoLinkCard
+            icon={
+              <>
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 z-10 text-gold">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                <div className="absolute -top-1 text-gold text-xs">✨</div>
+              </>
+            }
+            title={t("home.matchMaking")}
+            description={t("home.matchMakingDesc")}
+            href="/compatibility"
+          />
         </div>
       </div>
     </main>

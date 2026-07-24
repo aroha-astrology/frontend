@@ -26,8 +26,7 @@ export class SwarmApiError extends Error {
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
-/** Exported so lib/booking-chat-api.ts can reuse it instead of reimplementing. */
-export async function authHeaders(): Promise<Record<string, string>> {
+async function authHeaders(): Promise<Record<string, string>> {
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SwarmApiError(401, "no_session", "Not signed in");
   const token = await user.getIdToken();

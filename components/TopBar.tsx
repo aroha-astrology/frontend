@@ -20,16 +20,7 @@ import WalletBalance from "@/components/ui/WalletBalance";
  * needs the same header. Each opts into a right-side slot via
  * `useTopBarRightContent`; every other route (ai-chat, profile, settings,
  * onboarding, etc.) has its own header. */
-const TOPBAR_ROUTES = [
-  "/",
-  "/kundli",
-  "/vastu",
-  "/horoscope",
-  "/panchang",
-  "/astrologers",
-  "/pooja-booking",
-  "/shagun",
-];
+const TOPBAR_ROUTES = ["/", "/kundli", "/vastu", "/horoscope", "/panchang"];
 
 /**
  * Rendered once in the root layout (like BottomNavigation) rather than per

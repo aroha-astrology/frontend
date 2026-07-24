@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck, MessageCircle, LayoutGrid, Users, Flame, ShoppingBag } from "lucide-react";
+import { User, Settings, LogOut, X, ChevronRight, ScrollText, ShieldCheck, MessageCircle, LayoutGrid } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 
@@ -97,24 +97,6 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                 href="/kundli"
                 icon={<LayoutGrid size={16} />}
                 label={t("nav.kundli")}
-                onClick={onClose}
-              />
-              <DrawerLink
-                href="/astrologers"
-                icon={<Users size={16} />}
-                label={t("astrologers.directoryTitle")}
-                onClick={onClose}
-              />
-              <DrawerLink
-                href="/pooja-booking"
-                icon={<Flame size={16} />}
-                label={t("poojaBooking.catalogTitle")}
-                onClick={onClose}
-              />
-              <DrawerLink
-                href="/shagun"
-                icon={<ShoppingBag size={16} />}
-                label={t("shagun.catalogTitle")}
                 onClick={onClose}
               />
               <DrawerLink

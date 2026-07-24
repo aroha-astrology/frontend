@@ -20,8 +20,6 @@ function kindLabel(t: TFunction, txn: Transaction): string {
     case "profile_creation": return t("transactions.reasonProfileCreation", "Additional Profile Created");
     case "house_unlock": return t("transactions.reasonHouseUnlock", "House {{houseNumber}} Insight Unlock", { houseNumber: txn.houseNumber });
     case "referral_bonus": return t("transactions.reasonReferralBonus", "Referral Bonus");
-    case "astrologer_booking": return t("transactions.reasonAstrologerBooking", "Astrologer Booking");
-    case "pooja_booking": return t("transactions.reasonPoojaBooking", "Pooja Booking");
   }
 }
 

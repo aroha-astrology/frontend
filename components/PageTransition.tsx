@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,6 +10,14 @@ const TAB_ORDER = ["/", "/vastu", "/ai-chat", "/horoscope", "/panchang"];
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevIndexRef = useRef(0);
+
+  // Every route change should land at the top, regardless of where the
+  // previous page was scrolled to. Next's default scroll-to-top on
+  // navigation isn't reliable inside the Capacitor WebView, so we force it
+  // explicitly here alongside the transition that already keys off pathname.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   const index = TAB_ORDER.indexOf(pathname);
   const prevIndex = prevIndexRef.current;

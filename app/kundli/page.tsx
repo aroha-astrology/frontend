@@ -7,6 +7,7 @@ import { swarmApi, type BirthInput, type OnboardingResponse, type OnboardingChar
 import { useKundli } from "@/hooks/useKundli";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { api, type PlaceOfBirth, type KundliReady } from "@/lib/api";
+import { cachePurge } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
 import Card from "@/components/ui/Card";
 import PlanetsTable from "@/components/ui/PlanetsTable";
@@ -554,6 +555,16 @@ export default function KundliPage() {
                   onUnlock={async (houseNum) => {
                     await api.unlockHouse(houseNum);
                     await refreshUser();
+                    // That house flips from forbidden -> generating -> ready
+                    // server-side — purge just its cached insight entry
+                    // (across any language/profile it might have been cached
+                    // under) rather than the whole houseInsight scope, so
+                    // other already-unlocked houses' caches survive.
+                    if (user) {
+                      cachePurge(
+                        (key) => key.startsWith(`houseInsight:${user.id}:`) && key.endsWith(`:${houseNum}`),
+                      );
+                    }
                   }}
                 />
               </>

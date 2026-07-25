@@ -8,21 +8,21 @@
  * contemplates notices in Eighth Schedule languages — professionally reviewed
  * translations can be added later without changing this structure.
  *
- * Version must stay in lockstep with the consent payload sent from onboarding
- * and ConsentGate (`terms: { version }`, `privacy: { version }`) and with the
- * backend GET /legal/current response.
+ * LEGAL_VERSION is what onboarding stamps into each consent record — it now
+ * imports this constant rather than restating the literal, because the two
+ * had already drifted apart once. The backend's GET /legal/current still
+ * hardcodes 1.0.0 and needs the same bump; note also that nothing currently
+ * re-prompts existing users when the version changes, so consent records
+ * naming an older version are expected until a re-consent gate exists.
  *
  * Legal entity (Aroha Astrology), registered office (Bangalore, India), and
- * grievance contact (subir@arohaastrology.in) are filled in below. The
- * grievance contact is deliberately email-only for now (no named officer) —
- * IT Rules 2021 contemplates a named Grievance Officer; a name + designation
- * is a known open item to add here once decided (2026-07-17). The whole text
- * should also be reviewed by qualified Indian counsel — it is a considered
- * draft, not legal advice.
+ * the named Grievance Officer (Subir Dutta, subir@arohaastrology.in) are
+ * filled in below. The whole text should be reviewed by qualified Indian
+ * counsel — it is a considered draft, not legal advice.
  */
 
-export const LEGAL_VERSION = "1.0.0";
-export const LEGAL_UPDATED = "3 July 2026";
+export const LEGAL_VERSION = "1.1.0";
+export const LEGAL_UPDATED = "20 July 2026";
 
 export interface LegalSection {
   heading: string;
@@ -152,6 +152,7 @@ export const PRIVACY: LegalDoc = {
         "Account data: mobile phone number (verified by OTP), display name, gender.",
         "Birth data: date of birth, exact time of birth, place of birth including geographic coordinates and timezone. Because readings are computed from it, this is the core data the Service needs.",
         "Third-party birth profiles: name and birth details of another person that you submit for compatibility matching — only to be provided with that person's consent.",
+        "Device location: if you grant the location permission, we collect your device's approximate location — city-level only; we never request high-accuracy or background location, and we do not track your movements. It is used while the app is open, and the location recorded at onboarding is stored on your profile as your current location until you delete your account. This is separate from your place of birth, which you enter yourself. Location is optional: you may decline the permission, or revoke it later in your device settings, and the Service continues to work — location-aware features such as local panchang timings simply fall back to a default reference location.",
         "Usage data: chat messages you send to the AI astrologer, feature usage, preferences (language, ayanamsa, house system), and technical logs (device type, approximate region, timestamps).",
       ],
     },
@@ -159,6 +160,7 @@ export const PRIVACY: LegalDoc = {
       heading: "2. Purposes of Processing",
       paragraphs: [
         "We process personal data to: compute your kundli, dasha, panchang, and horoscopes; generate personalised AI readings and chat responses; run compatibility matching you request; operate, secure, and debug the Service; send service notifications you opt into; and meet legal obligations. We do not sell personal data, and we do not use it for third-party advertising.",
+        "Device location, where you grant it, is used only to localise time-sensitive astrological calculations — panchang timings, sunrise and sunset, and transit readings are all specific to where you are — and to name that place back to you in the interface. We do not use location for advertising, profiling, or tracking, and we do not share it with data brokers.",
       ],
     },
     {
@@ -177,6 +179,7 @@ export const PRIVACY: LegalDoc = {
       heading: "5. Sharing and Data Processors",
       paragraphs: [
         "We share personal data only with processors who operate the Service under contract and on our instructions: cloud hosting and database providers, Google Firebase (phone authentication), and AI inference providers that process chart context and chat text to generate responses. Processors are not permitted to use your data for their own purposes.",
+        "One exception is disclosed for completeness: when you grant location, your coordinates are sent to the OpenStreetMap Nominatim service to convert them into a place name for display. That is a public lookup service used without an account, not a contracted processor, and it receives coordinates only — never your identity, phone number, or birth details.",
         "Some processors may store or process data outside India. Such transfers are made in accordance with Section 16 of the DPDP Act (which permits transfers except to countries restricted by the Central Government) and with contractual safeguards.",
         "We may disclose personal data where required by Indian law or lawful government request.",
       ],
@@ -209,7 +212,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: "10. Grievances and the Data Protection Board",
       paragraphs: [
-        "Grievances: contact us at subir@arohaastrology.in, address: Bangalore, India. We acknowledge within 72 hours and aim to resolve within 15 working days. If you are unsatisfied after exhausting this mechanism, you may complain to the Data Protection Board of India under the DPDP Act.",
+        "Grievance Officer: Subir Dutta, email subir@arohaastrology.in, address Bangalore, India. We acknowledge within 72 hours and aim to resolve within 15 working days. If you are unsatisfied after exhausting this mechanism, you may complain to the Data Protection Board of India under the DPDP Act.",
       ],
     },
     {

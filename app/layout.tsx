@@ -15,6 +15,7 @@ import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
+import ReferralCapture from "@/components/ReferralCapture";
 import GooglePlayPurchaseReconciler from "@/components/GooglePlayPurchaseReconciler";
 import AnalyticsConsentBanner from "@/components/AnalyticsConsentBanner";
 
@@ -90,6 +91,7 @@ export default function RootLayout({
                     </TopBarProvider>
                     <BackButtonListener />
                     <PushNotificationListener />
+                    <ReferralCapture />
                     <GooglePlayPurchaseReconciler />
                     <AnalyticsConsentBanner />
                   </BackHandlerProvider>

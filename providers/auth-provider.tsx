@@ -106,20 +106,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   /**
-   * Activate a profile and refresh local profile state. `User` has no
+   * Activate a profile and refresh local profile + user state. `User` has no
    * `activeProfileId` field, so `profiles` alone is the source of truth for
-   * the active profile.
+   * the active profile — but `user.unlockedHouses`/`user.gemstoneUnlocked`
+   * are scoped to whichever profile is active server-side, so `user` must be
+   * re-fetched too or every unlock-gated screen keeps showing the
+   * previously-active profile's unlock state after a switch.
    *
    * Deliberately does NOT go through `refreshProfiles()` — that helper
    * swallows fetch errors (correct for the auth-boot-flow call site), which
    * would let this resolve "successfully" even if the post-activate refetch
-   * failed, leaving `profiles`/`activeProfile` silently stale. Here the
-   * refetch is unguarded so a failure rejects this promise and the caller
-   * (e.g. a profile switcher) can show an error/retry instead.
+   * failed, leaving `profiles`/`activeProfile`/`user` silently stale. Here
+   * both refetches are unguarded so a failure rejects this promise and the
+   * caller (e.g. a profile switcher) can show an error/retry instead.
    */
   const switchProfile = async (id: string) => {
     await api.activateProfile(id);
-    setProfiles(await api.listProfiles());
+    const [freshProfiles] = await Promise.all([api.listProfiles(), refresh()]);
+    setProfiles(freshProfiles);
   };
 
   const signOut = async () => {

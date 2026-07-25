@@ -7,6 +7,7 @@
 // client-side via Firebase (see providers/auth-provider).
 
 import { getFirebaseAuth } from "./firebase";
+import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 
 const BASE_URL = (
@@ -44,8 +45,21 @@ export interface User {
   unlockedHouses: number[];
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
+  /** Referral code for this user */
+  referralCode: string | null;
+  /** Source of the referral (who referred this user) */
+  referredByCode: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  readAt: string | null;
+  createdAt: string;
 }
 
 export interface SessionResponse {
@@ -104,6 +118,7 @@ export interface UpdateMeBody {
   relationshipStatus?: string;
   onboardingStatus?: string;
   consent?: ConsentInput;
+  referredByCode?: string;
 }
 
 // ─── Profiles (multi-profile) ─────────────────────────────────────────────────
@@ -480,6 +495,35 @@ export interface Order {
   paidAt: string | null;
 }
 
+export type TransactionKind =
+  | "recharge"
+  | "chat"
+  | "vastu_report"
+  | "gemstone_unlock"
+  | "profile_creation"
+  | "house_unlock"
+  | "referral_bonus";
+
+export type Transaction =
+  | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
+  | {
+      id: string;
+      kind: Exclude<TransactionKind, "recharge" | "house_unlock">;
+      createdAt: string;
+      amountPaise: number;
+      balanceAfterPaise: number;
+      isRefund: boolean;
+    }
+  | {
+      id: string;
+      kind: "house_unlock";
+      createdAt: string;
+      amountPaise: number;
+      balanceAfterPaise: number;
+      isRefund: boolean;
+      houseNumber: number;
+    };
+
 // ─── Error type ──────────────────────────────────────────────────────────────
 
 /** Normalised backend error (`{ error: { code, message, requestId } }`). */
@@ -615,6 +659,12 @@ export const api = {
   /** Update current user profile. */
   updateMe: (body: UpdateMeBody) =>
     request<User>("/v1/me", { method: "PATCH", body, auth: true }),
+
+  /** Get user notifications */
+  getNotifications: () => request<Notification[]>("/v1/me/notifications", { auth: true }),
+
+  /** Mark all notifications as read */
+  markNotificationsRead: () => request<{ success: boolean }>("/v1/me/notifications/read", { method: "PATCH", auth: true }),
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
@@ -855,8 +905,9 @@ export const api = {
       auth: true,
     }),
 
-  /** The current user's own recharge/order history, most recent first. */
-  orderHistory: () => request<{ orders: Order[] }>("/v1/billing/orders", { auth: true }),
+  /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
+  transactionHistory: () =>
+    request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────
@@ -887,14 +938,16 @@ async function kundliRequest(method: "GET" | "POST", path: string): Promise<Kund
 async function pollKundli(
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<KundliResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await kundliRequest("GET", "/v1/kundli");
     if (r.status !== "pending" && r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }
 
@@ -931,14 +984,16 @@ async function pollHoroscope(
   period: PersonalizedHoroscopePeriod,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
 ): Promise<HoroscopeResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await horoscopeRequest(period, opts.language);
     if (r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }
 
@@ -1005,13 +1060,15 @@ async function pollHouseInsight(
   language?: string,
   opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<HouseInsightResult> {
-  const interval = opts.intervalMs ?? 2000;
+  const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
     const r = await houseInsightRequest(house, language);
     if (r.status !== "generating") return r;
-    if (Date.now() + interval > deadline) return r; // give up but surface latest pending state
-    await new Promise((res) => setTimeout(res, interval));
+    const delay = nextPollDelay(attempt++, { baseMs });
+    if (Date.now() + delay > deadline) return r; // give up but surface latest pending state
+    await new Promise((res) => setTimeout(res, delay));
   }
 }

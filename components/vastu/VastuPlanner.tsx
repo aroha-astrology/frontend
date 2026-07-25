@@ -34,7 +34,7 @@ function buildPayload(plan: Plan) {
 
 export default function VastuPlanner() {
   const { t } = useTranslation();
-  const { user, refresh } = useAuth();
+  const { user, activeProfile, refresh } = useAuth();
   const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -59,20 +59,25 @@ export default function VastuPlanner() {
     }
   }, [plan]);
 
-  // ── Compass (capture-and-hold) ─────────────────────────────────────────────
+  // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
   const [compassHint, setCompassHint] = useState<string | null>(null);
   const onAlign = useCallback(async () => {
     setCompassHint(null);
-    const res = await compass.capture();
-    if (res.status === "aligned" && res.heading != null) {
-      dispatch({ type: "setNorthOffset", deg: res.heading });
-    } else if (res.status === "unsupported") {
-      setCompassHint(t("vastu.compass.unavailable"));
-    } else if (res.status === "denied") {
-      setCompassHint(t("vastu.compass.permissionDenied"));
-    }
+    const status = await compass.start();
+    if (status === "unsupported") setCompassHint(t("vastu.compass.unavailable"));
+    else if (status === "denied") setCompassHint(t("vastu.compass.permissionDenied"));
   }, [compass, t]);
+  useEffect(() => {
+    if (compass.state === "reading" && compass.heading != null) {
+      dispatch({ type: "setNorthOffset", deg: compass.heading });
+    }
+  }, [compass.state, compass.heading]);
+  const onLock = useCallback(() => compass.lock(), [compass]);
+  const onRecalibrate = useCallback(() => {
+    setCompassHint(null);
+    compass.recalibrate();
+  }, [compass]);
   const onRotate = useCallback((deg: number) => {
     compass.reset();
     dispatch({ type: "setNorthOffset", deg });
@@ -90,16 +95,23 @@ export default function VastuPlanner() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [history, setHistory] = useState<VastuPlan[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [asking, setAsking] = useState(false);
   const [askError, setAskError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setHistoryLoading(false);
+      return;
+    }
+    setHistoryLoading(true);
     try {
       const { plans } = await api.vastuList();
       setHistory(plans);
     } catch {
       /* best-effort */
+    } finally {
+      setHistoryLoading(false);
     }
   }, [user]);
 
@@ -107,7 +119,20 @@ export default function VastuPlanner() {
     void loadHistory();
   }, [loadHistory]);
 
+  // A generated report or in-flight AI state belongs to whichever profile was
+  // active when it was created — clear it on switch so a stale report from a
+  // different resident doesn't linger under the new profile's history list.
+  const activeProfileIdRef = useRef<string | null>(activeProfile?.id ?? null);
+  useEffect(() => {
+    activeProfileIdRef.current = activeProfile?.id ?? null;
+    setAiResult(null);
+    setActivePlanId(null);
+    setAiError(null);
+    setAskError(null);
+  }, [activeProfile?.id]);
+
   const onGenerate = useCallback(async () => {
+    const generationProfileId = activeProfileIdRef.current;
     setAiError(null);
     setAiResult(null);
     setActivePlanId(null);
@@ -120,7 +145,11 @@ export default function VastuPlanner() {
       while (Date.now() < deadline) {
         const p = await api.vastuGet(planId);
         if (p.status === "done" && p.analysis) {
-          setAiResult(p.analysis as VastuAiResult);
+          // The user may have switched profiles while this was in flight —
+          // don't paint a report generated for a different resident.
+          if (activeProfileIdRef.current === generationProfileId) {
+            setAiResult(p.analysis as VastuAiResult);
+          }
           void loadHistory();
           void refresh();
           return;
@@ -169,6 +198,8 @@ export default function VastuPlanner() {
         onRotate={onRotate}
         compassState={compass.state}
         onAlign={onAlign}
+        onLock={onLock}
+        onRecalibrate={onRecalibrate}
         sides={plan.plot.length}
         onSides={(n) => dispatch({ type: "setSides", sides: n })}
         widthU={Math.round(bbox(plan.plot).w)}
@@ -198,7 +229,7 @@ export default function VastuPlanner() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           dispatch={dispatch}
-          locked={compass.state === "aligned"}
+          locked={compass.state === "locked"}
         />
       </div>
 
@@ -218,7 +249,11 @@ export default function VastuPlanner() {
         <p className="text-[11px] text-muted">{t("vastu.onboarding.step1")}</p>
       )}
 
-      {compassHint && <p className="text-[11px] text-amber-400">{compassHint}</p>}
+      {(compassHint || compass.state === "reading") && (
+        <p className="text-[11px] text-amber-400">
+          {compassHint ?? t("vastu.compass.locking")}
+        </p>
+      )}
 
       <div>
         <p className="text-[11px] text-muted mb-1.5">{t("vastu.palette.hint")}</p>
@@ -246,6 +281,8 @@ export default function VastuPlanner() {
         aiError={aiError}
         onGenerate={onGenerate}
         history={history}
+        historyLoading={historyLoading}
+        profileName={activeProfile?.displayName?.trim() || t("profileSwitcher.unnamed")}
         onViewHistory={onViewHistory}
         canAsk={!!activePlanId}
         onAsk={onAsk}

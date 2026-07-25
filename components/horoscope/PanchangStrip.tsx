@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
+import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import { istToday, periodExpiresAt } from "@/lib/period-expiry";
 
 /** Delhi/NCR — same national reference point GET /astro/panchang defaults to server-side. */
 const REFERENCE_LAT = 28.6139;
@@ -52,12 +54,24 @@ export default function PanchangStrip() {
     const lat = geo.coords?.lat ?? REFERENCE_LAT;
     const lon = geo.coords?.lon ?? REFERENCE_LON;
 
+    // Hard cache (see lib/cache.ts): no explicit `date` is ever passed here —
+    // this strip is always *today's* panchang, so the key uses istToday()
+    // and expires at the next IST midnight rather than a fixed TTL.
+    const cacheKey = buildKey("panchang", roundCoord(lat), roundCoord(lon), istToday());
+    const cached = cacheGet<PanchangFacts>(cacheKey);
+    if (cached) {
+      setData(cached);
+      setState("ready");
+      return;
+    }
+
     api
       .panchang(lat, lon)
       .then((res) => {
         if (cancelled) return;
         setData(res as unknown as PanchangFacts);
         setState("ready");
+        cacheSet(cacheKey, res, periodExpiresAt("daily"));
       })
       .catch(() => {
         if (!cancelled) setState("unavailable");

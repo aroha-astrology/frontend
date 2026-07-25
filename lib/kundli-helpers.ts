@@ -26,3 +26,57 @@ export function getUserMoonSign(kundli: Kundli | null): string | undefined {
   if (!kundli?.chart) return undefined;
   return readString(kundli.chart, "moonSign") ?? readNested(kundli.chart, ["moon", "sign"]);
 }
+
+export interface ChartSigns {
+  ascendant?: string;
+  moonSign?: string;
+  sunSign?: string;
+}
+
+/** Finds a planet's sign inside chart.planets by (case-insensitive) planet name. */
+function readPlanetSign(
+  chart: Record<string, unknown> | null | undefined,
+  planetName: string,
+): string | undefined {
+  const planets = chart?.planets;
+  if (!Array.isArray(planets)) return undefined;
+  const match = planets.find(
+    (p) =>
+      p &&
+      typeof p === "object" &&
+      String((p as Record<string, unknown>).planet ?? "").toLowerCase() === planetName.toLowerCase(),
+  );
+  return match ? readString(match as Record<string, unknown>, "sign") : undefined;
+}
+
+/**
+ * Extracts { ascendant, moonSign, sunSign } from a natal chart blob, tolerating
+ * the handful of shapes the backend/onboarding response has used
+ * (flat "ascendant"/"moonSign"/"sunSign" string fields, a nested
+ * `ascendant: { ascendantSign | sign }` object, `{ moon: { sign } }` /
+ * `{ sun: { sign } }` objects, or falling back to the `planets` array).
+ * Consolidates logic previously duplicated between KundliSummary and
+ * KundliCard. This only extracts the raw English sign name — callers are
+ * still responsible for localizing it (see `zodiacSignLabel` in
+ * `data/zodiac.ts`) before rendering.
+ */
+export function extractChartSigns(chart: Record<string, unknown> | null | undefined): ChartSigns {
+  if (!chart) return {};
+
+  const ascendantField = chart.ascendant;
+  const ascendant =
+    typeof ascendantField === "string"
+      ? ascendantField
+      : ascendantField && typeof ascendantField === "object"
+        ? (readString(ascendantField as Record<string, unknown>, "ascendantSign") ??
+          readString(ascendantField as Record<string, unknown>, "sign"))
+        : undefined;
+
+  const moonSign =
+    readString(chart, "moonSign") ?? readNested(chart, ["moon", "sign"]) ?? readPlanetSign(chart, "Moon");
+
+  const sunSign =
+    readString(chart, "sunSign") ?? readNested(chart, ["sun", "sign"]) ?? readPlanetSign(chart, "Sun");
+
+  return { ascendant, moonSign, sunSign };
+}

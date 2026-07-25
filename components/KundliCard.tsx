@@ -7,7 +7,8 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Sparkles, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { api, ApiError, type KundliResult } from "@/lib/api";
-import { readNested, readString } from "@/lib/kundli-helpers";
+import { readNested, readString, extractChartSigns } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 import { purgeUserCache } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature } from "@/hooks/useFeature";
@@ -170,16 +171,14 @@ function FailedState({ onRetry }: { onRetry: () => void }) {
 function ReadyState({ kundli }: { kundli: Extract<KundliResult, { status: "ready" }> }) {
   const { t } = useTranslation();
   // Conservatively render only what we can guarantee from the loose schema.
-  const ascendant = readString(kundli.chart, "ascendant");
-  const moonSign = readString(kundli.chart, "moonSign") ?? readNested(kundli.chart, ["moon", "sign"]);
-  const sunSign = readString(kundli.chart, "sunSign") ?? readNested(kundli.chart, ["sun", "sign"]);
+  const { ascendant, moonSign, sunSign } = extractChartSigns(kundli.chart);
   const currentDasha =
     readString(kundli.dasha, "current") ?? readNested(kundli.dasha, ["currentMahadasha", "planet"]);
 
   const facts: Array<{ label: string; value: string }> = [];
-  if (ascendant) facts.push({ label: t("kundli.ascendant"), value: ascendant });
-  if (moonSign) facts.push({ label: t("kundli.moonSign"), value: moonSign });
-  if (sunSign) facts.push({ label: t("kundli.sunSign"), value: sunSign });
+  if (ascendant) facts.push({ label: t("kundli.ascendant"), value: zodiacSignLabel(t, ascendant) });
+  if (moonSign) facts.push({ label: t("kundli.moonSign"), value: zodiacSignLabel(t, moonSign) });
+  if (sunSign) facts.push({ label: t("kundli.sunSign"), value: zodiacSignLabel(t, sunSign) });
   if (currentDasha) facts.push({ label: t("kundli.dasha"), value: currentDasha });
 
   return (

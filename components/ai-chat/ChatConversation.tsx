@@ -131,8 +131,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const [thinkingIdx, setThinkingIdx] = useState(0);
   // All chats use "direct" mode; the Direct/Details toggle was removed.
   const detailLevel: ChatDetailLevel = "direct";
-  const bottomRef = useRef<HTMLDivElement>(null);
-  
+  // Scroll target for new messages — the messages pane itself (see the
+  // `overflow-y-auto` div in the JSX below), not a sentinel node. Scrolling a
+  // sentinel via `scrollIntoView` walks and scrolls EVERY scrollable
+  // ancestor, including the document itself; in the Capacitor WebView that
+  // meant a soft-keyboard-driven viewport resize could scroll the whole page
+  // out from under the (visually) pinned header. Scrolling this container's
+  // `scrollTop` directly keeps the effect scoped to just this pane.
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   const sessionIdRef = useRef<string | undefined>(undefined);
 
   // Cycle the "thinking" label while waiting for the first token, so the
@@ -286,7 +293,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, [kundli, t]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
 
   const sendMessage = useCallback(async (text?: string) => {
@@ -541,11 +550,14 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, []);
 
   return (
-    <main className="min-h-screen pb-52 flex flex-col" style={{ background: "var(--background)" }}>
-      {/* Header — the astrologer's identity. The name row stays sticky so
-          there's always a visible top bar once the conversation scrolls;
-          the specialty/disclosure lines scroll away with the rest. */}
-      <div className="sticky top-0 z-20 px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+    <main className="h-[100dvh] overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
+      {/* Header — the astrologer's identity. A plain flex child, not
+          `sticky`: `main` itself never scrolls (see `overflow-hidden`
+          above), so it has no scrolling ancestor for `sticky` to stick
+          within — the flex layout + `overflow-hidden` on `main` is what
+          actually keeps this pinned above the messages pane below.
+          `pt-8` clears the status bar, matching TopBar/profile/settings. */}
+      <div className="flex-shrink-0 px-5 pt-8 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
         <div className="relative flex items-center justify-center">
           <h1 className="text-2xl font-bold text-gold font-display">
             {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
@@ -564,15 +576,20 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           )}
         </div>
       </div>
-      <div className="px-5 pt-3 pb-1">
-        <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
-        <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
-          {t("aiChatPage.disclosure")}
-        </p>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-10">
+      {/* Messages — the only scrolling element on this screen. */}
+      <div ref={messagesContainerRef} className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
+        {/* Specialty + disclosure — lives inside the scroll container so it
+            genuinely scrolls away with the rest of the conversation once
+            there's enough history, instead of permanently eating vertical
+            space above the message list. */}
+        <div className="px-1 pt-3 pb-1">
+          <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
+          <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
+            {t("aiChatPage.disclosure")}
+          </p>
+        </div>
+
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => {
             // The empty assistant placeholder pushed at send-time renders as a
@@ -741,12 +758,17 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             </div>
           </motion.div>
         )}
-
-        <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
-      <div className="fixed bottom-[calc(var(--tab-bar-h)+1rem)] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
+      {/* Input bar — a normal flex child, not `position: fixed`. This screen
+          renders inside PageTransition's `motion.div`, which animates `x` (a
+          CSS transform) during route changes; a non-`none` transform on an
+          ancestor becomes the containing block for `position: fixed`
+          descendants, which made this bar visibly jump on every tab switch.
+          `mb-[calc(var(--tab-bar-h)+1rem)]` keeps it anchored the same
+          distance above the bottom tab bar that the old `fixed bottom-` did,
+          now via ordinary flex spacing instead. */}
+      <div className="flex-shrink-0 px-4 py-3 mb-[calc(var(--tab-bar-h)+1rem)]" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
           {!canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">

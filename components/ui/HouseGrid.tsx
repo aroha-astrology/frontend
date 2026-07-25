@@ -19,6 +19,8 @@ interface HouseGridProps {
   onHouseClick: (house: HouseData) => void;
   className?: string;
   balancePaise: number;
+  /** Resolved from useFeature('paid.houseInsight').pricePaise ?? 5000 by the caller — see app/kundli/page.tsx. */
+  unlockCostPaise: number;
 }
 
 const PLANET_GLYPHS: Record<string, string> = {
@@ -26,7 +28,7 @@ const PLANET_GLYPHS: Record<string, string> = {
   Jupiter: '♃', Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋',
 };
 
-export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balancePaise, className = '' }: HouseGridProps) {
+export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balancePaise, unlockCostPaise, className = '' }: HouseGridProps) {
   const { t } = useTranslation();
   const ordinals = t('kundli.house.ordinals', { returnObjects: true }) as string[];
 
@@ -52,7 +54,7 @@ export default function HouseGrid({ houses, unlockedHouses, onHouseClick, balanc
             </span>
          </div>
          <span className="text-[10px] text-emerald-400/80 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-           {t('kundli.house.unlockHint', { cost: 5 })}
+           {t('kundli.house.unlockHint', { cost: unlockCostPaise / 100 })}
          </span>
       </div>
 

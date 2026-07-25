@@ -49,8 +49,26 @@ export interface User {
   referralCode: string | null;
   /** Source of the referral (who referred this user) */
   referredByCode: string | null;
+  /**
+   * Server-side admin feature toggles, keyed by feature id (e.g. "nav.vastu",
+   * "home.matchmaking", "paid.gemstone", "reports.marriage"). A key absent
+   * from this map (old cached response, or a key this client build doesn't
+   * know about yet) must be treated as enabled — see hooks/useFeature.ts,
+   * which fails open on a missing key. Never trust a blank/missing map as
+   * "everything disabled".
+   */
+  features: Record<string, FeatureState>;
+  /** True for admin accounts — gates the (separate, not-yet-built) /admin dashboard. */
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** One entry in `User.features` — an admin-controlled toggle for a nav tab, home card, or paid feature. */
+export interface FeatureState {
+  enabled: boolean;
+  /** Server-resolved price in paise for a paid feature, or null when the feature has no price (e.g. a nav tab). */
+  pricePaise: number | null;
 }
 
 export interface Notification {

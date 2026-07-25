@@ -24,6 +24,7 @@ import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
 import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import FeatureGuard from "@/components/FeatureGuard";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -259,6 +260,7 @@ export default function PanchangPage() {
   const adhik = findAdhikMaas(selectedDate);
 
   return (
+    <FeatureGuard featureKey="nav.panchang">
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
@@ -524,5 +526,6 @@ export default function PanchangPage() {
         onSubmitted={handleSubmitted}
       />
     </main>
+    </FeatureGuard>
   );
 }

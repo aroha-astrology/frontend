@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { DoorOpen, AppWindow, Copy, Trash2, Maximize2, X } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
+import { useFeature } from "@/hooks/useFeature";
 import { api, type VastuPlan } from "@/lib/api";
 import { getRoomType } from "@/lib/vastu/data";
 import { analyzePlan } from "@/lib/vastu/analysis";
@@ -18,7 +19,6 @@ import AnalysisPanel, { type VastuAiResult } from "./AnalysisPanel";
 import { useCompass } from "./useCompass";
 
 const STORAGE_KEY = "vastu_plan";
-const CREDIT_COST_PAISE = 5000;
 
 function buildPayload(plan: Plan) {
   const roomLayout = buildRoomLayout(plan);
@@ -35,6 +35,7 @@ function buildPayload(plan: Plan) {
 export default function VastuPlanner() {
   const { t } = useTranslation();
   const { user, activeProfile, refresh } = useAuth();
+  const CREDIT_COST_PAISE = useFeature("paid.vastu").pricePaise ?? 5000;
   const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);

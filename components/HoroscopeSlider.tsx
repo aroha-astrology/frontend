@@ -8,6 +8,7 @@ import Card from "@/components/ui/Card";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import { useKundli } from "@/hooks/useKundli";
+import { useFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
@@ -36,7 +37,11 @@ function SkeletonCard() {
 
 export default function HoroscopeSlider() {
   const { t } = useTranslation();
-  const { forecasts, loading } = useMoonSignForecasts();
+  // Home-only component (the /horoscope page has its own separate
+  // useMoonSignForecasts call gated on 'nav.horoscope' instead) — so it's
+  // safe to hardcode this component's own flag rather than take it as a prop.
+  const { enabled } = useFeature("home.horoscopeSlider");
+  const { forecasts, loading } = useMoonSignForecasts("daily", enabled);
   const { kundli } = useKundli();
   const [selected, setSelected] = useState<number | null>(null);
 

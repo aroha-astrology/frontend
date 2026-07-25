@@ -26,6 +26,7 @@ import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
 import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
+import { useFeature } from "@/hooks/useFeature";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -61,8 +62,6 @@ const TOTAL_STEPS = 9;
  */
 const RELATIONSHIP_STEP = 2.5;
 
-/** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. */
-const PROFILE_CREATION_COST_PAISE = 20000;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -194,6 +193,8 @@ function OnboardingPageInner() {
   const [refAutoApplied, setRefAutoApplied] = useState(false);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
+  /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
+  const PROFILE_CREATION_COST_PAISE = useFeature("paid.profileCreation").pricePaise ?? 20000;
 
   const msgId = useRef(0);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -16,9 +16,72 @@ import AppTour from "@/components/tour/AppTour";
 import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { resolveFeature } from "@/hooks/useFeature";
+import { filterByFeature } from "@/lib/feature-filter";
+
+// ─── Home sections ──────────────────────────────────────────────────────────
+// Each section component wraps its own exact original markup (spacing,
+// data-tour hooks, etc.) unchanged — extracting this into a data-driven,
+// filterable array only controls WHETHER a section renders, never how.
+// GreetingHeader is deliberately NOT one of these: it's identity chrome
+// (who's signed in), not a togglable feature, so it always renders first.
+
+function TodayReadingSection() {
+  return (
+    <div className="px-5 mt-6">
+      <TodayReading />
+    </div>
+  );
+}
+
+function KundliCardSection() {
+  return (
+    <div className="px-5 mt-6" data-tour="kundli-summary">
+      <KundliCard />
+    </div>
+  );
+}
+
+// The "See All" link follows the same 'home.horoscopeSlider' flag as the
+// slider itself — it's part of this section's header, not a separate one.
+function HoroscopeSliderSection() {
+  const { t } = useTranslation();
+  return (
+    <div className="pl-5 pr-0 mt-8" data-tour="daily-horoscope">
+      <div className="flex justify-between items-center pr-5 mb-4">
+        <h2 className="text-lg font-display text-foreground">{t("home.moonSignHoroscope")}</h2>
+        <Link href="/horoscope" className="text-gold text-sm flex items-center gap-1">
+          {t("common.seeAll")} <span className="text-[10px]">▶</span>
+        </Link>
+      </div>
+      <HoroscopeSlider />
+    </div>
+  );
+}
+
+function MatchMakingSection() {
+  return (
+    <div className="px-5 mt-8 mb-6">
+      <MatchMakingCard />
+    </div>
+  );
+}
+
+interface HomeSection {
+  id: string;
+  featureKey: string;
+  Component: ComponentType;
+}
+
+/** Order here IS render order — preserves the exact pre-existing sequence. */
+const HOME_SECTIONS: HomeSection[] = [
+  { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
+  { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
+  { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
+  { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
+];
 
 export default function HomePage() {
-  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
@@ -50,6 +113,11 @@ export default function HomePage() {
     router.replace("/", { scroll: false });
   };
 
+  // Resolved once per render (not one useFeature() call per section, which
+  // would call a hook from inside a filter callback) — see
+  // lib/feature-filter.ts's doc comment for why.
+  const visibleSections = filterByFeature(HOME_SECTIONS, (key) => resolveFeature(user?.features, key).enabled);
+
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       {/* Backgrounds */}
@@ -59,34 +127,12 @@ export default function HomePage() {
       {tourOpen && <AppTour onFinish={finishTour} />}
 
       <div className="relative z-10">
-        {/* Personalized greeting header */}
+        {/* Personalized greeting header — identity chrome, always shown */}
         <GreetingHeader />
 
-        {/* Today's Reading — personalized horoscope highlights */}
-        <div className="px-5 mt-6">
-          <TodayReading />
-        </div>
-
-        {/* Natal Kundli — fetched after onboarding, polls /v1/kundli (202 → retry every 2s) */}
-        <div className="px-5 mt-6" data-tour="kundli-summary">
-          <KundliCard />
-        </div>
-
-        {/* Daily Horoscopes — Moon-sign (rashi-only), distinct from the personalized kundli horoscope */}
-        <div className="pl-5 pr-0 mt-8" data-tour="daily-horoscope">
-          <div className="flex justify-between items-center pr-5 mb-4">
-            <h2 className="text-lg font-display text-foreground">{t("home.moonSignHoroscope")}</h2>
-            <Link href="/horoscope" className="text-gold text-sm flex items-center gap-1">
-              {t("common.seeAll")} <span className="text-[10px]">▶</span>
-            </Link>
-          </div>
-          <HoroscopeSlider />
-        </div>
-
-        {/* Match Making */}
-        <div className="px-5 mt-8 mb-6">
-          <MatchMakingCard />
-        </div>
+        {visibleSections.map(({ id, Component }) => (
+          <Component key={id} />
+        ))}
       </div>
     </main>
   );

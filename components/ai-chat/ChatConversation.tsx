@@ -17,14 +17,13 @@ import { getTtsBackend } from "@/lib/tts";
 import { LANGUAGES, type LangCode } from "@/providers/language-provider";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { useKundli } from "@/hooks/useKundli";
+import { useFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
 import { formatRupees } from "@/lib/format";
 
-/** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
-const CHAT_MESSAGE_COST_PAISE = 2000;
-/** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. */
+/** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. Pure UI threshold, unrelated to server pricing. */
 const LOW_CREDIT_THRESHOLD_PAISE = 8000;
 
 interface Message {
@@ -110,6 +109,8 @@ function stripMarkdown(text: string): string {
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
+  /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts — 2000 is only the fallback for the fail-open case; the resolved feature price is authoritative when present. */
+  const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
   const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   const [messages, setMessages] = useState<Message[]>([
     {

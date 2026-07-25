@@ -30,8 +30,18 @@ const POLL_TIMEOUT_MS = 60_000;
  * rolls over (periodKey changes) or the absolute `exp` timestamp passes,
  * whichever a clock/period anomaly hits first. Only a terminal "ready" is
  * ever cached; "generating"/"failed" are never persisted.
+ *
+ * `enabled` defaults to `true` — TodayReading (Home) passes
+ * `useFeature('home.todayReading').enabled`, the /horoscope page's
+ * PersonalizedCard passes `useFeature('nav.horoscope').enabled` instead
+ * (different flag — the page itself, not the home card). When disabled, this
+ * resets to the same idle-ish shape and skips the fetch/poll effect entirely,
+ * matching useGemstone's pattern.
  */
-export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
+export function usePersonalizedHoroscope(
+  period: PersonalizedHoroscopePeriod,
+  enabled: boolean = true,
+) {
   const { firebaseUser, loading: authLoading, activeProfile, user } = useAuth();
   const { i18n } = useTranslation();
   const [state, setState] = useState<PersonalizedHoroscopeState>("loading");
@@ -39,6 +49,11 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
+    if (!enabled) {
+      setState("empty");
+      setData(null);
+      return;
+    }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     setState("loading");
@@ -108,7 +123,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, period, i18n.language, activeProfile?.id, user?.id]);
+  }, [authLoading, firebaseUser, enabled, period, i18n.language, activeProfile?.id, user?.id]);
 
   return { state, data };
 }

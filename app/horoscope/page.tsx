@@ -7,6 +7,8 @@ import { ChevronRight, Sparkles, Star } from "lucide-react";
 import type { PersonalizedHoroscopePeriod } from "@/lib/api";
 import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
+import { useFeature } from "@/hooks/useFeature";
+import FeatureGuard from "@/components/FeatureGuard";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
@@ -16,7 +18,12 @@ import { zodiacSignLabel } from "@/data/zodiac";
 
 function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
-  const { state, data } = usePersonalizedHoroscope(period);
+  // This page (not a home card) is gated by 'nav.horoscope' — a different
+  // flag than TodayReading's 'home.todayReading' on Home. In practice
+  // FeatureGuard already redirects away from this route when nav.horoscope
+  // is off; this is defense-in-depth so the hook never fires either way.
+  const { enabled } = useFeature("nav.horoscope");
+  const { state, data } = usePersonalizedHoroscope(period, enabled);
   const [showMonths, setShowMonths] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -137,8 +144,9 @@ const SHOW_TOMORROW_TOGGLE = false;
 
 export default function HoroscopePage() {
   const { t } = useTranslation();
+  const { enabled: navHoroscopeEnabled } = useFeature("nav.horoscope");
   const [timescale, setTimescale] = useState<Timescale>("daily");
-  const { forecasts, loading } = useMoonSignForecasts(timescale);
+  const { forecasts, loading } = useMoonSignForecasts(timescale, navHoroscopeEnabled);
   const [selected, setSelected] = useState<number | null>(null);
   // Decoupled from `timescale`: "Tomorrow" only ever applies to the
   // personalized card below, never to the generic moon-sign section (which
@@ -151,6 +159,7 @@ export default function HoroscopePage() {
   const selectedForecast = selected !== null ? forecasts[selected] : null;
 
   return (
+    <FeatureGuard featureKey="nav.horoscope">
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
@@ -259,5 +268,6 @@ export default function HoroscopePage() {
         )}
       </AnimatePresence>
     </main>
+    </FeatureGuard>
   );
 }

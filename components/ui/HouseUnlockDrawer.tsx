@@ -126,6 +126,13 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
                         </div>
                      )}
 
+                     {(insightState === 'forbidden' || insightState === 'error') && (
+                        <div className="mt-4 pt-4 border-t border-gold/10 flex items-center gap-2 text-xs text-red-400">
+                           <AlertTriangle size={14} />
+                           {t('kundli.house.insightsUnavailable')}
+                        </div>
+                     )}
+
                      {insightState === 'ready' && insight?.status === 'ready' && (
                         <div className="mt-4 pt-4 border-t border-gold/10">
                            <span className="text-[10px] text-muted block mb-2">{t('kundli.house.insightsTitle')}</span>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Pencil, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Pencil, Loader2, Sparkles, Share2, Copy } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -12,6 +12,7 @@ import WalletBalance from "@/components/ui/WalletBalance";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
+import { purgeUserCache } from "@/lib/cache";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,7 @@ export default function ProfilePage() {
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const GENDERS: { key: Exclude<Gender, null>; label: string }[] = [
     { key: "male", label: t("onboarding.step7male") },
@@ -127,7 +129,13 @@ export default function ProfilePage() {
 
       // Birth details changed — the natal chart is now stale. Fire-and-forget,
       // same pattern as onboarding's post-updateMe warm-up.
-      if (birthChanged) api.regenerateKundli().catch(() => {});
+      if (birthChanged) {
+        api.regenerateKundli().catch(() => {});
+        // Everything chart-derived is stale now too — purge every cached
+        // client-side entry for this user (kundli/horoscope/gemstone/
+        // houseInsight/remedies) rather than waiting out each one's own TTL.
+        purgeUserCache(user.id);
+      }
 
       setEditing(false);
       setForm(null);
@@ -140,6 +148,33 @@ export default function ProfilePage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleShare() {
+    if (!user?.referralCode) return;
+    const text = t("referral.shareMessage", {
+      code: user.referralCode,
+      url: `https://app.arohaastrology.in?ref=${user.referralCode}`,
+    });
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Aroha Astrology", text });
+      } catch (err) {
+        // User dismissed the native share sheet — that's a deliberate "no", not a failure.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        handleCopy();
+      }
+    } else {
+      handleCopy();
+    }
+  }
+
+  function handleCopy() {
+    if (!user?.referralCode) return;
+    navigator.clipboard.writeText(user.referralCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   // ── Loading ──
@@ -190,6 +225,12 @@ export default function ProfilePage() {
             </div>
           </div>
           <button
+            onClick={() => router.push("/profile/orders")}
+            className="px-4 py-2 rounded-xl border border-gold/30 text-gold text-xs font-bold hover:bg-gold/10 transition-colors"
+          >
+            {t("transactions.history", "History")}
+          </button>
+          <button
             onClick={() => router.push("/payment")}
             className="px-4 py-2 rounded-xl bg-gold text-[#1a0e00] text-xs font-bold"
           >
@@ -197,6 +238,42 @@ export default function ProfilePage() {
           </button>
         </Card>
 
+        {user?.referralCode && (
+          <Card className="p-4 mb-4 flex flex-col gap-3 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full -mr-10 -mt-10 pointer-events-none" />
+            <div className="flex items-start justify-between z-10">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Share2 size={16} className="text-gold" />
+                  {t("referral.title", "Refer & Earn")}
+                </h3>
+                <p className="text-xs text-muted mt-1 max-w-[200px]">
+                  {t("referral.desc", "Share your code. You both get ₹50 when they join. Earn up to ₹2000!")}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 z-10">
+              <div className="flex-1 bg-surface border border-gold/20 rounded-xl px-3 py-2 flex items-center justify-between">
+                <span className="text-sm font-mono tracking-wider font-semibold">{user.referralCode}</span>
+                <button onClick={handleCopy} className="text-gold hover:text-gold/80 p-1">
+                  {copied ? <span className="text-[10px] font-bold">COPIED</span> : <Copy size={14} />}
+                </button>
+              </div>
+              <button 
+                onClick={handleShare}
+                className="bg-gold text-[#1a0e00] px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap"
+              >
+                {t("referral.shareBtn", "Share Now")}
+              </button>
+            </div>
+          </Card>
+        )}
+
+        <div className="text-center mb-2">
+          <span className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium">
+            You can edit your profile only once
+          </span>
+        </div>
         <Card className="p-4">
           {!editing ? (
             <div>

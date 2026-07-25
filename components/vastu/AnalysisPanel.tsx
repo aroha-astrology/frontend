@@ -56,6 +56,8 @@ export default function AnalysisPanel(props: {
   aiError: string | null;
   onGenerate: () => void;
   history: VastuPlan[];
+  historyLoading: boolean;
+  profileName: string;
   onViewHistory: (plan: VastuPlan) => void;
   canAsk: boolean;
   onAsk: (question: string) => void;
@@ -120,28 +122,34 @@ export default function AnalysisPanel(props: {
       {/* AI result */}
       {aiResult && <AiResult result={aiResult} canAsk={props.canAsk} onAsk={props.onAsk} asking={props.asking} askError={props.askError} />}
 
-      {/* History */}
-      {props.history.length > 0 && (
+      {/* History — scoped to whichever profile is currently active */}
+      {!props.historyLoading && (
         <Card className="p-4">
           <div className="flex items-center gap-1.5 mb-3 text-gold">
             <History size={14} />
             <h3 className="text-sm font-semibold font-display">{t("vastu.analysis.historyTitle")}</h3>
           </div>
-          <ul className="flex flex-col gap-1.5">
-            {props.history.map((p) => {
-              const done = p.status === "done" && !!p.analysis;
-              return (
-                <li key={p.id}>
-                  <button onClick={() => done && props.onViewHistory(p)} disabled={!done} className="w-full flex items-center gap-2 rounded-xl border border-gold/15 px-3 py-2 text-left hover:border-gold/40 disabled:opacity-50 transition-colors">
-                    <span className="text-xs text-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
-                    {p.overallScore != null && <span className={`text-xs font-semibold ${scoreTone(p.overallScore).text}`}>{p.overallScore}</span>}
-                    <span className="ml-auto text-[10px] text-muted capitalize">{done ? "" : p.status}</span>
-                    {done && <ChevronRight size={13} className="text-muted" />}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          {props.history.length === 0 ? (
+            <p className="text-xs text-muted py-2 text-center">
+              {t("vastu.analysis.historyEmpty", { name: props.profileName })}
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-1.5">
+              {props.history.map((p) => {
+                const done = p.status === "done" && !!p.analysis;
+                return (
+                  <li key={p.id}>
+                    <button onClick={() => done && props.onViewHistory(p)} disabled={!done} className="w-full flex items-center gap-2 rounded-xl border border-gold/15 px-3 py-2 text-left hover:border-gold/40 disabled:opacity-50 transition-colors">
+                      <span className="text-xs text-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
+                      {p.overallScore != null && <span className={`text-xs font-semibold ${scoreTone(p.overallScore).text}`}>{p.overallScore}</span>}
+                      <span className="ml-auto text-[10px] text-muted capitalize">{done ? "" : p.status}</span>
+                      {done && <ChevronRight size={13} className="text-muted" />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Card>
       )}
     </div>

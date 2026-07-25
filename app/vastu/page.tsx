@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import SectionTitle from "@/components/SectionTitle";
+import ProfileSwitchTrigger from "@/components/ui/ProfileSwitchTrigger";
 import VastuPlanner from "@/components/vastu/VastuPlanner";
 
 export default function VastuPage() {
@@ -10,7 +11,8 @@ export default function VastuPage() {
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <SectionTitle title={t("vastu.title")} subtitle={t("vastu.subtitle")} />
-        <div className="mt-4">
+        <ProfileSwitchTrigger className="mb-4 -mt-2" />
+        <div>
           <VastuPlanner />
         </div>
       </div>

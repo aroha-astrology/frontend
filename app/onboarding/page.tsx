@@ -22,7 +22,10 @@ import {
   type PlaceOfBirth,
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
+import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
+import { LEGAL_VERSION } from "@/lib/legal-content";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -44,6 +47,7 @@ interface Answers {
   place: string;
   gender: string;
   status: string;
+  referralCode?: string;
 }
 
 const TOTAL_STEPS = 9;
@@ -187,10 +191,21 @@ function OnboardingPageInner() {
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
+  const [refAutoApplied, setRefAutoApplied] = useState(false);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
 
   const msgId = useRef(0);
+
+  // Pick up a referral code carried in from a shared invite link (?ref=CODE),
+  // captured earlier by <ReferralCapture /> before any redirect could drop it.
+  useEffect(() => {
+    if (isNewProfileMode) return;
+    const code = getPendingReferralCode();
+    if (!code) return;
+    setAnswers((a) => (a.referralCode ? a : { ...a, referralCode: code }));
+    setRefAutoApplied(true);
+  }, [isNewProfileMode]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const nextId = () => ++msgId.current;
@@ -418,6 +433,9 @@ function OnboardingPageInner() {
         };
         body.relationshipStatus = statusMap[answers.status] ?? answers.status;
       }
+      if (answers.referralCode) {
+        body.referredByCode = answers.referralCode;
+      }
       
       if ("geolocation" in navigator) {
         try {
@@ -436,15 +454,24 @@ function OnboardingPageInner() {
       }
 
       body.onboardingStatus = "completed";
+      // Versions come from legal-content.ts rather than being restated here —
+      // the consent record must name the document text the user actually saw,
+      // and hardcoding drifted silently the last time that text changed.
       body.consent = {
         dataProcessing: true,
-        terms: { version: "1.0.0" },
-        privacy: { version: "1.0.0" },
+        terms: { version: LEGAL_VERSION },
+        privacy: { version: LEGAL_VERSION },
       };
 
       await api.updateMe(body);
       await refresh();
+      clearPendingReferralCode();
       api.regenerateKundli().catch(() => {});
+      // Birth details were just set for the first time — same cache purge
+      // as profile/page.tsx's birth-detail edit path (nothing should have
+      // been cached yet this early, but this keeps the two call sites
+      // consistent rather than relying on that assumption).
+      if (user) purgeUserCache(user.id);
       router.replace("/?tour=1");
     } catch {
       setSubmitErr(t("onboarding.submitError"));
@@ -737,6 +764,29 @@ function OnboardingPageInner() {
               <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
                 {t("onboarding.newProfile.creditCost", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })}
               </p>
+            )}
+
+            {!isNewProfileMode && (
+              <div className="mb-4">
+                <label className="text-[11px] text-muted uppercase tracking-wider mb-1 block">
+                  {t("referral.codeInputLabel", "Referral Code (Optional)")}
+                </label>
+                <input
+                  type="text"
+                  value={answers.referralCode || ""}
+                  onChange={(e) => {
+                    setRefAutoApplied(false);
+                    setAnswers(a => ({ ...a, referralCode: e.target.value.trim().toUpperCase() }));
+                  }}
+                  placeholder={t("referral.codeInputPlaceholder", "Got a code? Enter it here")}
+                  className="w-full h-10 rounded-xl px-3.5 outline-none border text-[13px] focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase"
+                />
+                {refAutoApplied && (
+                  <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <Check size={12} /> {t("referral.autoApplied", "Applied automatically from your invite link")}
+                  </p>
+                )}
+              </div>
             )}
 
             <label className="flex items-start gap-2.5 mb-2 text-[12px] text-muted leading-relaxed cursor-pointer">

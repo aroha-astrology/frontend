@@ -8,6 +8,7 @@ import { Loader2, Sparkles, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { api, ApiError, type KundliResult } from "@/lib/api";
 import { readNested, readString } from "@/lib/kundli-helpers";
+import { purgeUserCache } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
 
 /**
@@ -95,6 +96,12 @@ export default function KundliCard() {
               try {
                 const r = await api.regenerateKundli();
                 setResult(r);
+                // Chart-derived caches are stale now — house insights read
+                // off the old chart too, not just the kundli itself.
+                if (user) {
+                  purgeUserCache(user.id, { scope: "kundli" });
+                  purgeUserCache(user.id, { scope: "houseInsight" });
+                }
               } catch (e) {
                 setError(e instanceof ApiError ? e.message : t("kundli.errorGeneric"));
               }

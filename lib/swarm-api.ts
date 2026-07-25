@@ -44,6 +44,10 @@ export interface BirthInput {
   latitude: number;
   longitude: number;
   timezone: string;   // IANA tz
+  /** Confidence in `time` above. "unknown" (e.g. time left blank and
+   * defaulted) tells the backend the Lagna-based reading may be unreliable
+   * instead of silently trusting a defaulted time as exact. */
+  timeAccuracy?: "exact" | "approximate" | "unknown";
 }
 
 // Onboarding (mirrors the deployed OnboardingResponse schema)
@@ -111,18 +115,25 @@ export interface MatchmakingResponse {
   recommendation?: string;
   /** Near-disqualifying red flags, checked independently of the 36-point total. */
   flags?: { nadiDosha: boolean; bhakootDosha: boolean };
-  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system. */
-  mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
+  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system.
+   * `matched` is EFFECTIVE status (present and not classically cancelled) — a dosha that's
+   * present but cancelled counts as not-Manglik, same as never having it. */
+  mangalDosha?: {
+    person1: boolean;
+    person2: boolean;
+    type1: "partial" | "full" | "cancelled" | "none";
+    type2: "partial" | "full" | "cancelled" | "none";
+    description1: string;
+    description2: string;
+    matched: boolean;
+  };
+  /** Set when either person's birth time was unknown/approximate — the Lagna-based
+   * reading (including any Mangal Dosha assessed from Lagna) may be unreliable. */
+  lagnaCaveat?: string;
 }
 
 /** Reply depth: "direct" (short, default) or "details" (long-form, structured). */
 export type ChatDetailLevel = "direct" | "details";
-
-/** A prior turn the client is carrying forward — mirrors the backend's ChatHistoryTurnSchema. */
-export interface ChatHistoryTurn {
-  role: "user" | "assistant";
-  content: string;
-}
 
 // Chat SSE events
 export interface ChatTokenEvent {
@@ -256,16 +267,26 @@ export async function* streamChat(
   message: string,
   opts?: {
     locale?: string;
-    /** Recent turns to carry forward; omit turns already folded into `summary`. */
-    history?: ChatHistoryTurn[];
-    /** Running summary returned by a prior turn's `summary` event. */
-    summary?: string;
-    /** Existing session ID to continue. */
+    /**
+     * Existing session ID to continue — the backend loads the session's own
+     * stored full history/summary server-side, so the client no longer
+     * carries or sends its own history/summary buffer (see chatRoute in
+     * astro.routes.ts: the transcript is persisted by reading-and-appending
+     * to the stored record, not by re-saving whatever the client last had in
+     * memory).
+     */
     sessionId?: string;
     /** "direct" (short, default) or "details" (long-form, structured). */
     detailLevel?: ChatDetailLevel;
     /** User's Kundli chart ID for grounding AI responses in birth chart data. */
     chartId?: string;
+    /**
+     * A birth_profiles row id (from /v1/profiles) to compare the caller's own
+     * chart against, enabling real Ashtakoota synastry grounding via
+     * buildSecondChartFacts. Only meaningful when the user is signed in and
+     * the target profile has relationship partner/spouse/prospective_match.
+     */
+    compareProfileId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -283,11 +304,10 @@ export async function* streamChat(
       body: JSON.stringify({
         message,
         locale: opts?.locale ?? "en",
-        history: opts?.history ?? [],
         detailLevel: opts?.detailLevel ?? "direct",
-        ...(opts?.summary ? { summary: opts.summary } : {}),
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
+        ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),
       }),
     });
 

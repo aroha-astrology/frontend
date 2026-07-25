@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePeriod } from "@/lib/api";
+import { nextPollDelay } from "@/lib/poll-backoff";
+import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
+import { currentPeriodKey, periodExpiresAt } from "@/lib/period-expiry";
 import { useAuth } from "@/providers/auth-provider";
 
 export type PersonalizedHoroscopeState = "loading" | "generating" | "ready" | "empty" | "error";
 
-const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60_000;
 
 /**
@@ -19,9 +21,18 @@ const POLL_TIMEOUT_MS = 60_000;
  * `user.contentLanguage` (that field is never updated by the in-app language
  * switcher — see the house-insight hook for the same pattern), so AI-generated
  * text actually re-translates when the user switches language mid-session.
+ *
+ * Hard-cached client-side (see lib/cache.ts): a ready reading is immutable
+ * for its `currentPeriodKey(period)` — the backend generates it once per IST
+ * period and serves the same row until rollover (see
+ * jyotish-backend's horoscope.service.ts) — so once a period's reading is
+ * cached, this hook makes ZERO network requests for it until the period
+ * rolls over (periodKey changes) or the absolute `exp` timestamp passes,
+ * whichever a clock/period anomaly hits first. Only a terminal "ready" is
+ * ever cached; "generating"/"failed" are never persisted.
  */
 export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
-  const { firebaseUser, loading: authLoading, activeProfile } = useAuth();
+  const { firebaseUser, loading: authLoading, activeProfile, user } = useAuth();
   const { i18n } = useTranslation();
   const [state, setState] = useState<PersonalizedHoroscopeState>("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
@@ -33,7 +44,32 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
     setState("loading");
     setData(null);
 
+    // Cache key is scoped by user+profile so it's per-account; `user` may
+    // briefly lag `firebaseUser` right after sign-in (session establishment
+    // is still in flight) — when that happens we simply skip caching for
+    // this render rather than caching under an incomplete/anonymous key.
+    const cacheKey = user
+      ? buildKey(
+          "horoscope",
+          user.id,
+          activeProfile?.id ?? "primary",
+          i18n.language,
+          period,
+          currentPeriodKey(period),
+        )
+      : null;
+
+    if (cacheKey) {
+      const cached = cacheGet<PersonalizedHoroscope>(cacheKey);
+      if (cached) {
+        setData(cached);
+        setState("ready");
+        return; // Cache hit on hard-cached content — zero network, no poll.
+      }
+    }
+
     const deadline = Date.now() + POLL_TIMEOUT_MS;
+    let attempt = 0;
 
     const poll = () => {
       api
@@ -43,6 +79,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
           if (res.status === "ready") {
             setData(res);
             setState("ready");
+            if (cacheKey) cacheSet(cacheKey, res, periodExpiresAt(period));
             return;
           }
           if (res.status === "failed") {
@@ -51,11 +88,12 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
           }
           // res.status === "generating" — keep polling until ready or timed out.
           setState("generating");
-          if (Date.now() + POLL_INTERVAL_MS > deadline) {
+          const delay = nextPollDelay(attempt++);
+          if (Date.now() + delay > deadline) {
             setState("empty");
             return;
           }
-          timer = setTimeout(poll, POLL_INTERVAL_MS);
+          timer = setTimeout(poll, delay);
         })
         .catch((err) => {
           if (cancelled) return;
@@ -70,7 +108,7 @@ export function usePersonalizedHoroscope(period: PersonalizedHoroscopePeriod) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, period, i18n.language, activeProfile?.id]);
+  }, [authLoading, firebaseUser, period, i18n.language, activeProfile?.id, user?.id]);
 
   return { state, data };
 }

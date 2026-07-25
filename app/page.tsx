@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import GreetingHeader from "@/components/GreetingHeader";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
+import ReportsSlider from "@/components/ReportsSlider";
 import TodayReading from "@/components/TodayReading";
 import KundliCard from "@/components/KundliCard";
 import MatchMakingCard from "@/components/MatchMakingCard";
@@ -59,6 +60,24 @@ function HoroscopeSliderSection() {
   );
 }
 
+// The "See All" link follows the same 'home.reportsSection' flag as the
+// slider itself — it's part of this section's header, not a separate one
+// (mirrors HoroscopeSliderSection above).
+function ReportsSliderSection() {
+  const { t } = useTranslation();
+  return (
+    <div className="pl-5 pr-0 mt-8">
+      <div className="flex justify-between items-center pr-5 mb-4">
+        <h2 className="text-lg font-display text-foreground">{t("reports.title")}</h2>
+        <Link href="/reports" className="text-gold text-sm flex items-center gap-1">
+          {t("common.seeAll")} <span className="text-[10px]">▶</span>
+        </Link>
+      </div>
+      <ReportsSlider />
+    </div>
+  );
+}
+
 function MatchMakingSection() {
   return (
     <div className="px-5 mt-8 mb-6">
@@ -78,6 +97,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
+  { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },
   { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
 ];
 

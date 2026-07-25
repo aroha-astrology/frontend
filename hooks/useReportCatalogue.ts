@@ -22,7 +22,8 @@ const SWR_TTL_MS = 30 * 60 * 1000;
 /**
  * Fetches GET /v1/reports for the active profile. `enabled` gates the fetch
  * the same way every other feature-gated hook does (see hooks/useKundli.ts) —
- * pass `useFeature('nav.reports').enabled` from the page.
+ * pass `useFeature('home.reportsSection').enabled` from the caller (both
+ * app/reports/page.tsx and Home's components/ReportsSlider.tsx do this).
  */
 export function useReportCatalogue(enabled: boolean = true) {
   const { user, activeProfile } = useAuth();

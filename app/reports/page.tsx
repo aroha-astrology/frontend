@@ -24,9 +24,12 @@ function ReportsCatalogue() {
   const { user } = useAuth();
   // Same gate FeatureGuard already enforces at the route level, applied again
   // at the fetch itself — matches every other feature-gated hook's convention
-  // (see hooks/useKundli.ts's `enabled` param).
-  const { enabled: navReportsEnabled } = useFeature("nav.reports");
-  const { reports, loading, error, refetch } = useReportCatalogue(navReportsEnabled);
+  // (see hooks/useKundli.ts's `enabled` param). Reports no longer has its own
+  // 'nav.reports' tab (the whole route is reached via Home's "See All" or a
+  // direct link now), so this is gated on the Home section's own flag,
+  // 'home.reportsSection', instead — the same key FeatureGuard below checks.
+  const { enabled: reportsSectionEnabled } = useFeature("home.reportsSection");
+  const { reports, loading, error, refetch } = useReportCatalogue(reportsSectionEnabled);
   const [tab, setTab] = useState<Tab>("oneTime");
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
@@ -103,7 +106,7 @@ function ReportsCatalogue() {
 
 export default function ReportsPage() {
   return (
-    <FeatureGuard featureKey="nav.reports">
+    <FeatureGuard featureKey="home.reportsSection">
       <ReportsCatalogue />
     </FeatureGuard>
   );

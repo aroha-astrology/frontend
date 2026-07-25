@@ -162,6 +162,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keeps `user.features`/`isAdmin`/wallet fields from going stale in an
+  // already-open session — without this, an admin flag toggle (or a group
+  // membership change) only ever reaches a signed-in user the NEXT time they
+  // establish a fresh session (sign-in, or app cold start), since nothing
+  // else calls refresh() on a timer. Three triggers, all best-effort
+  // (swallow errors — a missed background refresh isn't worth surfacing):
+  // a periodic poll, the tab regaining focus (web), and the app resuming
+  // from background (native/Capacitor).
+  useEffect(() => {
+    if (!isFirebaseConfigured || !getFirebaseAuth().currentUser) return;
+
+    const REFRESH_INTERVAL_MS = 3 * 60_000;
+    const safeRefresh = () => {
+      if (getFirebaseAuth().currentUser) void refresh().catch(() => {});
+    };
+
+    const intervalId = setInterval(safeRefresh, REFRESH_INTERVAL_MS);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") safeRefresh();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    let removeResumeListener: (() => void) | undefined;
+    (async () => {
+      try {
+        const { App: CapacitorApp } = await import("@capacitor/app");
+        const handle = await CapacitorApp.addListener("resume", safeRefresh);
+        removeResumeListener = () => void handle.remove();
+      } catch {
+        // @capacitor/app not resolvable (plain web build) — visibilitychange already covers this case there.
+      }
+    })();
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      removeResumeListener?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebaseUser]);
+
   const activeProfile = profiles?.find((p) => p.isActive) ?? null;
 
   return (

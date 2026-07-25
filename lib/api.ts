@@ -520,7 +520,8 @@ export type TransactionKind =
   | "gemstone_unlock"
   | "profile_creation"
   | "house_unlock"
-  | "referral_bonus";
+  | "referral_bonus"
+  | "report_unlock";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

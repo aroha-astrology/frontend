@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
@@ -35,6 +35,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "profile_creation": return <UserPlus size={16} />;
     case "house_unlock": return <Home size={16} />;
     case "referral_bonus": return <Gift size={16} />;
+    case "report_unlock": return <ScrollText size={16} />;
   }
 }
 
@@ -47,6 +48,7 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "profile_creation": return t("paymentHistory.profileCreation");
     case "house_unlock": return t("paymentHistory.houseUnlock", { houseNumber: txn.houseNumber });
     case "referral_bonus": return t("paymentHistory.referralBonus");
+    case "report_unlock": return t("paymentHistory.reportUnlock");
   }
 }
 

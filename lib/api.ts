@@ -572,7 +572,12 @@ interface RequestOpts {
   auth?: boolean;
 }
 
-async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
+/**
+ * Exported so `lib/admin-api.ts` (and any other typed client that needs the
+ * same fetch/auth/error-parsing behavior) can reuse it directly instead of
+ * duplicating this logic — see request()'s own contract below.
+ */
+export async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
   const { method = "GET", body, auth: needsAuth = false } = opts;
 
   const headers: Record<string, string> = {};

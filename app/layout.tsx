@@ -10,7 +10,7 @@ import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
 import TopBar from "@/components/TopBar";
-import BottomNavigation from "@/components/BottomNavigation";
+import BottomNavigationGate from "@/components/BottomNavigationGate";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
@@ -85,7 +85,7 @@ export default function RootLayout({
                       <AuthGuard>
                         <TopBar />
                         <PageTransition>{children}</PageTransition>
-                        <BottomNavigation />
+                        <BottomNavigationGate />
                         <PermissionsPrompt />
                       </AuthGuard>
                     </TopBarProvider>

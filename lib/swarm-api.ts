@@ -44,6 +44,10 @@ export interface BirthInput {
   latitude: number;
   longitude: number;
   timezone: string;   // IANA tz
+  /** Confidence in `time` above. "unknown" (e.g. time left blank and
+   * defaulted) tells the backend the Lagna-based reading may be unreliable
+   * instead of silently trusting a defaulted time as exact. */
+  timeAccuracy?: "exact" | "approximate" | "unknown";
 }
 
 // Onboarding (mirrors the deployed OnboardingResponse schema)
@@ -111,8 +115,21 @@ export interface MatchmakingResponse {
   recommendation?: string;
   /** Near-disqualifying red flags, checked independently of the 36-point total. */
   flags?: { nadiDosha: boolean; bhakootDosha: boolean };
-  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system. */
-  mangalDosha?: { person1: boolean; person2: boolean; matched: boolean };
+  /** Kuja/Mangal Dosha (Mars in 1/2/4/7/8/12 from Lagna), checked separately from the 36-point system.
+   * `matched` is EFFECTIVE status (present and not classically cancelled) — a dosha that's
+   * present but cancelled counts as not-Manglik, same as never having it. */
+  mangalDosha?: {
+    person1: boolean;
+    person2: boolean;
+    type1: "partial" | "full" | "cancelled" | "none";
+    type2: "partial" | "full" | "cancelled" | "none";
+    description1: string;
+    description2: string;
+    matched: boolean;
+  };
+  /** Set when either person's birth time was unknown/approximate — the Lagna-based
+   * reading (including any Mangal Dosha assessed from Lagna) may be unreliable. */
+  lagnaCaveat?: string;
 }
 
 /** Reply depth: "direct" (short, default) or "details" (long-form, structured). */

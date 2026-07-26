@@ -109,6 +109,13 @@ export const resources = {
           tryAgain: "Try Again",
           checkAgain: "Check Again",
         },
+        facts: {
+          level: { high: "High", medium: "Medium", low: "Low", none: "Not Indicated" },
+          tone: { favorable: "Favorable", mixed: "Mixed", challenging: "Challenging" },
+          positivesTitle: "What's Going For You",
+          cautionsTitle: "What To Hold Carefully",
+          emptyState: "Nothing notable here.",
+        },
       },
       vastu: {
         title: "Vastu Planner",
@@ -1180,6 +1187,13 @@ export const resources = {
           tryAgain: "फिर से प्रयास करें",
           checkAgain: "फिर से जांचें",
         },
+        facts: {
+          level: { high: "उच्च", medium: "मध्यम", low: "निम्न", none: "संकेतित नहीं" },
+          tone: { favorable: "अनुकूल", mixed: "मिश्रित", challenging: "चुनौतीपूर्ण" },
+          positivesTitle: "आपके पक्ष में क्या है",
+          cautionsTitle: "किन बातों का ध्यान रखें",
+          emptyState: "यहां कुछ उल्लेखनीय नहीं है।",
+        },
       },
       vastu: {
         title: "वास्तु प्लानर",
@@ -2170,6 +2184,13 @@ export const resources = {
           tryAgain: "আবার চেষ্টা করুন",
           checkAgain: "আবার দেখুন",
         },
+        facts: {
+          level: { high: "উচ্চ", medium: "মাঝারি", low: "নিম্ন", none: "নির্দেশিত নয়" },
+          tone: { favorable: "অনুকূল", mixed: "মিশ্র", challenging: "চ্যালেঞ্জিং" },
+          positivesTitle: "আপনার পক্ষে যা আছে",
+          cautionsTitle: "যা নিয়ে সতর্ক থাকবেন",
+          emptyState: "এখানে উল্লেখযোগ্য কিছু নেই।",
+        },
       },
       vastu: {
         title: "বাস্তু প্ল্যানার",
@@ -3157,6 +3178,13 @@ export const resources = {
           failedBody: "आम्ही हा अहवाल तयार करू शकलो नाही. कृपया पुन्हा प्रयत्न करा.",
           tryAgain: "पुन्हा प्रयत्न करा",
           checkAgain: "पुन्हा तपासा",
+        },
+        facts: {
+          level: { high: "उच्च", medium: "मध्यम", low: "कमी", none: "सूचित नाही" },
+          tone: { favorable: "अनुकूल", mixed: "संमिश्र", challenging: "आव्हानात्मक" },
+          positivesTitle: "तुमच्या बाजूने काय आहे",
+          cautionsTitle: "कशाची काळजी घ्यावी",
+          emptyState: "इथे उल्लेखनीय काही नाही.",
         },
       },
       vastu: {
@@ -4146,6 +4174,13 @@ export const resources = {
           tryAgain: "మళ్ళీ ప్రయత్నించండి",
           checkAgain: "మళ్ళీ తనిఖీ చేయండి",
         },
+        facts: {
+          level: { high: "అధిక", medium: "మధ్యస్థ", low: "తక్కువ", none: "సూచించలేదు" },
+          tone: { favorable: "అనుకూలం", mixed: "మిశ్రమం", challenging: "సవాలుతో కూడినది" },
+          positivesTitle: "మీకు అనుకూలంగా ఉన్నవి",
+          cautionsTitle: "జాగ్రత్తగా గమనించాల్సినవి",
+          emptyState: "ఇక్కడ గమనించదగినది ఏమీ లేదు.",
+        },
       },
       vastu: {
         title: "వాస్తు ప్లానర్",
@@ -5129,6 +5164,13 @@ export const resources = {
           failedBody: "இந்த அறிக்கையை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
           tryAgain: "மீண்டும் முயற்சிக்கவும்",
           checkAgain: "மீண்டும் சரிபார்க்கவும்",
+        },
+        facts: {
+          level: { high: "அதிகம்", medium: "நடுத்தரம்", low: "குறைவு", none: "குறிப்பிடப்படவில்லை" },
+          tone: { favorable: "சாதகமான", mixed: "கலப்பு", challenging: "சவாலான" },
+          positivesTitle: "உங்களுக்கு சாதகமானவை",
+          cautionsTitle: "கவனமாக கருதவேண்டியவை",
+          emptyState: "இங்கே குறிப்பிடத்தக்கது எதுவும் இல்லை.",
         },
       },
       vastu: {
@@ -6117,6 +6159,13 @@ export const resources = {
           failedBody: "અમે આ અહેવાલ તૈયાર કરી શક્યા નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
           tryAgain: "ફરી પ્રયાસ કરો",
           checkAgain: "ફરી તપાસો",
+        },
+        facts: {
+          level: { high: "ઉચ્ચ", medium: "મધ્યમ", low: "નીચું", none: "સૂચવેલ નથી" },
+          tone: { favorable: "અનુકૂળ", mixed: "મિશ્ર", challenging: "પડકારજનક" },
+          positivesTitle: "તમારા પક્ષે શું છે",
+          cautionsTitle: "શાની કાળજી રાખવી",
+          emptyState: "અહીં નોંધપાત્ર કંઈ નથી.",
         },
       },
       vastu: {

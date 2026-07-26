@@ -180,3 +180,32 @@ export function validateGroupName(name: string): { ok: true } | { ok: false; err
   if (name.trim().length === 0) return { ok: false, error: "Group name is required" };
   return { ok: true };
 }
+
+// ─── LLM cost estimation ────────────────────────────────────────────────────
+
+/**
+ * Gemini 3.1 Flash-Lite per-token pricing (USD) and the USD→INR rate used to
+ * turn `costByAgent()`'s raw token counts into an estimated ₹ figure for the
+ * admin dashboard. The backend deliberately does NOT do this conversion (see
+ * ai-usage.repo.ts's costByAgent() doc comment) since pricing/FX can change
+ * independently of the stored telemetry — hence it lives here, client-side.
+ *
+ * These are the same numbers used in jyotish-backend/scripts/report-cost-analysis.ts
+ * and jyotish-backend/docs/REPORT_PRICING_AND_COST.md. UPDATE ALL THREE
+ * TOGETHER if Gemini's pricing or the USD/INR rate changes.
+ */
+export const GEMINI_INPUT_USD_PER_MILLION_TOKENS = 0.25;
+export const GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = 1.5;
+export const USD_TO_INR_RATE = 88;
+
+/**
+ * Estimates the ₹ cost (in paise, so it can be passed straight to
+ * `formatRupees()`) of one agent's token usage, using the pricing constants
+ * above. This is an estimate derived from token counts, not a real ledger
+ * entry — unlike other `*Paise` fields in this file, it may be fractional.
+ */
+export function estimateLlmCostPaise(usage: { tokensIn: number; tokensOut: number }): number {
+  const inputUsd = (usage.tokensIn / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION_TOKENS;
+  const outputUsd = (usage.tokensOut / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
+  return (inputUsd + outputUsd) * USD_TO_INR_RATE * 100;
+}

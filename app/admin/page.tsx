@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi, type AdminOverview } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
-import { isValidCustomRange } from "@/lib/admin-format";
+import { estimateLlmCostPaise, isValidCustomRange, USD_TO_INR_RATE } from "@/lib/admin-format";
 import DateRangePicker, { type AdminRangeValue } from "@/components/admin/DateRangePicker";
 import KpiTile from "@/components/admin/KpiTile";
 import ErrorRetry from "@/components/admin/ErrorRetry";
@@ -30,6 +30,20 @@ export default function AdminOverviewPage() {
   const [error, setError] = useState<string | null>(null);
 
   const canFetch = range.preset !== "custom" || isValidCustomRange(range.from, range.to);
+
+  // Estimated ₹ cost per agent, sorted so the biggest cost drivers surface
+  // first — the backend deliberately returns raw tokens only (see
+  // ai-usage.repo.ts's costByAgent() doc comment), so the ₹ conversion and
+  // sort happen here, client-side.
+  const llmCostRows = useMemo(() => {
+    const rows = (data?.llmCostByAgent ?? []).map((row) => ({
+      ...row,
+      costPaise: estimateLlmCostPaise(row),
+    }));
+    return rows.sort((a, b) => b.costPaise - a.costPaise);
+  }, [data]);
+
+  const llmCostTotalPaise = useMemo(() => llmCostRows.reduce((sum, row) => sum + row.costPaise, 0), [llmCostRows]);
 
   const fetchOverview = useCallback(() => {
     if (!canFetch) return;
@@ -150,28 +164,47 @@ export default function AdminOverviewPage() {
                         <th className="pb-2 font-medium text-right">Tokens In</th>
                         <th className="pb-2 font-medium text-right">Tokens Out</th>
                         <th className="pb-2 font-medium text-right">Calls</th>
+                        <th className="pb-2 font-medium text-right">Cost (₹)</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.llmCostByAgent.length === 0 ? (
+                      {llmCostRows.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="text-muted text-center py-4">
+                          <td colSpan={5} className="text-muted text-center py-4">
                             No data
                           </td>
                         </tr>
                       ) : (
-                        data.llmCostByAgent.map((row) => (
-                          <tr key={row.agent} className="border-t border-border">
-                            <td className="py-2 text-foreground">{row.agent}</td>
-                            <td className="py-2 text-right text-foreground">{row.tokensIn.toLocaleString()}</td>
-                            <td className="py-2 text-right text-foreground">{row.tokensOut.toLocaleString()}</td>
-                            <td className="py-2 text-right text-foreground">{row.calls.toLocaleString()}</td>
+                        <>
+                          {llmCostRows.map((row) => (
+                            <tr key={row.agent} className="border-t border-border">
+                              <td className="py-2 text-foreground">{row.agent}</td>
+                              <td className="py-2 text-right text-foreground">{row.tokensIn.toLocaleString()}</td>
+                              <td className="py-2 text-right text-foreground">{row.tokensOut.toLocaleString()}</td>
+                              <td className="py-2 text-right text-foreground">{row.calls.toLocaleString()}</td>
+                              <td className="py-2 text-right text-foreground">{formatRupees(row.costPaise)}</td>
+                            </tr>
+                          ))}
+                          <tr className="border-t border-border font-semibold">
+                            <td className="py-2 text-foreground">Total</td>
+                            <td className="py-2 text-right text-foreground" />
+                            <td className="py-2 text-right text-foreground" />
+                            <td className="py-2 text-right text-foreground" />
+                            <td className="py-2 text-right text-gold">{formatRupees(llmCostTotalPaise)}</td>
                           </tr>
-                        ))
+                        </>
                       )}
                     </tbody>
                   </table>
                 </Card>
+                <p className="text-[11px] text-muted mt-2 max-w-xl">
+                  Cost is an estimate from token counts (Gemini Flash-Lite pricing, ₹{USD_TO_INR_RATE}/USD), not a
+                  billed amount. Two known gaps: <strong>Chat is the highest-traffic AI feature but isn&apos;t
+                  tracked here yet</strong> — chat calls don&apos;t log token usage, so its real cost is invisible in
+                  this table (see engineering). <strong>Report cost is combined across all 11 report types</strong>{" "}
+                  (marriage, wealth, kundli milan, etc.) into one &quot;report&quot; row — the underlying data can&apos;t
+                  currently be broken down by report type.
+                </p>
               </div>
             </section>
           </>

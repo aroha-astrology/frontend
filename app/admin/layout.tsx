@@ -8,7 +8,8 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 
 type NativeCheck = "checking" | "native" | "web";
@@ -66,9 +67,18 @@ function RouteNotFound() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const nativeCheck = useNativeShellCheck();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } finally {
+      router.replace("/sign-in");
+    }
+  };
 
   // Matches AuthGuard's own idiom: render nothing until we know the answer,
   // rather than flashing a wrong state first.
@@ -117,6 +127,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="ml-auto shrink-0 flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors"
+          >
+            <LogOut size={15} />
+            Sign Out
+          </button>
         </div>
       </header>
       <div className="max-w-6xl mx-auto px-5 py-6">{children}</div>

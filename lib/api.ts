@@ -660,6 +660,20 @@ export interface VastuPlan {
   completedAt: string | null;
 }
 
+// ─── Support tickets ────────────────────────────────────────────────────────
+
+/** Caller-facing shape — no `userId` (implicit: always the caller's own) and no `adminNote` (admin-only). */
+export interface SupportTicket {
+  id: string;
+  category: string;
+  message: string;
+  locale: string | null;
+  appVersion: string | null;
+  status: string;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -932,6 +946,18 @@ export const api = {
   /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
   transactionHistory: () =>
     request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),
+
+  /**
+   * File a new support ticket. `locale`/`appVersion` fall back server-side to
+   * the user's own row when omitted — pass them explicitly to reflect the
+   * language/build the user is actually on right now.
+   */
+  createSupportTicket: (body: { category: string; message: string; locale?: string; appVersion?: string }) =>
+    request<SupportTicket>("/v1/support/tickets", { method: "POST", body, auth: true }),
+
+  /** The current user's own support tickets, newest first — never another user's. */
+  listMySupportTickets: () =>
+    request<{ tickets: SupportTicket[] }>("/v1/support/tickets", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

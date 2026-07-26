@@ -29,6 +29,10 @@ export interface ReportCatalogueEntry {
   enabled: boolean;
   /** Server-resolved price in paise — NEVER hardcode a report's price client-side. */
   pricePaise: number;
+  /** "Strikethrough" MRP for the marketing discount treatment (₹149 ~~₹499~~
+   * 70% off) — null means no discount is configured, render `pricePaise`
+   * plainly. Only meaningful when it's strictly greater than `pricePaise`. */
+  originalPricePaise: number | null;
   purchases: ReportPurchaseSummary[];
 }
 

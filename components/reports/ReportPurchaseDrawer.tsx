@@ -10,6 +10,7 @@ import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { purchasedMonthSet, currentMonthKey } from "@/lib/reports-logic";
 import { reportsApi, type ReportCatalogueEntry, type PurchaseReportBody, type PurchaseReportResultRow } from "@/lib/reports-api";
+import DiscountPrice from "./DiscountPrice";
 
 interface ReportPurchaseDrawerProps {
   entry: ReportCatalogueEntry;
@@ -113,7 +114,11 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
       header={
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-          <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>
+          <DiscountPrice
+            pricePaise={entry.pricePaise}
+            originalPricePaise={entry.originalPricePaise}
+            priceLabel={formatRupees(entry.pricePaise)}
+          />
         </div>
       }
     >

@@ -69,6 +69,7 @@ export const resources = {
         retry: "Retry",
         addMonths: "Add Months",
         perMonth: "{{price}} / month",
+        discountOff: "{{percent}}% off",
         loadError: "Couldn't load reports. Please try again.",
         empty: "No reports available right now.",
         labels: {
@@ -1147,6 +1148,7 @@ export const resources = {
         retry: "पुनः प्रयास करें",
         addMonths: "महीने जोड़ें",
         perMonth: "{{price}} / महीना",
+        discountOff: "{{percent}}% छूट",
         loadError: "रिपोर्ट्स लोड नहीं हो सकीं। कृपया फिर से प्रयास करें।",
         empty: "अभी कोई रिपोर्ट उपलब्ध नहीं है।",
         labels: {
@@ -2144,6 +2146,7 @@ export const resources = {
         retry: "আবার চেষ্টা করুন",
         addMonths: "মাস যোগ করুন",
         perMonth: "{{price}} / মাস",
+        discountOff: "{{percent}}% ছাড়",
         loadError: "রিপোর্ট লোড করা যায়নি। আবার চেষ্টা করুন।",
         empty: "এই মুহূর্তে কোনো রিপোর্ট উপলব্ধ নেই।",
         labels: {
@@ -3139,6 +3142,7 @@ export const resources = {
         retry: "पुन्हा प्रयत्न करा",
         addMonths: "महिने जोडा",
         perMonth: "{{price}} / महिना",
+        discountOff: "{{percent}}% सूट",
         loadError: "अहवाल लोड होऊ शकले नाहीत. कृपया पुन्हा प्रयत्न करा.",
         empty: "सध्या कोणतेही अहवाल उपलब्ध नाहीत.",
         labels: {
@@ -4134,6 +4138,7 @@ export const resources = {
         retry: "మళ్ళీ ప్రయత్నించండి",
         addMonths: "నెలలు జోడించండి",
         perMonth: "{{price}} / నెల",
+        discountOff: "{{percent}}% తగ్గింపు",
         loadError: "నివేదికలు లోడ్ కాలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.",
         empty: "ప్రస్తుతం నివేదికలు అందుబాటులో లేవు.",
         labels: {
@@ -5125,6 +5130,7 @@ export const resources = {
         retry: "மீண்டும் முயற்சிக்கவும்",
         addMonths: "மாதங்களைச் சேர்க்கவும்",
         perMonth: "{{price}} / மாதம்",
+        discountOff: "{{percent}}% தள்ளுபடி",
         loadError: "அறிக்கைகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         empty: "தற்போது அறிக்கைகள் எதுவும் இல்லை.",
         labels: {
@@ -6120,6 +6126,7 @@ export const resources = {
         retry: "ફરી પ્રયાસ કરો",
         addMonths: "મહિના ઉમેરો",
         perMonth: "{{price}} / મહિનો",
+        discountOff: "{{percent}}% છૂટ",
         loadError: "અહેવાલો લોડ થઈ શક્યા નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
         empty: "હાલમાં કોઈ અહેવાલ ઉપલબ્ધ નથી.",
         labels: {

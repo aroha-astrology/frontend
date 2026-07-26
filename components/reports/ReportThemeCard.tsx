@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import { deriveOneTimeCardState, purchasedMonthChips } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
+import DiscountPrice from "./DiscountPrice";
 
 /**
  * Literal Tailwind gradient class per hue — deliberately kept here (under
@@ -115,9 +116,12 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
     }
 
     priceNode = (
-      <p className="text-[10px] text-muted mt-0.5">
-        {t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
-      </p>
+      <DiscountPrice
+        pricePaise={entry.pricePaise}
+        originalPricePaise={entry.originalPricePaise}
+        priceLabel={t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
+        size="xs"
+      />
     );
     ctaNode = (
       <button
@@ -133,7 +137,14 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
     );
   } else {
     const cardState = deriveOneTimeCardState(entry.purchases);
-    priceNode = <p className="text-[10px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>;
+    priceNode = (
+      <DiscountPrice
+        pricePaise={entry.pricePaise}
+        originalPricePaise={entry.originalPricePaise}
+        priceLabel={formatRupees(entry.pricePaise)}
+        size="xs"
+      />
+    );
 
     if (cardState.state === "ready") {
       cardOnClick = () => router.push(`/reports/${cardState.purchaseId}`);

@@ -7,6 +7,7 @@ import {
   currentMonthKey,
   formatPeriodMonth,
   filterVisibleReports,
+  computeDiscount,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -148,5 +149,29 @@ describe("filterVisibleReports", () => {
       return true;
     });
     expect(seen).toEqual(["reports.marriage", "reports.true_love"]);
+  });
+});
+
+describe("computeDiscount", () => {
+  it("returns null when originalPricePaise is null (no discount configured)", () => {
+    expect(computeDiscount(9900, null)).toBeNull();
+  });
+
+  it("returns null when originalPricePaise equals pricePaise (no real discount)", () => {
+    expect(computeDiscount(9900, 9900)).toBeNull();
+  });
+
+  it("returns null when originalPricePaise is lower than pricePaise (never fabricates a markup as a discount)", () => {
+    expect(computeDiscount(9900, 5000)).toBeNull();
+  });
+
+  it("computes a rounded whole-number percentage off when originalPricePaise is strictly higher", () => {
+    // 149 vs 499 -> 1 - 149/499 = 0.7014... -> rounds to 70.
+    expect(computeDiscount(14900, 49900)).toEqual({ percentOff: 70 });
+  });
+
+  it("rounds to the nearest whole percent rather than truncating", () => {
+    // 1 - 90/100 = 0.10 exactly -> 10%.
+    expect(computeDiscount(9000, 10000)).toEqual({ percentOff: 10 });
   });
 });

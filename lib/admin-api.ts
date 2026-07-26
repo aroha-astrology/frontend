@@ -63,12 +63,15 @@ export interface AdminFeatureRow {
   group: AdminFeatureGroupKey;
   enabled: boolean;
   pricePaise: number | null;
+  /** "Strikethrough" MRP shown on the customer report catalogue when higher than pricePaise. Null = no discount configured. */
+  originalPricePaise: number | null;
 }
 
 export interface UpdateAdminFeatureBody {
   key: string;
   enabled: boolean;
   pricePaise?: number | null;
+  originalPricePaise?: number | null;
 }
 
 // ─── Users ─────────────────────────────────────────────────────────────────

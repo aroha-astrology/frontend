@@ -8,6 +8,7 @@ import {
   computeWalletDeltaPaise,
   validateWalletNote,
   validatePriceInput,
+  validateOptionalPriceInput,
   sortByTotalPaiseDescending,
   groupFeaturesByGroup,
   validateGroupName,
@@ -190,6 +191,24 @@ describe("validatePriceInput", () => {
 
   it("rejects invalid input the same way parseRupeeAmount does", () => {
     expect(validatePriceInput("free").ok).toBe(false);
+  });
+});
+
+describe("validateOptionalPriceInput", () => {
+  it("accepts a blank input as 'no discount configured' (null paise)", () => {
+    expect(validateOptionalPriceInput("")).toEqual({ ok: true, paise: null });
+  });
+
+  it("accepts a whitespace-only input the same way as fully blank", () => {
+    expect(validateOptionalPriceInput("   ")).toEqual({ ok: true, paise: null });
+  });
+
+  it("accepts a valid non-negative amount, same as validatePriceInput", () => {
+    expect(validateOptionalPriceInput("499")).toEqual({ ok: true, paise: 49900 });
+  });
+
+  it("rejects invalid non-blank input the same way parseRupeeAmount does", () => {
+    expect(validateOptionalPriceInput("free").ok).toBe(false);
   });
 });
 

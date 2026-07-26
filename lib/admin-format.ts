@@ -129,6 +129,23 @@ export function validatePriceInput(input: string): ParsedRupeeAmount | RupeePars
   return parseRupeeAmount(input);
 }
 
+export interface ParsedOptionalRupeeAmount {
+  ok: true;
+  paise: number | null;
+}
+
+/**
+ * Validates the Features board's "Original Price" (MRP/strikethrough) editor
+ * input, which is optional — unlike the mandatory Sale Price editor, a blank
+ * field is valid and means "no discount configured" (`paise: null`), clearing
+ * any existing override. Any non-blank input is validated exactly like
+ * `validatePriceInput`.
+ */
+export function validateOptionalPriceInput(input: string): ParsedOptionalRupeeAmount | RupeeParseError {
+  if (input.trim() === "") return { ok: true, paise: null };
+  return parseRupeeAmount(input);
+}
+
 /** Returns a new array (never mutates `items`) sorted by `totalPaise` descending. */
 export function sortByTotalPaiseDescending<T extends { totalPaise: number }>(items: readonly T[]): T[] {
   return [...items].sort((a, b) => b.totalPaise - a.totalPaise);

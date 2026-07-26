@@ -106,6 +106,25 @@ export function formatPeriodMonth(periodMonth: string): string {
   });
 }
 
+export interface DiscountInfo {
+  /** Rounded whole-number percentage off, e.g. 70 for "70% off". */
+  percentOff: number;
+}
+
+/**
+ * Whether a report's discount treatment (strikethrough original price + "X%
+ * off" badge) should render, and the rounded percentage to show if so.
+ * Returns null — "no discount configured, render the price plainly" — when
+ * `originalPricePaise` is absent or not STRICTLY greater than `pricePaise`;
+ * never fabricates a discount from any other price field. Shared by every
+ * surface that renders a report's price (components/reports/DiscountPrice.tsx)
+ * so the threshold/rounding rule lives in exactly one place.
+ */
+export function computeDiscount(pricePaise: number, originalPricePaise: number | null): DiscountInfo | null {
+  if (originalPricePaise === null || originalPricePaise <= pricePaise) return null;
+  return { percentOff: Math.round((1 - pricePaise / originalPricePaise) * 100) };
+}
+
 /** Minimal shape filterVisibleReports needs. */
 interface VisibilityReport {
   key: string;

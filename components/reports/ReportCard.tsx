@@ -10,6 +10,7 @@ import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import { deriveOneTimeCardState, purchasedMonthChips, formatPeriodMonth } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import { HUE_GRADIENT } from "./ReportThemeCard";
+import DiscountPrice from "./DiscountPrice";
 
 interface ReportCardProps {
   entry: ReportCatalogueEntry;
@@ -72,9 +73,11 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
             <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-              <p className="text-[11px] text-muted mt-0.5">
-                {t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
-              </p>
+              <DiscountPrice
+                pricePaise={entry.pricePaise}
+                originalPricePaise={entry.originalPricePaise}
+                priceLabel={t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
+              />
             </div>
           </div>
           <button
@@ -119,7 +122,11 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
         <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-          <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>
+          <DiscountPrice
+            pricePaise={entry.pricePaise}
+            originalPricePaise={entry.originalPricePaise}
+            priceLabel={formatRupees(entry.pricePaise)}
+          />
         </div>
       </div>
 

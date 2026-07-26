@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
@@ -22,7 +24,7 @@ import type { ReportCatalogueEntry } from "@/lib/reports-api";
  * components/ui/GemstoneCard.tsx / HouseGrid.tsx for the same
  * translucent-wash + gold-bordered-badge idiom).
  */
-const HUE_GRADIENT: Record<ReportHue, string> = {
+export const HUE_GRADIENT: Record<ReportHue, string> = {
   rose: "from-rose-500/25 to-rose-950/10",
   violet: "from-violet-500/25 to-violet-950/10",
   cyan: "from-cyan-500/25 to-cyan-950/10",
@@ -35,6 +37,38 @@ const HUE_GRADIENT: Record<ReportHue, string> = {
   fuchsia: "from-fuchsia-500/25 to-fuchsia-950/10",
   gold: "from-gold/20 to-gold/5",
 };
+
+/**
+ * Card-top visual for a report catalogue entry: the real illustration at
+ * /reports/<key>.png when it loads, falling back to the existing themed
+ * icon-badge-on-gradient-wash treatment otherwise (unknown key added before
+ * an image ships, or the image request failing). Mirrors
+ * components/ui/GemstoneCard.tsx's `GemVisual` exactly: a local `imgError`
+ * state flips the render from the `<img>` to the hand-drawn fallback on
+ * `onError`, rather than compositing the two — same either/or relationship,
+ * just swapping "hand-drawn SVG glyph" for "icon badge on gradient wash".
+ */
+function ReportVisual({ reportKey, hue, Icon }: { reportKey: string; hue: ReportHue; Icon: LucideIcon }) {
+  const [imgError, setImgError] = useState(false);
+  if (!imgError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/reports/${reportKey}.png`}
+        alt=""
+        onError={() => setImgError(true)}
+        className="h-16 w-full object-cover"
+      />
+    );
+  }
+  return (
+    <div className={cn("h-16 w-full flex items-center justify-center bg-gradient-to-br", HUE_GRADIENT[hue])}>
+      <div className="w-10 h-10 rounded-full border border-gold/40 bg-background/30 backdrop-blur-sm flex items-center justify-center text-gold drop-shadow-[0_0_5px_rgba(223,181,100,0.3)]">
+        <Icon size={20} />
+      </div>
+    </div>
+  );
+}
 
 interface ReportThemeCardProps {
   entry: ReportCatalogueEntry;
@@ -164,11 +198,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
         tappable && "cursor-pointer active:scale-95",
       )}
     >
-      <div className={cn("h-16 w-full flex items-center justify-center bg-gradient-to-br", HUE_GRADIENT[theme.hue])}>
-        <div className="w-10 h-10 rounded-full border border-gold/40 bg-background/30 backdrop-blur-sm flex items-center justify-center text-gold drop-shadow-[0_0_5px_rgba(223,181,100,0.3)]">
-          <Icon size={20} />
-        </div>
-      </div>
+      <ReportVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
       <div className="p-3 flex flex-col gap-2">
         <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 min-h-[2rem]">{label}</p>
         {priceNode}

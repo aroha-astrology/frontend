@@ -8,15 +8,8 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
-import {
-  estimateBundleTotalPaise,
-  purchasedMonthSet,
-  nextMonths,
-  formatPeriodMonth,
-} from "@/lib/reports-logic";
+import { purchasedMonthSet, currentMonthKey } from "@/lib/reports-logic";
 import { reportsApi, type ReportCatalogueEntry, type PurchaseReportBody, type PurchaseReportResultRow } from "@/lib/reports-api";
-
-const UPCOMING_MONTHS_COUNT = 12;
 
 interface ReportPurchaseDrawerProps {
   entry: ReportCatalogueEntry;
@@ -34,9 +27,11 @@ interface ReportPurchaseDrawerProps {
  *     partner birth-detail form (copied field-for-field from
  *     app/compatibility/page.tsx's person-2 input, since the partner is raw
  *     birth data, not a saved profile)
- *   - monthly: a next-12-months multi-select (already-purchased months
- *     shown locked) with a live estimated-total preview, then the same
- *     confirm flow with `months: string[]`
+ *   - monthly: an implicit current-month-only purchase (no picker, no
+ *     bundle pricing) — same confirm flow, with `months: [currentMonthKey()]`.
+ *     If the current month is already purchased, the confirm flow is
+ *     replaced by an "already purchased" state instead of round-tripping a
+ *     duplicate purchase through a refund.
  */
 export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: ReportPurchaseDrawerProps) {
   const { t } = useTranslation();
@@ -58,24 +53,16 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
   const [partnerConsented, setPartnerConsented] = useState(false);
   const partnerValid = !!partnerDob && !!resolvedPartnerPlace && partnerConsented;
 
-  // ── Monthly month picker ──────────────────────────────────────────────
+  // ── Monthly: current month only, no picker ────────────────────────────
   const alreadyPurchasedMonths = useMemo(() => purchasedMonthSet(entry.purchases), [entry.purchases]);
-  const upcomingMonths = useMemo(() => nextMonths(UPCOMING_MONTHS_COUNT), []);
-  const [selectedMonths, setSelectedMonths] = useState<Set<string>>(new Set());
-  const toggleMonth = (m: string) => {
-    if (alreadyPurchasedMonths.has(m)) return;
-    setSelectedMonths((prev) => {
-      const next = new Set(prev);
-      if (next.has(m)) next.delete(m);
-      else next.add(m);
-      return next;
-    });
-  };
+  const currentMonth = currentMonthKey();
+  const currentMonthAlreadyPurchased = alreadyPurchasedMonths.has(currentMonth);
+  const currentMonthPurchase = entry.purchases.find((p) => p.periodMonth === currentMonth) ?? null;
 
   // ── Price + confirm ────────────────────────────────────────────────────
-  const costPaise = mode === "monthly" ? estimateBundleTotalPaise(selectedMonths.size, entry.pricePaise) : entry.pricePaise;
+  const costPaise = entry.pricePaise;
   const canSubmit =
-    mode === "kundli_milan" ? partnerValid : mode === "monthly" ? selectedMonths.size > 0 : true;
+    mode === "kundli_milan" ? partnerValid : mode === "monthly" ? !currentMonthAlreadyPurchased : true;
   const insufficient = canSubmit && balancePaise < costPaise;
 
   const [confirming, setConfirming] = useState(false);
@@ -88,7 +75,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
     try {
       const body: PurchaseReportBody = { reportKey: entry.key };
       if (activeProfile && activeProfile.id !== "primary") body.birthProfileId = activeProfile.id;
-      if (mode === "monthly") body.months = Array.from(selectedMonths);
+      if (mode === "monthly") body.months = [currentMonthKey()];
       if (mode === "kundli_milan" && resolvedPartnerPlace) {
         body.partner = {
           dateOfBirth: partnerDob,
@@ -126,7 +113,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
       header={
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-          {mode !== "monthly" && <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>}
+          <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>
         </div>
       }
     >
@@ -172,40 +159,20 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
           </div>
         )}
 
-        {mode === "monthly" && (
+        {mode === "monthly" && currentMonthAlreadyPurchased && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.selectMonths")}</p>
-            <p className="text-[11px] text-muted">{t("reports.purchase.monthsHint")}</p>
-            <div className="grid grid-cols-3 gap-2 mt-1">
-              {upcomingMonths.map((m) => {
-                const locked = alreadyPurchasedMonths.has(m);
-                const selected = selectedMonths.has(m);
-                return (
-                  <button
-                    type="button"
-                    key={m}
-                    disabled={locked}
-                    onClick={() => toggleMonth(m)}
-                    className={`rounded-xl border px-2 py-2.5 text-[11px] font-medium transition-colors ${
-                      locked
-                        ? "border-gold/10 text-muted/50 cursor-not-allowed"
-                        : selected
-                          ? "border-gold/50 bg-gold/10 text-gold"
-                          : "border-gold/15 text-foreground/80 hover:border-gold/30"
-                    }`}
-                  >
-                    {formatPeriodMonth(m)}
-                    {locked && <span className="block text-[9px] mt-0.5">{t("reports.purchase.alreadyPurchased")}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {selectedMonths.size > 0 && (
-              <p className="text-xs text-foreground text-center mt-2">
-                {t("reports.purchase.estimatedTotal", { amount: formatRupees(costPaise) })}
-              </p>
+            <p className="text-xs text-muted text-center">{t("reports.purchase.alreadyPurchased")}</p>
+            {currentMonthPurchase?.status === "ready" && (
+              <Link
+                href={`/reports/${currentMonthPurchase.id}`}
+                className="w-full flex items-center justify-center rounded-2xl border border-gold/30 text-gold px-4 py-3 text-sm font-bold"
+              >
+                {t("reports.viewReport")}
+              </Link>
             )}
-            <p className="text-[10px] text-muted text-center">{t("reports.purchase.estimatedNote")}</p>
+            {currentMonthPurchase?.status === "generating" && (
+              <p className="text-[11px] text-amber-400 text-center">{t("reports.generating")}</p>
+            )}
           </div>
         )}
 

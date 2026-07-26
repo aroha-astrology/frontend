@@ -11,7 +11,7 @@ export type ReportViewState = "idle" | "loading" | "generating" | "ready" | "fai
 export type ReportReady = Extract<ReportDetailResult, { status: "ready" }>;
 
 const POLL_BASE_MS = 2500;
-const POLL_TIMEOUT_MS = 90_000;
+const POLL_TIMEOUT_MS = 200_000;
 
 /** A ready report's content for a given language never changes once generated (translate-on-read + cache on the backend) — see lib/cache.ts's module doc for why this is a generous-but-bounded SWR TTL, not a correctness mechanism. */
 const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -29,12 +29,18 @@ const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  * still runs in the background. A background "generating"/"failed" tick
  * never overwrites an already-shown cached report — only a fresh "ready"
  * replaces it (and refreshes the cache).
+ *
+ * `retry()` restarts the whole poll loop (fresh deadline, fresh attempt
+ * counter) after a timeout ("error" state) without needing to change route —
+ * it just bumps an internal counter that's part of the effect's dependency
+ * array, which re-runs the effect from scratch.
  */
 export function useReport(id: string | null, language: string) {
   const { firebaseUser, loading: authLoading, user } = useAuth();
   const [state, setState] = useState<ReportViewState>("idle");
   const [data, setData] = useState<ReportReady | null>(null);
   const [failedError, setFailedError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (authLoading || !firebaseUser || id === null) {
@@ -100,7 +106,9 @@ export function useReport(id: string | null, language: string) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, id, language, user?.id]);
+  }, [authLoading, firebaseUser, id, language, user?.id, retryCount]);
 
-  return { state, data, failedError };
+  const retry = () => setRetryCount((c) => c + 1);
+
+  return { state, data, failedError, retry };
 }

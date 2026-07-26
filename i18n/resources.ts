@@ -101,11 +101,13 @@ export const resources = {
           estimatedNote: "The final amount charged is confirmed at checkout.",
         },
         view: {
+          title: "Report",
           generatingTitle: "Crafting your report…",
           generatingBody: "This usually takes under a minute.",
           failedTitle: "Something went wrong",
           failedBody: "We couldn't generate this report. Please try again.",
           tryAgain: "Try Again",
+          checkAgain: "Check Again",
         },
       },
       vastu: {
@@ -1170,11 +1172,13 @@ export const resources = {
           estimatedNote: "अंतिम शुल्क भुगतान के समय पुष्ट किया जाएगा।",
         },
         view: {
+          title: "रिपोर्ट",
           generatingTitle: "आपकी रिपोर्ट तैयार हो रही है…",
           generatingBody: "इसमें आमतौर पर एक मिनट से कम समय लगता है।",
           failedTitle: "कुछ गड़बड़ हो गई",
           failedBody: "हम यह रिपोर्ट तैयार नहीं कर सके। कृपया फिर से प्रयास करें।",
           tryAgain: "फिर से प्रयास करें",
+          checkAgain: "फिर से जांचें",
         },
       },
       vastu: {
@@ -2158,11 +2162,13 @@ export const resources = {
           estimatedNote: "চূড়ান্ত পরিমাণ চেকআউটের সময় নিশ্চিত করা হবে।",
         },
         view: {
+          title: "রিপোর্ট",
           generatingTitle: "আপনার রিপোর্ট তৈরি হচ্ছে…",
           generatingBody: "এতে সাধারণত এক মিনিটেরও কম সময় লাগে।",
           failedTitle: "কিছু একটা ভুল হয়েছে",
           failedBody: "আমরা এই রিপোর্টটি তৈরি করতে পারিনি। আবার চেষ্টা করুন।",
           tryAgain: "আবার চেষ্টা করুন",
+          checkAgain: "আবার দেখুন",
         },
       },
       vastu: {
@@ -3144,11 +3150,13 @@ export const resources = {
           estimatedNote: "अंतिम रक्कम चेकआउटच्या वेळी निश्चित केली जाईल.",
         },
         view: {
+          title: "अहवाल",
           generatingTitle: "तुमचा अहवाल तयार होत आहे…",
           generatingBody: "यास साधारणपणे एका मिनिटापेक्षा कमी वेळ लागतो.",
           failedTitle: "काहीतरी चूक झाली",
           failedBody: "आम्ही हा अहवाल तयार करू शकलो नाही. कृपया पुन्हा प्रयत्न करा.",
           tryAgain: "पुन्हा प्रयत्न करा",
+          checkAgain: "पुन्हा तपासा",
         },
       },
       vastu: {
@@ -4130,11 +4138,13 @@ export const resources = {
           estimatedNote: "చెల్లింపు సమయంలో తుది మొత్తం నిర్ధారించబడుతుంది.",
         },
         view: {
+          title: "నివేదిక",
           generatingTitle: "మీ నివేదిక తయారవుతోంది…",
           generatingBody: "దీనికి సాధారణంగా ఒక నిమిషం కంటే తక్కువ సమయం పడుతుంది.",
           failedTitle: "ఏదో తప్పు జరిగింది",
           failedBody: "మేము ఈ నివేదికను రూపొందించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
           tryAgain: "మళ్ళీ ప్రయత్నించండి",
+          checkAgain: "మళ్ళీ తనిఖీ చేయండి",
         },
       },
       vastu: {
@@ -5112,11 +5122,13 @@ export const resources = {
           estimatedNote: "இறுதி தொகை பணம் செலுத்தும் போது உறுதிப்படுத்தப்படும்.",
         },
         view: {
+          title: "அறிக்கை",
           generatingTitle: "உங்கள் அறிக்கை தயாராகிறது…",
           generatingBody: "இதற்கு பொதுவாக ஒரு நிமிடத்திற்கும் குறைவான நேரமே ஆகும்.",
           failedTitle: "ஏதோ தவறு நடந்தது",
           failedBody: "இந்த அறிக்கையை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
           tryAgain: "மீண்டும் முயற்சிக்கவும்",
+          checkAgain: "மீண்டும் சரிபார்க்கவும்",
         },
       },
       vastu: {
@@ -6098,11 +6110,13 @@ export const resources = {
           estimatedNote: "અંતિમ રકમ ચેકઆઉટ સમયે નક્કી થશે.",
         },
         view: {
+          title: "અહેવાલ",
           generatingTitle: "તમારો અહેવાલ તૈયાર થઈ રહ્યો છે…",
           generatingBody: "આમાં સામાન્ય રીતે એક મિનિટથી ઓછો સમય લાગે છે.",
           failedTitle: "કંઈક ખોટું થયું",
           failedBody: "અમે આ અહેવાલ તૈયાર કરી શક્યા નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
           tryAgain: "ફરી પ્રયાસ કરો",
+          checkAgain: "ફરી તપાસો",
         },
       },
       vastu: {

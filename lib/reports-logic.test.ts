@@ -1,66 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
-  bundleLadderPaise,
-  estimateBundleTotalPaise,
   splitReportsByType,
   deriveOneTimeCardState,
   purchasedMonthSet,
   purchasedMonthChips,
-  nextMonths,
+  currentMonthKey,
   formatPeriodMonth,
   filterVisibleReports,
   type ReportPurchase,
 } from "./reports-logic";
-
-describe("bundleLadderPaise", () => {
-  it("is the base price for 1 month", () => {
-    expect(bundleLadderPaise(1)).toBe(2500);
-  });
-
-  it("adds one step per additional month", () => {
-    expect(bundleLadderPaise(2)).toBe(4500);
-    expect(bundleLadderPaise(3)).toBe(6500);
-  });
-
-  it("caps at the ceiling for a large month count", () => {
-    // 2500 + 8*2000 = 18500, 2500 + 9*2000 = 20500 -> capped at 19900
-    expect(bundleLadderPaise(9)).toBe(18500);
-    expect(bundleLadderPaise(10)).toBe(19900);
-    expect(bundleLadderPaise(12)).toBe(19900);
-  });
-
-  it("is 0 for a non-positive month count", () => {
-    expect(bundleLadderPaise(0)).toBe(0);
-    expect(bundleLadderPaise(-1)).toBe(0);
-  });
-});
-
-describe("estimateBundleTotalPaise", () => {
-  it("matches the plain ladder when pricePaise is the structural base (2500)", () => {
-    expect(estimateBundleTotalPaise(1, 2500)).toBe(2500);
-    expect(estimateBundleTotalPaise(3, 2500)).toBe(6500);
-  });
-
-  it("scales proportionally when an admin overrides the per-month price", () => {
-    // pricePaise = 5000 -> ratio 2 -> every ladder value doubles
-    expect(estimateBundleTotalPaise(1, 5000)).toBe(5000);
-    expect(estimateBundleTotalPaise(3, 5000)).toBe(13000);
-  });
-
-  it("scales down for a cheaper admin-overridden price", () => {
-    // pricePaise = 1250 -> ratio 0.5
-    expect(estimateBundleTotalPaise(2, 1250)).toBe(2250); // 4500 * 0.5
-  });
-
-  it("rounds once on the final total, not per-step", () => {
-    // pricePaise = 999 -> ratio 0.3996; ladder(3) = 6500 -> 6500*0.3996 = 2597.4 -> 2597
-    expect(estimateBundleTotalPaise(3, 999)).toBe(2597);
-  });
-
-  it("is 0 for zero months regardless of price", () => {
-    expect(estimateBundleTotalPaise(0, 5000)).toBe(0);
-  });
-});
 
 describe("splitReportsByType", () => {
   const reports = [
@@ -149,17 +97,17 @@ describe("purchasedMonthChips", () => {
   });
 });
 
-describe("nextMonths", () => {
-  it("returns the requested count starting at the reference month", () => {
-    expect(nextMonths(3, new Date(Date.UTC(2026, 6, 15)))).toEqual(["2026-07", "2026-08", "2026-09"]);
+describe("currentMonthKey", () => {
+  it("formats the reference date's month as 'YYYY-MM'", () => {
+    expect(currentMonthKey(new Date(Date.UTC(2026, 6, 15)))).toBe("2026-07");
   });
 
-  it("rolls over the calendar year boundary", () => {
-    expect(nextMonths(3, new Date(Date.UTC(2026, 10, 1)))).toEqual(["2026-11", "2026-12", "2027-01"]);
+  it("pads single-digit months", () => {
+    expect(currentMonthKey(new Date(Date.UTC(2026, 0, 1)))).toBe("2026-01");
   });
 
-  it("returns an empty array for count 0", () => {
-    expect(nextMonths(0, new Date(Date.UTC(2026, 6, 15)))).toEqual([]);
+  it("is stable regardless of the host machine's local timezone (uses UTC)", () => {
+    expect(currentMonthKey(new Date(Date.UTC(2026, 11, 31)))).toBe("2026-12");
   });
 });
 

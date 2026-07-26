@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import { formatRupees } from "@/lib/format";
+import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import { deriveOneTimeCardState, purchasedMonthChips, formatPeriodMonth } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
+import { HUE_GRADIENT } from "./ReportThemeCard";
 
 interface ReportCardProps {
   entry: ReportCatalogueEntry;
@@ -13,6 +17,37 @@ interface ReportCardProps {
   onBuy: () => void;
   /** Monthly reports only — opens the drawer in month-picker mode. */
   onAddMonths?: () => void;
+}
+
+/**
+ * Small leading visual for a catalogue list row — the illustration at
+ * /reports/<key>.png when it loads, falling back to the same icon-badge-on-
+ * gradient-wash treatment used by ReportThemeCard's `ReportVisual` (shrunk to
+ * list-row scale) so the two surfaces read as one system. Same imgError
+ * either/or pattern as GemstoneCard.tsx's `GemVisual`.
+ */
+function ReportRowVisual({ reportKey, hue, Icon }: { reportKey: string; hue: ReportHue; Icon: LucideIcon }) {
+  const [imgError, setImgError] = useState(false);
+  if (!imgError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/reports/${reportKey}.png`}
+        alt=""
+        width={44}
+        height={44}
+        onError={() => setImgError(true)}
+        className="shrink-0 w-11 h-11 rounded-xl object-cover"
+      />
+    );
+  }
+  return (
+    <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${HUE_GRADIENT[hue]}`}>
+      <div className="w-8 h-8 rounded-full border border-gold/40 bg-background/30 backdrop-blur-sm flex items-center justify-center text-gold">
+        <Icon size={16} />
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -25,17 +60,22 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
   const { t } = useTranslation();
   const router = useRouter();
   const label = t(`reports.labels.${entry.key}`, entry.label);
+  const theme = getReportTheme(entry.key);
+  const Icon = theme.icon;
 
   if (entry.isMonthly) {
     const chips = purchasedMonthChips(entry.purchases);
     return (
       <Card className="p-4 flex flex-col gap-2.5">
         <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-            <p className="text-[11px] text-muted mt-0.5">
-              {t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+              <p className="text-[11px] text-muted mt-0.5">
+                {t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
+              </p>
+            </div>
           </div>
           <button
             type="button"
@@ -75,9 +115,12 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
   const cardState = deriveOneTimeCardState(entry.purchases);
   return (
     <Card className="p-4 flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-        <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>
+      <div className="flex items-center gap-3 min-w-0">
+        <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+          <p className="text-[11px] text-muted mt-0.5">{formatRupees(entry.pricePaise)}</p>
+        </div>
       </div>
 
       {cardState.state === "none" && (

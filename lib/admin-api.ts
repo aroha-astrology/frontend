@@ -101,6 +101,29 @@ export interface AdminWalletAdjustResponse {
   walletBalancePaise: number;
 }
 
+// ─── Support tickets ───────────────────────────────────────────────────────
+
+/** Admin-facing shape — unlike the caller-facing `SupportTicket` in lib/api.ts, includes `userId` and `adminNote`. */
+export interface AdminSupportTicket {
+  id: string;
+  userId: string;
+  category: string;
+  message: string;
+  locale: string | null;
+  appVersion: string | null;
+  status: string;
+  adminNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface AdminSupportTicketsResponse {
+  tickets: AdminSupportTicket[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
 // ─── Reports ───────────────────────────────────────────────────────────────
 
 export interface AdminReportRow {
@@ -228,4 +251,18 @@ export const adminApi = {
   /** Sets (enabled: true/false) or clears (enabled: null) this group's override for one feature. */
   updateGroupFeature: (id: string, body: UpdateAdminGroupFeatureBody) =>
     request<AdminGroupFeatureRow>(`/v1/admin/groups/${id}/features`, { method: "PUT", body, auth: true }),
+
+  /** Searches/paginates support tickets, optionally filtered by user and/or status. */
+  listSupportTickets: (params: { userId?: string; status?: string; offset?: number; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.userId) qs.set("userId", params.userId);
+    if (params.status) qs.set("status", params.status);
+    qs.set("offset", String(params.offset ?? 0));
+    qs.set("limit", String(params.limit ?? 20));
+    return request<AdminSupportTicketsResponse>(`/v1/admin/support/tickets?${qs.toString()}`, { auth: true });
+  },
+
+  /** Updates a ticket's status and/or adminNote (at least one required). Backend auto-stamps/clears resolvedAt on terminal-status transitions. */
+  updateSupportTicket: (id: string, body: { status?: string; adminNote?: string }) =>
+    request<AdminSupportTicket>(`/v1/admin/support/tickets/${id}`, { method: "PATCH", body, auth: true }),
 };

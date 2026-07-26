@@ -92,11 +92,11 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
           <motion.aside
             role="dialog"
             aria-label={t("menu.title")}
-            initial={{ x: "100%" }}
+            initial={{ x: "-100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="fixed right-0 top-0 bottom-0 z-[70] w-[84%] max-w-[340px] bg-card border-l border-gold/20 shadow-2xl overflow-y-auto"
+            className="fixed left-0 top-0 bottom-0 z-[70] w-[84%] max-w-[340px] bg-card border-r border-gold/20 shadow-2xl overflow-y-auto"
           >
             {/* Pinned header — extra top padding clears the device status bar,
                 which this fixed-to-top panel sits directly under. */}

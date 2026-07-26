@@ -4,9 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { MoreVertical, Bell } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
-import BrandLogo from "@/components/ui/BrandLogo";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
@@ -43,9 +42,9 @@ export default function TopBar() {
     <>
       <div className="sticky top-0 z-20 w-full bg-background/90 backdrop-blur-xl">
         <div className="flex justify-between items-center px-5 pt-8 pb-4 relative w-full max-w-lg mx-auto">
-          <div className="flex items-center h-10">
-            <BrandLogo size={32} />
-          </div>
+          <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
+            <Menu size={20} />
+          </IconButton>
           <div className="flex items-center gap-2">
             <ThemeSwitch />
             {user && (
@@ -58,9 +57,6 @@ export default function TopBar() {
             )}
             <IconButton aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>
               <Bell size={20} />
-            </IconButton>
-            <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
-              <MoreVertical size={20} />
             </IconButton>
           </div>
         </div>

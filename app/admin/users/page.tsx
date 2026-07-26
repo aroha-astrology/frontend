@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { adminApi, type AdminUserRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
@@ -231,13 +232,21 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-2 text-muted">{formatDate(u.createdAt)}</td>
                       <td className="px-4 py-2 text-muted">{formatDate(u.lastActiveAt)}</td>
                       <td className="px-4 py-2 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setWalletTarget(u)}
-                          className="px-3 py-1.5 rounded-full border border-gold/40 text-gold text-xs hover:bg-gold/10 transition-colors"
-                        >
-                          Wallet
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setWalletTarget(u)}
+                            className="px-3 py-1.5 rounded-full border border-gold/40 text-gold text-xs hover:bg-gold/10 transition-colors"
+                          >
+                            Wallet
+                          </button>
+                          <Link
+                            href={`/admin/tickets?userId=${encodeURIComponent(u.id)}`}
+                            className="px-3 py-1.5 rounded-full border border-border text-muted text-xs hover:text-foreground transition-colors"
+                          >
+                            Tickets
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

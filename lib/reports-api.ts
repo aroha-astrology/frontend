@@ -72,6 +72,35 @@ export interface ReportSection {
   paragraphs: string[];
 }
 
+/** match_report only — one of the 8 life-area severities computed deterministically by the
+ * backend (src/lib/astro-engine/matching/match-risks.ts). Frontend never computes this itself. */
+export type RiskSeverity = "benefit" | "neutral" | "caution" | "serious";
+
+export const MATCH_RISK_AREA_ORDER = [
+  "wealth", "health", "children", "harmony", "career", "timing", "intimacy", "inlaws",
+] as const;
+
+export type MatchRiskAreaKey = (typeof MATCH_RISK_AREA_ORDER)[number];
+
+export interface MatchRiskFactor {
+  key: MatchRiskAreaKey;
+  severity: RiskSeverity;
+  score: number;
+  evidence: string[];
+}
+
+/** match_report's `scores` shape — same fields as kundli_milan's KundliMilanScores plus riskFactors. */
+export interface MatchReportScores {
+  gunaMilanScore: number;
+  gunaMaxScore: number;
+  gunaBreakdown: Array<{ name: string; score: number; maxScore: number; description: string }>;
+  dashakootaScore: number;
+  dashakootaMaxScore: number;
+  manglikStatus: { person1: boolean; person2: boolean; cancelled: boolean };
+  compatibilityBand: "poor" | "average" | "good" | "excellent";
+  riskFactors: MatchRiskFactor[];
+}
+
 export type ReportDetailResult =
   | { status: "generating" }
   | { status: "failed"; error: string | null }

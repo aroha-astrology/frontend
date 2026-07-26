@@ -162,10 +162,12 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // transcript, deleting older turns — see astro.routes.ts's chatRoute for
   // the server-side half of the fix (loads the stored full history/summary
   // instead of trusting a client-supplied buffer).
-  // One-shot compareProfileId from the compatibility page handoff — consumed
-  // on the first streamChat call and then cleared so subsequent turns don't
-  // keep sending it (synastry grounding is only relevant for the first reply).
+  // One-shot compareProfileId/matchReportId from the compatibility page handoff —
+  // consumed on the first streamChat call and then cleared so subsequent turns
+  // don't keep sending them (synastry/match-report grounding is only relevant
+  // for the first reply).
   const pendingCompareProfileIdRef = useRef<string | undefined>(undefined);
+  const pendingMatchReportIdRef = useRef<string | undefined>(undefined);
 
   // Per-message TTS + feedback state. Keyed by client-generated message id
   // (see the Message interface above) rather than array index, since index
@@ -327,12 +329,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     try {
       const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
       pendingCompareProfileIdRef.current = undefined;
+      const matchReportIdForThisTurn = pendingMatchReportIdRef.current;
+      pendingMatchReportIdRef.current = undefined;
       const stream = streamChat(msg, {
         sessionId: sessionIdRef.current,
         detailLevel,
         chartId,
         locale: i18n.language,
         ...(compareProfileIdForThisTurn ? { compareProfileId: compareProfileIdForThisTurn } : {}),
+        ...(matchReportIdForThisTurn ? { matchReportId: matchReportIdForThisTurn } : {}),
       });
       let fullContent = "";
 
@@ -525,19 +530,25 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
   // astrologer already has context instead of starting from a blank chat.
-  // The payload is a JSON object { message: string; compareProfileId?: string }
-  // — compareProfileId, when present, is passed through to streamChat so the
-  // backend can ground the reply in a real synastry reading.
+  // The payload is a JSON object { message: string; compareProfileId?: string;
+  // matchReportId?: string } — compareProfileId/matchReportId, when present,
+  // are passed through to streamChat so the backend can ground the reply in a
+  // real synastry reading or an already-purchased match report.
   useEffect(() => {
     const raw = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
     if (raw) {
       sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
       try {
-        const payload = JSON.parse(raw) as { message?: string; compareProfileId?: string };
+        const payload = JSON.parse(raw) as {
+          message?: string;
+          compareProfileId?: string;
+          matchReportId?: string;
+        };
         if (payload.message) {
-          // Store compareProfileId for the first turn only; subsequent turns
-          // in the same chat session use normal context (no synastry grounding).
+          // Store compareProfileId/matchReportId for the first turn only; subsequent turns
+          // in the same chat session use normal context (no synastry/match-report grounding).
           pendingCompareProfileIdRef.current = payload.compareProfileId;
+          pendingMatchReportIdRef.current = payload.matchReportId;
           sendMessage(payload.message);
         }
       } catch {

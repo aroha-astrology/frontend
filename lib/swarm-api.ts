@@ -287,6 +287,13 @@ export async function* streamChat(
      * the target profile has relationship partner/spouse/prospective_match.
      */
     compareProfileId?: string;
+    /**
+     * An already-purchased match_report id (see reportsApi.purchase, key='match_report') to
+     * ground this turn in the full Guna Milan score, 8 life-area risk factors, and narrative
+     * cards the user already paid for and read, via the backend's buildMatchReportFacts.
+     * Independent of compareProfileId — a match_report is not a saved birth_profiles row.
+     */
+    matchReportId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -308,6 +315,7 @@ export async function* streamChat(
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
         ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),
+        ...(opts?.matchReportId ? { matchReportId: opts.matchReportId } : {}),
       }),
     });
 

@@ -5,14 +5,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { MessageCircle, BookUser } from "lucide-react";
-import { matchmaking, type MatchmakingResponse, type BirthInput } from "@/lib/swarm-api";
+import { MessageCircle, BookUser, Loader2, AlertTriangle } from "lucide-react";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
-import type { PlaceOfBirth } from "@/lib/api";
+import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
+import { formatRupees } from "@/lib/format";
 import { CHAT_PENDING_CONTEXT_KEY, type ChatPendingPayload } from "@/lib/chat-handoff";
 import BirthProfilePickerSheet from "@/components/compatibility/BirthProfilePickerSheet";
+import ProfileSwitchTrigger from "@/components/ui/ProfileSwitchTrigger";
+import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
+import MatchReportCards from "@/components/compatibility/MatchReportCards";
+import DosAndDontsCard from "@/components/compatibility/DosAndDontsCard";
+import { useReport } from "@/hooks/useReport";
+import { useReportCatalogue } from "@/hooks/useReportCatalogue";
+import { reportsApi, type MatchReportScores, type PurchaseReportBody } from "@/lib/reports-api";
 import type { Profile } from "@/lib/api";
 
 interface PersonForm {
@@ -45,8 +52,8 @@ const KOOTA_INFO: Record<string, { label: string; meaningKey: string }> = {
 };
 
 export default function CompatibilityPage() {
-  const { t } = useTranslation();
-  const { user, profiles } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { user, profiles, refresh } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState<CompatForm>({
     boy: { ...emptyPerson },
@@ -54,8 +61,6 @@ export default function CompatibilityPage() {
   });
   const [resolvedBoyPlace, setResolvedBoyPlace] = useState<PlaceOfBirth | null>(null);
   const [resolvedGirlPlace, setResolvedGirlPlace] = useState<PlaceOfBirth | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<MatchmakingResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Matchmaking involves a second person's birth data, often entered without
   // them present — require an explicit consent acknowledgement before submit.
@@ -67,12 +72,26 @@ export default function CompatibilityPage() {
 
   // Per-side stored profile id — set when a profile is picked from the sheet
   // or via "This is me"; cleared when any field is manually edited afterward.
+  // The purchased report always resolves ONE person from the account's own
+  // saved profiles (birthProfileId) and treats the OTHER as raw partner birth
+  // details — so picking a profile on one side clears the other side's id,
+  // keeping exactly one side (or neither, before a pick) profile-linked.
   const [boyProfileId, setBoyProfileId] = useState<string | null>(null);
   const [girlProfileId, setGirlProfileId] = useState<string | null>(null);
 
   // Picker sheet open state
   const [boyPickerOpen, setBoyPickerOpen] = useState(false);
   const [girlPickerOpen, setGirlPickerOpen] = useState(false);
+
+  // Purchase + poll state
+  const [reportId, setReportId] = useState<string | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const { state: reportState, data: report, failedError } = useReport(reportId, i18n.language);
+  const { reports: catalogue, refetch: refetchCatalogue } = useReportCatalogue();
+  const matchReportEntry = catalogue?.find((r) => r.key === "match_report");
+  const costPaise = matchReportEntry?.pricePaise ?? 5000;
+  const balancePaise = user?.walletBalancePaise ?? 0;
 
   const updatePerson = (who: "boy" | "girl", field: keyof PersonForm, value: string) => {
     // Editing any field after a profile was picked clears the stored profileId —
@@ -86,7 +105,9 @@ export default function CompatibilityPage() {
     }));
   };
 
-  /** Fill one side of the form from a saved Profile. */
+  /** Fill one side of the form from a saved Profile — clears the OTHER side's
+   * profileId, since only one side can be "the account's own profile" for a
+   * purchase (the other becomes the raw partner). */
   const applyProfile = (who: "boy" | "girl", profile: Profile) => {
     const fields: PersonForm = {
       name: profile.displayName ?? "",
@@ -98,9 +119,11 @@ export default function CompatibilityPage() {
     if (who === "boy") {
       setResolvedBoyPlace(profile.placeOfBirth ?? null);
       setBoyProfileId(profile.id);
+      setGirlProfileId(null);
     } else {
       setResolvedGirlPlace(profile.placeOfBirth ?? null);
       setGirlProfileId(profile.id);
+      setBoyProfileId(null);
     }
   };
 
@@ -121,13 +144,14 @@ export default function CompatibilityPage() {
       }));
       if (who === "boy") {
         setResolvedBoyPlace(user.placeOfBirth ?? null);
-        // The primary profile's id is "primary" per the API contract.
         const primaryProfile = profiles?.find((p) => p.isPrimary);
         setBoyProfileId(primaryProfile?.id ?? "primary");
+        setGirlProfileId(null);
       } else {
         setResolvedGirlPlace(user.placeOfBirth ?? null);
         const primaryProfile = profiles?.find((p) => p.isPrimary);
         setGirlProfileId(primaryProfile?.id ?? "primary");
+        setBoyProfileId(null);
       }
     } else {
       // Unchecked — clear the side that "This is me" had filled.
@@ -138,119 +162,87 @@ export default function CompatibilityPage() {
     }
   };
 
-  const check = async () => {
-    if (!form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob || !consented) return;
-    if (!resolvedBoyPlace || !resolvedGirlPlace) {
-      setError(t("common.selectPlaceFromList"));
-      return;
-    }
+  // Exactly one side must be the account's own profile (primary or a saved
+  // additional profile) — the purchase API resolves ONE chart from
+  // birthProfileId and treats the other as raw partner birth details.
+  const selfSide: "boy" | "girl" | null = boyProfileId ? "boy" : girlProfileId ? "girl" : null;
+  const partnerSide: "boy" | "girl" | null = selfSide === "boy" ? "girl" : selfSide === "girl" ? "boy" : null;
+  const selfSideProfileId = boyProfileId ?? girlProfileId;
+  const resolvedPartnerPlace = partnerSide === "boy" ? resolvedBoyPlace : partnerSide === "girl" ? resolvedGirlPlace : null;
 
-    setLoading(true);
+  const canSubmit =
+    !!selfSide &&
+    !!partnerSide &&
+    !!form[partnerSide].dob &&
+    !!resolvedPartnerPlace &&
+    !!form.boy.name &&
+    !!form.girl.name &&
+    consented;
+  const insufficient = canSubmit && balancePaise < costPaise;
+
+  const purchase = async () => {
+    if (!canSubmit || !partnerSide || !resolvedPartnerPlace) return;
+
+    setPurchasing(true);
     setError(null);
-    setResult(null);
 
     try {
-      const person1: BirthInput = {
-        date: form.boy.dob,
-        time: form.boy.time || "12:00",
-        latitude: resolvedBoyPlace.lat,
-        longitude: resolvedBoyPlace.lon,
-        timezone: resolvedBoyPlace.tz,
-        timeAccuracy: form.boy.time ? "exact" : "unknown",
+      const body: PurchaseReportBody = {
+        reportKey: "match_report",
+        partner: {
+          dateOfBirth: form[partnerSide].dob,
+          timeOfBirth: form[partnerSide].time || "12:00",
+          latitude: resolvedPartnerPlace.lat,
+          longitude: resolvedPartnerPlace.lon,
+          timezone: resolvedPartnerPlace.tz,
+        },
       };
+      if (selfSideProfileId && selfSideProfileId !== "primary") {
+        body.birthProfileId = selfSideProfileId;
+      }
 
-      const person2: BirthInput = {
-        date: form.girl.dob,
-        time: form.girl.time || "12:00",
-        latitude: resolvedGirlPlace.lat,
-        longitude: resolvedGirlPlace.lon,
-        timezone: resolvedGirlPlace.tz,
-        timeAccuracy: form.girl.time ? "exact" : "unknown",
-      };
-
-      const response = await matchmaking(person1, person2);
-      setResult(response);
+      const res = await reportsApi.purchase(body);
+      await refresh();
+      refetchCatalogue();
+      const row = res.reports[0];
+      if (row) setReportId(row.id);
+      setConfirming(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("compatibilityPage.checkError"));
+      if (err instanceof ApiError && err.status === 409) {
+        setError(t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) }));
+      } else if (err instanceof ApiError && err.status === 403) {
+        setError(t("reports.purchase.disabledError"));
+      } else {
+        setError(err instanceof Error ? err.message : t("compatibilityPage.checkError"));
+      }
+      setConfirming(false);
     } finally {
-      setLoading(false);
+      setPurchasing(false);
     }
   };
 
-  const totalScore = result?.totalScore ?? 0;
-  const maxTotal = result?.maxScore ?? 36;
-  const pct = maxTotal > 0 ? Math.round((totalScore / maxTotal) * 100) : 0;
-  // Nadi (0/8) and Bhakoot (0/7) doshas are near-disqualifying red flags in
-  // traditional matching — surface them before the total score. Prefer the
-  // backend's computed flags; fall back to deriving from kutaDetails.
-  const redFlags = (result?.kutaDetails ?? []).filter(
-    (k) =>
-      (k.name === "Nadi" && (result?.flags?.nadiDosha ?? k.obtained === 0)) ||
-      (k.name === "Bhakoot" && (result?.flags?.bhakootDosha ?? k.obtained === 0)),
-  );
+  const scores = report?.status === "ready" ? (report.scores as unknown as MatchReportScores) : null;
+  const sections = report?.status === "ready" ? report.sections : [];
+  const areaCards = sections.slice(0, 8);
+  const closingSections = sections.slice(8, 11);
 
+  const totalScore = scores?.gunaMilanScore ?? 0;
+  const maxTotal = scores?.gunaMaxScore ?? 36;
+  const pct = maxTotal > 0 ? Math.round((totalScore / maxTotal) * 100) : 0;
+  const redFlags = (scores?.gunaBreakdown ?? []).filter(
+    (k) => (k.name === "Nadi" || k.name === "Bhakoot") && k.score === 0,
+  );
   const verdictColor =
     pct >= 75 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
   const verdictLabel =
     pct >= 75 ? t("compatibilityPage.excellentMatch") : pct >= 50 ? t("compatibilityPage.goodMatch") : t("compatibilityPage.needsAttention");
 
-  // A dosha that is present but classically cancelled (own sign, Jupiter
-  // aspect, a documented house+sign exception, etc.) reads as "Non-Manglik"
-  // here, not "Manglik" — matching how the classical conclusion is actually
-  // stated (present-but-rectified is not the same as actively Manglik).
-  const mangalStatusLabel = (type?: "partial" | "full" | "cancelled" | "none"): string => {
-    if (type === "cancelled") return t("compatibilityPage.mangalDoshaStatusCancelled");
-    if (type === "none" || !type) return t("compatibilityPage.mangalDoshaStatusNonManglik");
-    return t("compatibilityPage.mangalDoshaStatusManglik");
-  };
-
   const askAstrologer = () => {
-    if (!result) return;
-
-    // Build a full-report message: all 8 koota scores + Mangal Dosha.
-    const kootaLines = result.kutaDetails.map(
-      (k) => `${KOOTA_INFO[k.name]?.label ?? k.name}: ${k.obtained}/${k.maximum}`,
-    );
-    const mangalLine = result.mangalDosha
-      ? t("compatibilityPage.mangalDoshaStatus", {
-          p1: mangalStatusLabel(result.mangalDosha.type1),
-          p2: mangalStatusLabel(result.mangalDosha.type2),
-        })
-      : null;
-
-    // Both people's actual birth data — not just derived scores — so the AI
-    // has real grounding even when neither side was picked from a saved
-    // profile (compareProfileId below only covers the "self vs. one saved
-    // profile" case; this covers every other combination, including two
-    // manually-typed people).
-    const birthDetailsLine = (who: "boy" | "girl") => {
-      const p = form[who];
-      return `${t(who === "boy" ? "compatibilityPage.person1" : "compatibilityPage.person2")} — ${p.name}: ${t("compatibilityPage.dob")} ${p.dob}, ${t("compatibilityPage.tob")} ${p.time}, ${t("compatibilityPage.birthPlace")} ${p.place}`;
+    if (!reportId) return;
+    const payload: ChatPendingPayload = {
+      message: t("compatibilityPage.askAstrologerPrompt"),
+      matchReportId: reportId,
     };
-
-    const parts = [
-      t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal }),
-      birthDetailsLine("boy"),
-      birthDetailsLine("girl"),
-      ...kootaLines,
-      ...(mangalLine ? [`${t("compatibilityPage.mangalDosha")}: ${mangalLine}`] : []),
-      ...redFlags.map((k) => t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })),
-      t("compatibilityPage.askAstrologerPrompt"),
-    ];
-    const message = parts.join(" | ");
-
-    // Set compareProfileId only when exactly one side's id is the user's own
-    // primary profile AND the other side has a picked (and not-edited) profile.
-    // This is the shape buildSecondChartFacts expects.
-    const primaryId = profiles?.find((p) => p.isPrimary)?.id ?? "primary";
-    let compareProfileId: string | undefined;
-    if (boyProfileId === primaryId && girlProfileId && girlProfileId !== primaryId) {
-      compareProfileId = girlProfileId;
-    } else if (girlProfileId === primaryId && boyProfileId && boyProfileId !== primaryId) {
-      compareProfileId = boyProfileId;
-    }
-
-    const payload: ChatPendingPayload = { message, ...(compareProfileId ? { compareProfileId } : {}) };
     sessionStorage.setItem(CHAT_PENDING_CONTEXT_KEY, JSON.stringify(payload));
     router.push("/ai-chat");
   };
@@ -319,8 +311,6 @@ export default function CompatibilityPage() {
           inputClassName={inputClass}
           inputStyle={style}
           onSelect={(place) => {
-            // PlaceAutocomplete fires onSelect on pick — don't clear profileId
-            // here since this isn't a manual text edit; just update the resolved place.
             setForm((prev) => ({ ...prev, [who]: { ...prev[who], place: place?.name ?? "" } }));
             if (who === "boy") setResolvedBoyPlace(place);
             else setResolvedGirlPlace(place);
@@ -330,6 +320,8 @@ export default function CompatibilityPage() {
       )}
     </div>
   );
+
+  const showForm = reportState === "idle" || reportState === "error";
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
@@ -345,62 +337,99 @@ export default function CompatibilityPage() {
           {t("compatibilityPage.subtitle")}
         </p>
 
-        <div className="mt-8 space-y-4">
-          <label
-            className={cn(
-              "flex items-start gap-2.5 px-1 text-xs leading-relaxed",
-              hasSavedBirthDetails ? "cursor-pointer" : "cursor-not-allowed",
-            )}
-            style={{ color: "var(--text-muted)" }}
-          >
-            <input
-              type="checkbox"
-              checked={useMyDetails}
-              disabled={!hasSavedBirthDetails}
-              onChange={(e) => toggleUseMyDetails(e.target.checked)}
-              className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500 disabled:opacity-40"
-            />
-            <span>
-              {t("compatibilityPage.useMyDetails")}
-              {!hasSavedBirthDetails && (
-                <>
-                  {" — "}
-                  <Link href="/profile" className="text-gold underline underline-offset-2">
-                    {t("compatibilityPage.useMyDetailsHint")}
-                  </Link>
-                </>
+        <ProfileSwitchTrigger className="mt-6 mb-2" />
+
+        {showForm && (
+          <div className="mt-4 space-y-4">
+            <label
+              className={cn(
+                "flex items-start gap-2.5 px-1 text-xs leading-relaxed",
+                hasSavedBirthDetails ? "cursor-pointer" : "cursor-not-allowed",
               )}
-            </span>
-          </label>
+              style={{ color: "var(--text-muted)" }}
+            >
+              <input
+                type="checkbox"
+                checked={useMyDetails}
+                disabled={!hasSavedBirthDetails}
+                onChange={(e) => toggleUseMyDetails(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500 disabled:opacity-40"
+              />
+              <span>
+                {t("compatibilityPage.useMyDetails")}
+                {!hasSavedBirthDetails && (
+                  <>
+                    {" — "}
+                    <Link href="/profile" className="text-gold underline underline-offset-2">
+                      {t("compatibilityPage.useMyDetailsHint")}
+                    </Link>
+                  </>
+                )}
+              </span>
+            </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            {renderPersonFields("boy", t("compatibilityPage.person1"), useMyDetails && user?.gender !== "female")}
-            {renderPersonFields("girl", t("compatibilityPage.person2"), useMyDetails && user?.gender === "female")}
+            <div className="grid grid-cols-2 gap-3">
+              {renderPersonFields("boy", t("compatibilityPage.person1"), useMyDetails && user?.gender !== "female")}
+              {renderPersonFields("girl", t("compatibilityPage.person2"), useMyDetails && user?.gender === "female")}
+            </div>
+
+            {!selfSide && (form.boy.dob || form.girl.dob) && (
+              <p className="text-xs text-amber-400 px-1 leading-relaxed">
+                {t("compatibilityPage.selectSelfSideHint")}
+              </p>
+            )}
+
+            <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer" style={{ color: "var(--text-muted)" }}>
+              <input
+                type="checkbox"
+                checked={consented}
+                onChange={(e) => setConsented(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
+              />
+              {t("compatibilityPage.consent")}
+            </label>
+
+            {insufficient ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-amber-400 text-center">
+                  {t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) })}
+                </p>
+                <button
+                  onClick={() => router.push("/payment")}
+                  className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold"
+                >
+                  {t("reports.purchase.getCredits")}
+                </button>
+              </div>
+            ) : confirming ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirming(false)}
+                  disabled={purchasing}
+                  className="flex-1 h-14 rounded-2xl border border-gold/20 text-[var(--text-muted)] font-medium disabled:opacity-50"
+                >
+                  {t("common.no")}
+                </button>
+                <button
+                  onClick={purchase}
+                  disabled={purchasing}
+                  className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-50"
+                >
+                  {purchasing ? t("reports.purchase.processing") : t("reports.purchase.confirmYes")}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirming(true)}
+                disabled={!canSubmit}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
+              >
+                {t("compatibilityPage.checkBtn")} · {formatRupees(costPaise)}
+              </button>
+            )}
           </div>
+        )}
 
-          <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer" style={{ color: "var(--text-muted)" }}>
-            <input
-              type="checkbox"
-              checked={consented}
-              onChange={(e) => setConsented(e.target.checked)}
-              className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
-            />
-            {t("compatibilityPage.consent")}
-          </label>
-
-          <button
-            onClick={check}
-            disabled={
-              !form.boy.name || !form.girl.name || !form.boy.dob || !form.girl.dob ||
-              !resolvedBoyPlace || !resolvedGirlPlace || !consented || loading
-            }
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity"
-          >
-            {loading ? t("compatibilityPage.computing") : t("compatibilityPage.checkBtn")}
-          </button>
-        </div>
-
-        {/* Error */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -412,65 +441,71 @@ export default function CompatibilityPage() {
           </motion.div>
         )}
 
-        {/* Loading spinner */}
-        {loading && (
-          <div className="mt-8 flex justify-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-              className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent"
-            />
+        {(reportState === "loading" || reportState === "generating") && (
+          <>
+            <GeneratingSpinner label={t("reports.view.generatingTitle")} size={40} className="py-16" />
+            <p className="text-xs text-muted text-center -mt-2">{t("reports.view.generatingBody")}</p>
+          </>
+        )}
+
+        {reportState === "failed" && (
+          <div className="flex flex-col items-center text-center gap-3 py-16">
+            <AlertTriangle size={28} className="text-red-400" />
+            <p className="text-sm font-semibold text-foreground">{t("reports.view.failedTitle")}</p>
+            <p className="text-xs text-muted max-w-xs">{failedError ?? t("reports.view.failedBody")}</p>
+            <button
+              onClick={() => setReportId(null)}
+              className="mt-2 text-sm font-semibold text-gold underline underline-offset-4"
+            >
+              {t("reports.view.tryAgain")}
+            </button>
           </div>
         )}
 
-        {/* Results */}
-        {result && (
+        {reportState === "ready" && scores && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 p-6 rounded-3xl border"
+            className="mt-8 p-6 rounded-3xl border space-y-5"
             style={{ background: "var(--surface)", borderColor: "var(--border)" }}
           >
-            {/* Dosha red flags come first — a practitioner would flag these before the total */}
             {redFlags.map((k) => (
               <div
                 key={k.name}
-                className="mb-4 p-3 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-sm"
+                className="p-3 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-sm"
               >
-                ⚠ {t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maximum })}{" "}
-                {k.description ?? t("compatibilityPage.doshaFlagDefault")}
+                ⚠ {t("compatibilityPage.doshaFlag", { koota: k.name, max: k.maxScore })}{" "}
+                {k.description}
               </div>
             ))}
 
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-gold font-display">
-                  {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
-                </h2>
-                <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
-                  {result.compatibility || verdictLabel}{" "}
-                  {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
-                </p>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gold font-display">
+                    {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
+                  </h2>
+                  <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
+                    {verdictLabel} {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
+                  </p>
+                </div>
+                <div className="text-4xl">💍</div>
               </div>
-              <div className="text-4xl">💍</div>
+
+              <div className="h-3 rounded-full" style={{ background: "var(--secondary)" }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 1, delay: 0.2 }}
+                  className="h-3 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
+                />
+              </div>
             </div>
 
-            <div className="h-3 rounded-full" style={{ background: "var(--secondary)" }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="h-3 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
-              />
-            </div>
-
-            {/* Koota scores with general meaning + result-specific description */}
-            <div className="mt-5 space-y-3">
-              {result.kutaDetails.map((koota) => {
+            <div className="space-y-3">
+              {scores.gunaBreakdown.map((koota) => {
                 const info = KOOTA_INFO[koota.name];
-                const displayLabel = info?.label ?? koota.name;
-                const meaningKey = info?.meaningKey;
-                const meaning = meaningKey ? t(meaningKey) : null;
+                const meaning = info?.meaningKey ? t(info.meaningKey) : null;
                 return (
                   <div
                     key={koota.name}
@@ -479,12 +514,10 @@ export default function CompatibilityPage() {
                   >
                     <div className="flex justify-between items-start gap-3">
                       <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                        {displayLabel}
+                        {info?.label ?? koota.name}
                       </span>
-                      <span
-                        className={`text-sm font-bold shrink-0 ${koota.obtained === 0 ? "text-red-400" : "text-gold"}`}
-                      >
-                        {koota.obtained}/{koota.maximum}
+                      <span className={`text-sm font-bold shrink-0 ${koota.score === 0 ? "text-red-400" : "text-gold"}`}>
+                        {koota.score}/{koota.maxScore}
                       </span>
                     </div>
                     {meaning && (
@@ -497,55 +530,58 @@ export default function CompatibilityPage() {
               })}
             </div>
 
-            {/* Mangal Dosha — checked independently of the 36-point Ashtakoota system.
-                "Matched" is effective status: a dosha that's present but classically
-                cancelled counts as Non-Manglik, same as never having it. */}
-            {result.mangalDosha && (
-              <div className="mt-4 p-3 rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
-                <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                  <span>{t("compatibilityPage.mangalDosha")}</span>
-                  <span className={`font-medium whitespace-nowrap ${result.mangalDosha.matched ? "text-emerald-400" : "text-amber-400"}`}>
-                    {t("compatibilityPage.mangalDoshaStatus", {
-                      p1: mangalStatusLabel(result.mangalDosha.type1),
-                      p2: mangalStatusLabel(result.mangalDosha.type2),
-                    })}
-                  </span>
-                </div>
-                {result.mangalDosha.type1 === "cancelled" && (
-                  <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    {result.mangalDosha.description1}
-                  </p>
-                )}
-                {result.mangalDosha.type2 === "cancelled" && (
-                  <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    {result.mangalDosha.description2}
-                  </p>
-                )}
+            <div className="p-3 rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+              <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                <span>{t("compatibilityPage.mangalDosha")}</span>
+                <span className={`font-medium whitespace-nowrap ${scores.manglikStatus.person1 === scores.manglikStatus.person2 ? "text-emerald-400" : "text-amber-400"}`}>
+                  {scores.manglikStatus.person1 === scores.manglikStatus.person2
+                    ? t("compatibilityPage.mangalDoshaMatched")
+                    : t("compatibilityPage.mangalDoshaMismatched")}
+                </span>
               </div>
-            )}
+              {scores.manglikStatus.cancelled && (
+                <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {t("compatibilityPage.mangalDoshaCancelledNote")}
+                </p>
+              )}
+            </div>
 
-            {result.lagnaCaveat && (
-              <p className="mt-3 text-xs leading-relaxed text-amber-400">
-                ⓘ {t("compatibilityPage.lagnaCaveat")}
-              </p>
-            )}
-
-            <p className="mt-4 text-sm text-[var(--text-muted)] leading-relaxed">
-              {t("compatibilityPage.summary", { name1: form.boy.name, name2: form.girl.name, total: totalScore, max: maxTotal })}
-            </p>
-
-            {result.recommendation && (
-              <p className="mt-3 text-xs text-yellow-500 leading-relaxed">{result.recommendation}</p>
-            )}
+            <MatchReportCards sections={areaCards} riskFactors={scores.riskFactors} />
+            <DosAndDontsCard closingSections={closingSections} />
 
             <button
               onClick={askAstrologer}
-              className="mt-5 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
             >
               <MessageCircle size={16} />
               {t("kundli.house.askAstrologer")}
             </button>
           </motion.div>
+        )}
+
+        {/* Saved reports — profile-scoped history, most recent first. */}
+        {showForm && matchReportEntry && matchReportEntry.purchases.length > 0 && (
+          <div className="mt-8">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-2 px-1">
+              {t("compatibilityPage.savedReports")}
+            </p>
+            <div className="space-y-2">
+              {matchReportEntry.purchases.map((p, i) => (
+                <button
+                  key={p.id}
+                  onClick={() => setReportId(p.id)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl border text-left"
+                  style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                >
+                  <span className="text-sm text-foreground">
+                    {t("compatibilityPage.savedReportLabel", { n: matchReportEntry.purchases.length - i })}
+                  </span>
+                  {p.status === "generating" && <Loader2 size={16} className="animate-spin text-gold" />}
+                  {p.status === "failed" && <span className="text-xs text-red-400">{t("reports.view.failedTitle")}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

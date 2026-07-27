@@ -139,7 +139,12 @@ export default function PanchangPage() {
     // Hard cache (see lib/cache.ts): `date` (selectedDate) is always passed
     // explicitly here — a fixed TTL, not periodExpiresAt('daily'), since a
     // past/future date's panchang is immutable regardless of today's rollover.
-    const cacheKey = buildKey("panchang", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
+    // "v2" bumped alongside the moonrise/moonset + tithi/nakshatra endsAt
+    // fields added to PanchangData — without it, a pre-existing localStorage
+    // entry from before that change would keep being served (matching this
+    // same key) and silently look like "no moonrise", forever, since nothing
+    // else about the key would ever invalidate it.
+    const cacheKey = buildKey("panchang", "v2", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setRefData(cached);
@@ -168,7 +173,7 @@ export default function PanchangPage() {
     let cancelled = false;
     setUserState("loading");
 
-    const cacheKey = buildKey("panchang", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
+    const cacheKey = buildKey("panchang", "v2", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setUserData(cached);

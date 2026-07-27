@@ -289,8 +289,32 @@ export interface HoraSlot {
 
 export interface PanchangData {
   date: string;
-  tithi: { number: number; name: string; paksha: string; deity: string; isAuspicious: boolean } | null;
-  nakshatra: { index: number; name: string; lord: string; pada: number; deity: string } | null;
+  tithi:
+    | {
+        number: number;
+        name: string;
+        paksha: string;
+        deity: string;
+        isAuspicious: boolean;
+        /** HH:mm this tithi ends (i.e. when the next one begins) — computed via swe_rise_trans-style angle-crossing search, not present on cached rows written before this field existed. */
+        endsAt?: string;
+        /** Name of the tithi that begins at `endsAt`. */
+        nextName?: string;
+      }
+    | null;
+  nakshatra:
+    | {
+        index: number;
+        name: string;
+        lord: string;
+        pada: number;
+        deity: string;
+        /** HH:mm this nakshatra ends (i.e. when the next one begins). */
+        endsAt?: string;
+        /** Name of the nakshatra that begins at `endsAt`. */
+        nextName?: string;
+      }
+    | null;
   yoga: { index: number; name: string; isAuspicious: boolean } | null;
   karana: { index: number; name: string; isFixed: boolean } | null;
   vara?: string;
@@ -300,6 +324,10 @@ export interface PanchangData {
   abhijitMuhurta?: PanchangTimeWindow;
   sunriseTime?: string;
   sunsetTime?: string;
+  /** Local HH:mm moonrise, computed via swe_rise_trans (SE_MOON). Absent (not just missing — legitimately null-able) on days the Moon doesn't rise in the civil-day window. */
+  moonriseTime?: string;
+  /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
+  moonsetTime?: string;
   regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];

@@ -58,7 +58,12 @@ export default function TimingWindowsGantt({ windows }: { windows: RankedWindow[
               className="flex-1 min-w-0"
               aria-hidden="true"
             >
-              <rect x={0} y={0} width={VIEW_W} height={VIEW_H} rx={VIEW_H / 2} fill="var(--border)" opacity={0.25} />
+              {/* Track also carries the tooltip so the hoverable area covers
+                  the full row width, not just the (sometimes narrow) bar
+                  itself — a thin bar would otherwise be a pinpoint target. */}
+              <rect x={0} y={0} width={VIEW_W} height={VIEW_H} rx={VIEW_H / 2} fill="var(--border)" opacity={0.25}>
+                <title>{`${formatWindowDate(w.startDate)} - ${formatWindowDate(w.endDate)}`}</title>
+              </rect>
               <rect
                 x={xPct}
                 y={0}

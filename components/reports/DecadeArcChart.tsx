@@ -57,9 +57,16 @@ export default function DecadeArcChart({ bands }: { bands: DecadeBand[] }) {
         {points.map((p, i) => {
           const b = bands[i];
           return (
-            <circle key={`${b.label}-${i}`} cx={p.x} cy={p.y} r={4} fill={ACCENT_COLOR} stroke="var(--card)" strokeWidth={2}>
+            <g key={`${b.label}-${i}`}>
               <title>{`${b.label}: ${Math.round(b.score)}/100 — ${t(`reports.facts.tone.${b.tone}`)}`}</title>
-            </circle>
+              {/* Invisible, larger hit target (dataviz skill: hover targets
+                  should clear a ~24px minimum, well past the visible dot's
+                  own r=5) — the viewBox is scaled well below 1 unit-per-px on
+                  a typical card width, so the drawn marker alone would be a
+                  pinpoint target. */}
+              <circle cx={p.x} cy={p.y} r={14} fill="transparent" />
+              <circle cx={p.x} cy={p.y} r={5} fill={ACCENT_COLOR} stroke="var(--card)" strokeWidth={2} />
+            </g>
           );
         })}
       </svg>

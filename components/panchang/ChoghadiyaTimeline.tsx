@@ -87,7 +87,10 @@ export default function ChoghadiyaTimeline({ day, night }: ChoghadiyaTimelinePro
           style={{ top: `${dividerTopPct}%` }}
         >
           {sunsetTime && (
-            <span className="-translate-y-1/2 bg-background px-2 text-[9px] text-muted uppercase tracking-wider">
+            // bg-card, not bg-background: this sits inside the Card the page wraps
+            // ChoghadiyaTimeline in, so the "punched hole" backdrop needs to match
+            // that card's own fill, not the page-level background behind it.
+            <span className="-translate-y-1/2 bg-card px-2 text-[9px] text-muted uppercase tracking-wider">
               {sunsetTime}
             </span>
           )}

@@ -13,11 +13,6 @@ interface DayWindowsBarProps {
   yamagandaKaal?: PanchangTimeWindow;
 }
 
-/** Horizontal position (%) of a segment's label, clamped so it never clips past the track's edges. */
-function labelCenterPercent(leftPct: number, widthPct: number): number {
-  return Math.min(96, Math.max(4, leftPct + widthPct / 2));
-}
-
 function Segment({ window, colorClass }: { window: PanchangTimeWindow; colorClass: string }) {
   const leftPct = timeToPercent(window.start);
   const widthPct = Math.max(timeToPercent(window.end) - leftPct, 1.5);
@@ -29,27 +24,34 @@ function Segment({ window, colorClass }: { window: PanchangTimeWindow; colorClas
   );
 }
 
-function SegmentLabel({
+/**
+ * A small legend chip (dot + label + time range) rather than a label
+ * positioned under the track at the segment's own clock-time offset: Rahu
+ * Kaal and Abhijit Muhurta both fall within daylight hours, so their
+ * proportional positions on a 24h track are often close together — labels
+ * anchored to those positions collided and rendered as illegible overlapping
+ * text (caught via a real-browser screenshot, not just code review). A plain
+ * flex-wrap legend below the track can never overlap regardless of how close
+ * the two windows are on the clock.
+ */
+function WindowLegendChip({
   window,
+  dotClass,
   textClass,
   label,
 }: {
   window: PanchangTimeWindow;
+  dotClass: string;
   textClass: string;
   label: string;
 }) {
-  const leftPct = timeToPercent(window.start);
-  const widthPct = Math.max(timeToPercent(window.end) - leftPct, 1.5);
-  const centerPct = labelCenterPercent(leftPct, widthPct);
   return (
-    <div
-      className="absolute top-full mt-1.5 -translate-x-1/2 text-center whitespace-nowrap"
-      style={{ left: `${centerPct}%` }}
-    >
-      <p className={`text-[10px] font-semibold ${textClass}`}>{label}</p>
-      <p className="text-[10px] text-muted font-mono">
+    <div className="flex items-center gap-1.5 text-[10px]">
+      <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+      <span className={`font-semibold ${textClass}`}>{label}</span>
+      <span className="text-muted font-mono">
         {window.start} – {window.end}
-      </p>
+      </span>
     </div>
   );
 }
@@ -57,7 +59,7 @@ function SegmentLabel({
 /**
  * One 24h horizontal track (midnight=0%, next midnight=100%) with a red
  * Rahu Kaal segment and a green Abhijit Muhurta segment positioned
- * proportionally by their actual start/end times, each labeled beneath.
+ * proportionally by their actual start/end times, with a legend beneath.
  * Gulika Kaal / Yamaganda Kaal render in a smaller secondary row below —
  * still shown, just visually secondary rather than 4 equal-weight cards.
  */
@@ -74,25 +76,31 @@ export default function DayWindowsBar({
   return (
     <div className="mt-5">
       {(rahuKaal || abhijitMuhurta) && (
-        <div className="relative">
-          <div className="relative h-3 rounded-full bg-surface-2 border border-gold/10 overflow-hidden">
+        <>
+          {/* bg-[var(--border-faint)] rather than bg-surface-2/bg-card: the latter two are near-identical to this card's own background in both themes (surface-2 is literally #FFFFFF in light mode, same as --card), which would make the empty track invisible — border-faint is a warm, theme-aware tint made for exactly this "visible but subtle" fill. */}
+          <div className="relative h-3 rounded-full bg-[var(--border-faint)] border border-gold/10 overflow-hidden">
             {rahuKaal && <Segment window={rahuKaal} colorClass="bg-red-500/70" />}
             {abhijitMuhurta && <Segment window={abhijitMuhurta} colorClass="bg-emerald-500/70" />}
           </div>
-          {/* Labels sit in a reserved band beneath the track so they never overlap it. */}
-          <div className="relative h-9">
+          <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
             {rahuKaal && (
-              <SegmentLabel window={rahuKaal} textClass="text-red-400" label={t("horoscope.panchang.rahuKaal")} />
+              <WindowLegendChip
+                window={rahuKaal}
+                dotClass="bg-red-500/70"
+                textClass="text-red-400"
+                label={t("horoscope.panchang.rahuKaal")}
+              />
             )}
             {abhijitMuhurta && (
-              <SegmentLabel
+              <WindowLegendChip
                 window={abhijitMuhurta}
+                dotClass="bg-emerald-500/70"
                 textClass="text-emerald-400"
                 label={t("horoscope.panchang.abhijitMuhurta")}
               />
             )}
           </div>
-        </div>
+        </>
       )}
 
       {(gulikaKaal || yamagandaKaal) && (

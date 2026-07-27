@@ -2,28 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Sun,
-  Sunset,
-  Clock,
-  ShieldAlert,
-  ShieldCheck,
-  CalendarDays,
-  MapPin,
-  Navigation,
-  ChevronDown,
-} from "lucide-react";
+import { Clock, CalendarDays, MapPin, Navigation, ChevronDown } from "lucide-react";
 import { api, type PanchangData, type PurchasePlan } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/SectionTitle";
 import MonthlyPanchangCalendar from "@/components/panchang/MonthlyPanchangCalendar";
 import PurchasePlanModal from "@/components/panchang/PurchasePlanModal";
 import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
+import PanchangHeader from "@/components/panchang/PanchangHeader";
+import TithiHero from "@/components/panchang/TithiHero";
+import SunMoonTimings from "@/components/panchang/SunMoonTimings";
+import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import { isCurrentlyActive } from "@/lib/panchang/time-window";
 import FeatureGuard from "@/components/FeatureGuard";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
@@ -39,36 +33,6 @@ function FactCard({ label, value, sub }: { label: string; value: string; sub?: s
       <p className="text-[10px] text-muted uppercase tracking-wider">{label}</p>
       <p className="text-sm text-foreground font-semibold mt-1">{value}</p>
       {sub && <p className="text-[10px] text-muted mt-0.5">{sub}</p>}
-    </Card>
-  );
-}
-
-function WindowCard({
-  icon,
-  label,
-  window,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  window: { start: string; end: string };
-  tone: "avoid" | "auspicious";
-}) {
-  const { t } = useTranslation();
-  const borderBg = tone === "avoid" ? "border-red-500/20 bg-red-500/5" : "border-emerald-500/20 bg-emerald-500/5";
-  const text = tone === "avoid" ? "text-red-400" : "text-emerald-400";
-  return (
-    <Card className={`p-4 ${borderBg}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className={text}>{icon}</span>
-        <p className="text-xs font-semibold text-foreground">{label}</p>
-        <span className={`ml-auto text-[9px] font-semibold uppercase tracking-wider ${text}`}>
-          {tone === "avoid" ? t("horoscope.panchang.avoid") : t("horoscope.panchang.auspicious")}
-        </span>
-      </div>
-      <p className="text-sm text-foreground font-medium">
-        {window.start} – {window.end}
-      </p>
     </Card>
   );
 }
@@ -95,16 +59,6 @@ function CollapsibleSection({
       {open && <div className="px-4 pb-4 border-t border-gold/10 pt-3">{children}</div>}
     </Card>
   );
-}
-
-function isCurrentlyActive(start: string, end: string): boolean {
-  const now = new Date();
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  const startMins = sh * 60 + sm;
-  const endMins = eh * 60 + em;
-  return currentMins >= startMins && currentMins < endMins;
 }
 
 export default function PanchangPage() {
@@ -139,11 +93,6 @@ export default function PanchangPage() {
     // Hard cache (see lib/cache.ts): `date` (selectedDate) is always passed
     // explicitly here — a fixed TTL, not periodExpiresAt('daily'), since a
     // past/future date's panchang is immutable regardless of today's rollover.
-    // "v2" bumped alongside the moonrise/moonset + tithi/nakshatra endsAt
-    // fields added to PanchangData — without it, a pre-existing localStorage
-    // entry from before that change would keep being served (matching this
-    // same key) and silently look like "no moonrise", forever, since nothing
-    // else about the key would ever invalidate it.
     const cacheKey = buildKey("panchang", "v2", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
@@ -264,11 +213,23 @@ export default function PanchangPage() {
   const regionalMonth = data?.regionalMonths?.[region];
   const adhik = findAdhikMaas(selectedDate);
 
+  // Share text for PanchangHeader's native-share button — a plain-text
+  // summary of today's core facts, not a deep link (no shareable per-date
+  // URL exists for this page yet).
+  const shareText = data
+    ? t("horoscope.panchang.shareText", {
+        date: data.date,
+        tithi: data.tithi?.name ?? "—",
+        nakshatra: data.nakshatra?.name ?? "—",
+        vara: data.vara ?? "—",
+      })
+    : t("horoscope.panchang.todayTitle");
+
   return (
     <FeatureGuard featureKey="nav.panchang">
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
-        <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
+        <PanchangHeader subtitle={data?.date ?? ""} shareText={shareText} />
 
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
@@ -359,100 +320,40 @@ export default function PanchangPage() {
 
         {state === "ready" && data && (
           <div className="mt-6 space-y-6">
-            {/* Core five */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {data.tithi && <FactCard label={t("horoscope.panchang.tithi")} value={data.tithi.name} sub={data.tithi.paksha} />}
-              {data.vara && <FactCard label={t("horoscope.panchang.vaar")} value={data.vara} />}
-              {data.nakshatra && (
-                <FactCard label={t("horoscope.panchang.nakshatra")} value={data.nakshatra.name} sub={data.nakshatra.lord} />
-              )}
-              {data.yoga && <FactCard label={t("horoscope.panchang.yoga")} value={data.yoga.name} />}
-              {data.karana && <FactCard label={t("horoscope.panchang.karana")} value={data.karana.name} />}
-            </div>
+            {/* Hero: today's vara-lord orb, tithi, festival pill, and the Rahu Kaal / Abhijit Muhurta bar */}
+            <TithiHero data={data} dateIso={selectedDate} />
 
-            {/* Sunrise / sunset */}
-            {(data.sunriseTime || data.sunsetTime) && (
-              <Card className="p-4 border-gold/10 flex items-center justify-around">
-                {data.sunriseTime && (
-                  <div className="flex items-center gap-2 text-sm text-foreground">
-                    <Sun size={16} className="text-gold" /> {data.sunriseTime}
-                  </div>
+            {/* Remaining core facts — tithi itself is already covered by the hero above, so it's left out here to avoid showing it twice. */}
+            {(data.vara || data.nakshatra || data.yoga || data.karana) && (
+              <div className="grid grid-cols-2 gap-3">
+                {data.vara && <FactCard label={t("horoscope.panchang.vaar")} value={data.vara} />}
+                {data.nakshatra && (
+                  <FactCard label={t("horoscope.panchang.nakshatra")} value={data.nakshatra.name} sub={data.nakshatra.lord} />
                 )}
-                {data.sunsetTime && (
-                  <div className="flex items-center gap-2 text-sm text-foreground">
-                    <Sunset size={16} className="text-gold" /> {data.sunsetTime}
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* Auspicious / inauspicious windows */}
-            {(data.rahuKaal || data.gulikaKaal || data.yamagandaKaal || data.abhijitMuhurta) && (
-              <div>
-                <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.auspiciousWindows")}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.rahuKaal && (
-                    <WindowCard icon={<ShieldAlert size={14} />} label={t("horoscope.panchang.rahuKaal")} window={data.rahuKaal} tone="avoid" />
-                  )}
-                  {data.gulikaKaal && (
-                    <WindowCard icon={<ShieldAlert size={14} />} label={t("horoscope.panchang.gulikaKaal")} window={data.gulikaKaal} tone="avoid" />
-                  )}
-                  {data.yamagandaKaal && (
-                    <WindowCard
-                      icon={<ShieldAlert size={14} />}
-                      label={t("horoscope.panchang.yamagandaKaal")}
-                      window={data.yamagandaKaal}
-                      tone="avoid"
-                    />
-                  )}
-                  {data.abhijitMuhurta && (
-                    <WindowCard
-                      icon={<ShieldCheck size={14} />}
-                      label={t("horoscope.panchang.abhijitMuhurta")}
-                      window={data.abhijitMuhurta}
-                      tone="auspicious"
-                    />
-                  )}
-                </div>
+                {data.yoga && <FactCard label={t("horoscope.panchang.yoga")} value={data.yoga.name} />}
+                {data.karana && <FactCard label={t("horoscope.panchang.karana")} value={data.karana.name} />}
               </div>
             )}
 
-            {/* Choghadiya */}
+            {/* Sunrise/sunset (+ moonrise/moonset when available) */}
+            <SunMoonTimings
+              sunriseTime={data.sunriseTime}
+              sunsetTime={data.sunsetTime}
+              moonriseTime={data.moonriseTime}
+              moonsetTime={data.moonsetTime}
+            />
+
+            {/* Choghadiya — one continuous day+night rail (replaces the old collapsed accordion) */}
             {data.choghadiya && (
-              <CollapsibleSection title={t("horoscope.panchang.choghadiyaTitle")} subtitle={t("horoscope.panchang.choghadiyaSubtitle")}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    { label: t("horoscope.panchang.daytime"), periods: data.choghadiya.day },
-                    { label: t("horoscope.panchang.nighttime"), periods: data.choghadiya.night },
-                  ].map(({ label, periods }) => (
-                    <div key={label}>
-                      <p className="text-[10px] text-muted uppercase tracking-wider mb-2">{label}</p>
-                      <div className="space-y-1.5">
-                        {periods.map((p, i) => {
-                          const active = isCurrentlyActive(p.startTime, p.endTime);
-                          const color = p.type === "good" ? "text-emerald-400" : p.type === "bad" ? "text-red-400" : "text-gold";
-                          return (
-                            <div
-                              key={i}
-                              className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs ${
-                                active ? "bg-gold/10 border border-gold/25" : "bg-surface/30"
-                              }`}
-                            >
-                              <span className={`font-medium ${color}`}>{p.name}</span>
-                              <span className="text-muted font-mono">
-                                {p.startTime} – {p.endTime}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
+              <Card className="p-4 border-gold/10">
+                <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.choghadiyaTitle")}</h2>
+                <ChoghadiyaTimeline day={data.choghadiya.day} night={data.choghadiya.night} />
+              </Card>
             )}
 
-            {/* Hora */}
+            {/* TODO: <AuspiciousDays /> once components/panchang/AuspiciousDays.tsx lands */}
+
+            {/* Hora — kept as an accordion, out of scope for this redesign */}
             {data.hora && (
               <CollapsibleSection title={t("horoscope.panchang.horaTitle")} subtitle={t("horoscope.panchang.horaSubtitle")}>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

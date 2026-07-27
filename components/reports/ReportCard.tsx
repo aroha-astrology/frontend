@@ -7,7 +7,12 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import { formatRupees } from "@/lib/format";
 import { getReportTheme, type ReportHue } from "@/lib/report-theme";
-import { deriveOneTimeCardState, purchasedMonthChips, formatPeriodMonth } from "@/lib/reports-logic";
+import {
+  deriveOneTimeCardState,
+  purchasedMonthChips,
+  hasActiveMonthlyPurchase,
+  formatPeriodMonth,
+} from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import { HUE_GRADIENT } from "./ReportThemeCard";
 import DiscountPrice from "./DiscountPrice";
@@ -66,13 +71,14 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
 
   if (entry.isMonthly) {
     const chips = purchasedMonthChips(entry.purchases);
+    const hasActive = hasActiveMonthlyPurchase(entry.purchases);
     return (
       <Card className="p-4 flex flex-col gap-2.5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+              <p className="text-sm font-semibold text-foreground line-clamp-2 break-words">{label}</p>
               <DiscountPrice
                 pricePaise={entry.pricePaise}
                 originalPricePaise={entry.originalPricePaise}
@@ -85,7 +91,7 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
             onClick={onAddMonths}
             className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-3.5 py-2.5 text-xs font-bold"
           >
-            {chips.length > 0 ? t("reports.addMonths") : t("reports.buy")}
+            {hasActive ? t("reports.addMonths") : t("reports.buy")}
           </button>
         </div>
         {chips.length > 0 && (
@@ -121,7 +127,7 @@ export default function ReportCard({ entry, onBuy, onAddMonths }: ReportCardProp
       <div className="flex items-center gap-3 min-w-0">
         <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+          <p className="text-sm font-semibold text-foreground line-clamp-2 break-words">{label}</p>
           <DiscountPrice
             pricePaise={entry.pricePaise}
             originalPricePaise={entry.originalPricePaise}

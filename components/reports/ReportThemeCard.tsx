@@ -9,7 +9,7 @@ import Card from "@/components/ui/Card";
 import { formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getReportTheme, type ReportHue } from "@/lib/report-theme";
-import { deriveOneTimeCardState, purchasedMonthChips } from "@/lib/reports-logic";
+import { deriveOneTimeCardState, purchasedMonthChips, hasActiveMonthlyPurchase } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
 
@@ -107,6 +107,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
 
   if (entry.isMonthly) {
     const chips = purchasedMonthChips(entry.purchases);
+    const hasActive = hasActiveMonthlyPurchase(entry.purchases);
     const readyChips = chips.filter((c) => c.status === "ready");
     // purchasedMonthChips sorts ascending by 'YYYY-MM', so the last ready
     // chip is the most recent ready month.
@@ -132,7 +133,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
         }}
         className="w-full rounded-xl bg-gold text-[#1a0e00] px-2 py-2 text-[11px] font-bold"
       >
-        {chips.length > 0 ? t("reports.addMonths") : t("reports.buy")}
+        {hasActive ? t("reports.addMonths") : t("reports.buy")}
       </button>
     );
   } else {
@@ -211,7 +212,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
     >
       <ReportVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
       <div className="p-3 flex flex-col gap-2">
-        <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 min-h-[2rem]">{label}</p>
+        <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 break-words min-h-[2rem]">{label}</p>
         {priceNode}
         {ctaNode}
       </div>

@@ -4,6 +4,7 @@ import {
   deriveOneTimeCardState,
   purchasedMonthSet,
   purchasedMonthChips,
+  hasActiveMonthlyPurchase,
   currentMonthKey,
   formatPeriodMonth,
   filterVisibleReports,
@@ -95,6 +96,30 @@ describe("purchasedMonthChips", () => {
   it("carries over status and purchase id per chip", () => {
     const purchases = [purchase("p1", "ready", "2026-08")];
     expect(purchasedMonthChips(purchases)).toEqual([{ periodMonth: "2026-08", status: "ready", purchaseId: "p1" }]);
+  });
+});
+
+describe("hasActiveMonthlyPurchase", () => {
+  it("is false with no purchases", () => {
+    expect(hasActiveMonthlyPurchase([])).toBe(false);
+  });
+
+  it("is false when every purchase failed (must not permanently flip the button off 'Buy')", () => {
+    const purchases = [purchase("p1", "failed", "2026-08"), purchase("p2", "failed", "2026-09")];
+    expect(hasActiveMonthlyPurchase(purchases)).toBe(false);
+  });
+
+  it("is true when a generating purchase exists", () => {
+    expect(hasActiveMonthlyPurchase([purchase("p1", "generating", "2026-08")])).toBe(true);
+  });
+
+  it("is true when a ready purchase exists", () => {
+    expect(hasActiveMonthlyPurchase([purchase("p1", "ready", "2026-08")])).toBe(true);
+  });
+
+  it("is true when ready and failed purchases are mixed", () => {
+    const purchases = [purchase("p1", "failed", "2026-08"), purchase("p2", "ready", "2026-09")];
+    expect(hasActiveMonthlyPurchase(purchases)).toBe(true);
   });
 });
 

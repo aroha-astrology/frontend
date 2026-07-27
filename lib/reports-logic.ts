@@ -80,6 +80,19 @@ export function purchasedMonthChips(purchases: readonly ReportPurchase[]): Month
 }
 
 /**
+ * Whether a monthly report's card CTA should read "Add months" rather than
+ * "Buy" — true only when the user actually owns a month (`ready`) or is
+ * waiting on one (`generating`). Deliberately NOT based on
+ * `purchasedMonthChips().length > 0`: that list intentionally still includes
+ * `failed` purchases (so the chip row's Retry affordance stays reachable),
+ * but a purchase that only ever failed shouldn't permanently flip the button
+ * away from "Buy" for a user who owns nothing.
+ */
+export function hasActiveMonthlyPurchase(purchases: readonly ReportPurchase[]): boolean {
+  return purchases.some((p) => p.status === "ready" || p.status === "generating");
+}
+
+/**
  * The current calendar month as a 'YYYY-MM' string — monthly reports are
  * purchased for "this month" only (no month picker, see
  * ReportPurchaseDrawer). Uses UTC fields so it's deterministic in tests

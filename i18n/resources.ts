@@ -1022,11 +1022,6 @@ export const resources = {
         refund: "Refund",
         balanceLabel: "Balance: {{balance}}",
       },
-      analyticsConsent: {
-        body: "We'd like to use privacy-conscious analytics to understand how the app is used — no chart, chat, or health data is included. You can change this anytime in Settings.",
-        accept: "Accept",
-        decline: "Decline",
-      },
       permissions: {
         title: "Stay in sync with the sky",
         subtitle: "Enable location and notifications so your readings are accurate and on time.",
@@ -1986,11 +1981,6 @@ export const resources = {
         reportUnlock: "रिपोर्ट अनलॉक",
         refund: "रिफंड",
         balanceLabel: "बैलेंस: {{balance}}",
-      },
-      analyticsConsent: {
-        body: "ऐप का उपयोग कैसे किया जाता है यह समझने के लिए हम गोपनीयता-सजग एनालिटिक्स का उपयोग करना चाहते हैं — इसमें कोई चार्ट, चैट या स्वास्थ्य डेटा शामिल नहीं है। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
-        accept: "स्वीकार करें",
-        decline: "अस्वीकार करें",
       },
       permissions: {
         title: "आकाश के साथ जुड़े रहें",
@@ -3063,11 +3053,6 @@ export const resources = {
         refund: "রিফান্ড",
         balanceLabel: "ব্যালেন্স: {{balance}}",
       },
-      analyticsConsent: {
-        body: "অ্যাপটি কীভাবে ব্যবহৃত হয় তা বুঝতে আমরা গোপনীয়তা-সচেতন অ্যানালিটিক্স ব্যবহার করতে চাই — এতে কোনো চার্ট, চ্যাট বা স্বাস্থ্য ডেটা অন্তর্ভুক্ত নেই। আপনি এটি যেকোনো সময় সেটিংসে পরিবর্তন করতে পারেন।",
-        accept: "গ্রহণ করুন",
-        decline: "প্রত্যাখ্যান করুন",
-      },
       permissions: {
         title: "আকাশের সাথে সংযুক্ত থাকুন",
         subtitle: "সঠিক ও সময়মতো তথ্যের জন্য লোকেশন এবং নোটিফিকেশন চালু করুন।",
@@ -4139,11 +4124,6 @@ export const resources = {
         refund: "परतावा",
         balanceLabel: "शिल्लक: {{balance}}",
       },
-      analyticsConsent: {
-        body: "अ‍ॅप कसे वापरले जाते हे समजून घेण्यासाठी आम्हाला गोपनीयता-जागरूक विश्लेषण वापरायचे आहे — यात कोणताही चार्ट, चॅट किंवा आरोग्य डेटा समाविष्ट नाही. तुम्ही हे कधीही सेटिंग्जमध्ये बदलू शकता.",
-        accept: "स्वीकार करा",
-        decline: "नाकारा",
-      },
       permissions: {
         title: "आकाशाशी जोडलेले रहा",
         subtitle: "अचूक आणि वेळेवर माहितीसाठी लोकेशन आणि नोटिफिकेशन सुरू करा.",
@@ -5210,11 +5190,6 @@ export const resources = {
         reportUnlock: "నివేదిక అన్‌లాక్",
         refund: "వాపసు",
         balanceLabel: "బ్యాలెన్స్: {{balance}}",
-      },
-      analyticsConsent: {
-        body: "యాప్ ఎలా ఉపయోగించబడుతుందో అర్థం చేసుకోవడానికి మేము గోప్యతా-స్పృహతో కూడిన అనలిటిక్స్ ఉపయోగించాలనుకుంటున్నాము — ఇందులో ఏ చార్ట్, చాట్ లేదా ఆరోగ్య డేటా చేర్చబడదు. మీరు దీన్ని ఎప్పుడైనా సెట్టింగ్‌లలో మార్చుకోవచ్చు.",
-        accept: "అంగీకరించండి",
-        decline: "తిరస్కరించండి",
       },
       permissions: {
         title: "ఆకాశంతో అనుసంధానంలో ఉండండి",
@@ -6287,11 +6262,6 @@ export const resources = {
         refund: "பணத்திரும்பம்",
         balanceLabel: "இருப்பு: {{balance}}",
       },
-      analyticsConsent: {
-        body: "ஆப் எவ்வாறு பயன்படுத்தப்படுகிறது என்பதைப் புரிந்துகொள்ள தனியுரிமையை மதிக்கும் பகுப்பாய்வைப் பயன்படுத்த விரும்புகிறோம் — இதில் எந்த ஜாதகம், அரட்டை அல்லது சுகாதார தரவும் இல்லை. இதை நீங்கள் எப்போது வேண்டுமானாலும் அமைப்புகளில் மாற்றலாம்.",
-        accept: "ஏற்றுக்கொள்",
-        decline: "நிராகரி",
-      },
       permissions: {
         title: "வானத்துடன் இணைந்திருங்கள்",
         subtitle: "துல்லியமான, சரியான நேர தகவலுக்காக இருப்பிடம் மற்றும் அறிவிப்புகளை இயக்கவும்.",
@@ -7358,11 +7328,6 @@ export const resources = {
         reportUnlock: "અહેવાલ અનલૉક",
         refund: "રિફંડ",
         balanceLabel: "બેલેન્સ: {{balance}}",
-      },
-      analyticsConsent: {
-        body: "એપ્લિકેશન કેવી રીતે વપરાય છે તે સમજવા માટે અમે ગોપનીયતા-સભાન એનાલિટિક્સનો ઉપયોગ કરવા માંગીએ છીએ — તેમાં કોઈ ચાર્ટ, ચેટ અથવા આરોગ્ય ડેટા શામેલ નથી. તમે આને કોઈપણ સમયે સેટિંગ્સમાં બદલી શકો છો.",
-        accept: "સ્વીકારો",
-        decline: "નકારો",
       },
       permissions: {
         title: "આકાશ સાથે જોડાયેલા રહો",

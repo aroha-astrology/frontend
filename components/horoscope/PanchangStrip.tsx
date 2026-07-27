@@ -57,7 +57,10 @@ export default function PanchangStrip() {
     // Hard cache (see lib/cache.ts): no explicit `date` is ever passed here —
     // this strip is always *today's* panchang, so the key uses istToday()
     // and expires at the next IST midnight rather than a fixed TTL.
-    const cacheKey = buildKey("panchang", roundCoord(lat), roundCoord(lon), istToday());
+    // "v2" — see app/panchang/page.tsx for why this segment exists (bumped
+    // alongside PanchangData's new moonrise/moonset + endsAt fields so a
+    // pre-existing cache entry from before that change isn't served forever).
+    const cacheKey = buildKey("panchang", "v2", roundCoord(lat), roundCoord(lon), istToday());
     const cached = cacheGet<PanchangFacts>(cacheKey);
     if (cached) {
       setData(cached);

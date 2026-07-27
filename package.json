@@ -15,6 +15,7 @@
     "@capacitor-firebase/messaging": "^6.3.1",
     "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.1",
+    "@mediapipe/tasks-vision": "^0.10.35",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "clsx": "^2.1.1",

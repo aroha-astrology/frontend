@@ -616,6 +616,56 @@ export async function request<T>(path: string, opts: RequestOpts = {}): Promise<
   return data as T;
 }
 
+/**
+ * Uploads raw bytes (a captured/selected photo) with `Content-Type: image/jpeg` — separate
+ * from `request()` because that helper always JSON.stringifies `body`, which would mangle a
+ * Blob. Used by lib/palm-api.ts to POST a palm-capture frame directly (the backend now stores
+ * these on local disk on the API server itself, not a signed-URL cloud bucket, so the bytes
+ * go straight through this one authenticated call).
+ */
+export async function requestBinaryUpload(path: string, blob: Blob): Promise<void> {
+  const headers: Record<string, string> = { "Content-Type": "image/jpeg" };
+  Object.assign(headers, await authHeader());
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { method: "POST", headers, body: blob });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+      ?.error;
+    throw new ApiError(
+      res.status,
+      err?.code ?? "http_error",
+      err?.message ?? `Request failed (${res.status})`,
+      err?.requestId,
+    );
+  }
+}
+
+/** Authenticated binary download — returns the raw response as a Blob. Used to load a
+ * captured palm frame into an `<img>` via `URL.createObjectURL`, since the backend serves it
+ * from local disk behind the same bearer-token auth every other route uses (no signed URL —
+ * an `<img src>` can't carry an Authorization header, so the caller fetches the bytes here and
+ * hands the resulting object URL to the `<img>` instead). */
+export async function requestBinaryDownload(path: string): Promise<Blob> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { method: "GET", headers: await authHeader() });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  if (!res.ok) {
+    throw new ApiError(res.status, "http_error", `Request failed (${res.status})`);
+  }
+  return res.blob();
+}
+
 function safeJson(text: string): unknown {
   try {
     return JSON.parse(text);

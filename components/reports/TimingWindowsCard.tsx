@@ -2,13 +2,16 @@
 
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
+import TimingWindowsGantt from "./TimingWindowsGantt";
 import type { RankedWindow } from "@/lib/report-score-facts";
 
 /**
  * HIGH/MEDIUM/LOW confidence badge coloring — matches DoshaCard.tsx's
  * severity-tinted border+bg+text convention (border/25, bg/10, text/400).
+ * Exported so TimingWindowsGantt.tsx's compact per-row pill reuses the exact
+ * same classes rather than inventing a second HIGH/MEDIUM/LOW color mapping.
  */
-const LEVEL_STYLES: Record<RankedWindow["level"], string> = {
+export const LEVEL_STYLES: Record<RankedWindow["level"], string> = {
   HIGH: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400",
   MEDIUM: "border-amber-500/25 bg-amber-500/10 text-amber-400",
   LOW: "border-border bg-muted/10 text-muted",
@@ -17,9 +20,10 @@ const LEVEL_STYLES: Record<RankedWindow["level"], string> = {
 /**
  * Fixed-locale date formatting, matching DashaTimeline.tsx's `formatDate` and
  * lib/reports-logic.ts's `formatPeriodMonth` convention: dates render in a
- * fixed locale, not translated per UI language.
+ * fixed locale, not translated per UI language. Exported so
+ * TimingWindowsGantt.tsx's shared-timeline axis ticks use the same format.
  */
-function formatWindowDate(iso: string): string {
+export function formatWindowDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   } catch {
@@ -28,10 +32,15 @@ function formatWindowDate(iso: string): string {
 }
 
 /**
- * One card per ranked timing window — date range, a confidence badge, and
- * the `reasoning` bullets. Renders a "nothing notable" message rather than a
- * blank gap for an empty list (defensive: buildScoreFact only ever produces
- * a non-empty `windows` array, but this component may also be used directly).
+ * A shared-timeline Gantt strip (TimingWindowsGantt — each window's bar
+ * positioned by its own start/end date, level shown as a pill), then one
+ * card per ranked timing window below it: exact date range, a confidence
+ * badge, and the `reasoning` bullets. The Gantt gives the "which windows
+ * overlap/come first" shape at a glance; the retained per-window cards below
+ * still carry the exact dates and reasoning text a chart can't hold.
+ * Renders a "nothing notable" message rather than a blank gap for an empty
+ * list (defensive: buildScoreFact only ever produces a non-empty `windows`
+ * array, but this component may also be used directly).
  */
 export default function TimingWindowsCard({ windows }: { windows: RankedWindow[] }) {
   const { t } = useTranslation();
@@ -45,7 +54,10 @@ export default function TimingWindowsCard({ windows }: { windows: RankedWindow[]
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <Card className="p-3">
+        <TimingWindowsGantt windows={windows} />
+      </Card>
       {windows.map((w, i) => (
         <Card key={`${w.startDate}-${w.endDate}-${i}`} className="p-3 flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-2">

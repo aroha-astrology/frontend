@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import ReportThemeCard from "@/components/reports/ReportThemeCard";
 import ReportPurchaseDrawer from "@/components/reports/ReportPurchaseDrawer";
 import { useReportCatalogue } from "@/hooks/useReportCatalogue";
+import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { filterVisibleReports } from "@/lib/reports-logic";
@@ -42,6 +43,7 @@ export default function ReportsSlider() {
   const { user } = useAuth();
   const { enabled } = useFeature("home.reportsSection");
   const { reports, loading, refetch } = useReportCatalogue(enabled);
+  const { stats } = useReportStats();
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
   const visible = reports
@@ -97,6 +99,7 @@ export default function ReportsSlider() {
           entry={purchasingEntry}
           onClose={() => setPurchasingEntry(null)}
           onPurchased={handlePurchased}
+          generatedCount={stats?.[purchasingEntry.key]}
         />
       )}
     </>

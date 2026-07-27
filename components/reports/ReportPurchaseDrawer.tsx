@@ -2,14 +2,21 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
-import { purchasedMonthSet, currentMonthKey } from "@/lib/reports-logic";
-import { reportsApi, type ReportCatalogueEntry, type PurchaseReportBody, type PurchaseReportResultRow } from "@/lib/reports-api";
+import { formatRupees, formatCount } from "@/lib/format";
+import { purchasedMonthSet, currentMonthKey, canPreviewReport } from "@/lib/reports-logic";
+import {
+  reportsApi,
+  type ReportCatalogueEntry,
+  type PurchaseReportBody,
+  type PurchaseReportResultRow,
+  type PreviewReportBody,
+} from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
 
 interface ReportPurchaseDrawerProps {
@@ -17,6 +24,8 @@ interface ReportPurchaseDrawerProps {
   onClose: () => void;
   /** Fires after a successful purchase — caller decides whether to navigate to the new report or just refetch the catalogue in place. */
   onPurchased: (rows: PurchaseReportResultRow[]) => void;
+  /** Real "N generated" count for this report key, from reportsApi.stats() — omitted/undefined while stats are still loading, in which case nothing renders (never a fake placeholder). */
+  generatedCount?: number;
 }
 
 /**
@@ -34,8 +43,9 @@ interface ReportPurchaseDrawerProps {
  *     replaced by an "already purchased" state instead of round-tripping a
  *     duplicate purchase through a refund.
  */
-export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: ReportPurchaseDrawerProps) {
+export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, generatedCount }: ReportPurchaseDrawerProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { user, activeProfile, refresh } = useAuth();
 
   const label = t(`reports.labels.${entry.key}`, entry.label);
@@ -69,6 +79,32 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
   const [confirming, setConfirming] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // ── Preview (generate-and-blur) ────────────────────────────────────────
+  // Never offered for a partner-required report — the backend 400s a preview
+  // call for kundli_milan/match_report since there's no "the user's own free
+  // report" to generate without partner birth data. Also gated on `canSubmit`
+  // so it disappears in exactly the states where Buy itself is hidden (a
+  // monthly report whose current month is already purchased) — nothing left
+  // to preview there either.
+  const showPreview = canPreviewReport(entry) && canSubmit;
+  const [previewing, setPreviewing] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const handlePreview = async () => {
+    setPreviewError(null);
+    setPreviewing(true);
+    try {
+      const body: PreviewReportBody = { reportKey: entry.key };
+      if (activeProfile && activeProfile.id !== "primary") body.birthProfileId = activeProfile.id;
+      const res = await reportsApi.preview(body);
+      onClose();
+      router.push(`/reports/${res.id}`);
+    } catch {
+      setPreviewError(t("reports.purchase.previewError"));
+      setPreviewing(false);
+    }
+  };
 
   const handlePurchase = async () => {
     setErrorMsg(null);
@@ -107,6 +143,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
     "w-full h-12 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
   const style = { background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" };
 
+  // "What this report covers" — an array per reportKey under i18n/resources.ts's
+  // reports.covers.<key>. Falls back to an empty array (renders nothing) for a
+  // catalogue key this client build doesn't have copy for yet, matching
+  // lib/report-theme.ts's fail-open-to-neutral precedent for an unrecognized key.
+  const covers = t(`reports.covers.${entry.key}`, { returnObjects: true }) as string[];
+  const hasGeneratedCount = typeof generatedCount === "number" && Number.isFinite(generatedCount) && generatedCount > 0;
+
   return (
     <BottomSheetModal
       onClose={onClose}
@@ -122,7 +165,27 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
         </div>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-1">
+        {Array.isArray(covers) && covers.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.coversTitle")}</p>
+            <ul className="flex flex-col gap-2">
+              {covers.map((line, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/85 leading-relaxed">
+                  <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-gold shrink-0" aria-hidden="true" />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {hasGeneratedCount && (
+          <p className="text-[11px] text-muted text-center">
+            {t("reports.statsCount", { count: formatCount(generatedCount) })}
+          </p>
+        )}
+
         {mode === "kundli_milan" && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.partnerTitle")}</p>
@@ -181,59 +244,82 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased }: Re
           </div>
         )}
 
-        {/* Balance / confirm — only once the mode-specific inputs are satisfied. */}
-        {canSubmit && (
-          <div>
-            {insufficient ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-xs text-amber-400 text-center">
-                  {t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) })}
-                </p>
-                <Link
-                  href="/payment"
-                  className="w-full flex items-center justify-center rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
-                >
-                  {t("reports.purchase.getCredits")}
-                </Link>
-              </div>
-            ) : confirming ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-xs text-foreground text-center">
-                  {t("reports.purchase.confirmSpend", { cost: formatRupees(costPaise) })}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirming(false)}
-                    disabled={purchasing}
-                    className="flex-1 rounded-xl border border-gold/20 text-muted px-4 py-2.5 text-sm font-medium disabled:opacity-50"
-                  >
-                    {t("common.no")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePurchase}
-                    disabled={purchasing}
-                    className="flex-1 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-sm font-bold disabled:opacity-50"
-                  >
-                    {purchasing ? t("reports.purchase.processing") : t("reports.purchase.confirmYes")}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setConfirming(true)}
-                className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
-              >
-                {t("reports.buy")} · {formatRupees(costPaise)}
-              </button>
-            )}
+        {showPreview && (
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handlePreview}
+              disabled={previewing}
+              className="w-full rounded-2xl border border-gold/30 text-gold px-4 py-3 text-sm font-bold disabled:opacity-50"
+            >
+              {previewing ? t("reports.purchase.processing") : t("reports.purchase.previewCta")}
+            </button>
+            {previewError && <p className="text-[11px] text-red-400 text-center">{previewError}</p>}
           </div>
         )}
-
-        {errorMsg && <p className="text-[11px] text-red-400 text-center">{errorMsg}</p>}
       </div>
+
+      {/* Sticky footer — balance / confirm, only once the mode-specific inputs are
+          satisfied. Kept pinned to the bottom of BottomSheetModal's own scroll
+          container (not the viewport) so it stays reachable once the covers list
+          above pushes the drawer's content past the visible sheet height. */}
+      {(canSubmit || errorMsg) && (
+        <div className="sticky bottom-0 z-10 -mx-5 mt-4 border-t border-gold/10 bg-card/95 px-5 pt-4 backdrop-blur-xl">
+          {canSubmit && (
+            <div>
+              {insufficient ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-amber-400 text-center">
+                    {t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) })}
+                  </p>
+                  <Link
+                    href="/payment"
+                    className="w-full flex items-center justify-center rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
+                  >
+                    {t("reports.purchase.getCredits")}
+                  </Link>
+                </div>
+              ) : confirming ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-foreground text-center">
+                    {t("reports.purchase.confirmSpend", { cost: formatRupees(costPaise) })}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setConfirming(false)}
+                      disabled={purchasing}
+                      className="flex-1 rounded-xl border border-gold/20 text-muted px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+                    >
+                      {t("common.no")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePurchase}
+                      disabled={purchasing}
+                      className="flex-1 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-sm font-bold disabled:opacity-50"
+                    >
+                      {purchasing ? t("reports.purchase.processing") : t("reports.purchase.confirmYes")}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirming(true)}
+                  className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
+                >
+                  {t("reports.buy")} · {formatRupees(costPaise)}
+                </button>
+              )}
+            </div>
+          )}
+
+          {errorMsg && <p className="mt-2 text-[11px] text-red-400 text-center">{errorMsg}</p>}
+
+          <div className="h-4" />
+        </div>
+      )}
     </BottomSheetModal>
   );
 }

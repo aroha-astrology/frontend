@@ -11,6 +11,7 @@ import FeatureGuard from "@/components/FeatureGuard";
 import ReportCard from "@/components/reports/ReportCard";
 import ReportPurchaseDrawer from "@/components/reports/ReportPurchaseDrawer";
 import { useReportCatalogue } from "@/hooks/useReportCatalogue";
+import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { splitReportsByType, filterVisibleReports } from "@/lib/reports-logic";
@@ -30,6 +31,10 @@ function ReportsCatalogue() {
   // 'home.reportsSection', instead — the same key FeatureGuard below checks.
   const { enabled: reportsSectionEnabled } = useFeature("home.reportsSection");
   const { reports, loading, error, refetch } = useReportCatalogue(reportsSectionEnabled);
+  // Fetched once here (not per-card) and threaded down to the purchase
+  // drawer — see hooks/useReportStats.ts's doc comment for why this is a
+  // single shared fetch rather than N per-card calls.
+  const { stats } = useReportStats();
   const [tab, setTab] = useState<Tab>("oneTime");
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
@@ -98,6 +103,7 @@ function ReportsCatalogue() {
           entry={purchasingEntry}
           onClose={() => setPurchasingEntry(null)}
           onPurchased={handlePurchased}
+          generatedCount={stats?.[purchasingEntry.key]}
         />
       )}
     </main>

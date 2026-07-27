@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import { ScoreRing } from "./ReportScoreFacts";
+import DecadeArcChart from "./DecadeArcChart";
 import type { DecadeBand } from "@/lib/report-score-facts";
 
 /**
@@ -29,9 +30,13 @@ function formatDecadeDate(iso: string): string {
 }
 
 /**
- * One row per decade band — label + date range, the same ring visual
- * ReportScoreFacts.tsx already uses for a plain 0-100 numeric fact (reused
- * via its named export for visual consistency), and a tone-colored badge.
+ * A single-series score-over-time chart (DecadeArcChart — line/area, one
+ * hue), then one row per decade band below it: label + date range, the same
+ * ring visual ReportScoreFacts.tsx already uses for a plain 0-100 numeric
+ * fact (reused via its named export for visual consistency), and a
+ * tone-colored badge. That per-decade row list IS the "row below the chart"
+ * of labelled tone chips the dataviz skill calls for — DecadeArcChart itself
+ * doesn't repeat the tone badges, it only draws the trend.
  * Renders a "nothing notable" message rather than a blank gap for an empty
  * list (defensive: buildScoreFact only ever produces a non-empty `bands`
  * array, but this component may also be used directly).
@@ -48,7 +53,10 @@ export default function DecadeArcCard({ bands }: { bands: DecadeBand[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <Card className="p-3">
+        <DecadeArcChart bands={bands} />
+      </Card>
       {bands.map((b, i) => (
         <Card key={`${b.label}-${i}`} className="flex items-center justify-between gap-3 p-3">
           <div className="min-w-0 flex-1">

@@ -440,8 +440,17 @@ function OnboardingPageInner() {
       
       if ("geolocation" in navigator) {
         try {
+          // Belt-and-suspenders timeout: some Android WebViews never invoke
+          // either callback (e.g. location services off, a stuck permission
+          // prompt), so PositionOptions.timeout alone isn't reliable here —
+          // it left the whole confirm submission hanging forever upstream.
           const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            const timer = setTimeout(() => reject(new Error("geolocation_timeout")), 6000);
+            navigator.geolocation.getCurrentPosition(
+              (p) => { clearTimeout(timer); resolve(p); },
+              (e) => { clearTimeout(timer); reject(e); },
+              { timeout: 5000 },
+            );
           });
           body.currentLocation = {
              lat: pos.coords.latitude,

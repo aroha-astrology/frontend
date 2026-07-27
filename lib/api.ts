@@ -571,7 +571,17 @@ interface RequestOpts {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  /** Overridable for tests; defaults to DEFAULT_REQUEST_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
+
+/**
+ * A stalled connection (bad mobile network, a hung backend, a dropped
+ * WebView socket) used to leave callers `await`-ing forever with no
+ * error and no way to recover — e.g. onboarding's confirm button showing
+ * an infinite spinner. Every request is now bounded by this ceiling.
+ */
+const DEFAULT_REQUEST_TIMEOUT_MS = 25_000;
 
 /**
  * Exported so `lib/admin-api.ts` (and any other typed client that needs the
@@ -579,41 +589,63 @@ interface RequestOpts {
  * duplicating this logic — see request()'s own contract below.
  */
 export async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
-  const { method = "GET", body, auth: needsAuth = false } = opts;
+  const { method = "GET", body, auth: needsAuth = false, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS } = opts;
 
-  const headers: Record<string, string> = {};
-  if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (needsAuth) Object.assign(headers, await authHeader());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  let res: Response;
+  const run = async (): Promise<T> => {
+    const headers: Record<string, string> = {};
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (needsAuth) Object.assign(headers, await authHeader());
+
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+    } catch {
+      // Network / mixed-content / CORS failure, or the timeout below aborting mid-flight.
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+
+    if (res.status === 204) return undefined as T;
+
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+
+    if (!res.ok) {
+      const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+        ?.error;
+      throw new ApiError(
+        res.status,
+        err?.code ?? "http_error",
+        err?.message ?? `Request failed (${res.status})`,
+        err?.requestId,
+      );
+    }
+
+    return data as T;
+  };
+
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
-  } catch {
-    // Network / mixed-content / CORS failure — no HTTP response at all.
-    throw new ApiError(0, "network_error", "Could not reach the server");
+    // Races run() against the same abort signal so a stall BEFORE fetch()
+    // even starts (e.g. Firebase's own getIdToken() network call inside
+    // authHeader()) is also bounded — not just a stalled fetch() itself.
+    return await Promise.race([
+      run(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener("abort", () =>
+          reject(new ApiError(0, "timeout", "Request timed out — check your connection and try again")),
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
-
-  if (res.status === 204) return undefined as T;
-
-  const text = await res.text();
-  const data = text ? safeJson(text) : null;
-
-  if (!res.ok) {
-    const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
-      ?.error;
-    throw new ApiError(
-      res.status,
-      err?.code ?? "http_error",
-      err?.message ?? `Request failed (${res.status})`,
-      err?.requestId,
-    );
-  }
-
-  return data as T;
 }
 
 /**

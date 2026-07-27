@@ -36,6 +36,8 @@ export const HUE_GRADIENT: Record<ReportHue, string> = {
   blue: "from-blue-500/25 to-blue-950/10",
   teal: "from-teal-500/25 to-teal-950/10",
   fuchsia: "from-fuchsia-500/25 to-fuchsia-950/10",
+  indigo: "from-indigo-500/25 to-indigo-950/10",
+  lime: "from-lime-500/25 to-lime-950/10",
   gold: "from-gold/20 to-gold/5",
 };
 

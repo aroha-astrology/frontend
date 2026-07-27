@@ -86,6 +86,8 @@ export const resources = {
           finance_monthly: "Finance Report",
           relationship_monthly: "Relationship Report",
           match_report: "Compatibility Match Report",
+          numerology: "Numerology Report",
+          name_change: "Name Change Report",
         },
         purchase: {
           confirmSpend: "Spend {{cost}} to unlock this report?",
@@ -1454,6 +1456,8 @@ export const resources = {
           finance_monthly: "वित्त रिपोर्ट",
           relationship_monthly: "रिश्ते रिपोर्ट",
           match_report: "अनुकूलता मिलान रिपोर्ट",
+          numerology: "अंक ज्योतिष रिपोर्ट",
+          name_change: "नाम परिवर्तन रिपोर्ट",
         },
         purchase: {
           confirmSpend: "इस रिपोर्ट को अनलॉक करने के लिए {{cost}} खर्च करें?",
@@ -2741,6 +2745,8 @@ export const resources = {
           finance_monthly: "অর্থ রিপোর্ট",
           relationship_monthly: "সম্পর্ক রিপোর্ট",
           match_report: "সামঞ্জস্য মিলান রিপোর্ট",
+          numerology: "সংখ্যাতত্ত্ব রিপোর্ট",
+          name_change: "নাম পরিবর্তন রিপোর্ট",
         },
         purchase: {
           confirmSpend: "এই রিপোর্ট আনলক করতে {{cost}} খরচ করবেন?",
@@ -4026,6 +4032,8 @@ export const resources = {
           finance_monthly: "आर्थिक अहवाल",
           relationship_monthly: "नातेसंबंध अहवाल",
           match_report: "सुसंगतता जुळणी अहवाल",
+          numerology: "अंकशास्त्र अहवाल",
+          name_change: "नाव बदल अहवाल",
         },
         purchase: {
           confirmSpend: "हा अहवाल अनलॉक करण्यासाठी {{cost}} खर्च करायचे?",
@@ -5311,6 +5319,8 @@ export const resources = {
           finance_monthly: "ఆర్థిక నివేదిక",
           relationship_monthly: "సంబంధాల నివేదిక",
           match_report: "అనుకూలత మిలన్ నివేదిక",
+          numerology: "సంఖ్యాశాస్త్ర నివేదిక",
+          name_change: "పేరు మార్పు నివేదిక",
         },
         purchase: {
           confirmSpend: "ఈ నివేదికను అన్‌లాక్ చేయడానికి {{cost}} ఖర్చు చేయాలా?",
@@ -6592,6 +6602,8 @@ export const resources = {
           finance_monthly: "நிதி அறிக்கை",
           relationship_monthly: "உறவு அறிக்கை",
           match_report: "பொருத்த அறிக்கை",
+          numerology: "எண் கணித அறிக்கை",
+          name_change: "பெயர் மாற்ற அறிக்கை",
         },
         purchase: {
           confirmSpend: "இந்த அறிக்கையைத் திறக்க {{cost}} செலவிடவா?",
@@ -7877,6 +7889,8 @@ export const resources = {
           finance_monthly: "નાણાકીય અહેવાલ",
           relationship_monthly: "સંબંધ અહેવાલ",
           match_report: "સુસંગતતા મેળાપ અહેવાલ",
+          numerology: "અંકશાસ્ત્ર અહેવાલ",
+          name_change: "નામ પરિવર્તન અહેવાલ",
         },
         purchase: {
           confirmSpend: "આ અહેવાલ અનલૉક કરવા માટે {{cost}} ખર્ચ કરવો છે?",

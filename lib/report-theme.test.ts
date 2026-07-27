@@ -10,6 +10,8 @@ import {
   Briefcase,
   Wallet,
   HeartPulse,
+  Hash,
+  PenLine,
 } from "lucide-react";
 import { REPORT_THEME, getReportTheme } from "./report-theme";
 
@@ -24,10 +26,12 @@ const EXPECTED_ICONS: Record<string, unknown> = {
   career_monthly: Briefcase,
   finance_monthly: Wallet,
   relationship_monthly: HeartPulse,
+  numerology: Hash,
+  name_change: PenLine,
 };
 
 describe("REPORT_THEME", () => {
-  it("has exactly the 10 catalogue report keys, no more, no fewer", () => {
+  it("has exactly the 12 catalogue report keys, no more, no fewer", () => {
     expect(Object.keys(REPORT_THEME).sort()).toEqual(Object.keys(EXPECTED_ICONS).sort());
   });
 
@@ -70,7 +74,7 @@ describe("getReportTheme", () => {
     expect(theme.hue.length).toBeGreaterThan(0);
   });
 
-  it("fallback theme is not accidentally identical to any real report's theme object, and uses a hue none of the 10 reports use", () => {
+  it("fallback theme is not accidentally identical to any real report's theme object, and uses a hue none of the real reports use", () => {
     const fallback = getReportTheme("some_future_report_key");
     expect(Object.values(REPORT_THEME)).not.toContain(fallback);
     const realHues = new Set(Object.values(REPORT_THEME).map((t) => t.hue));

@@ -218,19 +218,27 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
         </button>
       )}
 
-      {/* Camera preview / review / fallback states */}
+      {/* Camera preview / review / fallback states.
+          <video> stays mounted across every status/reviewing change (visibility only,
+          via className) so its ref — and the MediaStream useCamera attaches to it —
+          survive those transitions. Conditionally mounting/unmounting the tag meant the
+          ref was still null when getUserMedia resolved (status was still "requesting"),
+          so the stream never got attached and the preview stayed blank even once
+          camera.status flipped to "granted". */}
       <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          className={`w-full h-full object-cover ${!reviewing && camera.status === "granted" ? "" : "hidden"}`}
+        />
+        {!reviewing && camera.status === "granted" && <PalmBlueprintOverlay slot={slot} />}
         {reviewing ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={reviewing.previewUrl} alt="" className="w-full h-full object-contain" />
-        ) : camera.status === "granted" ? (
-          <>
-            <video ref={videoRef} playsInline muted className="w-full h-full object-cover" />
-            <PalmBlueprintOverlay slot={slot} />
-          </>
         ) : camera.status === "requesting" ? (
           <p className="text-sm text-white/70">{t("palm.capture.requestingCamera")}</p>
-        ) : (
+        ) : camera.status !== "granted" ? (
           <div className="flex flex-col items-center gap-4 px-8 text-center">
             <p className="text-sm text-white/80">
               {camera.status === "denied" ? t("palm.capture.cameraDenied") : t("palm.capture.cameraUnavailable")}
@@ -243,7 +251,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
               <Upload size={16} /> {t("palm.capture.uploadInstead")}
             </button>
           </div>
-        )}
+        ) : null}
         <canvas ref={brightnessCanvasRef} className="hidden" />
       </div>
 

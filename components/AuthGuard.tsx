@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import ConsentGate from "@/components/ConsentGate";
+import AuthLoadingScreen from "@/components/AuthLoadingScreen";
 
 // /legal/* must be readable pre-auth: sign-in/onboarding link to the Terms
 // and Privacy Policy, and consent to an unreadable document is not valid
@@ -43,7 +44,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [firebaseUser, user, loading, isPublic, isOnboarding, isAdmin, isAdminRoute, router]);
 
-  if (loading) return null;
+  if (loading) return <AuthLoadingScreen />;
   if (!firebaseUser && !isPublic) return null;
   if (firebaseUser && isAdmin && !isAdminRoute) return null;
 

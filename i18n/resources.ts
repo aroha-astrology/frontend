@@ -4,7 +4,7 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list", somethingWentWrong: "Something went wrong", tryAgain: "Try Again", connectionSlow: "Taking longer than expected" },
       legal: {
         terms: "Terms of Service",
         privacy: "Privacy Policy",
@@ -1163,7 +1163,7 @@ export const resources = {
         done: "हो गया",
         genericError: "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
       },
-      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस", checkAgain: "फिर से जांचें", selectPlaceFromList: "कृपया सूची में से एक स्थान चुनें" },
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस", checkAgain: "फिर से जांचें", selectPlaceFromList: "कृपया सूची में से एक स्थान चुनें", somethingWentWrong: "कुछ गड़बड़ हो गई", tryAgain: "फिर से प्रयास करें", connectionSlow: "अपेक्षा से अधिक समय लग रहा है" },
       legal: {
         terms: "सेवा की शर्तें",
         privacy: "गोपनीयता नीति",
@@ -2242,7 +2242,7 @@ export const resources = {
         done: "সম্পন্ন",
         genericError: "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
       },
-      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান", checkAgain: "আবার দেখুন", selectPlaceFromList: "অনুগ্রহ করে তালিকা থেকে একটি স্থান নির্বাচন করুন" },
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান", checkAgain: "আবার দেখুন", selectPlaceFromList: "অনুগ্রহ করে তালিকা থেকে একটি স্থান নির্বাচন করুন", somethingWentWrong: "কিছু একটা ভুল হয়েছে", tryAgain: "আবার চেষ্টা করুন", connectionSlow: "প্রত্যাশার চেয়ে বেশি সময় লাগছে" },
       legal: {
         terms: "পরিষেবার শর্তাবলী",
         privacy: "গোপনীয়তা নীতি",
@@ -3318,7 +3318,7 @@ export const resources = {
         done: "झाले",
         genericError: "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.",
       },
-      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे", checkAgain: "पुन्हा तपासा", selectPlaceFromList: "कृपया यादीतून एक ठिकाण निवडा" },
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे", checkAgain: "पुन्हा तपासा", selectPlaceFromList: "कृपया यादीतून एक ठिकाण निवडा", somethingWentWrong: "काहीतरी चूक झाली", tryAgain: "पुन्हा प्रयत्न करा", connectionSlow: "अपेक्षेपेक्षा जास्त वेळ लागत आहे" },
       legal: {
         terms: "सेवा अटी",
         privacy: "गोपनीयता धोरण",
@@ -4394,7 +4394,7 @@ export const resources = {
         done: "పూర్తయింది",
         genericError: "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
       },
-      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు", checkAgain: "మళ్ళీ తనిఖీ చేయండి", selectPlaceFromList: "దయచేసి జాబితా నుండి ఒక ప్రదేశాన్ని ఎంచుకోండి" },
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు", checkAgain: "మళ్ళీ తనిఖీ చేయండి", selectPlaceFromList: "దయచేసి జాబితా నుండి ఒక ప్రదేశాన్ని ఎంచుకోండి", somethingWentWrong: "ఏదో తప్పు జరిగింది", tryAgain: "మళ్ళీ ప్రయత్నించండి", connectionSlow: "ఊహించిన దానికంటే ఎక్కువ సమయం పడుతోంది" },
       legal: {
         terms: "సేవా నిబంధనలు",
         privacy: "గోప్యతా విధానం",
@@ -5466,7 +5466,7 @@ export const resources = {
         done: "முடிந்தது",
         genericError: "ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
       },
-      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்", checkAgain: "மீண்டும் சரிபார்க்கவும்", selectPlaceFromList: "பட்டியலில் இருந்து ஒரு இடத்தைத் தேர்ந்தெடுக்கவும்" },
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்", checkAgain: "மீண்டும் சரிபார்க்கவும்", selectPlaceFromList: "பட்டியலில் இருந்து ஒரு இடத்தைத் தேர்ந்தெடுக்கவும்", somethingWentWrong: "ஏதோ தவறு நடந்தது", tryAgain: "மீண்டும் முயற்சிக்கவும்", connectionSlow: "எதிர்பார்த்ததை விட அதிக நேரம் ஆகிறது" },
       legal: {
         terms: "சேவை விதிமுறைகள்",
         privacy: "தனியுரிமைக் கொள்கை",
@@ -6542,7 +6542,7 @@ export const resources = {
         done: "થઈ ગયું",
         genericError: "કંઈક ખોટું થયું. કૃપા કરી ફરી પ્રયાસ કરો.",
       },
-      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ", checkAgain: "ફરી તપાસો", selectPlaceFromList: "કૃપા કરી યાદીમાંથી એક સ્થળ પસંદ કરો" },
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ", checkAgain: "ફરી તપાસો", selectPlaceFromList: "કૃપા કરી યાદીમાંથી એક સ્થળ પસંદ કરો", somethingWentWrong: "કંઈક ખોટું થયું", tryAgain: "ફરી પ્રયાસ કરો", connectionSlow: "ધાર્યા કરતાં વધુ સમય લાગી રહ્યો છે" },
       legal: {
         terms: "સેવાની શરતો",
         privacy: "ગોપનીયતા નીતિ",

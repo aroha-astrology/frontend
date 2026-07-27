@@ -12,7 +12,9 @@ import {
   type ReactNode,
 } from "react";
 import * as THREE from "three";
-import { type PlanetId } from "./planet-registry";
+import { getPlanet, type PlanetId } from "./planet-registry";
+import { createPlanetTextures } from "./procedural-planet-textures";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ASSET SWAP: official NASA glTF models (downloaded to /public/models) replace
@@ -63,7 +65,9 @@ class AssetErrorBoundary extends Component<
  */
 function FallbackPlanet({ color }: { color: string }) {
   const ref = useRef<THREE.Mesh>(null);
+  const reducedMotion = usePrefersReducedMotion();
   useFrame((_, delta) => {
+    if (reducedMotion) return;
     if (ref.current) ref.current.rotation.y += delta * 0.06;
   });
   return (
@@ -89,6 +93,7 @@ function FallbackPlanet({ color }: { color: string }) {
  */
 function PlanetModel({ url }: { url: string }) {
   const groupRef = useRef<THREE.Group>(null);
+  const reducedMotion = usePrefersReducedMotion();
   const { scene } = useGLTF(url);
 
   const model = useMemo(() => {
@@ -106,7 +111,9 @@ function PlanetModel({ url }: { url: string }) {
   }, [scene]);
 
   // UNCHANGED auto-rotation: same slow spin rate as the original sphereRef.
+  // Reduced-motion users get the same framing, just held still.
   useFrame((_, delta) => {
+    if (reducedMotion) return;
     if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
   });
 
@@ -132,6 +139,62 @@ function PlanetModel({ url }: { url: string }) {
   );
 }
 
+/** Procedural bodies covered here — the two `PlanetId`s with no NASA glTF asset. */
+type ProceduralId = "moon" | "sun";
+
+/**
+ * ProceduralPlanet — renders `moon`/`sun` with the canvas-based textures from
+ * procedural-planet-textures.ts (colors/roughness/texture style come from the
+ * shared planet-registry, same as the CSS fallback orb). These two bodies
+ * aren't in BODIES (no NASA glTF exists for either), so they never go through
+ * PlanetModel/useGLTF at all — this is a parallel, always-pinned rendering
+ * path, not a fallback for a failed GLB load.
+ *
+ * Matches the SAME visual contract as PlanetModel/FallbackPlanet: unit-radius
+ * sphere, identical `delta * 0.06` Y-axis spin, identical [0.32, 0, 0.12]
+ * axial tilt, so swapping between a GLB weekday ruler and Sun/Moon never
+ * changes the framing.
+ */
+function ProceduralPlanet({ id }: { id: ProceduralId }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const visual = useMemo(() => getPlanet(id), [id]);
+  const textures = useMemo(() => createPlanetTextures(visual), [visual]);
+
+  // Canvas textures hold their own GPU-side image data — dispose explicitly
+  // instead of relying on the mesh's default disposal, since `textures` is
+  // recreated (not cached/shared) whenever `visual` changes.
+  useEffect(() => {
+    return () => {
+      textures.map.dispose();
+      textures.bumpMap.dispose();
+    };
+  }, [textures]);
+
+  useFrame((_, delta) => {
+    if (reducedMotion) return;
+    if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
+  });
+
+  return (
+    <group rotation={[0.32, 0, 0.12]}>
+      <group ref={groupRef}>
+        <mesh>
+          <sphereGeometry args={[1, 64, 64]} />
+          <meshStandardMaterial
+            map={textures.map}
+            bumpMap={textures.bumpMap}
+            bumpScale={0.015}
+            roughness={visual.roughness}
+            emissive={visual.emissive}
+            emissiveIntensity={id === "sun" ? 0.8 : 0.15}
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 export default function PlanetOrb3D({
   planet = "moon",
   cycle = true,
@@ -139,34 +202,54 @@ export default function PlanetOrb3D({
   className,
   style,
 }: {
-  /** Starting body. If it matches a NASA model it sets the cycle's start point. */
+  /**
+   * Body to show. `moon`/`sun` are always pinned (rendered procedurally —
+   * there's no GLB for either, so `cycle` never applies to them). Any of the
+   * other 7 GLB-backed ids sets the cycle's start point when `cycle` is true.
+   */
   planet?: PlanetId;
-  /** Auto-advance through all planets (default true). */
+  /** Auto-advance through the 9 GLB-backed planets (default true). No-op when `planet` is `moon`/`sun`. */
   cycle?: boolean;
   /** Milliseconds per planet (default 5000 = swap every 5s). */
   cycleMs?: number;
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const start = Math.max(0, BODIES.findIndex((b) => b.id === planet));
+  // `moon` and `sun` have no NASA glTF (BODIES only covers the other 7 —
+  // mercury/venus/earth/mars/jupiter/saturn/uranus/neptune/pluto) — they're
+  // rendered procedurally below instead. Previously `BODIES.findIndex` fell
+  // through to -1 for these two, `Math.max(0, -1)` silently landed on index 0
+  // (mercury), and — since `cycle` defaults to true — the component cycled
+  // through all 9 GLB bodies instead of showing the requested moon/sun at
+  // all. Pin explicitly instead of ever falling into that cycle.
+  const isProcedural = planet === "moon" || planet === "sun";
+
+  const foundIndex = BODIES.findIndex((b) => b.id === planet);
+  const start = foundIndex === -1 ? 0 : foundIndex;
   const [index, setIndex] = useState(start);
 
-  // Advance to the next planet every `cycleMs` (5s by default).
+  // Advance to the next planet every `cycleMs` (5s by default). Procedural
+  // bodies (moon/sun) are always pinned — there's no GLB list for them to
+  // cycle through, and a caller asking for "moon" wants the moon, not a
+  // slideshow of whatever BODIES happens to contain.
   useEffect(() => {
-    if (!cycle) return;
+    if (!cycle || isProcedural) return;
     const id = setInterval(() => {
       setIndex((i) => (i + 1) % BODIES.length);
     }, cycleMs);
     return () => clearInterval(id);
-  }, [cycle, cycleMs]);
+  }, [cycle, cycleMs, isProcedural]);
 
   const body = BODIES[index];
 
   // Warm up the NEXT model while the current one is on screen, so the 5s swap is
-  // seamless instead of flashing the fallback sphere each time.
+  // seamless instead of flashing the fallback sphere each time. Skipped for
+  // procedural bodies — nothing to preload, and it would otherwise fetch an
+  // unrelated GLB (e.g. mercury.glb) on every "moon"/"sun" render.
   useEffect(() => {
+    if (isProcedural) return;
     useGLTF.preload(BODIES[(index + 1) % BODIES.length].url);
-  }, [index]);
+  }, [index, isProcedural]);
 
   return (
     <Canvas
@@ -200,14 +283,20 @@ export default function PlanetOrb3D({
       {/* faint warm rim from the opposite side */}
       <pointLight position={[3, -1, -2]} intensity={0.6} color="#dfb564" />
 
-      {/* Error boundary (load failures) + Suspense (loading state) make each
-          external asset safe. Both are keyed by body.id so cycling resets state
-          cleanly. Suspense shows the tinted fallback sphere while the model loads. */}
-      <AssetErrorBoundary key={body.id} fallback={<FallbackPlanet color={body.tint} />}>
-        <Suspense fallback={<FallbackPlanet color={body.tint} />}>
-          <PlanetModel url={body.url} />
-        </Suspense>
-      </AssetErrorBoundary>
+      {isProcedural ? (
+        // moon/sun: no NASA glTF exists for either, so render the canvas-textured
+        // procedural sphere instead of trying (and silently failing) to find a GLB.
+        <ProceduralPlanet key={planet} id={planet as "moon" | "sun"} />
+      ) : (
+        // Error boundary (load failures) + Suspense (loading state) make each
+        // external asset safe. Both are keyed by body.id so cycling resets state
+        // cleanly. Suspense shows the tinted fallback sphere while the model loads.
+        <AssetErrorBoundary key={body.id} fallback={<FallbackPlanet color={body.tint} />}>
+          <Suspense fallback={<FallbackPlanet color={body.tint} />}>
+            <PlanetModel url={body.url} />
+          </Suspense>
+        </AssetErrorBoundary>
+      )}
     </Canvas>
   );
 }

@@ -4,7 +4,7 @@
 export const resources = {
   en: {
     translation: {
-      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list" },
+      common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list", somethingWentWrong: "Something went wrong", tryAgain: "Try Again", connectionSlow: "Taking longer than expected" },
       legal: {
         terms: "Terms of Service",
         privacy: "Privacy Policy",
@@ -1022,11 +1022,6 @@ export const resources = {
         refund: "Refund",
         balanceLabel: "Balance: {{balance}}",
       },
-      analyticsConsent: {
-        body: "We'd like to use privacy-conscious analytics to understand how the app is used — no chart, chat, or health data is included. You can change this anytime in Settings.",
-        accept: "Accept",
-        decline: "Decline",
-      },
       permissions: {
         title: "Stay in sync with the sky",
         subtitle: "Enable location and notifications so your readings are accurate and on time.",
@@ -1163,7 +1158,7 @@ export const resources = {
         done: "हो गया",
         genericError: "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
       },
-      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस", checkAgain: "फिर से जांचें", selectPlaceFromList: "कृपया सूची में से एक स्थान चुनें" },
+      common: { seeAll: "सभी देखें", viewAll: "सभी देखें", chatNow: "अभी चैट करें", close: "बंद करें", yes: "हाँ", no: "नहीं", back: "वापस", checkAgain: "फिर से जांचें", selectPlaceFromList: "कृपया सूची में से एक स्थान चुनें", somethingWentWrong: "कुछ गड़बड़ हो गई", tryAgain: "फिर से प्रयास करें", connectionSlow: "अपेक्षा से अधिक समय लग रहा है" },
       legal: {
         terms: "सेवा की शर्तें",
         privacy: "गोपनीयता नीति",
@@ -1987,11 +1982,6 @@ export const resources = {
         refund: "रिफंड",
         balanceLabel: "बैलेंस: {{balance}}",
       },
-      analyticsConsent: {
-        body: "ऐप का उपयोग कैसे किया जाता है यह समझने के लिए हम गोपनीयता-सजग एनालिटिक्स का उपयोग करना चाहते हैं — इसमें कोई चार्ट, चैट या स्वास्थ्य डेटा शामिल नहीं है। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
-        accept: "स्वीकार करें",
-        decline: "अस्वीकार करें",
-      },
       permissions: {
         title: "आकाश के साथ जुड़े रहें",
         subtitle: "सटीक और समय पर जानकारी के लिए लोकेशन और नोटिफिकेशन चालू करें।",
@@ -2242,7 +2232,7 @@ export const resources = {
         done: "সম্পন্ন",
         genericError: "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
       },
-      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান", checkAgain: "আবার দেখুন", selectPlaceFromList: "অনুগ্রহ করে তালিকা থেকে একটি স্থান নির্বাচন করুন" },
+      common: { seeAll: "সব দেখুন", viewAll: "সব দেখুন", chatNow: "এখনই চ্যাট করুন", close: "বন্ধ করুন", yes: "হ্যাঁ", no: "না", back: "ফিরে যান", checkAgain: "আবার দেখুন", selectPlaceFromList: "অনুগ্রহ করে তালিকা থেকে একটি স্থান নির্বাচন করুন", somethingWentWrong: "কিছু একটা ভুল হয়েছে", tryAgain: "আবার চেষ্টা করুন", connectionSlow: "প্রত্যাশার চেয়ে বেশি সময় লাগছে" },
       legal: {
         terms: "পরিষেবার শর্তাবলী",
         privacy: "গোপনীয়তা নীতি",
@@ -3063,11 +3053,6 @@ export const resources = {
         refund: "রিফান্ড",
         balanceLabel: "ব্যালেন্স: {{balance}}",
       },
-      analyticsConsent: {
-        body: "অ্যাপটি কীভাবে ব্যবহৃত হয় তা বুঝতে আমরা গোপনীয়তা-সচেতন অ্যানালিটিক্স ব্যবহার করতে চাই — এতে কোনো চার্ট, চ্যাট বা স্বাস্থ্য ডেটা অন্তর্ভুক্ত নেই। আপনি এটি যেকোনো সময় সেটিংসে পরিবর্তন করতে পারেন।",
-        accept: "গ্রহণ করুন",
-        decline: "প্রত্যাখ্যান করুন",
-      },
       permissions: {
         title: "আকাশের সাথে সংযুক্ত থাকুন",
         subtitle: "সঠিক ও সময়মতো তথ্যের জন্য লোকেশন এবং নোটিফিকেশন চালু করুন।",
@@ -3318,7 +3303,7 @@ export const resources = {
         done: "झाले",
         genericError: "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.",
       },
-      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे", checkAgain: "पुन्हा तपासा", selectPlaceFromList: "कृपया यादीतून एक ठिकाण निवडा" },
+      common: { seeAll: "सर्व पहा", viewAll: "सर्व पहा", chatNow: "आता चॅट करा", close: "बंद करा", yes: "होय", no: "नाही", back: "मागे", checkAgain: "पुन्हा तपासा", selectPlaceFromList: "कृपया यादीतून एक ठिकाण निवडा", somethingWentWrong: "काहीतरी चूक झाली", tryAgain: "पुन्हा प्रयत्न करा", connectionSlow: "अपेक्षेपेक्षा जास्त वेळ लागत आहे" },
       legal: {
         terms: "सेवा अटी",
         privacy: "गोपनीयता धोरण",
@@ -4139,11 +4124,6 @@ export const resources = {
         refund: "परतावा",
         balanceLabel: "शिल्लक: {{balance}}",
       },
-      analyticsConsent: {
-        body: "अ‍ॅप कसे वापरले जाते हे समजून घेण्यासाठी आम्हाला गोपनीयता-जागरूक विश्लेषण वापरायचे आहे — यात कोणताही चार्ट, चॅट किंवा आरोग्य डेटा समाविष्ट नाही. तुम्ही हे कधीही सेटिंग्जमध्ये बदलू शकता.",
-        accept: "स्वीकार करा",
-        decline: "नाकारा",
-      },
       permissions: {
         title: "आकाशाशी जोडलेले रहा",
         subtitle: "अचूक आणि वेळेवर माहितीसाठी लोकेशन आणि नोटिफिकेशन सुरू करा.",
@@ -4394,7 +4374,7 @@ export const resources = {
         done: "పూర్తయింది",
         genericError: "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
       },
-      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు", checkAgain: "మళ్ళీ తనిఖీ చేయండి", selectPlaceFromList: "దయచేసి జాబితా నుండి ఒక ప్రదేశాన్ని ఎంచుకోండి" },
+      common: { seeAll: "అన్నీ చూడండి", viewAll: "అన్నీ చూడండి", chatNow: "ఇప్పుడే చాట్ చేయండి", close: "మూసివేయండి", yes: "అవును", no: "కాదు", back: "వెనుకకు", checkAgain: "మళ్ళీ తనిఖీ చేయండి", selectPlaceFromList: "దయచేసి జాబితా నుండి ఒక ప్రదేశాన్ని ఎంచుకోండి", somethingWentWrong: "ఏదో తప్పు జరిగింది", tryAgain: "మళ్ళీ ప్రయత్నించండి", connectionSlow: "ఊహించిన దానికంటే ఎక్కువ సమయం పడుతోంది" },
       legal: {
         terms: "సేవా నిబంధనలు",
         privacy: "గోప్యతా విధానం",
@@ -5211,11 +5191,6 @@ export const resources = {
         refund: "వాపసు",
         balanceLabel: "బ్యాలెన్స్: {{balance}}",
       },
-      analyticsConsent: {
-        body: "యాప్ ఎలా ఉపయోగించబడుతుందో అర్థం చేసుకోవడానికి మేము గోప్యతా-స్పృహతో కూడిన అనలిటిక్స్ ఉపయోగించాలనుకుంటున్నాము — ఇందులో ఏ చార్ట్, చాట్ లేదా ఆరోగ్య డేటా చేర్చబడదు. మీరు దీన్ని ఎప్పుడైనా సెట్టింగ్‌లలో మార్చుకోవచ్చు.",
-        accept: "అంగీకరించండి",
-        decline: "తిరస్కరించండి",
-      },
       permissions: {
         title: "ఆకాశంతో అనుసంధానంలో ఉండండి",
         subtitle: "ఖచ్చితమైన మరియు సకాలంలో సమాచారం కోసం లొకేషన్ మరియు నోటిఫికేషన్‌లను ఆన్ చేయండి.",
@@ -5466,7 +5441,7 @@ export const resources = {
         done: "முடிந்தது",
         genericError: "ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
       },
-      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்", checkAgain: "மீண்டும் சரிபார்க்கவும்", selectPlaceFromList: "பட்டியலில் இருந்து ஒரு இடத்தைத் தேர்ந்தெடுக்கவும்" },
+      common: { seeAll: "அனைத்தையும் காண்க", viewAll: "அனைத்தையும் காண்க", chatNow: "இப்போது அரட்டை", close: "மூடு", yes: "ஆம்", no: "இல்லை", back: "பின்செல்", checkAgain: "மீண்டும் சரிபார்க்கவும்", selectPlaceFromList: "பட்டியலில் இருந்து ஒரு இடத்தைத் தேர்ந்தெடுக்கவும்", somethingWentWrong: "ஏதோ தவறு நடந்தது", tryAgain: "மீண்டும் முயற்சிக்கவும்", connectionSlow: "எதிர்பார்த்ததை விட அதிக நேரம் ஆகிறது" },
       legal: {
         terms: "சேவை விதிமுறைகள்",
         privacy: "தனியுரிமைக் கொள்கை",
@@ -6287,11 +6262,6 @@ export const resources = {
         refund: "பணத்திரும்பம்",
         balanceLabel: "இருப்பு: {{balance}}",
       },
-      analyticsConsent: {
-        body: "ஆப் எவ்வாறு பயன்படுத்தப்படுகிறது என்பதைப் புரிந்துகொள்ள தனியுரிமையை மதிக்கும் பகுப்பாய்வைப் பயன்படுத்த விரும்புகிறோம் — இதில் எந்த ஜாதகம், அரட்டை அல்லது சுகாதார தரவும் இல்லை. இதை நீங்கள் எப்போது வேண்டுமானாலும் அமைப்புகளில் மாற்றலாம்.",
-        accept: "ஏற்றுக்கொள்",
-        decline: "நிராகரி",
-      },
       permissions: {
         title: "வானத்துடன் இணைந்திருங்கள்",
         subtitle: "துல்லியமான, சரியான நேர தகவலுக்காக இருப்பிடம் மற்றும் அறிவிப்புகளை இயக்கவும்.",
@@ -6542,7 +6512,7 @@ export const resources = {
         done: "થઈ ગયું",
         genericError: "કંઈક ખોટું થયું. કૃપા કરી ફરી પ્રયાસ કરો.",
       },
-      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ", checkAgain: "ફરી તપાસો", selectPlaceFromList: "કૃપા કરી યાદીમાંથી એક સ્થળ પસંદ કરો" },
+      common: { seeAll: "બધું જુઓ", viewAll: "બધું જુઓ", chatNow: "હમણાં ચેટ કરો", close: "બંધ કરો", yes: "હા", no: "ના", back: "પાછળ", checkAgain: "ફરી તપાસો", selectPlaceFromList: "કૃપા કરી યાદીમાંથી એક સ્થળ પસંદ કરો", somethingWentWrong: "કંઈક ખોટું થયું", tryAgain: "ફરી પ્રયાસ કરો", connectionSlow: "ધાર્યા કરતાં વધુ સમય લાગી રહ્યો છે" },
       legal: {
         terms: "સેવાની શરતો",
         privacy: "ગોપનીયતા નીતિ",
@@ -7358,11 +7328,6 @@ export const resources = {
         reportUnlock: "અહેવાલ અનલૉક",
         refund: "રિફંડ",
         balanceLabel: "બેલેન્સ: {{balance}}",
-      },
-      analyticsConsent: {
-        body: "એપ્લિકેશન કેવી રીતે વપરાય છે તે સમજવા માટે અમે ગોપનીયતા-સભાન એનાલિટિક્સનો ઉપયોગ કરવા માંગીએ છીએ — તેમાં કોઈ ચાર્ટ, ચેટ અથવા આરોગ્ય ડેટા શામેલ નથી. તમે આને કોઈપણ સમયે સેટિંગ્સમાં બદલી શકો છો.",
-        accept: "સ્વીકારો",
-        decline: "નકારો",
       },
       permissions: {
         title: "આકાશ સાથે જોડાયેલા રહો",

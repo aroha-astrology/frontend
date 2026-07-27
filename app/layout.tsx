@@ -17,7 +17,6 @@ import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import ReferralCapture from "@/components/ReferralCapture";
 import GooglePlayPurchaseReconciler from "@/components/GooglePlayPurchaseReconciler";
-import AnalyticsConsentBanner from "@/components/AnalyticsConsentBanner";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -93,7 +92,6 @@ export default function RootLayout({
                     <PushNotificationListener />
                     <ReferralCapture />
                     <GooglePlayPurchaseReconciler />
-                    <AnalyticsConsentBanner />
                   </BackHandlerProvider>
                 </PermissionsPromptProvider>
               </AuthProvider>

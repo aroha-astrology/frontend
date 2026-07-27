@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import { getVaraLord } from "@/lib/panchang/vara-lord";
 import { getPlanet } from "@/components/3d/planet-registry";
 import { getFestivalsForDate } from "@/lib/panchang/hindu-festivals";
+import { getDayGuidanceKey } from "@/lib/panchang/day-guidance";
 import DayWindowsBar from "./DayWindowsBar";
 
 // WebGL is client-only — never render the canvas on the server (same guard MoonBackground.tsx uses).
@@ -18,21 +19,18 @@ interface TithiHeroProps {
   dateIso: string;
 }
 
-/**
- * Isolated on purpose: the parallel task building lib/panchang/day-guidance.ts
- * (getDayGuidanceKey) can wire in a real guidance line here with a small,
- * self-contained patch later, without touching the rest of TithiHero.
- */
-function TithiGuidanceNote() {
-  // TODO: wire in getDayGuidanceKey() once lib/panchang/day-guidance.ts lands, e.g.:
-  //   const key = getDayGuidanceKey({
-  //     tithiNumber: data.tithi!.number,
-  //     paksha: data.tithi!.paksha,
-  //     vara: data.vara,
-  //     nakshatraName: data.nakshatra?.name,
-  //   });
-  //   return <p className="text-xs text-muted text-center mt-2 max-w-xs mx-auto">{t(key)}</p>;
-  return null;
+/** Isolated on purpose: a small, self-contained slice of TithiHero so the guidance-note
+ * wiring stays easy to reason about independently of the rest of the hero's layout. */
+function TithiGuidanceNote({ data }: { data: PanchangData }) {
+  const { t } = useTranslation();
+  if (!data.tithi) return null;
+  const key = getDayGuidanceKey({
+    tithiNumber: data.tithi.number,
+    paksha: data.tithi.paksha,
+    vara: data.vara,
+    nakshatraName: data.nakshatra?.name,
+  });
+  return <p className="text-xs text-muted text-center mt-2 max-w-xs mx-auto">{t(key)}</p>;
 }
 
 /**
@@ -91,7 +89,7 @@ export default function TithiHero({ data, dateIso }: TithiHeroProps) {
         </div>
       )}
 
-      <TithiGuidanceNote />
+      <TithiGuidanceNote data={data} />
 
       <div className="w-full">
         <DayWindowsBar

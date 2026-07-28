@@ -138,43 +138,6 @@ export function computeDiscount(pricePaise: number, originalPricePaise: number |
   return { percentOff: Math.round((1 - pricePaise / originalPricePaise) * 100) };
 }
 
-// ─── Preview (generate-and-blur) ───────────────────────────────────────────
-
-/** Minimal shape canPreviewReport needs — any richer catalogue entry type satisfies this. */
-interface PreviewableReport {
-  requiresPartner: boolean;
-}
-
-/**
- * Whether the Preview affordance should show for a catalogue entry. The
- * backend's POST /v1/reports/preview 400s for the two partner-required
- * report types (kundli_milan / match_report) since there's no "the user's
- * own free real report" to generate without partner birth data — this is
- * exactly the same `requiresPartner` flag the purchase drawer already
- * branches on for the partner-birth-detail form, so no new catalogue field
- * is needed.
- */
-export function canPreviewReport(entry: PreviewableReport): boolean {
-  return !entry.requiresPartner;
-}
-
-/**
- * Splits a ready report's sections into what a preview shows in full vs.
- * behind the blur — the first section/chapter renders clearly, everything
- * after it is blurred with the price + Buy CTA overlaid (see
- * app/reports/[id]/page.tsx). A real purchase (`isPreview: false`, including
- * an upgraded preview row) always gets every section back in `visible` —
- * this is the one function that decides the blur boundary, kept pure and
- * dependency-free so it's trivially unit-testable.
- */
-export function splitPreviewSections<T>(
-  sections: readonly T[],
-  isPreview: boolean,
-): { visible: T[]; blurred: T[] } {
-  if (!isPreview) return { visible: [...sections], blurred: [] };
-  return { visible: sections.slice(0, 1), blurred: sections.slice(1) };
-}
-
 /** Minimal shape filterVisibleReports needs. */
 interface VisibilityReport {
   key: string;

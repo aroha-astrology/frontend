@@ -2,20 +2,18 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees, formatCount } from "@/lib/format";
-import { purchasedMonthSet, currentMonthKey, canPreviewReport } from "@/lib/reports-logic";
+import { purchasedMonthSet, currentMonthKey } from "@/lib/reports-logic";
 import {
   reportsApi,
   type ReportCatalogueEntry,
   type PurchaseReportBody,
   type PurchaseReportResultRow,
-  type PreviewReportBody,
 } from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
 
@@ -45,7 +43,6 @@ interface ReportPurchaseDrawerProps {
  */
 export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, generatedCount }: ReportPurchaseDrawerProps) {
   const { t } = useTranslation();
-  const router = useRouter();
   const { user, activeProfile, refresh } = useAuth();
 
   const label = t(`reports.labels.${entry.key}`, entry.label);
@@ -79,32 +76,6 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const [confirming, setConfirming] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // ── Preview (generate-and-blur) ────────────────────────────────────────
-  // Never offered for a partner-required report — the backend 400s a preview
-  // call for kundli_milan/match_report since there's no "the user's own free
-  // report" to generate without partner birth data. Also gated on `canSubmit`
-  // so it disappears in exactly the states where Buy itself is hidden (a
-  // monthly report whose current month is already purchased) — nothing left
-  // to preview there either.
-  const showPreview = canPreviewReport(entry) && canSubmit;
-  const [previewing, setPreviewing] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-
-  const handlePreview = async () => {
-    setPreviewError(null);
-    setPreviewing(true);
-    try {
-      const body: PreviewReportBody = { reportKey: entry.key };
-      if (activeProfile && activeProfile.id !== "primary") body.birthProfileId = activeProfile.id;
-      const res = await reportsApi.preview(body);
-      onClose();
-      router.push(`/reports/${res.id}`);
-    } catch {
-      setPreviewError(t("reports.purchase.previewError"));
-      setPreviewing(false);
-    }
-  };
 
   const handlePurchase = async () => {
     setErrorMsg(null);
@@ -244,19 +215,6 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </div>
         )}
 
-        {showPreview && (
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handlePreview}
-              disabled={previewing}
-              className="w-full rounded-2xl border border-gold/30 text-gold px-4 py-3 text-sm font-bold disabled:opacity-50"
-            >
-              {previewing ? t("reports.purchase.processing") : t("reports.purchase.previewCta")}
-            </button>
-            {previewError && <p className="text-[11px] text-red-400 text-center">{previewError}</p>}
-          </div>
-        )}
       </div>
 
       {/* Sticky footer — balance / confirm, only once the mode-specific inputs are

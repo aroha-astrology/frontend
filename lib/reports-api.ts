@@ -9,12 +9,8 @@
 // 202/403 status-code dance to unwrap here, so a direct `request<T>()` call
 // is enough for all of these endpoints.
 //
-// `preview()` generates a user's real report for free (flagged internally,
-// same generator as a purchase) so the report viewer can show it blurred
-// after the first section — see `ReportDetailResult`'s `isPreview` field and
-// hooks/useReport.ts. Not supported for the two partner-required reports
-// (`kundli_milan` / `match_report`). `stats()` backs the real
-// "N reports generated" count shown alongside a report's price.
+// `stats()` backs the real "N reports generated" count shown alongside a
+// report's price.
 
 import { request } from "./api";
 
@@ -123,26 +119,9 @@ export type ReportDetailResult =
       /** Shape differs per reportKey — see components/reports/ReportScoreFacts.tsx for the generic renderer. */
       scores: Record<string, unknown>;
       sections: ReportSection[];
-      /** true when this row came from POST /v1/reports/preview rather than a real purchase — the report viewer
-       * blurs every section after the first and overlays the price + Buy CTA when this is true. A purchase of a
-       * previously-previewed report upgrades the SAME row server-side, so this flips to false (and the full
-       * content renders normally) the moment the user buys — no second generation wait. */
-      isPreview: boolean;
     };
 
-export interface PreviewReportBody {
-  reportKey: string;
-  /** Omit (or null) for the primary profile. */
-  birthProfileId?: string | null;
-}
-
-export interface PreviewReportResponse {
-  id: string;
-  reportKey: string;
-  status: ReportPurchaseStatus;
-}
-
-/** GET /v1/reports/stats — real ready, non-preview generation count per report key, cached server-side ~5 min. */
+/** GET /v1/reports/stats — real ready generation count per report key, cached server-side ~5 min. */
 export type ReportStatsResponse = Record<string, number>;
 
 export const reportsApi = {
@@ -159,18 +138,7 @@ export const reportsApi = {
   purchase: (body: PurchaseReportBody) =>
     request<PurchaseReportResponse>("/v1/reports/purchase", { method: "POST", body, auth: true }),
 
-  /**
-   * Generate the user's real report for free (no wallet charge), flagged
-   * internally as a preview — same generator as a real purchase. NOT
-   * supported for the two partner-required reports (`kundli_milan` /
-   * `match_report`); the backend returns 400 for those, so the caller
-   * should never show the Preview affordance for them in the first place
-   * (see `entry.requiresPartner`).
-   */
-  preview: (body: PreviewReportBody) =>
-    request<PreviewReportResponse>("/v1/reports/preview", { method: "POST", body, auth: true }),
-
-  /** Poll target for a single purchased (or previewed) report. Caller branches on `status`. */
+  /** Poll target for a single purchased report. Caller branches on `status`. */
   get: (id: string, language?: string) =>
     request<ReportDetailResult>(
       `/v1/reports/${id}${language ? `?language=${encodeURIComponent(language)}` : ""}`,

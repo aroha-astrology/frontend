@@ -9,8 +9,6 @@ import {
   formatPeriodMonth,
   filterVisibleReports,
   computeDiscount,
-  canPreviewReport,
-  splitPreviewSections,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -200,45 +198,5 @@ describe("computeDiscount", () => {
   it("rounds to the nearest whole percent rather than truncating", () => {
     // 1 - 90/100 = 0.10 exactly -> 10%.
     expect(computeDiscount(9000, 10000)).toEqual({ percentOff: 10 });
-  });
-});
-
-describe("canPreviewReport", () => {
-  it("is true for a report that doesn't require a partner", () => {
-    expect(canPreviewReport({ requiresPartner: false })).toBe(true);
-  });
-
-  it("is false for a partner-required report (kundli_milan / match_report)", () => {
-    expect(canPreviewReport({ requiresPartner: true })).toBe(false);
-  });
-});
-
-describe("splitPreviewSections", () => {
-  const sections = ["intro", "chapter2", "chapter3", "chapter4"];
-
-  it("returns every section as visible and nothing blurred when isPreview is false", () => {
-    expect(splitPreviewSections(sections, false)).toEqual({ visible: sections, blurred: [] });
-  });
-
-  it("keeps only the first section visible and blurs the rest when isPreview is true", () => {
-    expect(splitPreviewSections(sections, true)).toEqual({
-      visible: ["intro"],
-      blurred: ["chapter2", "chapter3", "chapter4"],
-    });
-  });
-
-  it("handles a single-section report without blurring anything", () => {
-    expect(splitPreviewSections(["only"], true)).toEqual({ visible: ["only"], blurred: [] });
-  });
-
-  it("handles an empty section list", () => {
-    expect(splitPreviewSections([], true)).toEqual({ visible: [], blurred: [] });
-    expect(splitPreviewSections([], false)).toEqual({ visible: [], blurred: [] });
-  });
-
-  it("does not mutate the input array (returns fresh arrays)", () => {
-    const original = [...sections];
-    splitPreviewSections(sections, false).visible.push("mutated" as never);
-    expect(sections).toEqual(original);
   });
 });

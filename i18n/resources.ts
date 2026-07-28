@@ -104,8 +104,6 @@ export const resources = {
           alreadyPurchased: "Already purchased",
           estimatedTotal: "≈ {{amount}} estimated total",
           estimatedNote: "The final amount charged is confirmed at checkout.",
-          previewCta: "Preview This Report — Free",
-          previewError: "Couldn't generate a preview. Please try again.",
         },
         view: {
           title: "Report",
@@ -115,9 +113,6 @@ export const resources = {
           failedBody: "We couldn't generate this report. Please try again.",
           tryAgain: "Try Again",
           checkAgain: "Check Again",
-          previewBadge: "Preview",
-          previewLockedTitle: "Unlock the full report",
-          previewLockedBody: "Buy now to instantly see every remaining section — no extra wait.",
         },
         facts: {
           level: { high: "High", medium: "Medium", low: "Low", none: "Not Indicated" },
@@ -1474,8 +1469,6 @@ export const resources = {
           alreadyPurchased: "पहले से खरीदा गया",
           estimatedTotal: "≈ {{amount}} अनुमानित कुल राशि",
           estimatedNote: "अंतिम शुल्क भुगतान के समय पुष्ट किया जाएगा।",
-          previewCta: "इस रिपोर्ट का प्रीव्यू देखें — मुफ़्त",
-          previewError: "प्रीव्यू तैयार नहीं हो सका। कृपया फिर से प्रयास करें।",
         },
         view: {
           title: "रिपोर्ट",
@@ -1485,9 +1478,6 @@ export const resources = {
           failedBody: "हम यह रिपोर्ट तैयार नहीं कर सके। कृपया फिर से प्रयास करें।",
           tryAgain: "फिर से प्रयास करें",
           checkAgain: "फिर से जांचें",
-          previewBadge: "प्रीव्यू",
-          previewLockedTitle: "पूरी रिपोर्ट अनलॉक करें",
-          previewLockedBody: "अभी खरीदें और बिना किसी अतिरिक्त इंतजार के तुरंत बाकी सभी हिस्से देखें।",
         },
         facts: {
           level: { high: "उच्च", medium: "मध्यम", low: "निम्न", none: "संकेतित नहीं" },
@@ -2763,8 +2753,6 @@ export const resources = {
           alreadyPurchased: "ইতিমধ্যে কেনা হয়েছে",
           estimatedTotal: "≈ {{amount}} আনুমানিক মোট",
           estimatedNote: "চূড়ান্ত পরিমাণ চেকআউটের সময় নিশ্চিত করা হবে।",
-          previewCta: "এই রিপোর্টের প্রিভিউ দেখুন — বিনামূল্যে",
-          previewError: "প্রিভিউ তৈরি করা যায়নি। আবার চেষ্টা করুন।",
         },
         view: {
           title: "রিপোর্ট",
@@ -2774,9 +2762,6 @@ export const resources = {
           failedBody: "আমরা এই রিপোর্টটি তৈরি করতে পারিনি। আবার চেষ্টা করুন।",
           tryAgain: "আবার চেষ্টা করুন",
           checkAgain: "আবার দেখুন",
-          previewBadge: "প্রিভিউ",
-          previewLockedTitle: "সম্পূর্ণ রিপোর্ট আনলক করুন",
-          previewLockedBody: "এখনই কিনুন এবং কোনো অতিরিক্ত অপেক্ষা ছাড়াই বাকি সব অংশ সঙ্গে সঙ্গে দেখুন।",
         },
         facts: {
           level: { high: "উচ্চ", medium: "মাঝারি", low: "নিম্ন", none: "নির্দেশিত নয়" },
@@ -4050,8 +4035,6 @@ export const resources = {
           alreadyPurchased: "आधीच खरेदी केले",
           estimatedTotal: "≈ {{amount}} अंदाजे एकूण",
           estimatedNote: "अंतिम रक्कम चेकआउटच्या वेळी निश्चित केली जाईल.",
-          previewCta: "या अहवालाचे प्रीव्ह्यू पहा — मोफत",
-          previewError: "प्रीव्ह्यू तयार होऊ शकला नाही. कृपया पुन्हा प्रयत्न करा.",
         },
         view: {
           title: "अहवाल",
@@ -4061,9 +4044,6 @@ export const resources = {
           failedBody: "आम्ही हा अहवाल तयार करू शकलो नाही. कृपया पुन्हा प्रयत्न करा.",
           tryAgain: "पुन्हा प्रयत्न करा",
           checkAgain: "पुन्हा तपासा",
-          previewBadge: "प्रीव्ह्यू",
-          previewLockedTitle: "संपूर्ण अहवाल अनलॉक करा",
-          previewLockedBody: "आत्ताच खरेदी करा आणि कोणत्याही अतिरिक्त प्रतीक्षेशिवाय उर्वरित सर्व भाग लगेच पहा.",
         },
         facts: {
           level: { high: "उच्च", medium: "मध्यम", low: "कमी", none: "सूचित नाही" },
@@ -5337,8 +5317,6 @@ export const resources = {
           alreadyPurchased: "ఇప్పటికే కొనుగోలు చేయబడింది",
           estimatedTotal: "≈ {{amount}} అంచనా మొత్తం",
           estimatedNote: "చెల్లింపు సమయంలో తుది మొత్తం నిర్ధారించబడుతుంది.",
-          previewCta: "ఈ నివేదిక ప్రివ్యూ చూడండి — ఉచితం",
-          previewError: "ప్రివ్యూ తయారు కాలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.",
         },
         view: {
           title: "నివేదిక",
@@ -5348,9 +5326,6 @@ export const resources = {
           failedBody: "మేము ఈ నివేదికను రూపొందించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
           tryAgain: "మళ్ళీ ప్రయత్నించండి",
           checkAgain: "మళ్ళీ తనిఖీ చేయండి",
-          previewBadge: "ప్రివ్యూ",
-          previewLockedTitle: "పూర్తి నివేదికను అన్‌లాక్ చేయండి",
-          previewLockedBody: "ఇప్పుడే కొనుగోలు చేసి, అదనపు నిరీక్షణ లేకుండా మిగిలిన అన్ని విభాగాలను వెంటనే చూడండి.",
         },
         facts: {
           level: { high: "అధిక", medium: "మధ్యస్థ", low: "తక్కువ", none: "సూచించలేదు" },
@@ -6620,8 +6595,6 @@ export const resources = {
           alreadyPurchased: "ஏற்கனவே வாங்கப்பட்டது",
           estimatedTotal: "≈ {{amount}} மதிப்பிடப்பட்ட மொத்தம்",
           estimatedNote: "இறுதி தொகை பணம் செலுத்தும் போது உறுதிப்படுத்தப்படும்.",
-          previewCta: "இந்த அறிக்கையை முன்னோட்டமிடவும் — இலவசம்",
-          previewError: "முன்னோட்டத்தை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         },
         view: {
           title: "அறிக்கை",
@@ -6631,9 +6604,6 @@ export const resources = {
           failedBody: "இந்த அறிக்கையை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
           tryAgain: "மீண்டும் முயற்சிக்கவும்",
           checkAgain: "மீண்டும் சரிபார்க்கவும்",
-          previewBadge: "முன்னோட்டம்",
-          previewLockedTitle: "முழு அறிக்கையையும் திறக்கவும்",
-          previewLockedBody: "இப்போதே வாங்கி, கூடுதல் காத்திருப்பு இல்லாமல் மீதமுள்ள அனைத்து பகுதிகளையும் உடனடியாகப் பார்க்கவும்.",
         },
         facts: {
           level: { high: "அதிகம்", medium: "நடுத்தரம்", low: "குறைவு", none: "குறிப்பிடப்படவில்லை" },
@@ -7907,8 +7877,6 @@ export const resources = {
           alreadyPurchased: "પહેલેથી ખરીદેલ",
           estimatedTotal: "≈ {{amount}} અંદાજિત કુલ",
           estimatedNote: "અંતિમ રકમ ચેકઆઉટ સમયે નક્કી થશે.",
-          previewCta: "આ અહેવાલનું પ્રીવ્યૂ જુઓ — મફત",
-          previewError: "પ્રીવ્યૂ તૈયાર થઈ શક્યું નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
         },
         view: {
           title: "અહેવાલ",
@@ -7918,9 +7886,6 @@ export const resources = {
           failedBody: "અમે આ અહેવાલ તૈયાર કરી શક્યા નહીં. કૃપા કરી ફરી પ્રયાસ કરો.",
           tryAgain: "ફરી પ્રયાસ કરો",
           checkAgain: "ફરી તપાસો",
-          previewBadge: "પ્રીવ્યૂ",
-          previewLockedTitle: "સંપૂર્ણ અહેવાલ અનલૉક કરો",
-          previewLockedBody: "હમણાં ખરીદો અને કોઈપણ વધારાની રાહ જોયા વિના બાકીના તમામ ભાગો તરત જુઓ.",
         },
         facts: {
           level: { high: "ઉચ્ચ", medium: "મધ્યમ", low: "નીચું", none: "સૂચવેલ નથી" },

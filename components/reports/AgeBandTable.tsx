@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import AgeBandHeatStrip from "./AgeBandHeatStrip";
+import ConfidenceLegend from "./ConfidenceLegend";
 import type { AgeBand } from "@/lib/report-score-facts";
 
 /**
@@ -43,6 +44,7 @@ export default function AgeBandTable({ bands }: { bands: AgeBand[] }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <ConfidenceLegend />
       <Card className="p-3">
         <AgeBandHeatStrip bands={bands} />
       </Card>

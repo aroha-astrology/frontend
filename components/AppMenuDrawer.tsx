@@ -15,6 +15,7 @@ import {
   Globe,
   MessageCircle,
   Wallet,
+  FileText,
   HelpCircle,
   Settings,
   LogOut,
@@ -221,6 +222,12 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   icon={<Wallet size={16} />}
                   label={t("menu.transactionHistory")}
                   href="/profile/orders"
+                  onClick={onClose}
+                />
+                <ListRow
+                  icon={<FileText size={16} />}
+                  label={t("menu.myReports")}
+                  href="/reports/history"
                   onClick={onClose}
                 />
                 <ListRow

@@ -124,6 +124,21 @@ export type ReportDetailResult =
 /** GET /v1/reports/stats — real ready generation count per report key, cached server-side ~5 min. */
 export type ReportStatsResponse = Record<string, number>;
 
+/** One row of GET /v1/reports/history — the user's own report across ANY type, flat and
+ * cross-type-ordered (unlike the catalogue's `purchases`, which are grouped per report type). */
+export interface ReportHistoryEntry {
+  id: string;
+  reportKey: string;
+  label: string;
+  status: ReportPurchaseStatus;
+  periodMonth: string | null;
+  createdAt: string;
+}
+
+export interface ReportHistoryResponse {
+  reports: ReportHistoryEntry[];
+}
+
 export const reportsApi = {
   /** The 10-report catalogue for the currently active profile. */
   catalogue: () => request<ReportCatalogueResponse>("/v1/reports", { auth: true }),
@@ -147,4 +162,7 @@ export const reportsApi = {
 
   /** Real generated-report counts per key, across all users — never hardcode this client-side. */
   stats: () => request<ReportStatsResponse>("/v1/reports/stats", { auth: true }),
+
+  /** The user's own past reports across every report type, newest first — powers "My Reports". */
+  history: () => request<ReportHistoryResponse>("/v1/reports/history", { auth: true }),
 };

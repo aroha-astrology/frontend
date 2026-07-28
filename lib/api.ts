@@ -76,6 +76,9 @@ export interface Notification {
   title: string;
   body: string;
   type: string;
+  /** Where tapping this notification should navigate to, e.g. '/reports/abc123'. Null for
+   * notifications with nothing to deep-link to. */
+  link: string | null;
   readAt: string | null;
   createdAt: string;
 }
@@ -964,10 +967,12 @@ export const api = {
     const params = new URLSearchParams({ year: String(year), month: String(month) });
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
-    return request<{ year: number; month: number; days: PanchangMonthDay[] }>(
-      `/v1/panchang/month?${params.toString()}`,
-      { auth: true },
-    );
+    return request<{
+      year: number;
+      month: number;
+      days: PanchangMonthDay[];
+      regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+    }>(`/v1/panchang/month?${params.toString()}`, { auth: true });
   },
 
   /** Request a Vedic timing analysis for a major purchase — returns immediately with a planId to poll. */

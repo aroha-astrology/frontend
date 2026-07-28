@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import TimingWindowsGantt from "./TimingWindowsGantt";
+import ConfidenceLegend from "./ConfidenceLegend";
 import type { RankedWindow } from "@/lib/report-score-facts";
 
 /**
@@ -55,6 +56,7 @@ export default function TimingWindowsCard({ windows }: { windows: RankedWindow[]
 
   return (
     <div className="flex flex-col gap-3">
+      <ConfidenceLegend />
       <Card className="p-3">
         <TimingWindowsGantt windows={windows} />
       </Card>

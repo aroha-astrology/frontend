@@ -8,11 +8,13 @@ import {
   isDecadeBandArray,
   isArchetype,
   isDoshaYogaSummary,
+  isKootaBreakdownArray,
   type RankedWindow,
   type AgeBand,
   type DecadeBand,
   type Archetype,
   type DoshaYogaSummary,
+  type KootaEntry,
 } from "./report-score-facts";
 
 describe("humanizeKey", () => {
@@ -307,6 +309,40 @@ describe("isDoshaYogaSummary / doshaYoga classification", () => {
 
   it("does not misclassify a plain nested object without positives/cautions", () => {
     expect(isDoshaYogaSummary({ isManglik: false, cancelled: true })).toBe(false);
+  });
+});
+
+describe("isKootaBreakdownArray / kootaBreakdown classification", () => {
+  const sampleKootaBreakdown: KootaEntry[] = [
+    { name: "Varna", score: 1, maxScore: 1, description: "Matched" },
+    { name: "Nadi", score: 0, maxScore: 8, description: "Same Nadi — a red flag" },
+  ];
+
+  it("classifies a KootaEntry[] as a kootaBreakdown fact under both known field names", () => {
+    expect(isKootaBreakdownArray(sampleKootaBreakdown)).toBe(true);
+
+    for (const fieldName of ["gunaBreakdown", "dashakootaBreakdown"]) {
+      const facts = buildScoreFacts({ [fieldName]: sampleKootaBreakdown });
+      expect(facts).toHaveLength(1);
+      expect(facts[0].type).toBe("kootaBreakdown");
+      if (facts[0].type === "kootaBreakdown") {
+        expect(facts[0].entries).toEqual(sampleKootaBreakdown);
+      }
+    }
+  });
+
+  it("is not misclassified by, and does not misclassify, the other 3 array shapes", () => {
+    expect(isRankedWindowArray(sampleKootaBreakdown)).toBe(false);
+    expect(isAgeBandArray(sampleKootaBreakdown)).toBe(false);
+    expect(isDecadeBandArray(sampleKootaBreakdown)).toBe(false);
+
+    expect(isKootaBreakdownArray([sampleWindow])).toBe(false);
+    expect(isKootaBreakdownArray([sampleAgeBand])).toBe(false);
+    expect(isKootaBreakdownArray([sampleDecadeBand])).toBe(false);
+  });
+
+  it("does not misclassify a plain string array", () => {
+    expect(isKootaBreakdownArray(["Aa", "Ii", "Ee"])).toBe(false);
   });
 });
 

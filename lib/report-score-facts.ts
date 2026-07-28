@@ -217,6 +217,15 @@ export interface DoshaYogaSummary {
   cautions: { label: string; detail: string }[];
 }
 
+/** Guna/koota compatibility breakdown — `gunaBreakdown` (36-point Ashtakoota) or
+ * `dashakootaBreakdown` (10-point Dashakoota) on kundli_milan/match_report. */
+export interface KootaEntry {
+  name: string;
+  score: number;
+  maxScore: number;
+  description: string;
+}
+
 export interface TimingWindowsFact {
   key: string;
   label: string;
@@ -246,6 +255,12 @@ export interface DoshaYogaFact {
   label: string;
   type: "doshaYoga";
   summary: DoshaYogaSummary;
+}
+export interface KootaBreakdownFact {
+  key: string;
+  label: string;
+  type: "kootaBreakdown";
+  entries: KootaEntry[];
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -329,6 +344,20 @@ export function isDoshaYogaSummary(v: unknown): v is DoshaYogaSummary {
   return isLabelDetailArray(v.positives) && isLabelDetailArray(v.cautions);
 }
 
+/** Distinguished from the other 4 array shapes by requiring `maxScore` AND `description` on
+ * every item — none of RankedWindow/AgeBand/DecadeBand carry either field. */
+export function isKootaBreakdownArray(v: unknown): v is KootaEntry[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.name === "string" &&
+      typeof item.score === "number" &&
+      typeof item.maxScore === "number" &&
+      typeof item.description === "string"
+  );
+}
+
 export type ScoreFact =
   | RingFact
   | BadgeFact
@@ -339,7 +368,8 @@ export type ScoreFact =
   | AgeBandsFact
   | ArchetypeFact
   | DecadeArcFact
-  | DoshaYogaFact;
+  | DoshaYogaFact
+  | KootaBreakdownFact;
 
 /**
  * Classifies one `scores` entry. Returns `null` for a value that shouldn't
@@ -371,6 +401,9 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   }
   if (isDoshaYogaSummary(value)) {
     return { key, label, type: "doshaYoga", summary: value };
+  }
+  if (isKootaBreakdownArray(value)) {
+    return { key, label, type: "kootaBreakdown", entries: value };
   }
 
   if (typeof value === "boolean") {

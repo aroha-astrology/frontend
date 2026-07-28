@@ -3,13 +3,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { api, type PanchangMonthDay } from "@/lib/api";
+import { api, type PanchangMonthDay, type PanchangRegionalMonth } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import { getFestivalsForDate } from "@/lib/panchang/hindu-festivals";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import type { RegionId } from "@/lib/panchang/regions";
 
-/** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). */
+/** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). "v2": bumped alongside adding regionalMonths to this response — without it, a pre-existing cached entry from before that change would keep being served (same key) with no regional data, forever. */
 const PANCHANG_MONTH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface MonthlyPanchangCalendarProps {
@@ -17,22 +18,31 @@ interface MonthlyPanchangCalendarProps {
   onSelectDate: (date: string) => void;
   lat?: number;
   lon?: number;
+  /** Which regional lunar/solar calendar convention to show alongside the Gregorian month —
+   * derived from the app's current language (see app/panchang/page.tsx), not user-selected. */
+  region: RegionId;
 }
 
-const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+interface PanchangMonthCache {
+  days: PanchangMonthDay[];
+  regionalMonths: Record<RegionId, PanchangRegionalMonth> | null;
+}
 
 export default function MonthlyPanchangCalendar({
   selectedDate,
   onSelectDate,
   lat,
   lon,
+  region,
 }: MonthlyPanchangCalendarProps) {
   const { t } = useTranslation();
+  const weekdayLabels = t("horoscope.panchang.weekdayShort", { returnObjects: true }) as string[];
   const [cursor, setCursor] = useState(() => {
     const [y, m] = selectedDate.split("-").map(Number);
     return { year: y, month: m }; // month is 1-12
   });
   const [days, setDays] = useState<PanchangMonthDay[] | null>(null);
+  const [regionalMonths, setRegionalMonths] = useState<Record<RegionId, PanchangRegionalMonth> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,14 +53,16 @@ export default function MonthlyPanchangCalendar({
     // shown — every day in a requested month is immutable once computed.
     const cacheKey = buildKey(
       "panchangMonth",
+      "v2",
       cursor.year,
       cursor.month,
       lat != null ? roundCoord(lat) : undefined,
       lon != null ? roundCoord(lon) : undefined,
     );
-    const cached = cacheGet<PanchangMonthDay[]>(cacheKey);
+    const cached = cacheGet<PanchangMonthCache>(cacheKey);
     if (cached) {
-      setDays(cached);
+      setDays(cached.days);
+      setRegionalMonths(cached.regionalMonths);
       setLoading(false);
       return;
     }
@@ -59,12 +71,20 @@ export default function MonthlyPanchangCalendar({
       .panchangMonth(cursor.year, cursor.month, lat, lon)
       .then((res) => {
         if (!cancelled) {
-          setDays(res.days);
-          cacheSet(cacheKey, res.days, Date.now() + PANCHANG_MONTH_TTL_MS);
+          const entry: PanchangMonthCache = {
+            days: res.days,
+            regionalMonths: (res.regionalMonths as Record<RegionId, PanchangRegionalMonth>) ?? null,
+          };
+          setDays(entry.days);
+          setRegionalMonths(entry.regionalMonths);
+          cacheSet(cacheKey, entry, Date.now() + PANCHANG_MONTH_TTL_MS);
         }
       })
       .catch(() => {
-        if (!cancelled) setDays(null);
+        if (!cancelled) {
+          setDays(null);
+          setRegionalMonths(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -118,6 +138,9 @@ export default function MonthlyPanchangCalendar({
     timeZone: "UTC",
   });
 
+  const regionalMonth = regionalMonths?.[region];
+  const regionalLabel = regionalMonth ? `${regionalMonth.monthName} ${regionalMonth.year}` : null;
+
   return (
     <Card className="p-4 border-gold/10">
       <div className="flex items-center justify-between mb-3">
@@ -130,8 +153,12 @@ export default function MonthlyPanchangCalendar({
           >
             <ChevronLeft size={14} />
           </button>
-          <button onClick={goToday} className="px-2 py-1 rounded-lg text-[10px] font-semibold text-gold hover:bg-gold/10">
-            {monthLabel}
+          <button
+            onClick={goToday}
+            className="px-2 py-1 rounded-lg text-[10px] font-semibold text-gold hover:bg-gold/10 flex flex-col items-center leading-tight"
+          >
+            <span>{monthLabel}</span>
+            {regionalLabel && <span className="text-emerald-400">{regionalLabel}</span>}
           </button>
           <button
             onClick={() => goToMonth(1)}
@@ -144,7 +171,7 @@ export default function MonthlyPanchangCalendar({
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-1">
-        {WEEKDAY_LABELS.map((w, i) => (
+        {weekdayLabels.map((w, i) => (
           <p key={i} className="text-center text-[9px] text-muted uppercase">
             {w}
           </p>
@@ -206,11 +233,11 @@ export default function MonthlyPanchangCalendar({
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[9px] text-muted justify-center border-t border-gold/10 pt-3">
-         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-red-500/20 border border-red-500/40" /> Adhik Maas</div>
-         <div className="flex items-center gap-1.5"><span>🌕</span> Purnima</div>
-         <div className="flex items-center gap-1.5"><span>🌑</span> Amavasya</div>
-         <div className="flex items-center gap-1.5"><span>🪷</span> Ekadashi</div>
-         <div className="flex items-center gap-1.5"><span>✨</span> Festival</div>
+         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-red-500/20 border border-red-500/40" /> {t("horoscope.panchang.legend.adhikMaas")}</div>
+         <div className="flex items-center gap-1.5"><span>🌕</span> {t("horoscope.panchang.legend.purnima")}</div>
+         <div className="flex items-center gap-1.5"><span>🌑</span> {t("horoscope.panchang.legend.amavasya")}</div>
+         <div className="flex items-center gap-1.5"><span>🪷</span> {t("horoscope.panchang.legend.ekadashi")}</div>
+         <div className="flex items-center gap-1.5"><span>✨</span> {t("horoscope.panchang.legend.festival")}</div>
       </div>
 
       {keyDates.length > 0 && (
@@ -223,7 +250,13 @@ export default function MonthlyPanchangCalendar({
               const festivals = getFestivalsForDate(d.isoDate);
               const label =
                 festivals[0]?.name ??
-                (d.isFullMoon ? "Purnima" : d.isNewMoon ? "Amavasya" : d.isEkadashi ? "Ekadashi" : d.tithiName);
+                (d.isFullMoon
+                  ? t("horoscope.panchang.legend.purnima")
+                  : d.isNewMoon
+                    ? t("horoscope.panchang.legend.amavasya")
+                    : d.isEkadashi
+                      ? t("horoscope.panchang.legend.ekadashi")
+                      : d.tithiName);
               return (
                 <button
                   key={d.isoDate}

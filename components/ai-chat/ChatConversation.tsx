@@ -439,7 +439,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, []);
 
   return (
-    <main className="h-[100dvh] overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
+    <main className="h-[calc(100dvh-var(--topbar-h))] overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
       {/* Header — the astrologer's identity. A plain flex child, not
           `sticky`: `main` itself never scrolls (see `overflow-hidden`
           above), so it has no scrolling ancestor for `sticky` to stick

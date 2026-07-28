@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { BellOff, Bell } from "lucide-react";
@@ -10,9 +11,10 @@ import { api, type Notification } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 
 /**
- * Bottom sheet opened from the home top-bar bell icon. There's no
- * notifications backend yet, so this always shows the empty state — but the
- * button is wired up rather than doing nothing on tap.
+ * Bottom sheet opened from the home top-bar bell icon — fetches the user's
+ * persisted notification inbox (GET /v1/me/notifications) and marks it read
+ * on open. Tapping a row with a `link` navigates there and closes the sheet,
+ * same deep-link the OS push for that same notification would have opened.
  *
  * Uses the shared BottomSheetModal (portal to document.body) rather than its
  * own `fixed inset-0`: this component is rendered from inside TopBar, which
@@ -24,6 +26,7 @@ import { formatDistanceToNow } from "date-fns";
  */
 export default function NotificationsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -67,17 +70,31 @@ export default function NotificationsSheet({ open, onClose }: { open: boolean; o
               </div>
             ) : (
               <div className="flex flex-col divide-y divide-gold/10">
-                {notifications.map((n) => (
-                  <div key={n.id} className="py-4 flex flex-col gap-1">
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-medium text-foreground text-[15px]">{n.title}</h3>
-                      <span className="text-xs text-muted shrink-0">
-                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted">{n.body}</p>
-                  </div>
-                ))}
+                {notifications.map((n) => {
+                  const Row = n.link ? "button" : "div";
+                  return (
+                    <Row
+                      key={n.id}
+                      className={`py-4 flex flex-col gap-1 text-left w-full ${n.link ? "hover:bg-gold/5 active:bg-gold/10 transition-colors -mx-1 px-1 rounded-lg" : ""}`}
+                      {...(n.link
+                        ? {
+                            onClick: () => {
+                              onClose();
+                              router.push(n.link as string);
+                            },
+                          }
+                        : {})}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-medium text-foreground text-[15px]">{n.title}</h3>
+                        <span className="text-xs text-muted shrink-0">
+                          {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted">{n.body}</p>
+                    </Row>
+                  );
+                })}
               </div>
             )}
           </div>

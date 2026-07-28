@@ -15,7 +15,7 @@ import TithiHero from "@/components/panchang/TithiHero";
 import SunMoonTimings from "@/components/panchang/SunMoonTimings";
 import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import AuspiciousDays from "@/components/panchang/AuspiciousDays";
-import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
+import { REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { isCurrentlyActive } from "@/lib/panchang/time-window";
@@ -27,6 +27,21 @@ const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 /** Delhi/NCR — the same national reference point GET /astro/panchang defaults to server-side. */
 const REFERENCE_LAT = 28.6139;
 const REFERENCE_LON = 77.209;
+
+/** Which regional lunar/solar calendar convention to show alongside the Gregorian month —
+ * derived from the app's own selected language rather than a manual direction toggle (removed:
+ * "North/South/West/East" read as compass directions to users, when this has only ever been
+ * about which calendar-naming convention to display). Telugu and Tamil both map to "south" —
+ * there's no separate region for them in the underlying regional.ts calculation, which only
+ * models 4 conventions (Vikram Samvat, Shalivahana Shaka x2 spellings, Bengali San). */
+const LANGUAGE_TO_REGION: Record<string, RegionId> = {
+  hi: "north",
+  bn: "east",
+  mr: "west",
+  gu: "west",
+  te: "south",
+  ta: "south",
+};
 
 function FactCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -68,7 +83,7 @@ export default function PanchangPage() {
   const geo = useGeolocation();
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [region, setRegion] = useState<RegionId>("north");
+  const region: RegionId = LANGUAGE_TO_REGION[i18n.language] ?? "north";
 
   const [refData, setRefData] = useState<PanchangData | null>(null);
   const [refState, setRefState] = useState<"loading" | "ready" | "unavailable">("loading");
@@ -216,7 +231,6 @@ export default function PanchangPage() {
   }, [pollingId]);
 
   const regionMeta = REGION_META[region];
-  const regionalMonth = data?.regionalMonths?.[region];
   const adhik = findAdhikMaas(selectedDate);
 
   // Share text for PanchangHeader's native-share button — a plain-text
@@ -262,6 +276,12 @@ export default function PanchangPage() {
           </div>
           {geo.status === "denied" && <span className="text-[11px] text-muted">{t("horoscope.panchang.locationDenied")}</span>}
         </div>
+        {geo.status === "requesting" && (
+          <p className="mt-2 text-[11px] text-gold flex items-center gap-1.5">
+            <span className="w-3 h-3 border-2 border-gold/40 border-t-gold rounded-full animate-spin shrink-0" />
+            {t("horoscope.panchang.findingLocation")}
+          </p>
+        )}
         {geo.status === "idle" && <p className="mt-2 text-[11px] text-muted">{t("horoscope.panchang.locationHint")}</p>}
         {geo.status === "granted" && geo.locationName && (
           <p className="mt-2 text-[11px] text-muted flex items-center gap-1">
@@ -269,46 +289,25 @@ export default function PanchangPage() {
           </p>
         )}
 
-        {/* Regional calendar + Adhik Maas */}
-        <div className="mt-4 flex items-center gap-2 flex-wrap">
-          <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
-            {REGION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setRegion(opt.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  region === opt.value ? "bg-gold text-[#1a0e00]" : "text-muted"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <Card className="mt-2 p-3.5 border-gold/10 flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <p className="text-[10px] text-muted uppercase tracking-wider">{regionMeta.calendarName}</p>
-            <p className="text-sm text-foreground font-medium mt-0.5">
-              {regionalMonth ? `${adhik ? "Adhik " : ""}${regionalMonth.monthName} ${regionalMonth.year}` : "—"}
-              {regionalMonth?.paksha && (
-                <span className="text-muted"> · {regionalMonth.paksha === "shukla" ? "Shukla" : "Krishna"} Paksha</span>
-              )}
-            </p>
-          </div>
-          {adhik && (
+        {/* Adhik Maas banner — a specific-day fact (unlike the calendar's own regional month/year
+            header below, which is a whole-month label), so it stays keyed off selectedDate here. */}
+        {adhik && (
+          <Card className="mt-4 p-3.5 border-gold/10 flex items-center justify-between flex-wrap gap-2">
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-red-500/10 border border-red-500/25 text-red-400">
               🚫 {regionMeta.adhikMaasName} · {t("horoscope.panchang.adhikMaasAvoid")}
             </span>
-          )}
-        </Card>
+          </Card>
+        )}
 
-        {/* Monthly calendar */}
+        {/* Monthly calendar — shows the regional month/year (derived from app language, see
+            LANGUAGE_TO_REGION) stacked under the Gregorian month in its own header. */}
         <div className="mt-4">
           <MonthlyPanchangCalendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             lat={source === "mine" ? geo.coords?.lat : undefined}
             lon={source === "mine" ? geo.coords?.lon : undefined}
+            region={region}
           />
         </div>
 

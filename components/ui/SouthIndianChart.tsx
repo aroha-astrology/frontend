@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 type Planet = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu';
 
 interface PlanetPosition {
@@ -31,14 +33,16 @@ const PLANET_GLYPHS: Record<Planet, string> = {
   Jupiter: '♃', Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋',
 };
 
-const PLANET_ABBR: Record<Planet, string> = {
-  Sun: 'Su', Moon: 'Mo', Mars: 'Ma', Mercury: 'Me',
-  Jupiter: 'Ju', Venus: 'Ve', Saturn: 'Sa', Rahu: 'Ra', Ketu: 'Ke',
+/** Maps a Planet's English key to the i18n `kundli.chart.planetAbbr` object key — see
+ * NorthIndianChart.tsx's identical constant/comment (both charts share the same i18n copy). */
+const PLANET_ABBR_KEY: Record<Planet, string> = {
+  Sun: 'sun', Moon: 'moon', Mars: 'mars', Mercury: 'mercury',
+  Jupiter: 'jupiter', Venus: 'venus', Saturn: 'saturn', Rahu: 'rahu', Ketu: 'ketu',
 };
 
-function getPlanetLabel(planet: Planet, isRetrograde: boolean): string {
+function getPlanetLabel(planet: Planet, isRetrograde: boolean, abbrMap: Record<string, string>): string {
   const glyph = PLANET_GLYPHS[planet] ?? '';
-  const abbr = PLANET_ABBR[planet] || planet.slice(0, 2);
+  const abbr = abbrMap[PLANET_ABBR_KEY[planet]] || planet.slice(0, 2);
   const base = glyph ? `${glyph} ${abbr}` : abbr;
   return isRetrograde ? `${base}(R)` : base;
 }
@@ -66,15 +70,19 @@ const SI_STARS = [
 export default function SouthIndianChart({
   chartData,
   ascendantHouse = 1,
-  title = 'Rashi Chart',
+  title,
   onHouseClick,
 }: SouthIndianChartProps) {
+  const { t } = useTranslation();
   const { houses, planets } = chartData;
+  const resolvedTitle = title ?? t('kundli.chart.rashiChartTitle');
+  const southIndianLabel = t('kundli.chart.southIndianLabel');
+  const planetAbbr = t('kundli.chart.planetAbbr', { returnObjects: true }) as Record<string, string>;
 
   const signPlanets: Record<number, string[]> = {};
   for (let i = 0; i < 12; i++) signPlanets[i] = [];
   planets.forEach((p) => {
-    const label = getPlanetLabel(p.planet, p.isRetrograde);
+    const label = getPlanetLabel(p.planet, p.isRetrograde, planetAbbr);
     if (signPlanets[p.signIndex] !== undefined) signPlanets[p.signIndex].push(label);
   });
 
@@ -83,7 +91,7 @@ export default function SouthIndianChart({
   const totalSize = CELL * 4 + PAD * 2;
 
   return (
-    <svg viewBox={`0 0 ${totalSize} ${totalSize}`} className="w-full max-w-[400px]" role="img" aria-label={title}>
+    <svg viewBox={`0 0 ${totalSize} ${totalSize}`} className="w-full max-w-[400px]" role="img" aria-label={resolvedTitle}>
       <defs>
         <radialGradient id="siCenterGrad" cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="rgba(212,175,55,0.06)" />
@@ -160,12 +168,12 @@ export default function SouthIndianChart({
       <text x={PAD + CELL * 2} y={PAD + CELL * 2 - 6} textAnchor="middle"
         fill="rgba(212,175,55,0.65)" fontSize="11" fontWeight="600"
         fontFamily="Cinzel, Georgia, serif" letterSpacing="1">
-        {title.toUpperCase()}
+        {resolvedTitle.toUpperCase()}
       </text>
       <text x={PAD + CELL * 2} y={PAD + CELL * 2 + 10} textAnchor="middle"
         fill="rgba(60,72,88,0.25)" fontSize="7" letterSpacing="1.5"
         fontFamily="Cinzel, Georgia, serif">
-        SOUTH INDIAN
+        {southIndianLabel}
       </text>
     </svg>
   );

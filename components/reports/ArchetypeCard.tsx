@@ -10,10 +10,12 @@ import type { Archetype } from "@/lib/report-score-facts";
  * TraitTiltBars.tsx) — the bars ARE the trait list, just visualized as a
  * real chart instead of a plain progress-bar list, so there's no separate
  * plain-text trait list duplicating the same 5 labels alongside it.
- * Traits/description are LLM-authored copy, not UI chrome, so (like
- * lib/report-score-facts.ts's nested-fact values) they render as-is,
- * untranslated — matching this app's existing precedent for dynamic
- * LLM-adjacent content (see components/vastu/AnalysisPanel.tsx).
+ * `label`/`description`/`traits[].label` are a fixed, deterministic template
+ * (see report-archetype.ts's computeArchetype — no LLM call), rendered as-is
+ * because the backend already translates them server-side for non-English
+ * requests (see SCORES_PROSE_ALLOWLIST in jyotish-backend's
+ * lib/llm/report-scores.ts), same translate-on-read pattern as everything
+ * else in a report.
  */
 export default function ArchetypeCard({ archetype }: { archetype: Archetype }) {
   return (

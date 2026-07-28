@@ -11,8 +11,11 @@ import type { DoshaYogaSummary } from "@/lib/report-score-facts";
  * than inventing a new one: CheckCircle2/emerald for a positive and
  * AlertTriangle/amber for a caution mirror components/vastu/AnalysisPanel.tsx's
  * `positiveAspects` (CheckCircle2, emerald-400) and `cautions` (amber-400)
- * sections. Positives/cautions detail text is LLM-authored copy, not UI
- * chrome, so it renders as-is, untranslated — same precedent as ArchetypeCard.
+ * sections. `label`/`detail` here are deterministic astro-engine output, not
+ * LLM prose (see report-dosha-yoga-summary.ts) — rendered as-is because the
+ * backend already translates them server-side for non-English requests (see
+ * SCORES_PROSE_ALLOWLIST in jyotish-backend's lib/llm/report-scores.ts), same
+ * translate-on-read pattern as everything else in a report's `sections`.
  */
 export default function DoshaYogaPanel({ summary }: { summary: DoshaYogaSummary }) {
   const { t } = useTranslation();

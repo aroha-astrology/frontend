@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { buildScoreFacts, type ScoreFact, type NestedEntry } from "@/lib/report-score-facts";
+import { buildScoreFacts, SCORE_FACT_LABEL_KEYS, type ScoreFact, type NestedEntry } from "@/lib/report-score-facts";
 import TimingWindowsCard from "./TimingWindowsCard";
 import AgeBandTable from "./AgeBandTable";
 import ArchetypeCard from "./ArchetypeCard";
@@ -76,6 +76,14 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
   const facts = buildScoreFacts(scores);
   if (facts.length === 0) return null;
 
+  // Falls back to the raw humanizeKey() label (already carried on `f.label`)
+  // for any key not yet in the dictionary — keys are backend/LLM-controlled
+  // and not fully enumerable, see report-score-facts.ts's doc comment.
+  const labelFor = (f: ScoreFact) => {
+    const i18nKey = SCORE_FACT_LABEL_KEYS[f.key];
+    return i18nKey ? t(i18nKey) : f.label;
+  };
+
   const gridFacts = facts.filter((f): f is SimpleFact => isSimpleFact(f) && !isLongNestedFact(f));
   const longNestedFacts = facts.filter(isLongNestedFact);
   const richFacts = facts.filter((f): f is RichFact => !isSimpleFact(f));
@@ -86,7 +94,7 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
         <div className="grid grid-cols-2 gap-3">
           {gridFacts.map((f) => (
             <div key={f.key} className="rounded-2xl border border-gold/15 bg-card p-3 flex flex-col gap-1.5 min-w-0">
-              <span className="text-[10px] uppercase tracking-wider text-muted truncate">{f.label}</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted break-words">{labelFor(f)}</span>
 
               {f.type === "ring" && <ScoreRing value={f.value} max={f.max} pct={f.pct} />}
 
@@ -116,7 +124,7 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
 
       {longNestedFacts.map((f) => (
         <div key={f.key} className="rounded-2xl border border-gold/15 bg-card p-3 flex flex-col gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-muted truncate">{f.label}</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted break-words">{labelFor(f)}</span>
           <div className="flex flex-col gap-0.5">
             <NestedEntryRows entries={f.entries} />
           </div>
@@ -125,7 +133,7 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
 
       {richFacts.map((f) => (
         <div key={f.key} className="flex flex-col gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-muted">{f.label}</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted">{labelFor(f)}</span>
 
           {f.type === "timingWindows" && <TimingWindowsCard windows={f.windows} />}
           {f.type === "ageBands" && <AgeBandTable bands={f.bands} />}

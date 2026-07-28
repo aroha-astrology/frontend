@@ -757,6 +757,8 @@ export interface VastuAnalyzeBody {
   houseShape?: string;
   /** The full editable CAD plan, stored for reload. */
   layout?: Record<string, unknown>;
+  /** UI language to generate the AI remedies in — backend defaults to 'en' if omitted. */
+  language?: string;
 }
 
 export interface VastuPlan {
@@ -907,7 +909,8 @@ export const api = {
    *   - "missing_parameters" → 422, birth fields absent
    * Unexpected status codes still throw `ApiError`.
    */
-  getKundli: () => kundliRequest("GET", "/v1/kundli"),
+  getKundli: (language?: string) =>
+    kundliRequest("GET", `/v1/kundli${language ? `?language=${encodeURIComponent(language)}` : ""}`),
 
   /**
    * Current user's personalized horoscope. Returns a discriminated union —
@@ -992,9 +995,9 @@ export const api = {
   vastuGet: (id: string, language?: string) =>
     request<VastuPlan>(`/v1/vastu/${id}${language ? `?language=${language}` : ""}`, { auth: true }),
 
-  /** Ask one free follow-up question about a completed Vastu report. */
-  vastuAsk: (id: string, question: string) =>
-    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question }, auth: true }),
+  /** Ask one free follow-up question about a completed Vastu report — answered directly in `language` (defaults to the plan's original generation language server-side). */
+  vastuAsk: (id: string, question: string, language?: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question, language }, auth: true }),
 
   /** Delete a Vastu plan. */
   vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),
@@ -1011,7 +1014,7 @@ export const api = {
    * swagger guidance). 422 (missing parameters) is returned immediately — no
    * point polling, the user has to complete their profile first.
    */
-  pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
+  pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {}) =>
     pollKundli(opts),
 
   /** Purchasable top-up amounts. */
@@ -1096,14 +1099,15 @@ async function kundliRequest(method: "GET" | "POST", path: string): Promise<Kund
 }
 
 async function pollKundli(
-  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
 ): Promise<KundliResult> {
   const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  const path = `/v1/kundli${opts.language ? `?language=${encodeURIComponent(opts.language)}` : ""}`;
   let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
-    const r = await kundliRequest("GET", "/v1/kundli");
+    const r = await kundliRequest("GET", path);
     if (r.status !== "pending" && r.status !== "generating") return r;
     const delay = nextPollDelay(attempt++, { baseMs });
     if (Date.now() + delay > deadline) return r; // give up but surface latest pending state

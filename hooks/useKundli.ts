@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, type Kundli, type KundliResponse } from "@/lib/api";
 import { nextPollDelay } from "@/lib/poll-backoff";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
@@ -28,6 +29,8 @@ const SWR_TTL_MS = 7 * 24 * 60 * 60 * 1000;
  */
 export function useKundli(enabled: boolean = true) {
   const { user, activeProfile } = useAuth();
+  const { i18n } = useTranslation();
+  const language = i18n.language;
   const [kundli, setKundli] = useState<Kundli | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +50,7 @@ export function useKundli(enabled: boolean = true) {
 
     let attempt = 0;
 
-    const cacheKey = user ? buildKey("kundli", user.id, activeProfile?.id ?? "primary") : null;
+    const cacheKey = user ? buildKey("kundli", user.id, activeProfile?.id ?? "primary", language) : null;
     const cached = cacheKey ? cacheGet<Kundli>(cacheKey) : null;
     if (cached) {
       setKundli(cached);
@@ -57,7 +60,7 @@ export function useKundli(enabled: boolean = true) {
     async function poll() {
       if (cancelled.current) return;
       try {
-        const result: KundliResponse = await api.getKundli();
+        const result: KundliResponse = await api.getKundli(language);
         if (cancelled.current) return;
 
         if (result.status === "ready") {
@@ -90,7 +93,7 @@ export function useKundli(enabled: boolean = true) {
       cancelled.current = true;
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [enabled, activeProfile?.id, user?.id]);
+  }, [enabled, activeProfile?.id, user?.id, language]);
 
   return { kundli, loading, error };
 }

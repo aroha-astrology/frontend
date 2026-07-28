@@ -43,6 +43,64 @@ export function humanizeKey(key: string): string {
   return titleCase(toWords(key));
 }
 
+/**
+ * Known `scores` keys, mapped to i18n keys under `reportScores.label.*`, for
+ * the report types with the highest traffic (marriage, kundli_milan,
+ * match_report) plus the fields shared by all 4 monthly report types
+ * (career/finance/health/relationship). Anything not listed here — including
+ * the report-specific fields of the lower-traffic report types (numerology,
+ * baby_name, name_change, past_life, wealth, true_love) — falls back to
+ * `humanizeKey(key)` (English title-case) at the call site, same as before
+ * this dictionary existed. Extend this incrementally rather than attempting
+ * every report type's full key set at once — see this module's top doc
+ * comment for why keys aren't a fully enumerable, stable set to begin with.
+ */
+export const SCORE_FACT_LABEL_KEYS: Record<string, string> = {
+  // marriage
+  marriageScore: "reportScores.label.marriageScore",
+  band: "reportScores.label.band",
+  manglik: "reportScores.label.manglik",
+  seventhLord: "reportScores.label.seventhLord",
+  seventhLordStrength: "reportScores.label.seventhLordStrength",
+  venusStrength: "reportScores.label.venusStrength",
+  venusHouse: "reportScores.label.venusHouse",
+  jupiterStrength: "reportScores.label.jupiterStrength",
+  jupiterHouse: "reportScores.label.jupiterHouse",
+  seventhHouseSign: "reportScores.label.seventhHouseSign",
+  seventhHouseTemperament: "reportScores.label.seventhHouseTemperament",
+  fourthLordStrength: "reportScores.label.fourthLordStrength",
+  jupiterDharmaWindow: "reportScores.label.jupiterDharmaWindow",
+  seventhLordReason: "reportScores.label.seventhLordReason",
+  venusReason: "reportScores.label.venusReason",
+  jupiterReason: "reportScores.label.jupiterReason",
+  doshaYoga: "reportScores.label.doshaYoga",
+  partnerArchetype: "reportScores.label.partnerArchetype",
+  marriageQualityArc: "reportScores.label.marriageQualityArc",
+  inLaws: "reportScores.label.inLaws",
+  moneyAfterMarriage: "reportScores.label.moneyAfterMarriage",
+  modernRealities: "reportScores.label.modernRealities",
+  windows: "reportScores.label.windows",
+  ageBands: "reportScores.label.ageBands",
+  // kundli_milan / match_report
+  gunaMilanScore: "reportScores.label.gunaMilanScore",
+  gunaMaxScore: "reportScores.label.gunaMaxScore",
+  gunaBreakdown: "reportScores.label.gunaBreakdown",
+  dashakootaScore: "reportScores.label.dashakootaScore",
+  dashakootaMaxScore: "reportScores.label.dashakootaMaxScore",
+  dashakootaBreakdown: "reportScores.label.dashakootaBreakdown",
+  manglikStatus: "reportScores.label.manglikStatus",
+  compatibilityBand: "reportScores.label.compatibilityBand",
+  primaryDoshaYoga: "reportScores.label.doshaYoga",
+  riskFactors: "reportScores.label.riskFactors",
+  // shared by all 4 monthly report types (career/finance/health/relationship)
+  periodMonth: "reportScores.label.periodMonth",
+  activeMahadashaLord: "reportScores.label.activeMahadashaLord",
+  activeAntardashaLord: "reportScores.label.activeAntardashaLord",
+  monthScore: "reportScores.label.monthScore",
+  keyHouses: "reportScores.label.keyHouses",
+  tone: "reportScores.label.tone",
+};
+
 /** "steady" -> "Steady", "veryGood" -> "Very Good". */
 export function humanizeValue(value: string): string {
   return titleCase(toWords(value));

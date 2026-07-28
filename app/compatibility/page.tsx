@@ -37,18 +37,18 @@ interface CompatForm {
 const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
 
 /**
- * Maps backend koota names to their display label and i18n meaning key.
+ * Maps backend koota names to their i18n label + meaning keys.
  * Backend emits "GrahaMaitri" but the display label is "Maitri".
  */
-const KOOTA_INFO: Record<string, { label: string; meaningKey: string }> = {
-  Varna:       { label: "Varna",      meaningKey: "compatibilityPage.kootaMeaning.Varna" },
-  Vashya:      { label: "Vashya",     meaningKey: "compatibilityPage.kootaMeaning.Vashya" },
-  Tara:        { label: "Tara",       meaningKey: "compatibilityPage.kootaMeaning.Tara" },
-  Yoni:        { label: "Yoni",       meaningKey: "compatibilityPage.kootaMeaning.Yoni" },
-  GrahaMaitri: { label: "Maitri",     meaningKey: "compatibilityPage.kootaMeaning.GrahaMaitri" },
-  Gana:        { label: "Gana",       meaningKey: "compatibilityPage.kootaMeaning.Gana" },
-  Bhakoot:     { label: "Bhakoot",    meaningKey: "compatibilityPage.kootaMeaning.Bhakoot" },
-  Nadi:        { label: "Nadi",       meaningKey: "compatibilityPage.kootaMeaning.Nadi" },
+const KOOTA_INFO: Record<string, { labelKey: string; meaningKey: string }> = {
+  Varna:       { labelKey: "compatibilityPage.kootaLabel.Varna",       meaningKey: "compatibilityPage.kootaMeaning.Varna" },
+  Vashya:      { labelKey: "compatibilityPage.kootaLabel.Vashya",      meaningKey: "compatibilityPage.kootaMeaning.Vashya" },
+  Tara:        { labelKey: "compatibilityPage.kootaLabel.Tara",        meaningKey: "compatibilityPage.kootaMeaning.Tara" },
+  Yoni:        { labelKey: "compatibilityPage.kootaLabel.Yoni",        meaningKey: "compatibilityPage.kootaMeaning.Yoni" },
+  GrahaMaitri: { labelKey: "compatibilityPage.kootaLabel.GrahaMaitri", meaningKey: "compatibilityPage.kootaMeaning.GrahaMaitri" },
+  Gana:        { labelKey: "compatibilityPage.kootaLabel.Gana",        meaningKey: "compatibilityPage.kootaMeaning.Gana" },
+  Bhakoot:     { labelKey: "compatibilityPage.kootaLabel.Bhakoot",     meaningKey: "compatibilityPage.kootaMeaning.Bhakoot" },
+  Nadi:        { labelKey: "compatibilityPage.kootaLabel.Nadi",        meaningKey: "compatibilityPage.kootaMeaning.Nadi" },
 };
 
 export default function CompatibilityPage() {
@@ -514,7 +514,7 @@ export default function CompatibilityPage() {
                   >
                     <div className="flex justify-between items-start gap-3">
                       <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                        {info?.label ?? koota.name}
+                        {info ? t(info.labelKey) : koota.name}
                       </span>
                       <span className={`text-sm font-bold shrink-0 ${koota.score === 0 ? "text-red-400" : "text-gold"}`}>
                         {koota.score}/{koota.maxScore}

@@ -20,7 +20,7 @@ import { useCompass } from "./useCompass";
 
 const STORAGE_KEY = "vastu_plan";
 
-function buildPayload(plan: Plan) {
+function buildPayload(plan: Plan, language: string) {
   const roomLayout = buildRoomLayout(plan);
   const roomDetails: Record<string, unknown> = {};
   for (const room of plan.rooms) {
@@ -29,11 +29,11 @@ function buildPayload(plan: Plan) {
     if (doors.length) roomDetails[`${room.type}_doors`] = doors;
     if (windows.length) roomDetails[`${room.type}_windows`] = windows;
   }
-  return { roomLayout, roomDetails, houseShape: plotSummary(plan), layout: plan as unknown as Record<string, unknown> };
+  return { roomLayout, roomDetails, houseShape: plotSummary(plan), layout: plan as unknown as Record<string, unknown>, language };
 }
 
 export default function VastuPlanner() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, activeProfile, refresh } = useAuth();
   const CREDIT_COST_PAISE = useFeature("paid.vastu").pricePaise ?? 5000;
   const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
@@ -107,14 +107,14 @@ export default function VastuPlanner() {
     }
     setHistoryLoading(true);
     try {
-      const { plans } = await api.vastuList();
+      const { plans } = await api.vastuList(i18n.language);
       setHistory(plans);
     } catch {
       /* best-effort */
     } finally {
       setHistoryLoading(false);
     }
-  }, [user]);
+  }, [user, i18n.language]);
 
   useEffect(() => {
     void loadHistory();
@@ -139,12 +139,12 @@ export default function VastuPlanner() {
     setActivePlanId(null);
     setAiLoading(true);
     try {
-      const { planId } = await api.vastuAnalyze(buildPayload(plan));
+      const { planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language));
       setActivePlanId(planId);
       void refresh(); // balance dropped by 5
       const deadline = Date.now() + 150_000;
       while (Date.now() < deadline) {
-        const p = await api.vastuGet(planId);
+        const p = await api.vastuGet(planId, i18n.language);
         if (p.status === "done" && p.analysis) {
           // The user may have switched profiles while this was in flight —
           // don't paint a report generated for a different resident.
@@ -166,21 +166,21 @@ export default function VastuPlanner() {
     } finally {
       setAiLoading(false);
     }
-  }, [plan, t, loadHistory, refresh]);
+  }, [plan, t, i18n.language, loadHistory, refresh]);
 
   const onAsk = useCallback(async (question: string) => {
     if (!activePlanId) return;
     setAskError(null);
     setAsking(true);
     try {
-      const updated = await api.vastuAsk(activePlanId, question);
+      const updated = await api.vastuAsk(activePlanId, question, i18n.language);
       if (updated.analysis) setAiResult(updated.analysis as VastuAiResult);
     } catch {
       setAskError(t("vastu.analysis.askError"));
     } finally {
       setAsking(false);
     }
-  }, [activePlanId, t]);
+  }, [activePlanId, t, i18n.language]);
 
   const onViewHistory = useCallback((p: VastuPlan) => {
     if (p.analysis) {

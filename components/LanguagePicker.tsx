@@ -7,14 +7,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LANGUAGES, useLanguage } from "@/providers/language-provider";
 import IconButton from "@/components/ui/IconButton";
 
+type DropdownPos =
+  | { top: number; left: number; maxHeight: number; bottom?: undefined }
+  | { bottom: number; left: number; maxHeight: number; top?: undefined };
+
 export default function LanguagePicker({ align = "right" }: { align?: "left" | "right" }) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [pos, setPos] = useState<DropdownPos | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLUListElement>(null);
 
   const DROPDOWN_WIDTH = 176; // w-44
+  const ITEM_HEIGHT_ESTIMATE = 46; // px-4 py-2.5 + two-line label, matches the row markup below
+  const DROPDOWN_HEIGHT_ESTIMATE = LANGUAGES.length * ITEM_HEIGHT_ESTIMATE + 8;
+  const GAP = 8;
 
   // Recompute the trigger button's screen position each time the dropdown
   // opens — the dropdown itself is portaled to document.body (see render
@@ -22,11 +29,30 @@ export default function LanguagePicker({ align = "right" }: { align?: "left" | "
   // whatever stacking context the button's ancestors happen to be in (e.g.
   // TopBar sits outside PageTransition's animated container, which has
   // repeatedly proven unreliable to out-z-index from within).
+  //
+  // Flips to open upward when there isn't room below (e.g. the trigger sits
+  // near the bottom of the screen on mobile) and more room exists above than
+  // below — otherwise the dropdown would render past the viewport edge with
+  // no way to scroll it into view. Height is a constant estimate rather than
+  // a post-render measurement to avoid an open-then-jump flash.
   useEffect(() => {
     if (!open || !buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    const left = align === "left" ? rect.left : rect.right - DROPDOWN_WIDTH;
-    setPos({ top: rect.bottom + 8, left });
+    const viewportH = window.innerHeight;
+    const viewportW = window.innerWidth;
+
+    const spaceBelow = viewportH - rect.bottom - GAP;
+    const spaceAbove = rect.top - GAP;
+    const openUpward = spaceBelow < DROPDOWN_HEIGHT_ESTIMATE && spaceAbove > spaceBelow;
+
+    let left = align === "left" ? rect.left : rect.right - DROPDOWN_WIDTH;
+    left = Math.max(GAP, Math.min(left, viewportW - DROPDOWN_WIDTH - GAP));
+
+    setPos(
+      openUpward
+        ? { left, bottom: viewportH - rect.top + GAP, maxHeight: Math.max(160, spaceAbove) }
+        : { left, top: rect.bottom + GAP, maxHeight: Math.max(160, spaceBelow) },
+    );
   }, [open, align]);
 
   // Close on outside click — checks both the trigger button and the portaled
@@ -70,8 +96,14 @@ export default function LanguagePicker({ align = "right" }: { align?: "left" | "
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.97 }}
                 transition={{ duration: 0.15 }}
-                style={{ position: "fixed", top: pos.top, left: pos.left, width: DROPDOWN_WIDTH }}
-                className="rounded-2xl border border-gold/20 bg-card shadow-xl overflow-hidden z-[100]"
+                style={{
+                  position: "fixed",
+                  left: pos.left,
+                  width: DROPDOWN_WIDTH,
+                  maxHeight: pos.maxHeight,
+                  ...(pos.top !== undefined ? { top: pos.top } : { bottom: pos.bottom }),
+                }}
+                className="rounded-2xl border border-gold/20 bg-card shadow-xl overflow-y-auto z-[100]"
               >
                 {LANGUAGES.map((l) => {
                   const active = l.code === lang;

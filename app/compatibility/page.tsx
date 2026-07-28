@@ -452,7 +452,7 @@ export default function CompatibilityPage() {
           <div className="flex flex-col items-center text-center gap-3 py-16">
             <AlertTriangle size={28} className="text-red-400" />
             <p className="text-sm font-semibold text-foreground">{t("reports.view.failedTitle")}</p>
-            <p className="text-xs text-muted max-w-xs">{failedError ?? t("reports.view.failedBody")}</p>
+            <p className="text-xs text-muted max-w-xs">{t("reports.view.failedBody")}</p>
             <button
               onClick={() => setReportId(null)}
               className="mt-2 text-sm font-semibold text-gold underline underline-offset-4"

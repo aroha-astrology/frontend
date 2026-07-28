@@ -86,7 +86,7 @@ export default function PalmReadingPage() {
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <AlertTriangle className="text-amber-400" size={28} />
             <p className="text-sm text-foreground">{t("palm.view.failedTitle")}</p>
-            <p className="text-xs text-muted">{failedError ?? t("palm.view.failedBody")}</p>
+            <p className="text-xs text-muted">{t("palm.view.failedBody")}</p>
             <button type="button" onClick={() => router.push("/palm")} className="text-gold text-sm underline">
               {t("common.back")}
             </button>

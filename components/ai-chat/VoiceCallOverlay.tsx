@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { PhoneOff, Loader2 } from "lucide-react";
@@ -15,9 +17,25 @@ import type { VoiceCall } from "@/hooks/useVoiceCall";
  * message worth reading ("3-minute limit reached", "not enough credits"). The
  * session is already gone by then — `call.active` is false — so this renders as
  * a dismissible ended-call card rather than a live call.
+ *
+ * **The portal is load-bearing, not stylistic.** The trigger that renders this
+ * lives inside the chat header's `-translate-y-1/2` wrapper, and a transformed
+ * ancestor becomes the containing block for `position: fixed` descendants — so
+ * rendered in place, `fixed inset-0` resolves against a 40px button box and the
+ * call screen collapses into an unreadable column of text over the header.
+ * (PageTransition's animated `motion.div` is a second such ancestor further up,
+ * which is why the composer bar deliberately avoids `fixed` too.) Escaping to
+ * `document.body` is the only way this reliably covers the viewport; see
+ * BottomSheetModal, which portals for the same reason.
  */
 export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
   const { t } = useTranslation();
+
+  // `document` does not exist during SSR, and portalling on the very first
+  // client render would not match the server-rendered markup — so mount first,
+  // then portal.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const open = call.active || call.error !== null;
   const speaking = call.state === "speaking";
@@ -31,7 +49,9 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
         ? t("aiChatPage.voiceCallListening")
         : t("aiChatPage.voiceChatEnded");
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -117,6 +137,7 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

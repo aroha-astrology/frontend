@@ -37,7 +37,7 @@ export default function AgeBandTable({ bands }: { bands: AgeBand[] }) {
   if (bands.length === 0) {
     return (
       <Card className="p-3">
-        <p className="text-[11px] text-muted">{t("reports.facts.emptyState")}</p>
+        <p className="text-[11px] text-muted">{t("reports.facts.emptyStateAgeBands")}</p>
       </Card>
     );
   }
@@ -50,16 +50,18 @@ export default function AgeBandTable({ bands }: { bands: AgeBand[] }) {
       </Card>
       <Card className="flex flex-col divide-y divide-border/50 p-3">
         {bands.map((b, i) => (
-          <div
-            key={`${b.label}-${i}`}
-            className="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0"
-          >
-            <span className="text-xs font-medium text-foreground">{b.label}</span>
-            <span
-              className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-medium ${CONFIDENCE_STYLES[b.confidence]}`}
-            >
-              {t(`reports.facts.level.${b.confidence.toLowerCase()}`)}
-            </span>
+          <div key={`${b.label}-${i}`} className="flex flex-col gap-1 py-2 first:pt-0 last:pb-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-foreground">{b.label}</span>
+              <span
+                className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-medium ${CONFIDENCE_STYLES[b.confidence]}`}
+              >
+                {t(`reports.facts.level.${b.confidence.toLowerCase()}`)}
+              </span>
+            </div>
+            <p className="text-[10px] leading-snug text-muted">
+              {t(`reports.facts.confidenceCaption.${b.confidence.toLowerCase()}`)}
+            </p>
           </div>
         ))}
       </Card>

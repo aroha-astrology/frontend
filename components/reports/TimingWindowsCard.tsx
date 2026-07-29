@@ -33,6 +33,31 @@ export function formatWindowDate(iso: string): string {
 }
 
 /**
+ * Fallback for a window with no persisted `summary` (a report generated before the
+ * window-summary feature shipped, or a failed LLM call — see report-score-facts.ts's
+ * `RankedWindow.summary` doc comment). Drops the near-guaranteed non-informative boilerplate
+ * lines `dasha-confidence.ts`'s `yoginiAlignment`/`transitAlignment` produce when a signal
+ * couldn't be determined (reports always score transit alignment against a null transit by
+ * design — see report-timing.ts), keeping only the real Vimshottari anchor fact and any
+ * genuinely-aligned line. These exact substrings are cross-referenced against
+ * jyotish-backend's src/lib/astro-engine/dasha-confidence.ts — if that file's wording changes,
+ * update this list too.
+ */
+const NON_INFORMATIVE_REASONING_SUBSTRINGS = [
+  "could not determine",
+  "position unknown",
+  "not scored",
+  "does not strongly trigger",
+  "Ascendant unknown",
+];
+
+export function filterInformativeReasoning(reasoning: string[]): string[] {
+  return reasoning.filter(
+    (line) => !NON_INFORMATIVE_REASONING_SUBSTRINGS.some((substr) => line.includes(substr)),
+  );
+}
+
+/**
  * A shared-timeline Gantt strip (TimingWindowsGantt — each window's bar
  * positioned by its own start/end date, level shown as a pill), then one
  * card per ranked timing window below it: exact date range, a confidence
@@ -49,7 +74,7 @@ export default function TimingWindowsCard({ windows }: { windows: RankedWindow[]
   if (windows.length === 0) {
     return (
       <Card className="p-3">
-        <p className="text-[11px] text-muted">{t("reports.facts.emptyState")}</p>
+        <p className="text-[11px] text-muted">{t("reports.facts.emptyStateWindows")}</p>
       </Card>
     );
   }
@@ -73,15 +98,28 @@ export default function TimingWindowsCard({ windows }: { windows: RankedWindow[]
             </span>
           </div>
 
-          {w.reasoning.length > 0 && (
-            <ul className="flex flex-col gap-0.5 mt-0.5">
-              {w.reasoning.map((r, ri) => (
-                <li key={ri} className="flex gap-1.5 text-[11px] leading-snug text-muted">
-                  <span className="shrink-0 text-gold/60">•</span>
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
+          <p className="text-[10px] leading-snug text-muted">
+            {t(`reports.facts.confidenceCaption.${w.level.toLowerCase()}`)}
+          </p>
+
+          {w.summary ? (
+            <p className="mt-0.5 text-[11px] leading-snug text-foreground/80">{w.summary}</p>
+          ) : (
+            (() => {
+              const informative = filterInformativeReasoning(w.reasoning);
+              return (
+                informative.length > 0 && (
+                  <ul className="flex flex-col gap-0.5 mt-0.5">
+                    {informative.map((r, ri) => (
+                      <li key={ri} className="flex gap-1.5 text-[11px] leading-snug text-muted">
+                        <span className="shrink-0 text-gold/60">•</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              );
+            })()
           )}
         </Card>
       ))}

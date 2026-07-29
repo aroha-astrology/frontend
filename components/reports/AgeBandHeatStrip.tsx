@@ -10,6 +10,10 @@ import type { AgeBand } from "@/lib/report-score-facts";
 const VIEW_W = 100;
 const VIEW_H = 16;
 const GAP = 0.6; // thin surface-color gap between touching segments, in viewBox units
+/** Minimum segment width (% of strip) to show an inline age-range label — below this, even a
+ * 2-3 character label clips illegibly (see report-chart-geometry.ts's computeAgeBandSegments
+ * doc comment for the sizing side of this same fix). */
+const MIN_LABEL_WIDTH_PCT = 12;
 
 /**
  * Sequential confidence heat strip for AgeBand[] — one hand-drawn-free,
@@ -72,7 +76,14 @@ export default function AgeBandHeatStrip({ bands }: { bands: AgeBand[] }) {
       <div className="flex">
         {rects.map((r, i) => (
           <div key={`${r.startAge}-label-${i}`} style={{ flex: `0 0 ${r.widthPct}%` }} className="min-w-0 px-0.5 text-center">
-            <span className="block truncate text-[9px] tabular-nums text-muted">{formatAgeRange(r)}</span>
+            {/* Below this width the label text has nowhere to render without
+                clipping into an illegible "3.." — omit it and rely on the
+                segment's own <title> tooltip above, plus the untruncated
+                full-text row list in AgeBandTable.tsx underneath this strip,
+                rather than showing broken text. */}
+            {r.widthPct >= MIN_LABEL_WIDTH_PCT && (
+              <span className="block truncate text-[9px] tabular-nums text-muted">{formatAgeRange(r)}</span>
+            )}
           </div>
         ))}
       </div>

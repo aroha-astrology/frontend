@@ -185,6 +185,11 @@ export interface RankedWindow {
   level: "HIGH" | "MEDIUM" | "LOW";
   dashaLevel: "antardasha" | "pratyantardasha";
   reasoning: string[];
+  /** Plain-English "why this window" one-liner, generated once at report-creation time (see
+   * jyotish-backend's lib/llm/reports/window-summary.ts) and spliced onto this window on read.
+   * Absent for a report generated before this feature shipped, or if that LLM call failed —
+   * TimingWindowsCard falls back to a filtered `reasoning` in that case. */
+  summary?: string;
 }
 
 /** Age-band confidence table — appears as `scores.ageBands: AgeBand[]`. */

@@ -29,7 +29,7 @@ export default function DoshaYogaPanel({ summary }: { summary: DoshaYogaSummary 
           {t("reports.facts.positivesTitle")}
         </h4>
         {positives.length === 0 ? (
-          <p className="text-[11px] text-muted">{t("reports.facts.emptyState")}</p>
+          <p className="text-[11px] text-muted">{t("reports.facts.emptyStatePositives")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {positives.map((p, i) => (
@@ -51,7 +51,7 @@ export default function DoshaYogaPanel({ summary }: { summary: DoshaYogaSummary 
           {t("reports.facts.cautionsTitle")}
         </h4>
         {cautions.length === 0 ? (
-          <p className="text-[11px] text-muted">{t("reports.facts.emptyState")}</p>
+          <p className="text-[11px] text-muted">{t("reports.facts.emptyStateCautions")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {cautions.map((c, i) => (

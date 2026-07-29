@@ -171,14 +171,30 @@ export interface AgeSegment {
 
 /**
  * Sizes each age band's strip segment proportionally to its age span.
- * `assumedMaxAge` stands in for an open-ended band's missing `endAge` (e.g.
- * "60+") so it still gets a sensible, non-infinite share of the strip rather
- * than swallowing it. Every span is floored at 1 year so a same-age band
- * never collapses to a 0-width segment.
+ *
+ * An open-ended band (e.g. "49+") has no real `endAge` to size against. If
+ * the caller passes `assumedMaxAge` explicitly, that's used directly
+ * (`assumedMaxAge - startAge`) — useful when a real upper bound is known.
+ * Otherwise the open-ended band's assumed span defaults to the LARGEST span
+ * among the chart's own closed bands (falling back to a small constant only
+ * if every band is open-ended), not a flat "assume it runs to age 100":
+ * real report age bands are typically a handful of years wide, so a flat-100
+ * assumption made the tail band swallow most of the strip while the real,
+ * short-span earlier bands were squeezed into an illegibly narrow sliver.
+ * Every span is floored at 1 year so a same-age band never collapses to a
+ * 0-width segment.
  */
-export function computeAgeBandSegments(bands: AgeBand[], assumedMaxAge = 100): AgeSegment[] {
+export function computeAgeBandSegments(bands: AgeBand[], assumedMaxAge?: number): AgeSegment[] {
   if (bands.length === 0) return [];
-  const spans = bands.map((b) => Math.max((b.endAge ?? assumedMaxAge) - b.startAge, 1));
+  const closedSpans = bands
+    .filter((b): b is AgeBand & { endAge: number } => b.endAge !== null)
+    .map((b) => Math.max(b.endAge - b.startAge, 1));
+  const fallbackOpenSpan = closedSpans.length > 0 ? Math.max(...closedSpans) : 10;
+  const spans = bands.map((b) => {
+    if (b.endAge !== null) return Math.max(b.endAge - b.startAge, 1);
+    if (assumedMaxAge !== undefined) return Math.max(assumedMaxAge - b.startAge, 1);
+    return fallbackOpenSpan;
+  });
   const total = spans.reduce((sum, s) => sum + s, 0) || 1;
   return bands.map((b, i) => ({
     startAge: b.startAge,

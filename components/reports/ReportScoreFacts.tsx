@@ -31,14 +31,20 @@ function isSimpleFact(f: ScoreFact): f is SimpleFact {
  * half-width grid tile, so it's promoted to a full-width row instead
  * (matching the treatment richFacts already get below the grid) rather than
  * clipping or squashing report content the user paid for.
+ *
+ * Counts BOTH `label` and `display` length — a fact can have short values but
+ * long labels (e.g. "Modern Realities": "Seventh House Planet Count" paired
+ * with a trivial "1"/"✗" value). Counting only `display` let that case slip
+ * under the threshold into a half-width tile, where the rigid, non-wrapping
+ * label (see `NestedEntryRows` below) overflowed the card and the viewport.
  */
 const NESTED_FACT_FULL_WIDTH_THRESHOLD = 40;
 
 function nestedFactCombinedLength(f: NestedFact): number {
-  return f.entries.reduce((total, e) => total + e.display.length, 0);
+  return f.entries.reduce((total, e) => total + e.label.length + e.display.length, 0);
 }
 
-function isLongNestedFact(f: ScoreFact): f is NestedFact {
+export function isLongNestedFact(f: ScoreFact): f is NestedFact {
   return f.type === "nested" && nestedFactCombinedLength(f) > NESTED_FACT_FULL_WIDTH_THRESHOLD;
 }
 
@@ -48,8 +54,8 @@ function NestedEntryRows({ entries }: { entries: NestedEntry[] }) {
     <>
       {entries.map((e, i) => (
         <div key={i} className="flex justify-between gap-2 text-[11px] text-foreground/80">
-          <span className="text-muted shrink-0">{e.label}</span>
-          <span className="text-right break-words min-w-0">{e.display}</span>
+          <span className="min-w-0 break-words text-muted">{e.label}</span>
+          <span className="text-right break-words min-w-0 shrink-0">{e.display}</span>
         </div>
       ))}
     </>

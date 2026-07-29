@@ -47,7 +47,7 @@ export default function DecadeArcCard({ bands }: { bands: DecadeBand[] }) {
   if (bands.length === 0) {
     return (
       <Card className="p-3">
-        <p className="text-[11px] text-muted">{t("reports.facts.emptyState")}</p>
+        <p className="text-[11px] text-muted">{t("reports.facts.emptyStateDecadeArc")}</p>
       </Card>
     );
   }

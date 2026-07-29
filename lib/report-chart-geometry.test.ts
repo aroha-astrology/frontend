@@ -265,6 +265,25 @@ describe("computeAgeBandSegments", () => {
   it("returns an empty array for an empty list", () => {
     expect(computeAgeBandSegments([])).toEqual([]);
   });
+
+  it("does not let an open-ended tail band swallow the strip when no assumedMaxAge is given", () => {
+    // Reproduces the real report shape that produced illegible "3..", "3..",
+    // "41-..." labels: three short, real-span bands followed by an
+    // open-ended "49+" band. With a flat assumedMaxAge=100 default, the tail
+    // band's assumed span (100-49=51) dwarfs the others (3, 3, 7), squeezing
+    // them into a few percent of the strip. The tail's width should instead
+    // be capped comparably to its neighbors' real spans.
+    const segments = computeAgeBandSegments([
+      { label: "Now - 36", startAge: 33, endAge: 36, confidence: "LOW" },
+      { label: "37 - 40", startAge: 37, endAge: 40, confidence: "LOW" },
+      { label: "41 - 48", startAge: 41, endAge: 48, confidence: "LOW" },
+      { label: "49+", startAge: 49, endAge: null, confidence: "NONE" },
+    ]);
+    const [now36, band37, band41, band49] = segments;
+    expect(band49.widthPct).toBeLessThanOrEqual(band41.widthPct * 1.5);
+    expect(now36.widthPct).toBeGreaterThan(10);
+    expect(band37.widthPct).toBeGreaterThan(10);
+  });
 });
 
 describe("formatAgeRange", () => {

@@ -60,6 +60,7 @@ export function useVoiceCall(locale: string): VoiceCall {
 
   const sessionRef = useRef<GeminiLiveSession | null>(null);
   const grantRef = useRef<VoiceGrant | null>(null);
+  const ringRef = useRef<HTMLAudioElement | null>(null);
   /**
    * Whether this call ever got past the handshake into an actual conversation
    * (state reached "listening" or "speaking" at least once). Reset per call in
@@ -112,6 +113,22 @@ export function useVoiceCall(locale: string): VoiceCall {
     const id = setInterval(recomputeSecondsLeft, 1000);
     return () => clearInterval(id);
   }, [active, recomputeSecondsLeft]);
+
+  // Audible feedback while the socket handshake is in flight — the call has
+  // no other sound of its own until the model's first reply arrives, and dead
+  // air there reads as broken rather than "connecting". Stops the instant
+  // `state` leaves "connecting", whether that's success or failure.
+  useEffect(() => {
+    if (state !== "connecting") return;
+    const audio = new Audio("/sounds/ringing.mp3");
+    audio.loop = true;
+    ringRef.current = audio;
+    void audio.play().catch(() => {});
+    return () => {
+      audio.pause();
+      ringRef.current = null;
+    };
+  }, [state]);
 
   // A call must not outlive the screen. Without this, navigating away leaves
   // the mic open and the minute loop buying time nobody is listening to.

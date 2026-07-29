@@ -53,6 +53,16 @@ const RENEW_LEAD_MS = 5_000;
 /** Scheduling cushion for playback, absorbing jitter without audible lag. */
 const PLAYBACK_LEAD_S = 0.08;
 
+/**
+ * Synthetic first turn sent right after `setupComplete`, so the model speaks
+ * a greeting instead of sitting in silence waiting for the user's mic. Not a
+ * real user utterance — the backend's voice system instruction (see
+ * scholar.ts's buildVoiceSystemInstruction) is told to treat this exact text
+ * as a call-connected signal, not a question, and reply with only an opening
+ * greeting. Must match that prompt's sentinel exactly.
+ */
+const GREETING_TRIGGER = "[[CALL_CONNECTED]]";
+
 export interface VoiceGrantLike {
   voiceSessionId: string;
   token: string;
@@ -160,6 +170,12 @@ export class GeminiLiveSession {
    * it ever started — see `ws.onclose`.
    */
   private setupCompleted = false;
+  /**
+   * Guards the greeting trigger to fire exactly once per call. `connect()`
+   * also runs on every per-minute renewal (`renew()`), and re-sending it
+   * there would make the model re-greet the user every minute.
+   */
+  private greetingSent = false;
 
   constructor(opts: GeminiLiveSessionOptions) {
     this.opts = opts;
@@ -340,6 +356,10 @@ export class GeminiLiveSession {
 
     if (msg.setupComplete) {
       this.setupCompleted = true;
+      if (!this.greetingSent) {
+        this.greetingSent = true;
+        this.sendGreetingTrigger();
+      }
       this.setState("listening");
       return;
     }
@@ -392,6 +412,24 @@ export class GeminiLiveSession {
       JSON.stringify({
         realtimeInput: {
           audio: { mimeType: `audio/pcm;rate=${MIC_SAMPLE_RATE}`, data: base64FromBuffer(buf) },
+        },
+      }),
+    );
+  }
+
+  /**
+   * Nudges the model to speak first instead of waiting for the user's mic.
+   * A `clientContent` turn, not `realtimeInput` — this is a synthetic text
+   * turn, not audio. The reply comes back through the normal audio-part path
+   * in `handleMessage` below, so it plays exactly like any other AI turn.
+   */
+  private sendGreetingTrigger(): void {
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    this.ws.send(
+      JSON.stringify({
+        clientContent: {
+          turns: [{ role: "user", parts: [{ text: GREETING_TRIGGER }] }],
+          turnComplete: true,
         },
       }),
     );

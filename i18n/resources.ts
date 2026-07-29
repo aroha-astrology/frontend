@@ -747,7 +747,7 @@ export const resources = {
         voiceMissingBody: "The {{language}} voice isn't installed on your device. Download it to hear replies read aloud?",
         voiceMissingDownload: "Download",
         voiceMissingCancel: "Cancel",
-        // Voice chat (Gemini Live) — consent sheet + mic button
+        // Voice chat (Gemini Live) — consent sheet + header call button + in-call screen
         voiceChatTitle: "Voice Chat",
         voiceChatStart: "Start voice chat",
         voiceChatStop: "End call",
@@ -760,6 +760,10 @@ export const resources = {
         voiceChatConsentDecline: "Not now",
         voiceChatError: "Could not start voice session. Please try again.",
         voiceChatLimitReached: "3-minute limit reached. Session ended.",
+        voiceCallConnecting: "Connecting…",
+        voiceCallListening: "Listening…",
+        voiceCallSpeaking: "Speaking…",
+        voiceCallHint: "Tap to end the call",
       },
       remedies: {
         love: "Love &\nRelationships",
@@ -2530,6 +2534,10 @@ export const resources = {
         voiceChatConsentDecline: "अभी नहीं",
         voiceChatError: "वॉयस सत्र शुरू नहीं हो सका। पुनः प्रयास करें।",
         voiceChatLimitReached: "3 मिनट की सीमा पूरी हो गई। सत्र समाप्त।",
+        voiceCallConnecting: "कनेक्ट हो रहा है…",
+        voiceCallListening: "सुन रहे हैं…",
+        voiceCallSpeaking: "बोल रहे हैं…",
+        voiceCallHint: "कॉल समाप्त करने के लिए टैप करें",
       },
       menu: {
         title: "मेनू",
@@ -3928,6 +3936,10 @@ export const resources = {
         voiceChatConsentDecline: "এখন নয়",
         voiceChatError: "ভয়েস সেশন শুরু করা যায়নি। আবার চেষ্টা করুন।",
         voiceChatLimitReached: "3 মিনিটের সীমা শেষ। সেশন শেষ হয়েছে।",
+        voiceCallConnecting: "সংযোগ করা হচ্ছে…",
+        voiceCallListening: "শুনছি…",
+        voiceCallSpeaking: "বলছি…",
+        voiceCallHint: "কল শেষ করতে ট্যাপ করুন",
       },
       menu: {
         title: "মেনু",
@@ -5326,6 +5338,10 @@ export const resources = {
         voiceChatConsentDecline: "आत्ता नाही",
         voiceChatError: "व्हॉइस सत्र सुरू करता आले नाही. कृपया पुन्हा प्रयत्न करा.",
         voiceChatLimitReached: "3 मिनिटांची मर्यादा पूर्ण झाली. सत्र समाप्त.",
+        voiceCallConnecting: "कनेक्ट होत आहे…",
+        voiceCallListening: "ऐकत आहे…",
+        voiceCallSpeaking: "बोलत आहे…",
+        voiceCallHint: "कॉल समाप्त करण्यासाठी टॅप करा",
       },
       menu: {
         title: "मेनू",
@@ -6720,6 +6736,10 @@ export const resources = {
         voiceChatConsentDecline: "ఇప్పుడు కాదు",
         voiceChatError: "వాయిస్ సెషన్ ప్రారంభించలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి.",
         voiceChatLimitReached: "3 నిమిషాల పరిమితి పూర్తయింది. సెషన్ ముగిసింది.",
+        voiceCallConnecting: "కనెక్ట్ అవుతోంది…",
+        voiceCallListening: "వింటున్నాను…",
+        voiceCallSpeaking: "మాట్లాడుతున్నాను…",
+        voiceCallHint: "కాల్ ముగించడానికి ట్యాప్ చేయండి",
       },
       menu: {
         title: "మెనూ",
@@ -8118,6 +8138,10 @@ export const resources = {
         voiceChatConsentDecline: "இப்போது வேண்டாம்",
         voiceChatError: "குரல் அமர்வைத் தொடங்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         voiceChatLimitReached: "3 நிமிட வரம்பு முடிந்தது. அமர்வு முடிந்தது.",
+        voiceCallConnecting: "இணைக்கிறது…",
+        voiceCallListening: "கேட்கிறேன்…",
+        voiceCallSpeaking: "பேசுகிறேன்…",
+        voiceCallHint: "அழைப்பை முடிக்க தட்டவும்",
       },
       menu: {
         title: "மெனு",
@@ -9512,6 +9536,10 @@ export const resources = {
         voiceChatConsentDecline: "હમણાં નહીં",
         voiceChatError: "વૉઇસ સત્ર શરૂ કરી શક્યા નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
         voiceChatLimitReached: "3 મિનિટની મર્યાદા પૂર્ણ થઈ. સત્ર સમાપ્ત.",
+        voiceCallConnecting: "કનેક્ટ થઈ રહ્યું છે…",
+        voiceCallListening: "સાંભળી રહ્યા છીએ…",
+        voiceCallSpeaking: "બોલી રહ્યા છીએ…",
+        voiceCallHint: "કૉલ સમાપ્ત કરવા ટૅપ કરો",
       },
       menu: {
         title: "મેનૂ",

@@ -9,7 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
 import { streamChat, sendChatFeedback, SwarmApiError, type ChatDetailLevel } from "@/lib/swarm-api";
-import VoiceChatButton from "./VoiceChatButton";
+import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
@@ -467,7 +467,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           pages use directly below the shared TopBar (see app/kundli/page.tsx)
           — the TopBar itself already reserves the status-bar space via its
           own `pt-8`, so this screen no longer needs to duplicate it. */}
-      <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+      <div className="flex-shrink-0 relative px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+        {/* Call icon — absolutely positioned rather than a flex sibling so the
+            astrologer's name stays optically centred in the header, the same
+            as it was before voice existed. */}
+        <div className="absolute left-5 top-1/2 -translate-y-1/2">
+          <VoiceCall locale={i18n.language} />
+        </div>
         <h1 className="text-2xl font-bold text-gold font-display text-center">
           {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
         </h1>
@@ -685,10 +691,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               {t("aiChatPage.costPerMessage", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
             </p>
           )}
-          {/* `relative` anchors VoiceChatButton's countdown/error strip, which
-              positions itself just above the composer row. */}
-          <div className="relative flex gap-3">
-            <VoiceChatButton locale={i18n.language} />
+          {/* Voice used to live here as a mic button; it is now a call icon in
+              the header, so this row is just the text composer again. */}
+          <div className="flex gap-3">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}

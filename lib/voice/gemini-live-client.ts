@@ -183,6 +183,13 @@ export class GeminiLiveSession {
         },
       });
     } catch (err) {
+      // `err.name` is the actionable part: NotAllowedError means the user (or
+      // the OS/app shell) denied the mic — on Android this is the symptom of a
+      // missing native permission declaration, not the user tapping "deny" —
+      // while NotFoundError means the device has no microphone at all. Logged
+      // separately from the message shown in the UI so it survives even if a
+      // future translation of the message drops the detail.
+      console.warn("voice: getUserMedia failed", err instanceof Error ? err.name : err, err);
       this.setState("closed");
       this.opts.onError(
         new Error(
@@ -268,11 +275,28 @@ export class GeminiLiveSession {
     };
 
     ws.onerror = () => {
+      // The WebSocket error event carries no useful detail (by spec); onclose
+      // fires right after with the code and reason that actually explain
+      // anything, so this only logs that an error preceded it rather than
+      // trying to report the error itself.
+      console.warn("voice: socket error (see the close event that follows for detail)");
       if (this.stopped || this.renewing) return;
       this.opts.onError(new Error("Voice connection error"));
     };
 
     ws.onclose = (evt) => {
+      // Logged unconditionally, before any early return below — diagnosis must
+      // not depend on which branch the rest of this handler takes. This is the
+      // one place that tells us whether a session that looked fine actually
+      // reached Google at all.
+      console.warn("voice: socket closed", {
+        code: evt.code,
+        reason: evt.reason || "(none)",
+        setupCompleted: this.setupCompleted,
+        stopped: this.stopped,
+        renewing: this.renewing,
+      });
+
       // A close during a token swap is expected — the next socket is already
       // being opened, so it must not tear the session down.
       if (this.stopped || this.renewing) return;
@@ -283,13 +307,17 @@ export class GeminiLiveSession {
       // allow unregistered callers", which is what an ephemeral token gets on
       // the wrong endpoint) showed the user a call screen that simply
       // disappeared, and left nothing in the console to explain it.
-      if (!this.setupCompleted) {
-        this.opts.onError(
-          new Error(
-            `Voice connection refused (code ${evt.code}${evt.reason ? `: ${evt.reason}` : ""})`,
-          ),
-        );
-      }
+      //
+      // A close AFTER setupComplete that isn't a hangup or a renewal (both
+      // already excluded above) is Google ending the call unilaterally — a
+      // quota cutoff, a goAway, a server-side error. That used to look
+      // identical to the user hanging up on themselves; it now surfaces too,
+      // for the same reason: silence here is indistinguishable from success.
+      this.opts.onError(
+        new Error(
+          `Voice ${this.setupCompleted ? "call ended unexpectedly" : "connection refused"} (code ${evt.code}${evt.reason ? `: ${evt.reason}` : ""})`,
+        ),
+      );
       void this.stop();
     };
 

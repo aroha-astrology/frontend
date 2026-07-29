@@ -60,6 +60,14 @@ export function useVoiceCall(locale: string): VoiceCall {
 
   const sessionRef = useRef<GeminiLiveSession | null>(null);
   const grantRef = useRef<VoiceGrant | null>(null);
+  /**
+   * Whether this call ever got past the handshake into an actual conversation
+   * (state reached "listening" or "speaking" at least once). Reset per call in
+   * `begin`, not per renewed minute — this reports on the call as a whole, so
+   * it answers "did the user get anything for what they paid", which is what
+   * the server's grace-window refund is checking against.
+   */
+  const hasConnectedRef = useRef(false);
 
   const active = state !== "idle" && state !== "closed";
 
@@ -72,8 +80,10 @@ export function useVoiceCall(locale: string): VoiceCall {
     grantRef.current = null;
     if (grant) {
       // Best-effort: the wallet was already charged per granted minute, so a
-      // failure here costs nothing but a stale `active` row.
-      await endVoiceSession(grant.voiceSessionId).catch(() => {});
+      // failure here costs nothing but a stale `active` row. `connected`
+      // tells the server whether that charge ever bought a working call —
+      // see CONNECT_GRACE_MS in voice.service.ts for what happens with false.
+      await endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
     }
 
     setState("idle");
@@ -109,16 +119,20 @@ export function useVoiceCall(locale: string): VoiceCall {
     return () => {
       void sessionRef.current?.stop();
       const grant = grantRef.current;
-      if (grant) void endVoiceSession(grant.voiceSessionId).catch(() => {});
+      if (grant) void endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
     };
   }, []);
 
   const begin = useCallback(
     async (firstGrant: VoiceGrant) => {
       grantRef.current = firstGrant;
+      hasConnectedRef.current = false;
 
       const session = new GeminiLiveSession({
-        onStateChange: setState,
+        onStateChange: (s) => {
+          if (s === "listening" || s === "speaking") hasConnectedRef.current = true;
+          setState(s);
+        },
         // `onNeedNextMinute` below already stores the new grant (with the full
         // server payload); this just snaps the countdown to it immediately
         // rather than waiting up to a second for the next tick.

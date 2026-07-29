@@ -8,7 +8,8 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
-import { streamChat, sendChatFeedback, type ChatDetailLevel } from "@/lib/swarm-api";
+import { streamChat, sendChatFeedback, SwarmApiError, type ChatDetailLevel } from "@/lib/swarm-api";
+import VoiceChatButton from "./VoiceChatButton";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
@@ -381,6 +382,23 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         });
       }
     } catch (err) {
+      // Pacing rejections are the one failure the user must never be shown,
+      // because the product deliberately never tells anyone a rate limit exists
+      // — see the `silent` limiter and the in-flight lock in the backend's
+      // middleware/rate-limit.ts and astro.routes.ts. Both arrive as a 429; a
+      // 409 here still means "not enough credits" and must fall through to the
+      // normal error display below.
+      //
+      // This composer already blocks a second send while `streaming`, so the
+      // only way to reach a 429 is a second tab or a replayed request. Roll the
+      // optimistic turn back and put the text back in the box so it reads as a
+      // send that simply didn't go through, and can be retried.
+      if (err instanceof SwarmApiError && err.status === 429) {
+        setMessages((prev) => prev.slice(0, -2));
+        setInput(msg);
+        return;
+      }
+
       const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
@@ -667,7 +685,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               {t("aiChatPage.costPerMessage", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
             </p>
           )}
-          <div className="flex gap-3">
+          {/* `relative` anchors VoiceChatButton's countdown/error strip, which
+              positions itself just above the composer row. */}
+          <div className="relative flex gap-3">
+            <VoiceChatButton locale={i18n.language} />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}

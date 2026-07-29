@@ -383,12 +383,15 @@ export class GeminiLiveSession {
 
   private sendAudio(buf: ArrayBuffer): void {
     if (this.ws?.readyState !== WebSocket.OPEN) return;
+    // `realtimeInput.audio`, a single Blob — NOT the `mediaChunks` array this
+    // used to send. Google now answers that shape with close code 1007,
+    // "realtime_input.media_chunks is deprecated. Use audio, video, or text
+    // instead." Verified against the live socket: a `mediaChunks` frame gets
+    // a protocol-error close, the `audio` shape below does not.
     this.ws.send(
       JSON.stringify({
         realtimeInput: {
-          mediaChunks: [
-            { mimeType: `audio/pcm;rate=${MIC_SAMPLE_RATE}`, data: base64FromBuffer(buf) },
-          ],
+          audio: { mimeType: `audio/pcm;rate=${MIC_SAMPLE_RATE}`, data: base64FromBuffer(buf) },
         },
       }),
     );

@@ -154,6 +154,12 @@ export class GeminiLiveSession {
   private stopped = false;
   /** Set while swapping tokens, so the outgoing socket's close isn't treated as a hangup. */
   private renewing = false;
+  /**
+   * Whether Google has acknowledged the setup frame on the CURRENT socket.
+   * Distinguishes a call that ran and ended from one the server refused before
+   * it ever started — see `ws.onclose`.
+   */
+  private setupCompleted = false;
 
   constructor(opts: GeminiLiveSessionOptions) {
     this.opts = opts;
@@ -248,6 +254,7 @@ export class GeminiLiveSession {
     const ws = new WebSocket(`${WS_BASE}?access_token=${encodeURIComponent(grant.token)}`);
     ws.binaryType = "arraybuffer";
     this.ws = ws;
+    this.setupCompleted = false;
 
     ws.onopen = () => {
       // Model only. The system instruction, response modality and resumption
@@ -265,10 +272,24 @@ export class GeminiLiveSession {
       this.opts.onError(new Error("Voice connection error"));
     };
 
-    ws.onclose = () => {
+    ws.onclose = (evt) => {
       // A close during a token swap is expected — the next socket is already
       // being opened, so it must not tear the session down.
       if (this.stopped || this.renewing) return;
+
+      // Closing BEFORE `setupComplete` means the server refused the connection
+      // rather than the call having ended. Report the code and reason: this
+      // used to tear down silently, so a rejection (e.g. 1008 "Method doesn't
+      // allow unregistered callers", which is what an ephemeral token gets on
+      // the wrong endpoint) showed the user a call screen that simply
+      // disappeared, and left nothing in the console to explain it.
+      if (!this.setupCompleted) {
+        this.opts.onError(
+          new Error(
+            `Voice connection refused (code ${evt.code}${evt.reason ? `: ${evt.reason}` : ""})`,
+          ),
+        );
+      }
       void this.stop();
     };
 
@@ -290,6 +311,7 @@ export class GeminiLiveSession {
     }
 
     if (msg.setupComplete) {
+      this.setupCompleted = true;
       this.setState("listening");
       return;
     }

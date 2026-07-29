@@ -19,8 +19,23 @@
  * base64 in JSON frames.
  */
 
+/**
+ * `BidiGenerateContentConstrained`, NOT `BidiGenerateContent`.
+ *
+ * They are two different endpoints with two different auth models. The plain
+ * one authenticates a caller holding a real API key — server to server. It
+ * rejects an ephemeral token outright, closing with 1008 "Method doesn't allow
+ * unregistered callers (callers without established identity)", which looks
+ * exactly like the call screen opening and shutting again.
+ *
+ * The Constrained endpoint is the browser-facing half of the ephemeral-token
+ * design: it accepts the minted token and enforces whatever was pinned into it
+ * at mint time (see the backend's gemini-live-token.ts). Verified against the
+ * live endpoint — the same token that gets 1008 here answers `setupComplete`
+ * there.
+ */
 const WS_BASE =
-  "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent";
+  "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained";
 
 const MIC_SAMPLE_RATE = 16_000;
 const PLAYBACK_SAMPLE_RATE = 24_000;

@@ -19,8 +19,23 @@
  * base64 in JSON frames.
  */
 
+/**
+ * `BidiGenerateContentConstrained`, NOT `BidiGenerateContent`.
+ *
+ * They are two different endpoints with two different auth models. The plain
+ * one authenticates a caller holding a real API key — server to server. It
+ * rejects an ephemeral token outright, closing with 1008 "Method doesn't allow
+ * unregistered callers (callers without established identity)", which looks
+ * exactly like the call screen opening and shutting again.
+ *
+ * The Constrained endpoint is the browser-facing half of the ephemeral-token
+ * design: it accepts the minted token and enforces whatever was pinned into it
+ * at mint time (see the backend's gemini-live-token.ts). Verified against the
+ * live endpoint — the same token that gets 1008 here answers `setupComplete`
+ * there.
+ */
 const WS_BASE =
-  "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent";
+  "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained";
 
 const MIC_SAMPLE_RATE = 16_000;
 const PLAYBACK_SAMPLE_RATE = 24_000;
@@ -139,6 +154,12 @@ export class GeminiLiveSession {
   private stopped = false;
   /** Set while swapping tokens, so the outgoing socket's close isn't treated as a hangup. */
   private renewing = false;
+  /**
+   * Whether Google has acknowledged the setup frame on the CURRENT socket.
+   * Distinguishes a call that ran and ended from one the server refused before
+   * it ever started — see `ws.onclose`.
+   */
+  private setupCompleted = false;
 
   constructor(opts: GeminiLiveSessionOptions) {
     this.opts = opts;
@@ -162,6 +183,13 @@ export class GeminiLiveSession {
         },
       });
     } catch (err) {
+      // `err.name` is the actionable part: NotAllowedError means the user (or
+      // the OS/app shell) denied the mic — on Android this is the symptom of a
+      // missing native permission declaration, not the user tapping "deny" —
+      // while NotFoundError means the device has no microphone at all. Logged
+      // separately from the message shown in the UI so it survives even if a
+      // future translation of the message drops the detail.
+      console.warn("voice: getUserMedia failed", err instanceof Error ? err.name : err, err);
       this.setState("closed");
       this.opts.onError(
         new Error(
@@ -233,6 +261,7 @@ export class GeminiLiveSession {
     const ws = new WebSocket(`${WS_BASE}?access_token=${encodeURIComponent(grant.token)}`);
     ws.binaryType = "arraybuffer";
     this.ws = ws;
+    this.setupCompleted = false;
 
     ws.onopen = () => {
       // Model only. The system instruction, response modality and resumption
@@ -246,14 +275,49 @@ export class GeminiLiveSession {
     };
 
     ws.onerror = () => {
+      // The WebSocket error event carries no useful detail (by spec); onclose
+      // fires right after with the code and reason that actually explain
+      // anything, so this only logs that an error preceded it rather than
+      // trying to report the error itself.
+      console.warn("voice: socket error (see the close event that follows for detail)");
       if (this.stopped || this.renewing) return;
       this.opts.onError(new Error("Voice connection error"));
     };
 
-    ws.onclose = () => {
+    ws.onclose = (evt) => {
+      // Logged unconditionally, before any early return below — diagnosis must
+      // not depend on which branch the rest of this handler takes. This is the
+      // one place that tells us whether a session that looked fine actually
+      // reached Google at all.
+      console.warn("voice: socket closed", {
+        code: evt.code,
+        reason: evt.reason || "(none)",
+        setupCompleted: this.setupCompleted,
+        stopped: this.stopped,
+        renewing: this.renewing,
+      });
+
       // A close during a token swap is expected — the next socket is already
       // being opened, so it must not tear the session down.
       if (this.stopped || this.renewing) return;
+
+      // Closing BEFORE `setupComplete` means the server refused the connection
+      // rather than the call having ended. Report the code and reason: this
+      // used to tear down silently, so a rejection (e.g. 1008 "Method doesn't
+      // allow unregistered callers", which is what an ephemeral token gets on
+      // the wrong endpoint) showed the user a call screen that simply
+      // disappeared, and left nothing in the console to explain it.
+      //
+      // A close AFTER setupComplete that isn't a hangup or a renewal (both
+      // already excluded above) is Google ending the call unilaterally — a
+      // quota cutoff, a goAway, a server-side error. That used to look
+      // identical to the user hanging up on themselves; it now surfaces too,
+      // for the same reason: silence here is indistinguishable from success.
+      this.opts.onError(
+        new Error(
+          `Voice ${this.setupCompleted ? "call ended unexpectedly" : "connection refused"} (code ${evt.code}${evt.reason ? `: ${evt.reason}` : ""})`,
+        ),
+      );
       void this.stop();
     };
 
@@ -275,6 +339,7 @@ export class GeminiLiveSession {
     }
 
     if (msg.setupComplete) {
+      this.setupCompleted = true;
       this.setState("listening");
       return;
     }
@@ -318,12 +383,15 @@ export class GeminiLiveSession {
 
   private sendAudio(buf: ArrayBuffer): void {
     if (this.ws?.readyState !== WebSocket.OPEN) return;
+    // `realtimeInput.audio`, a single Blob — NOT the `mediaChunks` array this
+    // used to send. Google now answers that shape with close code 1007,
+    // "realtime_input.media_chunks is deprecated. Use audio, video, or text
+    // instead." Verified against the live socket: a `mediaChunks` frame gets
+    // a protocol-error close, the `audio` shape below does not.
     this.ws.send(
       JSON.stringify({
         realtimeInput: {
-          mediaChunks: [
-            { mimeType: `audio/pcm;rate=${MIC_SAMPLE_RATE}`, data: base64FromBuffer(buf) },
-          ],
+          audio: { mimeType: `audio/pcm;rate=${MIC_SAMPLE_RATE}`, data: base64FromBuffer(buf) },
         },
       }),
     );

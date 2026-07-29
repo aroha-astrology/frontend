@@ -513,9 +513,21 @@ export function extendVoiceSession(
   });
 }
 
-/** Marks a session finished. Idempotent and best-effort — safe to fire on unload. */
-export function endVoiceSession(voiceSessionId: string): Promise<{ ok: true }> {
-  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/end`, {});
+/**
+ * Marks a session finished. Idempotent and best-effort — safe to fire on unload.
+ *
+ * Pass `connected: false` when the minute just charged never turned into a
+ * working call (socket refused, mic denied, immediate hangup) — the server
+ * refunds it if this arrives within a short grace window of the grant. Omit
+ * it, or pass `true`, for an ordinary hangup: nothing charged or refunded.
+ */
+export function endVoiceSession(
+  voiceSessionId: string,
+  connected?: boolean,
+): Promise<{ ok: true }> {
+  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/end`, {
+    ...(connected === undefined ? {} : { connected }),
+  });
 }
 
 /**

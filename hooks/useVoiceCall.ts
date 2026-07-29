@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Mic, PhoneOff, Loader2 } from "lucide-react";
 import { useFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -14,32 +13,61 @@ import {
   type VoiceGrant,
 } from "@/lib/swarm-api";
 import { GeminiLiveSession, type VoiceSessionState } from "@/lib/voice/gemini-live-client";
-import VoiceConsentSheet from "./VoiceConsentSheet";
+
+/** `"idle"` is this hook's own resting state, not one the live client reports. */
+export type VoiceCallState = VoiceSessionState | "idle";
+
+export interface VoiceCall {
+  /** False when the feature is off or nobody is signed in — render no entry point at all. */
+  available: boolean;
+  state: VoiceCallState;
+  /** A call is being set up or is running: the call UI belongs on screen. */
+  active: boolean;
+  /** Whole-call time left in seconds (current paid minute + minutes still purchasable). */
+  secondsLeft: number;
+  error: string | null;
+  showConsent: boolean;
+  start: () => void;
+  stop: () => void;
+  acceptConsent: () => Promise<void>;
+  dismissConsent: () => void;
+  dismissError: () => void;
+}
 
 /**
  * Owns a realtime voice call end to end: gating, consent, the per-minute
- * purchase loop, and teardown.
+ * purchase loop, and teardown. Split out of the old VoiceChatButton so the
+ * trigger (a call icon in the chat header) and the call UI it opens can be two
+ * separate pieces of markup driven by one session.
  *
  * The unusual part is the purchase loop. A session's audio goes straight from
  * the browser to Google, so the backend cannot meter it by watching traffic —
  * instead each minute is a separately bought, separately expiring token. This
- * component is what buys the next one, via the `onNeedNextMinute` callback the
- * live client invokes shortly before the current minute lapses. Returning null
- * there ends the call, which is how the 3-minute ceiling and an empty wallet
- * both surface: as the server simply declining to sell the next minute.
+ * hook is what buys the next one, via the `onNeedNextMinute` callback the live
+ * client invokes shortly before the current minute lapses. Returning null there
+ * ends the call, which is how the 3-minute ceiling and an empty wallet both
+ * surface: as the server simply declining to sell the next minute.
  */
-export default function VoiceChatButton({ locale }: { locale: string }) {
+export function useVoiceCall(locale: string): VoiceCall {
   const { t } = useTranslation();
   const { user, refresh } = useAuth();
   const feature = useFeature("paid.voiceChat");
 
   const [showConsent, setShowConsent] = useState(false);
-  const [state, setState] = useState<VoiceSessionState | "idle">("idle");
+  const [state, setState] = useState<VoiceCallState>("idle");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const sessionRef = useRef<GeminiLiveSession | null>(null);
   const grantRef = useRef<VoiceGrant | null>(null);
+  /**
+   * Whether this call ever got past the handshake into an actual conversation
+   * (state reached "listening" or "speaking" at least once). Reset per call in
+   * `begin`, not per renewed minute — this reports on the call as a whole, so
+   * it answers "did the user get anything for what they paid", which is what
+   * the server's grace-window refund is checking against.
+   */
+  const hasConnectedRef = useRef(false);
 
   const active = state !== "idle" && state !== "closed";
 
@@ -52,8 +80,10 @@ export default function VoiceChatButton({ locale }: { locale: string }) {
     grantRef.current = null;
     if (grant) {
       // Best-effort: the wallet was already charged per granted minute, so a
-      // failure here costs nothing but a stale `active` row.
-      await endVoiceSession(grant.voiceSessionId).catch(() => {});
+      // failure here costs nothing but a stale `active` row. `connected`
+      // tells the server whether that charge ever bought a working call —
+      // see CONNECT_GRACE_MS in voice.service.ts for what happens with false.
+      await endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
     }
 
     setState("idle");
@@ -89,16 +119,20 @@ export default function VoiceChatButton({ locale }: { locale: string }) {
     return () => {
       void sessionRef.current?.stop();
       const grant = grantRef.current;
-      if (grant) void endVoiceSession(grant.voiceSessionId).catch(() => {});
+      if (grant) void endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
     };
   }, []);
 
   const begin = useCallback(
     async (firstGrant: VoiceGrant) => {
       grantRef.current = firstGrant;
+      hasConnectedRef.current = false;
 
       const session = new GeminiLiveSession({
-        onStateChange: setState,
+        onStateChange: (s) => {
+          if (s === "listening" || s === "speaking") hasConnectedRef.current = true;
+          setState(s);
+        },
         // `onNeedNextMinute` below already stores the new grant (with the full
         // server payload); this just snaps the countdown to it immediately
         // rather than waiting up to a second for the next tick.
@@ -162,62 +196,29 @@ export default function VoiceChatButton({ locale }: { locale: string }) {
     }
   }, [begin, locale, t]);
 
-  const handleConsentAccept = useCallback(async () => {
+  const acceptConsent = useCallback(async () => {
     await grantVoiceConsent();
     await refresh().catch(() => {});
     setShowConsent(false);
     await handleStart();
   }, [handleStart, refresh]);
 
-  // Both gates, exactly as the server enforces them: the admin flag, and — for
-  // rendering only — nothing else. Consent is NOT checked here; a user who has
-  // never consented still sees the button, and tapping it opens the sheet.
-  // Hiding it from them instead would leave no way to ever grant consent.
-  if (!feature.enabled || !user) return null;
-
-  return (
-    <>
-      <button
-        onClick={() => (active ? void teardown() : void handleStart())}
-        disabled={state === "connecting"}
-        aria-label={active ? t("aiChatPage.voiceChatStop") : t("aiChatPage.voiceChatStart")}
-        title={active ? t("aiChatPage.voiceChatStop") : t("aiChatPage.voiceChatRateInfo")}
-        className={`h-14 w-14 shrink-0 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 ${
-          active ? "bg-red-500 text-white" : "border text-gold"
-        }`}
-        style={active ? undefined : { borderColor: "var(--border)" }}
-      >
-        {state === "connecting" ? (
-          <Loader2 size={20} className="animate-spin" />
-        ) : active ? (
-          <PhoneOff size={20} />
-        ) : (
-          <Mic size={20} />
-        )}
-      </button>
-
-      {active && (
-        <div className="absolute -top-6 left-0 right-0 text-center text-[11px] text-[var(--text-muted)]">
-          {state === "speaking" ? "●" : "○"}{" "}
-          {t("aiChatPage.voiceChatCountdown", {
-            minutes: Math.floor(secondsLeft / 60),
-            seconds: String(secondsLeft % 60).padStart(2, "0"),
-          })}
-        </div>
-      )}
-
-      {error && !active && (
-        <div className="absolute -top-6 left-0 right-0 text-center text-[11px] text-red-400">
-          {error}
-        </div>
-      )}
-
-      {showConsent && (
-        <VoiceConsentSheet
-          onAccept={handleConsentAccept}
-          onClose={() => setShowConsent(false)}
-        />
-      )}
-    </>
-  );
+  return {
+    // Both gates, exactly as the server enforces them: the admin flag, and —
+    // for rendering only — nothing else. Consent is NOT checked here; a user
+    // who has never consented still sees the call icon, and tapping it opens
+    // the sheet. Hiding it from them instead would leave no way to ever grant
+    // consent.
+    available: feature.enabled && !!user,
+    state,
+    active,
+    secondsLeft,
+    error,
+    showConsent,
+    start: () => void handleStart(),
+    stop: () => void teardown(),
+    acceptConsent,
+    dismissConsent: () => setShowConsent(false),
+    dismissError: () => setError(null),
+  };
 }

@@ -267,7 +267,11 @@ export default function ProfilePage() {
           {!editing ? (
             <div>
               <ReadRow label={t("profile.name")} value={user?.displayName ?? ""} />
-              <ReadRow label={t("profile.phone")} value={user?.phoneE164 ?? ""} />
+              {user?.phoneE164 ? (
+                <ReadRow label={t("profile.phone")} value={user.phoneE164} />
+              ) : (
+                <ReadRow label={t("auth.emailLabel")} value={user?.email ?? ""} />
+              )}
               <ReadRow label={t("profile.gender")} value={genderLabel(user?.gender ?? null)} />
               <ReadRow
                 label={t("profile.dob")}
@@ -291,8 +295,12 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Phone is the OTP-verified identity — read-only even in edit mode */}
-              <ReadRow label={t("profile.phone")} value={user?.phoneE164 ?? ""} />
+              {/* Phone/email is the verified sign-in identity — read-only even in edit mode */}
+              {user?.phoneE164 ? (
+                <ReadRow label={t("profile.phone")} value={user.phoneE164} />
+              ) : (
+                <ReadRow label={t("auth.emailLabel")} value={user?.email ?? ""} />
+              )}
 
               <div>
                 <label className="text-[11px] text-muted uppercase tracking-wider mb-1 block">

@@ -71,7 +71,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
     }
   };
 
-  const initial = (user?.displayName ?? user?.phoneE164 ?? "?").trim().charAt(0).toUpperCase();
+  const initial = (user?.displayName ?? user?.phoneE164 ?? user?.email ?? "?").trim().charAt(0).toUpperCase();
   const languageNames = LANGUAGES.map((l) => l.native).join(", ");
 
   return (
@@ -131,8 +131,8 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     <div className="text-foreground font-medium text-base truncate">
                       {user?.displayName ?? t("menu.guest")}
                     </div>
-                    {user?.phoneE164 && (
-                      <div className="text-muted text-xs truncate">{user.phoneE164}</div>
+                    {(user?.phoneE164 ?? user?.email) && (
+                      <div className="text-muted text-xs truncate">{user?.phoneE164 ?? user?.email}</div>
                     )}
                   </div>
                 </div>

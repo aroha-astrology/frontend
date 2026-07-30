@@ -29,6 +29,8 @@ export interface User {
   id: string;
   firebaseUid: string;
   phoneE164: string | null;
+  /** Set for Google sign-in users (no phone claim on the token); may also backfill onto a phone user. */
+  email: string | null;
   displayName: string | null;
   gender: Gender;
   dateOfBirth: string | null; // YYYY-MM-DD

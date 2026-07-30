@@ -34,6 +34,10 @@ export default function GreetingHeader() {
   const displayName = activeProfile?.displayName ?? user?.displayName;
   const firstName = displayName?.trim().split(/\s+/)[0] ?? null;
   const greetingKey = timeOfDayKey(new Date().getHours());
+  // "Namaste" is an India-specific greeting tied to the phone-OTP sign-in
+  // path — Google/Apple sign-in (no phone claim) implies a non-Indian user
+  // per the region-gated auth flow, so use a neutral "Hello" instead.
+  const greetingPrefix = user?.phoneE164 ? "namaste" : "hello";
 
   const greeting = (
     <motion.div
@@ -47,7 +51,9 @@ export default function GreetingHeader() {
       </div>
       <div>
         <p className="text-foreground text-base font-semibold leading-tight">
-          {firstName ? t("home.namaste", { name: firstName }) : t("home.namasteGuest")}
+          {firstName
+            ? t(`home.${greetingPrefix}`, { name: firstName })
+            : t(`home.${greetingPrefix}Guest`)}
         </p>
         <p className="text-muted text-xs">{t(`home.greeting.${greetingKey}`)}</p>
       </div>

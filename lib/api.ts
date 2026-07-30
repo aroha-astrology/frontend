@@ -29,6 +29,8 @@ export interface User {
   id: string;
   firebaseUid: string;
   phoneE164: string | null;
+  /** Set for Google sign-in users (no phone claim on the token); may also backfill onto a phone user. */
+  email: string | null;
   displayName: string | null;
   gender: Gender;
   dateOfBirth: string | null; // YYYY-MM-DD
@@ -49,8 +51,26 @@ export interface User {
   referralCode: string | null;
   /** Source of the referral (who referred this user) */
   referredByCode: string | null;
+  /**
+   * Server-side admin feature toggles, keyed by feature id (e.g. "nav.vastu",
+   * "home.matchmaking", "paid.gemstone", "reports.marriage"). A key absent
+   * from this map (old cached response, or a key this client build doesn't
+   * know about yet) must be treated as enabled — see hooks/useFeature.ts,
+   * which fails open on a missing key. Never trust a blank/missing map as
+   * "everything disabled".
+   */
+  features: Record<string, FeatureState>;
+  /** True for admin accounts — gates the (separate, not-yet-built) /admin dashboard. */
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** One entry in `User.features` — an admin-controlled toggle for a nav tab, home card, or paid feature. */
+export interface FeatureState {
+  enabled: boolean;
+  /** Server-resolved price in paise for a paid feature, or null when the feature has no price (e.g. a nav tab). */
+  pricePaise: number | null;
 }
 
 export interface Notification {
@@ -58,6 +78,9 @@ export interface Notification {
   title: string;
   body: string;
   type: string;
+  /** Where tapping this notification should navigate to, e.g. '/reports/abc123'. Null for
+   * notifications with nothing to deep-link to. */
+  link: string | null;
   readAt: string | null;
   createdAt: string;
 }
@@ -271,8 +294,32 @@ export interface HoraSlot {
 
 export interface PanchangData {
   date: string;
-  tithi: { number: number; name: string; paksha: string; deity: string; isAuspicious: boolean } | null;
-  nakshatra: { index: number; name: string; lord: string; pada: number; deity: string } | null;
+  tithi:
+    | {
+        number: number;
+        name: string;
+        paksha: string;
+        deity: string;
+        isAuspicious: boolean;
+        /** HH:mm this tithi ends (i.e. when the next one begins) — computed via swe_rise_trans-style angle-crossing search, not present on cached rows written before this field existed. */
+        endsAt?: string;
+        /** Name of the tithi that begins at `endsAt`. */
+        nextName?: string;
+      }
+    | null;
+  nakshatra:
+    | {
+        index: number;
+        name: string;
+        lord: string;
+        pada: number;
+        deity: string;
+        /** HH:mm this nakshatra ends (i.e. when the next one begins). */
+        endsAt?: string;
+        /** Name of the nakshatra that begins at `endsAt`. */
+        nextName?: string;
+      }
+    | null;
   yoga: { index: number; name: string; isAuspicious: boolean } | null;
   karana: { index: number; name: string; isFixed: boolean } | null;
   vara?: string;
@@ -282,6 +329,10 @@ export interface PanchangData {
   abhijitMuhurta?: PanchangTimeWindow;
   sunriseTime?: string;
   sunsetTime?: string;
+  /** Local HH:mm moonrise, computed via swe_rise_trans (SE_MOON). Absent (not just missing — legitimately null-able) on days the Moon doesn't rise in the civil-day window. */
+  moonriseTime?: string;
+  /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
+  moonsetTime?: string;
   regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];
@@ -502,7 +553,8 @@ export type TransactionKind =
   | "gemstone_unlock"
   | "profile_creation"
   | "house_unlock"
-  | "referral_bonus";
+  | "referral_bonus"
+  | "report_unlock";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
@@ -552,33 +604,104 @@ interface RequestOpts {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  /** Overridable for tests; defaults to DEFAULT_REQUEST_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
 
-async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
-  const { method = "GET", body, auth: needsAuth = false } = opts;
+/**
+ * A stalled connection (bad mobile network, a hung backend, a dropped
+ * WebView socket) used to leave callers `await`-ing forever with no
+ * error and no way to recover — e.g. onboarding's confirm button showing
+ * an infinite spinner. Every request is now bounded by this ceiling.
+ */
+const DEFAULT_REQUEST_TIMEOUT_MS = 25_000;
 
-  const headers: Record<string, string> = {};
-  if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (needsAuth) Object.assign(headers, await authHeader());
+/**
+ * Exported so `lib/admin-api.ts` (and any other typed client that needs the
+ * same fetch/auth/error-parsing behavior) can reuse it directly instead of
+ * duplicating this logic — see request()'s own contract below.
+ */
+export async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
+  const { method = "GET", body, auth: needsAuth = false, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS } = opts;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  const run = async (): Promise<T> => {
+    const headers: Record<string, string> = {};
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (needsAuth) Object.assign(headers, await authHeader());
+
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+    } catch {
+      // Network / mixed-content / CORS failure, or the timeout below aborting mid-flight.
+      throw new ApiError(0, "network_error", "Could not reach the server");
+    }
+
+    if (res.status === 204) return undefined as T;
+
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+
+    if (!res.ok) {
+      const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
+        ?.error;
+      throw new ApiError(
+        res.status,
+        err?.code ?? "http_error",
+        err?.message ?? `Request failed (${res.status})`,
+        err?.requestId,
+      );
+    }
+
+    return data as T;
+  };
+
+  try {
+    // Races run() against the same abort signal so a stall BEFORE fetch()
+    // even starts (e.g. Firebase's own getIdToken() network call inside
+    // authHeader()) is also bounded — not just a stalled fetch() itself.
+    return await Promise.race([
+      run(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener("abort", () =>
+          reject(new ApiError(0, "timeout", "Request timed out — check your connection and try again")),
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Uploads raw bytes (a captured/selected photo) with `Content-Type: image/jpeg` — separate
+ * from `request()` because that helper always JSON.stringifies `body`, which would mangle a
+ * Blob. Used by lib/palm-api.ts to POST a palm-capture frame directly (the backend now stores
+ * these on local disk on the API server itself, not a signed-URL cloud bucket, so the bytes
+ * go straight through this one authenticated call).
+ */
+export async function requestBinaryUpload(path: string, blob: Blob): Promise<void> {
+  const headers: Record<string, string> = { "Content-Type": "image/jpeg" };
+  Object.assign(headers, await authHeader());
 
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    res = await fetch(`${BASE_URL}${path}`, { method: "POST", headers, body: blob });
   } catch {
-    // Network / mixed-content / CORS failure — no HTTP response at all.
     throw new ApiError(0, "network_error", "Could not reach the server");
   }
 
-  if (res.status === 204) return undefined as T;
-
-  const text = await res.text();
-  const data = text ? safeJson(text) : null;
-
   if (!res.ok) {
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
     const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
       ?.error;
     throw new ApiError(
@@ -588,8 +711,24 @@ async function request<T>(path: string, opts: RequestOpts = {}): Promise<T> {
       err?.requestId,
     );
   }
+}
 
-  return data as T;
+/** Authenticated binary download — returns the raw response as a Blob. Used to load a
+ * captured palm frame into an `<img>` via `URL.createObjectURL`, since the backend serves it
+ * from local disk behind the same bearer-token auth every other route uses (no signed URL —
+ * an `<img src>` can't carry an Authorization header, so the caller fetches the bytes here and
+ * hands the resulting object URL to the `<img>` instead). */
+export async function requestBinaryDownload(path: string): Promise<Blob> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { method: "GET", headers: await authHeader() });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server");
+  }
+  if (!res.ok) {
+    throw new ApiError(res.status, "http_error", `Request failed (${res.status})`);
+  }
+  return res.blob();
 }
 
 function safeJson(text: string): unknown {
@@ -623,6 +762,8 @@ export interface VastuAnalyzeBody {
   houseShape?: string;
   /** The full editable CAD plan, stored for reload. */
   layout?: Record<string, unknown>;
+  /** UI language to generate the AI remedies in — backend defaults to 'en' if omitted. */
+  language?: string;
 }
 
 export interface VastuPlan {
@@ -634,6 +775,20 @@ export interface VastuPlan {
   errorMessage: string | null;
   createdAt: string;
   completedAt: string | null;
+}
+
+// ─── Support tickets ────────────────────────────────────────────────────────
+
+/** Caller-facing shape — no `userId` (implicit: always the caller's own) and no `adminNote` (admin-only). */
+export interface SupportTicket {
+  id: string;
+  category: string;
+  message: string;
+  locale: string | null;
+  appVersion: string | null;
+  status: string;
+  createdAt: string;
+  resolvedAt: string | null;
 }
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -759,7 +914,8 @@ export const api = {
    *   - "missing_parameters" → 422, birth fields absent
    * Unexpected status codes still throw `ApiError`.
    */
-  getKundli: () => kundliRequest("GET", "/v1/kundli"),
+  getKundli: (language?: string) =>
+    kundliRequest("GET", `/v1/kundli${language ? `?language=${encodeURIComponent(language)}` : ""}`),
 
   /**
    * Current user's personalized horoscope. Returns a discriminated union —
@@ -813,10 +969,12 @@ export const api = {
     const params = new URLSearchParams({ year: String(year), month: String(month) });
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
-    return request<{ year: number; month: number; days: PanchangMonthDay[] }>(
-      `/v1/panchang/month?${params.toString()}`,
-      { auth: true },
-    );
+    return request<{
+      year: number;
+      month: number;
+      days: PanchangMonthDay[];
+      regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+    }>(`/v1/panchang/month?${params.toString()}`, { auth: true });
   },
 
   /** Request a Vedic timing analysis for a major purchase — returns immediately with a planId to poll. */
@@ -844,9 +1002,9 @@ export const api = {
   vastuGet: (id: string, language?: string) =>
     request<VastuPlan>(`/v1/vastu/${id}${language ? `?language=${language}` : ""}`, { auth: true }),
 
-  /** Ask one free follow-up question about a completed Vastu report. */
-  vastuAsk: (id: string, question: string) =>
-    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question }, auth: true }),
+  /** Ask one free follow-up question about a completed Vastu report — answered directly in `language` (defaults to the plan's original generation language server-side). */
+  vastuAsk: (id: string, question: string, language?: string) =>
+    request<VastuPlan>(`/v1/vastu/${id}/ask`, { method: "POST", body: { question, language }, auth: true }),
 
   /** Delete a Vastu plan. */
   vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),
@@ -863,7 +1021,7 @@ export const api = {
    * swagger guidance). 422 (missing parameters) is returned immediately — no
    * point polling, the user has to complete their profile first.
    */
-  pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {}) =>
+  pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {}) =>
     pollKundli(opts),
 
   /** Purchasable top-up amounts. */
@@ -908,6 +1066,18 @@ export const api = {
   /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
   transactionHistory: () =>
     request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),
+
+  /**
+   * File a new support ticket. `locale`/`appVersion` fall back server-side to
+   * the user's own row when omitted — pass them explicitly to reflect the
+   * language/build the user is actually on right now.
+   */
+  createSupportTicket: (body: { category: string; message: string; locale?: string; appVersion?: string }) =>
+    request<SupportTicket>("/v1/support/tickets", { method: "POST", body, auth: true }),
+
+  /** The current user's own support tickets, newest first — never another user's. */
+  listMySupportTickets: () =>
+    request<{ tickets: SupportTicket[] }>("/v1/support/tickets", { auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────
@@ -936,14 +1106,15 @@ async function kundliRequest(method: "GET" | "POST", path: string): Promise<Kund
 }
 
 async function pollKundli(
-  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
+  opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {},
 ): Promise<KundliResult> {
   const baseMs = opts.intervalMs ?? 2000;
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
+  const path = `/v1/kundli${opts.language ? `?language=${encodeURIComponent(opts.language)}` : ""}`;
   let attempt = 0;
   while (true) {
     if (opts.signal?.aborted) throw new ApiError(0, "aborted", "Request aborted");
-    const r = await kundliRequest("GET", "/v1/kundli");
+    const r = await kundliRequest("GET", path);
     if (r.status !== "pending" && r.status !== "generating") return r;
     const delay = nextPollDelay(attempt++, { baseMs });
     if (Date.now() + delay > deadline) return r; // give up but surface latest pending state

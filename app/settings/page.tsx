@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,7 +10,6 @@ import {
   ScrollText,
   ShieldCheck,
   LogOut,
-  ChevronRight,
   Sparkles,
   Trash2,
   UserCircle,
@@ -21,42 +19,12 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import Switch from "@/components/ui/Switch";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import ListRow from "@/components/ui/ListRow";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type Profile } from "@/lib/api";
 import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
-
-function SettingsRow({
-  icon,
-  label,
-  action,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  action: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-gold/15 bg-card">
-      <span className="text-gold">{icon}</span>
-      <span className="flex-1 text-sm text-foreground">{label}</span>
-      {action}
-    </div>
-  );
-}
-
-function SettingsLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-gold/15 bg-card text-foreground hover:bg-gold/10 transition-colors group"
-    >
-      <span className="text-gold">{icon}</span>
-      <span className="flex-1 text-sm">{label}</span>
-      <ChevronRight size={14} className="text-muted group-hover:text-gold transition-colors" />
-    </Link>
-  );
-}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-[11px] text-muted uppercase tracking-wider mb-2 ml-1">{children}</p>;
@@ -166,8 +134,8 @@ export default function SettingsPage() {
         {/* Preferences */}
         <SectionLabel>{t("settings.preferences")}</SectionLabel>
         <div className="space-y-2.5 mb-6">
-          <SettingsRow icon={<Globe size={16} />} label={t("settings.language")} action={<LanguagePicker />} />
-          <SettingsRow icon={<Moon size={16} />} label={t("settings.theme")} action={<ThemeSwitch />} />
+          <ListRow icon={<Globe size={16} />} label={t("settings.language")} right={<LanguagePicker />} />
+          <ListRow icon={<Moon size={16} />} label={t("settings.theme")} right={<ThemeSwitch />} />
         </div>
 
         {/* Profiles */}
@@ -192,8 +160,8 @@ export default function SettingsPage() {
         {/* Legal */}
         <SectionLabel>{t("settings.legal")}</SectionLabel>
         <div className="space-y-2.5 mb-6">
-          <SettingsLink href="/legal/terms" icon={<ScrollText size={16} />} label={t("legal.terms")} />
-          <SettingsLink href="/legal/privacy" icon={<ShieldCheck size={16} />} label={t("legal.privacy")} />
+          <ListRow href="/legal/terms" icon={<ScrollText size={16} />} label={t("legal.terms")} />
+          <ListRow href="/legal/privacy" icon={<ShieldCheck size={16} />} label={t("legal.privacy")} />
         </div>
 
         {/* Privacy */}
@@ -219,7 +187,7 @@ export default function SettingsPage() {
         {/* Account */}
         <SectionLabel>{t("settings.account")}</SectionLabel>
         <div className="space-y-2.5 mb-2.5">
-          <SettingsLink href="/settings/history" icon={<Wallet size={16} />} label={t("settings.paymentHistory")} />
+          <ListRow href="/settings/history" icon={<Wallet size={16} />} label={t("settings.paymentHistory")} />
         </div>
         <Card className="p-1 mb-2.5">
           <button

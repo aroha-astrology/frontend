@@ -1,18 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import Card from "./Card";
+import GeneratingSpinner from "./GeneratingSpinner";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
 import { useGemstone } from "@/hooks/useGemstone";
+import { useFeature } from "@/hooks/useFeature";
 import { purgeUserCache } from "@/lib/cache";
 
 import { formatRupees } from "@/lib/format";
-
-const UNLOCK_COST_PAISE = 10000;
 
 /** Faceted-gem SVG tinted in the stone's colour — the fallback when no photo is available. */
 function GemGlyph({ color, size }: { color: string; size: number }) {
@@ -211,6 +210,7 @@ export default function GemstoneCard() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, refresh } = useAuth();
+  const UNLOCK_COST_PAISE = useFeature("paid.gemstone").pricePaise ?? 10000;
   const credits = user?.walletBalancePaise ?? 0;
   const unlocked = user?.gemstoneUnlocked ?? false;
   const [unlocking, setUnlocking] = useState(false);
@@ -306,14 +306,7 @@ export default function GemstoneCard() {
       <Heading>{t("kundli.gemstone.title")}</Heading>
 
       {(state === "loading" || state === "generating") && (
-        <div className="py-8 flex flex-col items-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-            className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent"
-          />
-          <p className="text-xs text-muted mt-3">{t("kundli.gemstone.generating")}</p>
-        </div>
+        <GeneratingSpinner label={t("kundli.gemstone.generating")} />
       )}
 
       {state === "error" && (

@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown, FileDown } from "lucide-react";
+import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
-import { streamChat, sendChatFeedback, type ChatDetailLevel } from "@/lib/swarm-api";
+import { streamChat, sendChatFeedback, SwarmApiError, type ChatDetailLevel } from "@/lib/swarm-api";
+import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
@@ -17,14 +18,13 @@ import { getTtsBackend } from "@/lib/tts";
 import { LANGUAGES, type LangCode } from "@/providers/language-provider";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { useKundli } from "@/hooks/useKundli";
+import { useFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
 import { formatRupees } from "@/lib/format";
 
-/** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts. */
-const CHAT_MESSAGE_COST_PAISE = 2000;
-/** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. */
+/** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. Pure UI threshold, unrelated to server pricing. */
 const LOW_CREDIT_THRESHOLD_PAISE = 8000;
 
 interface Message {
@@ -94,22 +94,11 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
   return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
 }
 
-/** Strip markdown syntax for a clean PDF plain-text fallback. */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/^#{1,6}\s*/gm, "")          // headings
-    .replace(/\*\*(.+?)\*\*/g, "$1")        // bold
-    .replace(/\*(.+?)\*/g, "$1")            // italic
-    .replace(/`(.+?)`/g, "$1")              // inline code
-    .replace(/\[(.+?)\]\(.+?\)/g, "$1")    // links
-    .replace(/^[-*+]\s+/gm, "• ")          // unordered list
-    .replace(/^\d+\.\s+/gm, (m) => m)      // ordered list (keep numbers)
-    .trim();
-}
-
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
+  /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts — 2000 is only the fallback for the fail-open case; the resolved feature price is authoritative when present. */
+  const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
   const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -130,8 +119,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const [thinkingIdx, setThinkingIdx] = useState(0);
   // All chats use "direct" mode; the Direct/Details toggle was removed.
   const detailLevel: ChatDetailLevel = "direct";
-  const bottomRef = useRef<HTMLDivElement>(null);
-  
+  // Scroll target for new messages — the messages pane itself (see the
+  // `overflow-y-auto` div in the JSX below), not a sentinel node. Scrolling a
+  // sentinel via `scrollIntoView` walks and scrolls EVERY scrollable
+  // ancestor, including the document itself; in the Capacitor WebView that
+  // meant a soft-keyboard-driven viewport resize could scroll the whole page
+  // out from under the (visually) pinned header. Scrolling this container's
+  // `scrollTop` directly keeps the effect scoped to just this pane.
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   const sessionIdRef = useRef<string | undefined>(undefined);
 
   // Cycle the "thinking" label while waiting for the first token, so the
@@ -154,10 +150,12 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // transcript, deleting older turns — see astro.routes.ts's chatRoute for
   // the server-side half of the fix (loads the stored full history/summary
   // instead of trusting a client-supplied buffer).
-  // One-shot compareProfileId from the compatibility page handoff — consumed
-  // on the first streamChat call and then cleared so subsequent turns don't
-  // keep sending it (synastry grounding is only relevant for the first reply).
+  // One-shot compareProfileId/matchReportId from the compatibility page handoff —
+  // consumed on the first streamChat call and then cleared so subsequent turns
+  // don't keep sending them (synastry/match-report grounding is only relevant
+  // for the first reply).
   const pendingCompareProfileIdRef = useRef<string | undefined>(undefined);
+  const pendingMatchReportIdRef = useRef<string | undefined>(undefined);
 
   // Per-message TTS + feedback state. Keyed by client-generated message id
   // (see the Message interface above) rather than array index, since index
@@ -285,7 +283,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, [kundli, t]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
 
   const sendMessage = useCallback(async (text?: string) => {
@@ -317,12 +317,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     try {
       const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
       pendingCompareProfileIdRef.current = undefined;
+      const matchReportIdForThisTurn = pendingMatchReportIdRef.current;
+      pendingMatchReportIdRef.current = undefined;
       const stream = streamChat(msg, {
         sessionId: sessionIdRef.current,
         detailLevel,
         chartId,
         locale: i18n.language,
         ...(compareProfileIdForThisTurn ? { compareProfileId: compareProfileIdForThisTurn } : {}),
+        ...(matchReportIdForThisTurn ? { matchReportId: matchReportIdForThisTurn } : {}),
       });
       let fullContent = "";
 
@@ -379,6 +382,23 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         });
       }
     } catch (err) {
+      // Pacing rejections are the one failure the user must never be shown,
+      // because the product deliberately never tells anyone a rate limit exists
+      // — see the `silent` limiter and the in-flight lock in the backend's
+      // middleware/rate-limit.ts and astro.routes.ts. Both arrive as a 429; a
+      // 409 here still means "not enough credits" and must fall through to the
+      // normal error display below.
+      //
+      // This composer already blocks a second send while `streaming`, so the
+      // only way to reach a 429 is a second tab or a replayed request. Roll the
+      // optimistic turn back and put the text back in the box so it reads as a
+      // send that simply didn't go through, and can be retried.
+      if (err instanceof SwarmApiError && err.status === 429) {
+        setMessages((prev) => prev.slice(0, -2));
+        setInput(msg);
+        return;
+      }
+
       const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
@@ -403,131 +423,28 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     }
   }, [input, streaming, canAfford, t, detailLevel, refresh]);
 
-  /**
-   * Opens a new browser window with a print-ready HTML document that contains
-   * the full conversation, then triggers the browser print dialog (Save as PDF).
-   * Uses zero external dependencies — works on all modern browsers.
-   */
-  const downloadConversationAsPdf = useCallback(() => {
-    const astrologerName = t(ASTROLOGER.nameKey);
-    const astrologerSpecialty = t(ASTROLOGER.specialtyKey);
-    const now = new Date().toLocaleString(i18n.language, {
-      dateStyle: "long",
-      timeStyle: "short",
-    });
-
-    // Build the conversation HTML
-    const rows = messages
-      .filter((m) => !m.isGreeting) // skip canned greeting
-      .map((m) => {
-        const label = m.role === "user" ? "You" : astrologerName;
-        const bubbleColor = m.role === "user" ? "#92400e" : "#1c1917";
-        const labelColor = m.role === "user" ? "#d97706" : "#ca8a04";
-        const bodyText = m.role === "assistant" ? stripMarkdown(m.content) : m.content;
-        return `
-          <div class="message ${m.role}">
-            <span class="label" style="color:${labelColor}">${label}</span>
-            <div class="bubble" style="background:${bubbleColor}">
-              ${bodyText.replace(/\n/g, "<br/>")}
-            </div>
-          </div>`;
-      })
-      .join("");
-
-    const html = `<!DOCTYPE html>
-<html lang="${i18n.language}">
-<head>
-  <meta charset="UTF-8" />
-  <title>Chat with ${astrologerName} — Aroha Astrology</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0c0a09;
-      color: #e7e5e4;
-      padding: 40px 32px;
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    .header {
-      text-align: center;
-      border-bottom: 1px solid #44403c;
-      padding-bottom: 20px;
-      margin-bottom: 28px;
-    }
-    .header h1 { font-size: 22px; color: #eab308; font-weight: 600; }
-    .header p  { font-size: 12px; color: #a8a29e; margin-top: 4px; }
-    .header .meta { font-size: 11px; color: #78716c; margin-top: 10px; }
-    .message { margin-bottom: 20px; }
-    .label { font-size: 11px; font-weight: 600; letter-spacing: .04em;
-             text-transform: uppercase; display: block; margin-bottom: 6px; }
-    .bubble {
-      display: inline-block;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 13px;
-      line-height: 1.7;
-      max-width: 92%;
-      border: 1px solid #44403c;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .user .bubble  { margin-left: auto; border-radius: 16px 16px 4px 16px; }
-    .assistant .bubble { border-radius: 16px 16px 16px 4px; }
-    .user { text-align: right; }
-    .footer {
-      margin-top: 36px;
-      text-align: center;
-      font-size: 10px;
-      color: #57534e;
-      border-top: 1px solid #44403c;
-      padding-top: 12px;
-    }
-    @media print {
-      body { background: #fff; color: #111; padding: 20px; }
-      .bubble { background: #f5f5f4 !important; color: #111 !important; border-color: #d6d3d1 !important; }
-      .header h1 { color: #b45309; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>${ASTROLOGER.avatar} ${astrologerName}</h1>
-    <p>${astrologerSpecialty}</p>
-    <p class="meta">Exported on ${now}</p>
-  </div>
-  ${rows || '<p style="color:#78716c;text-align:center">No messages yet.</p>'}
-  <div class="footer">Aroha Astrology · AI-generated content is for guidance only.</div>
-</body>
-</html>`;
-
-    const win = window.open("", "_blank");
-    if (!win) return; // popup blocked
-    win.document.write(html);
-    win.document.close();
-    // Give fonts/images a moment to load before triggering print
-    win.onload = () => win.print();
-    // Fallback if onload already fired
-    setTimeout(() => { try { win.print(); } catch { /* already closed */ } }, 600);
-  }, [messages, t, i18n.language]);
-
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
   // astrologer already has context instead of starting from a blank chat.
-  // The payload is a JSON object { message: string; compareProfileId?: string }
-  // — compareProfileId, when present, is passed through to streamChat so the
-  // backend can ground the reply in a real synastry reading.
+  // The payload is a JSON object { message: string; compareProfileId?: string;
+  // matchReportId?: string } — compareProfileId/matchReportId, when present,
+  // are passed through to streamChat so the backend can ground the reply in a
+  // real synastry reading or an already-purchased match report.
   useEffect(() => {
     const raw = sessionStorage.getItem(CHAT_PENDING_CONTEXT_KEY);
     if (raw) {
       sessionStorage.removeItem(CHAT_PENDING_CONTEXT_KEY);
       try {
-        const payload = JSON.parse(raw) as { message?: string; compareProfileId?: string };
+        const payload = JSON.parse(raw) as {
+          message?: string;
+          compareProfileId?: string;
+          matchReportId?: string;
+        };
         if (payload.message) {
-          // Store compareProfileId for the first turn only; subsequent turns
-          // in the same chat session use normal context (no synastry grounding).
+          // Store compareProfileId/matchReportId for the first turn only; subsequent turns
+          // in the same chat session use normal context (no synastry/match-report grounding).
           pendingCompareProfileIdRef.current = payload.compareProfileId;
+          pendingMatchReportIdRef.current = payload.matchReportId;
           sendMessage(payload.message);
         }
       } catch {
@@ -540,38 +457,41 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   }, []);
 
   return (
-    <main className="min-h-screen pb-52 flex flex-col" style={{ background: "var(--background)" }}>
-      {/* Header — the astrologer's identity. The name row stays sticky so
-          there's always a visible top bar once the conversation scrolls;
-          the specialty/disclosure lines scroll away with the rest. */}
-      <div className="sticky top-0 z-20 px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
-        <div className="relative flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-gold font-display">
-            {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
-          </h1>
-          {/* Download PDF — only show once there is at least one real exchange */}
-          {messages.length > 1 && (
-            <button
-              onClick={downloadConversationAsPdf}
-              title="Download conversation as PDF"
-              aria-label="Download conversation as PDF"
-              className="absolute right-0 p-2 rounded-full transition-colors hover:bg-yellow-500/10"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <FileDown size={18} />
-            </button>
-          )}
+    <main className="h-[calc(100dvh-var(--topbar-h))] overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
+      {/* Header — the astrologer's identity. A plain flex child, not
+          `sticky`: `main` itself never scrolls (see `overflow-hidden`
+          above), so it has no scrolling ancestor for `sticky` to stick
+          within — the flex layout + `overflow-hidden` on `main` is what
+          actually keeps this pinned above the messages pane below.
+          `pt-4` matches the in-page content spacing other TOPBAR_ROUTES
+          pages use directly below the shared TopBar (see app/kundli/page.tsx)
+          — the TopBar itself already reserves the status-bar space via its
+          own `pt-8`, so this screen no longer needs to duplicate it. */}
+      <div className="flex-shrink-0 relative px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+        {/* Call icon — absolutely positioned rather than a flex sibling so the
+            astrologer's name stays optically centred in the header, the same
+            as it was before voice existed. */}
+        <div className="absolute left-5 top-1/2 -translate-y-1/2">
+          <VoiceCall locale={i18n.language} />
         </div>
-      </div>
-      <div className="px-5 pt-3 pb-1">
-        <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
-        <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
-          {t("aiChatPage.disclosure")}
-        </p>
+        <h1 className="text-2xl font-bold text-gold font-display text-center">
+          {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
+        </h1>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-10">
+      {/* Messages — the only scrolling element on this screen. */}
+      <div ref={messagesContainerRef} className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
+        {/* Specialty + disclosure — lives inside the scroll container so it
+            genuinely scrolls away with the rest of the conversation once
+            there's enough history, instead of permanently eating vertical
+            space above the message list. */}
+        <div className="px-1 pt-3 pb-1">
+          <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
+          <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
+            {t("aiChatPage.disclosure")}
+          </p>
+        </div>
+
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => {
             // The empty assistant placeholder pushed at send-time renders as a
@@ -740,12 +660,17 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             </div>
           </motion.div>
         )}
-
-        <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
-      <div className="fixed bottom-[calc(var(--tab-bar-h)+1rem)] left-0 right-0 px-4 py-3" style={{ background: "var(--background)" }}>
+      {/* Input bar — a normal flex child, not `position: fixed`. This screen
+          renders inside PageTransition's `motion.div`, which animates `x` (a
+          CSS transform) during route changes; a non-`none` transform on an
+          ancestor becomes the containing block for `position: fixed`
+          descendants, which made this bar visibly jump on every tab switch.
+          `mb-[calc(var(--tab-bar-h)+1rem)]` keeps it anchored the same
+          distance above the bottom tab bar that the old `fixed bottom-` did,
+          now via ordinary flex spacing instead. */}
+      <div className="flex-shrink-0 px-4 py-3 mb-[calc(var(--tab-bar-h)+1rem)]" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
           {!canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">
@@ -766,6 +691,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               {t("aiChatPage.costPerMessage", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
             </p>
           )}
+          {/* Voice used to live here as a mic button; it is now a call icon in
+              the header, so this row is just the text composer again. */}
           <div className="flex gap-3">
             <input
               value={input}

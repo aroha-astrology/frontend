@@ -228,8 +228,15 @@ export function buildKey(...parts: (string | number | null | undefined)[]): stri
  * period-expiry.ts) — "horoscope" IS user-scoped and IS chart-derived, so a
  * birth-detail edit does need to bust it explicitly.
  */
-type CacheScope = "kundli" | "horoscope" | "gemstone" | "houseInsight" | "remedies";
-const ALL_SCOPES: readonly CacheScope[] = ["kundli", "horoscope", "gemstone", "houseInsight", "remedies"];
+type CacheScope = "kundli" | "horoscope" | "gemstone" | "houseInsight" | "remedies" | "palm";
+const ALL_SCOPES: readonly CacheScope[] = [
+  "kundli",
+  "horoscope",
+  "gemstone",
+  "houseInsight",
+  "remedies",
+  "palm",
+];
 
 /**
  * Purges cached entries for one user, optionally narrowed to one resource

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Real shape from KundliReady.yogas.yogas[]
 export interface Yoga {
@@ -49,6 +50,7 @@ const STRENGTH_COLORS: Record<string, string> = {
 };
 
 export default function YogaCard({ yogas, mode = 'technical', className = '' }: YogaCardProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const present = yogas.filter((y) => y.present);
   if (!present.length) return null;
@@ -59,7 +61,7 @@ export default function YogaCard({ yogas, mode = 'technical', className = '' }: 
     <div className={className}>
       <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-gold mb-3 flex items-center gap-2">
         <span className="text-gold text-xs">✦</span>
-        Yogas Detected
+        {t('kundli.yogaCard.title')}
         <span className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
       </h3>
 
@@ -97,7 +99,7 @@ export default function YogaCard({ yogas, mode = 'technical', className = '' }: 
           onClick={() => setExpanded(!expanded)}
           className="mt-2 text-[11px] text-gold underline-offset-2 hover:underline"
         >
-          {expanded ? 'Show less' : `Show all ${present.length} yogas`}
+          {expanded ? t('kundli.yogaCard.showLess') : t('kundli.yogaCard.showAll', { count: present.length })}
         </button>
       )}
     </div>

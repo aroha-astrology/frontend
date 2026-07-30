@@ -2,28 +2,24 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Sun,
-  Sunset,
-  Clock,
-  ShieldAlert,
-  ShieldCheck,
-  CalendarDays,
-  MapPin,
-  Navigation,
-  ChevronDown,
-} from "lucide-react";
+import { Clock, CalendarDays, MapPin, Navigation, ChevronDown } from "lucide-react";
 import { api, type PanchangData, type PurchasePlan } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/SectionTitle";
 import MonthlyPanchangCalendar from "@/components/panchang/MonthlyPanchangCalendar";
 import PurchasePlanModal from "@/components/panchang/PurchasePlanModal";
 import PurchasePlanResults from "@/components/panchang/PurchasePlanResults";
-import { REGION_OPTIONS, REGION_META, type RegionId } from "@/lib/panchang/regions";
+import PanchangHeader from "@/components/panchang/PanchangHeader";
+import TithiHero from "@/components/panchang/TithiHero";
+import SunMoonTimings from "@/components/panchang/SunMoonTimings";
+import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
+import AuspiciousDays from "@/components/panchang/AuspiciousDays";
+import { REGION_META, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import { isCurrentlyActive } from "@/lib/panchang/time-window";
+import FeatureGuard from "@/components/FeatureGuard";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -32,42 +28,27 @@ const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const REFERENCE_LAT = 28.6139;
 const REFERENCE_LON = 77.209;
 
+/** Which regional lunar/solar calendar convention to show alongside the Gregorian month —
+ * derived from the app's own selected language rather than a manual direction toggle (removed:
+ * "North/South/West/East" read as compass directions to users, when this has only ever been
+ * about which calendar-naming convention to display). Telugu and Tamil both map to "south" —
+ * there's no separate region for them in the underlying regional.ts calculation, which only
+ * models 4 conventions (Vikram Samvat, Shalivahana Shaka x2 spellings, Bengali San). */
+const LANGUAGE_TO_REGION: Record<string, RegionId> = {
+  hi: "north",
+  bn: "east",
+  mr: "west",
+  gu: "west",
+  te: "south",
+  ta: "south",
+};
+
 function FactCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <Card className="p-3.5 border-gold/10 text-center">
       <p className="text-[10px] text-muted uppercase tracking-wider">{label}</p>
       <p className="text-sm text-foreground font-semibold mt-1">{value}</p>
       {sub && <p className="text-[10px] text-muted mt-0.5">{sub}</p>}
-    </Card>
-  );
-}
-
-function WindowCard({
-  icon,
-  label,
-  window,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  window: { start: string; end: string };
-  tone: "avoid" | "auspicious";
-}) {
-  const { t } = useTranslation();
-  const borderBg = tone === "avoid" ? "border-red-500/20 bg-red-500/5" : "border-emerald-500/20 bg-emerald-500/5";
-  const text = tone === "avoid" ? "text-red-400" : "text-emerald-400";
-  return (
-    <Card className={`p-4 ${borderBg}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className={text}>{icon}</span>
-        <p className="text-xs font-semibold text-foreground">{label}</p>
-        <span className={`ml-auto text-[9px] font-semibold uppercase tracking-wider ${text}`}>
-          {tone === "avoid" ? t("horoscope.panchang.avoid") : t("horoscope.panchang.auspicious")}
-        </span>
-      </div>
-      <p className="text-sm text-foreground font-medium">
-        {window.start} – {window.end}
-      </p>
     </Card>
   );
 }
@@ -96,23 +77,13 @@ function CollapsibleSection({
   );
 }
 
-function isCurrentlyActive(start: string, end: string): boolean {
-  const now = new Date();
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  const startMins = sh * 60 + sm;
-  const endMins = eh * 60 + em;
-  return currentMins >= startMins && currentMins < endMins;
-}
-
 export default function PanchangPage() {
   const { t, i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [region, setRegion] = useState<RegionId>("north");
+  const region: RegionId = LANGUAGE_TO_REGION[i18n.language] ?? "north";
 
   const [refData, setRefData] = useState<PanchangData | null>(null);
   const [refState, setRefState] = useState<"loading" | "ready" | "unavailable">("loading");
@@ -138,7 +109,12 @@ export default function PanchangPage() {
     // Hard cache (see lib/cache.ts): `date` (selectedDate) is always passed
     // explicitly here — a fixed TTL, not periodExpiresAt('daily'), since a
     // past/future date's panchang is immutable regardless of today's rollover.
-    const cacheKey = buildKey("panchang", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
+    // "v2" bumped alongside the moonrise/moonset + tithi/nakshatra endsAt
+    // fields added to PanchangData — without it, a pre-existing localStorage
+    // entry from before that change would keep being served (matching this
+    // same key) and silently look like "no moonrise", forever, since nothing
+    // else about the key would ever invalidate it.
+    const cacheKey = buildKey("panchang", "v2", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setRefData(cached);
@@ -167,7 +143,7 @@ export default function PanchangPage() {
     let cancelled = false;
     setUserState("loading");
 
-    const cacheKey = buildKey("panchang", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
+    const cacheKey = buildKey("panchang", "v2", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setUserData(cached);
@@ -255,13 +231,25 @@ export default function PanchangPage() {
   }, [pollingId]);
 
   const regionMeta = REGION_META[region];
-  const regionalMonth = data?.regionalMonths?.[region];
   const adhik = findAdhikMaas(selectedDate);
 
+  // Share text for PanchangHeader's native-share button — a plain-text
+  // summary of today's core facts, not a deep link (no shareable per-date
+  // URL exists for this page yet).
+  const shareText = data
+    ? t("horoscope.panchang.shareText", {
+        date: data.date,
+        tithi: data.tithi?.name ?? "—",
+        nakshatra: data.nakshatra?.name ?? "—",
+        vara: data.vara ?? "—",
+      })
+    : t("horoscope.panchang.todayTitle");
+
   return (
+    <FeatureGuard featureKey="nav.panchang">
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
-        <SectionTitle title={t("nav.panchang")} subtitle={data?.date ?? ""} />
+        <PanchangHeader subtitle={data?.date ?? ""} shareText={shareText} />
 
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
@@ -288,6 +276,12 @@ export default function PanchangPage() {
           </div>
           {geo.status === "denied" && <span className="text-[11px] text-muted">{t("horoscope.panchang.locationDenied")}</span>}
         </div>
+        {geo.status === "requesting" && (
+          <p className="mt-2 text-[11px] text-gold flex items-center gap-1.5">
+            <span className="w-3 h-3 border-2 border-gold/40 border-t-gold rounded-full animate-spin shrink-0" />
+            {t("horoscope.panchang.findingLocation")}
+          </p>
+        )}
         {geo.status === "idle" && <p className="mt-2 text-[11px] text-muted">{t("horoscope.panchang.locationHint")}</p>}
         {geo.status === "granted" && geo.locationName && (
           <p className="mt-2 text-[11px] text-muted flex items-center gap-1">
@@ -295,46 +289,25 @@ export default function PanchangPage() {
           </p>
         )}
 
-        {/* Regional calendar + Adhik Maas */}
-        <div className="mt-4 flex items-center gap-2 flex-wrap">
-          <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
-            {REGION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setRegion(opt.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  region === opt.value ? "bg-gold text-[#1a0e00]" : "text-muted"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <Card className="mt-2 p-3.5 border-gold/10 flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <p className="text-[10px] text-muted uppercase tracking-wider">{regionMeta.calendarName}</p>
-            <p className="text-sm text-foreground font-medium mt-0.5">
-              {regionalMonth ? `${adhik ? "Adhik " : ""}${regionalMonth.monthName} ${regionalMonth.year}` : "—"}
-              {regionalMonth?.paksha && (
-                <span className="text-muted"> · {regionalMonth.paksha === "shukla" ? "Shukla" : "Krishna"} Paksha</span>
-              )}
-            </p>
-          </div>
-          {adhik && (
+        {/* Adhik Maas banner — a specific-day fact (unlike the calendar's own regional month/year
+            header below, which is a whole-month label), so it stays keyed off selectedDate here. */}
+        {adhik && (
+          <Card className="mt-4 p-3.5 border-gold/10 flex items-center justify-between flex-wrap gap-2">
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-red-500/10 border border-red-500/25 text-red-400">
               🚫 {regionMeta.adhikMaasName} · {t("horoscope.panchang.adhikMaasAvoid")}
             </span>
-          )}
-        </Card>
+          </Card>
+        )}
 
-        {/* Monthly calendar */}
+        {/* Monthly calendar — shows the regional month/year (derived from app language, see
+            LANGUAGE_TO_REGION) stacked under the Gregorian month in its own header. */}
         <div className="mt-4">
           <MonthlyPanchangCalendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             lat={source === "mine" ? geo.coords?.lat : undefined}
             lon={source === "mine" ? geo.coords?.lon : undefined}
+            region={region}
           />
         </div>
 
@@ -352,100 +325,43 @@ export default function PanchangPage() {
 
         {state === "ready" && data && (
           <div className="mt-6 space-y-6">
-            {/* Core five */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {data.tithi && <FactCard label={t("horoscope.panchang.tithi")} value={data.tithi.name} sub={data.tithi.paksha} />}
-              {data.vara && <FactCard label={t("horoscope.panchang.vaar")} value={data.vara} />}
-              {data.nakshatra && (
-                <FactCard label={t("horoscope.panchang.nakshatra")} value={data.nakshatra.name} sub={data.nakshatra.lord} />
-              )}
-              {data.yoga && <FactCard label={t("horoscope.panchang.yoga")} value={data.yoga.name} />}
-              {data.karana && <FactCard label={t("horoscope.panchang.karana")} value={data.karana.name} />}
-            </div>
+            {/* Hero: today's vara-lord orb, tithi, festival pill, and the Rahu Kaal / Abhijit Muhurta bar */}
+            <TithiHero data={data} dateIso={selectedDate} />
 
-            {/* Sunrise / sunset */}
-            {(data.sunriseTime || data.sunsetTime) && (
-              <Card className="p-4 border-gold/10 flex items-center justify-around">
-                {data.sunriseTime && (
-                  <div className="flex items-center gap-2 text-sm text-foreground">
-                    <Sun size={16} className="text-gold" /> {data.sunriseTime}
-                  </div>
+            {/* Remaining core facts — tithi itself is already covered by the hero above, so it's left out here to avoid showing it twice. */}
+            {(data.vara || data.nakshatra || data.yoga || data.karana) && (
+              <div className="grid grid-cols-2 gap-3">
+                {data.vara && <FactCard label={t("horoscope.panchang.vaar")} value={data.vara} />}
+                {data.nakshatra && (
+                  <FactCard label={t("horoscope.panchang.nakshatra")} value={data.nakshatra.name} sub={data.nakshatra.lord} />
                 )}
-                {data.sunsetTime && (
-                  <div className="flex items-center gap-2 text-sm text-foreground">
-                    <Sunset size={16} className="text-gold" /> {data.sunsetTime}
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* Auspicious / inauspicious windows */}
-            {(data.rahuKaal || data.gulikaKaal || data.yamagandaKaal || data.abhijitMuhurta) && (
-              <div>
-                <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.auspiciousWindows")}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.rahuKaal && (
-                    <WindowCard icon={<ShieldAlert size={14} />} label={t("horoscope.panchang.rahuKaal")} window={data.rahuKaal} tone="avoid" />
-                  )}
-                  {data.gulikaKaal && (
-                    <WindowCard icon={<ShieldAlert size={14} />} label={t("horoscope.panchang.gulikaKaal")} window={data.gulikaKaal} tone="avoid" />
-                  )}
-                  {data.yamagandaKaal && (
-                    <WindowCard
-                      icon={<ShieldAlert size={14} />}
-                      label={t("horoscope.panchang.yamagandaKaal")}
-                      window={data.yamagandaKaal}
-                      tone="avoid"
-                    />
-                  )}
-                  {data.abhijitMuhurta && (
-                    <WindowCard
-                      icon={<ShieldCheck size={14} />}
-                      label={t("horoscope.panchang.abhijitMuhurta")}
-                      window={data.abhijitMuhurta}
-                      tone="auspicious"
-                    />
-                  )}
-                </div>
+                {data.yoga && <FactCard label={t("horoscope.panchang.yoga")} value={data.yoga.name} />}
+                {data.karana && <FactCard label={t("horoscope.panchang.karana")} value={data.karana.name} />}
               </div>
             )}
 
-            {/* Choghadiya */}
+            {/* Sunrise/sunset (+ moonrise/moonset when available) */}
+            <SunMoonTimings
+              sunriseTime={data.sunriseTime}
+              sunsetTime={data.sunsetTime}
+              moonriseTime={data.moonriseTime}
+              moonsetTime={data.moonsetTime}
+            />
+
+            {/* Choghadiya — one continuous day+night rail (replaces the old collapsed accordion) */}
             {data.choghadiya && (
-              <CollapsibleSection title={t("horoscope.panchang.choghadiyaTitle")} subtitle={t("horoscope.panchang.choghadiyaSubtitle")}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    { label: t("horoscope.panchang.daytime"), periods: data.choghadiya.day },
-                    { label: t("horoscope.panchang.nighttime"), periods: data.choghadiya.night },
-                  ].map(({ label, periods }) => (
-                    <div key={label}>
-                      <p className="text-[10px] text-muted uppercase tracking-wider mb-2">{label}</p>
-                      <div className="space-y-1.5">
-                        {periods.map((p, i) => {
-                          const active = isCurrentlyActive(p.startTime, p.endTime);
-                          const color = p.type === "good" ? "text-emerald-400" : p.type === "bad" ? "text-red-400" : "text-gold";
-                          return (
-                            <div
-                              key={i}
-                              className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs ${
-                                active ? "bg-gold/10 border border-gold/25" : "bg-surface/30"
-                              }`}
-                            >
-                              <span className={`font-medium ${color}`}>{p.name}</span>
-                              <span className="text-muted font-mono">
-                                {p.startTime} – {p.endTime}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
+              <Card className="p-4 border-gold/10">
+                <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.choghadiyaTitle")}</h2>
+                <ChoghadiyaTimeline day={data.choghadiya.day} night={data.choghadiya.night} />
+              </Card>
             )}
 
-            {/* Hora */}
+            <AuspiciousDays
+              lat={source === "mine" ? geo.coords?.lat : undefined}
+              lon={source === "mine" ? geo.coords?.lon : undefined}
+            />
+
+            {/* Hora — kept as an accordion, out of scope for this redesign */}
             {data.hora && (
               <CollapsibleSection title={t("horoscope.panchang.horaTitle")} subtitle={t("horoscope.panchang.horaSubtitle")}>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -524,5 +440,6 @@ export default function PanchangPage() {
         onSubmitted={handleSubmitted}
       />
     </main>
+    </FeatureGuard>
   );
 }

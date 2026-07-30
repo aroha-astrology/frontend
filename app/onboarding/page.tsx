@@ -26,6 +26,7 @@ import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
 import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
+import { useFeature } from "@/hooks/useFeature";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -61,8 +62,6 @@ const TOTAL_STEPS = 9;
  */
 const RELATIONSHIP_STEP = 2.5;
 
-/** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. */
-const PROFILE_CREATION_COST_PAISE = 20000;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -194,6 +193,8 @@ function OnboardingPageInner() {
   const [refAutoApplied, setRefAutoApplied] = useState(false);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
+  /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
+  const PROFILE_CREATION_COST_PAISE = useFeature("paid.profileCreation").pricePaise ?? 20000;
 
   const msgId = useRef(0);
 
@@ -439,8 +440,17 @@ function OnboardingPageInner() {
       
       if ("geolocation" in navigator) {
         try {
+          // Belt-and-suspenders timeout: some Android WebViews never invoke
+          // either callback (e.g. location services off, a stuck permission
+          // prompt), so PositionOptions.timeout alone isn't reliable here —
+          // it left the whole confirm submission hanging forever upstream.
           const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            const timer = setTimeout(() => reject(new Error("geolocation_timeout")), 6000);
+            navigator.geolocation.getCurrentPosition(
+              (p) => { clearTimeout(timer); resolve(p); },
+              (e) => { clearTimeout(timer); reject(e); },
+              { timeout: 5000 },
+            );
           });
           body.currentLocation = {
              lat: pos.coords.latitude,
@@ -626,6 +636,7 @@ function OnboardingPageInner() {
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
               inputClassName="w-full bg-transparent py-3 px-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
+              worldwide={!user?.phoneE164}
               onSelect={(place) => {
                 if (!place) {
                   setResolvedPlace(null);

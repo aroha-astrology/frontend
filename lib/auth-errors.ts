@@ -9,6 +9,13 @@ const CODE_TO_KEY: Record<string, string> = {
   "auth/too-many-requests": "auth.tooManyRequests",
   "auth/quota-exceeded": "auth.otpSendFailed",
   "auth/captcha-check-failed": "auth.recaptchaFailed",
+  "auth/popup-closed-by-user": "auth.googleCancelled",
+  "auth/cancelled-popup-request": "auth.googleCancelled",
+  "auth/user-cancelled": "auth.googleCancelled", // native chooser dismissed (@capacitor-firebase/authentication)
+  "auth/popup-blocked": "auth.googleBlocked",
+  "auth/account-exists-with-different-credential": "auth.googleUnavailable",
+  "auth/operation-not-allowed": "auth.googleUnavailable",
+  "auth/unauthorized-domain": "auth.googleUnavailable",
 };
 
 /** Returns the i18n key for a Firebase auth error (or unknown error). */

@@ -22,6 +22,8 @@ import ChartCarousel from "@/components/ui/ChartCarousel";
 import GemstoneCard from "@/components/ui/GemstoneCard";
 import { computeDivisionalCharts } from "@/lib/divisional-charts";
 import { zodiacSignLabel } from "@/data/zodiac";
+import { useFeature } from "@/hooks/useFeature";
+import { westernSunSign } from "@/lib/kundli-helpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,25 +143,6 @@ const PLANET_GLYPHS: Record<string, string> = {
   Sun: "☉", Moon: "☾", Mars: "♂", Mercury: "☿",
   Jupiter: "♃", Venus: "♀", Saturn: "♄", Rahu: "☊", Ketu: "☋",
 };
-
-const ZODIAC_SIGNS = [
-  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
-];
-
-/**
- * The "Sun Sign" pill deliberately shows the Western tropical sign (what
- * someone means when they say "I'm a Cancer"), not the Vedic sidereal sign
- * the rest of this chart uses — the two differ by the ayanamsa (~24°), and
- * showing sidereal here reads as "wrong" to users expecting their familiar
- * sign. Derived from the already-computed sidereal longitude + ayanamsaValue
- * rather than a calendar-date table, so it's exact for cusp births too.
- */
-function westernSunSign(sunLongitude: number | undefined, ayanamsaValue: number | null): string | null {
-  if (typeof sunLongitude !== "number" || typeof ayanamsaValue !== "number") return null;
-  const tropicalLongitude = ((sunLongitude + ayanamsaValue) % 360 + 360) % 360;
-  return ZODIAC_SIGNS[Math.floor(tropicalLongitude / 30)] ?? null;
-}
 
 function SectionHeading({ icon = "✦", children }: { icon?: string; children: React.ReactNode }) {
   return (
@@ -408,7 +391,7 @@ export default function KundliPage() {
   const unlockedHouses = user?.unlockedHouses ?? [];
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const UNLOCK_COST_PAISE = 5000;
+  const unlockCostPaise = useFeature("paid.houseInsight").pricePaise ?? 5000;
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
@@ -524,10 +507,11 @@ export default function KundliPage() {
               <>
                 {/* House Grid with Credits */}
                 {houses.length > 0 && (
-                  <HouseGrid 
-                    houses={houses} 
+                  <HouseGrid
+                    houses={houses}
                     unlockedHouses={unlockedHouses}
                     balancePaise={credits}
+                    unlockCostPaise={unlockCostPaise}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);
@@ -550,7 +534,7 @@ export default function KundliPage() {
                   onClose={() => setIsDrawerOpen(false)}
                   house={selectedHouse}
                   balancePaise={credits}
-                  unlockCostPaise={UNLOCK_COST_PAISE}
+                  unlockCostPaise={unlockCostPaise}
                   isUnlocked={selectedHouse ? unlockedHouses.includes(selectedHouse.house) : false}
                   onUnlock={async (houseNum) => {
                     await api.unlockHouse(houseNum);
@@ -574,10 +558,11 @@ export default function KundliPage() {
                 <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
                 {planets.length > 0 && <PlanetsTable planets={planets} />}
                 {houses.length > 0 && (
-                  <HouseGrid 
-                    houses={houses} 
+                  <HouseGrid
+                    houses={houses}
                     unlockedHouses={unlockedHouses}
                     balancePaise={credits}
+                    unlockCostPaise={unlockCostPaise}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);
@@ -636,6 +621,7 @@ export default function KundliPage() {
               <PlaceAutocomplete
                 placeholder={t("kundliPage.birthPlace")}
                 inputClassName={inputClass}
+                worldwide={!user?.phoneE164}
                 onSelect={(place) => {
                   setResolvedPlace(place);
                   setForm((f) => ({ ...f, place: place?.name ?? "" }));

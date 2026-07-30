@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, type Kundli, type KundliResponse } from "@/lib/api";
 import { nextPollDelay } from "@/lib/poll-backoff";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
@@ -17,9 +18,19 @@ const SWR_TTL_MS = 7 * 24 * 60 * 60 * 1000;
  * "generating" tick never overwrites the already-displayed cached kundli —
  * only a final "ready" does. `kundli`/`error`/`missing_parameters` outcomes
  * still behave exactly as before when there was no cache hit to begin with.
+ *
+ * `enabled` defaults to `true` so every existing call site keeps fetching
+ * unconditionally unless a caller opts out (see hooks/useFeature.ts) — e.g.
+ * Home's KundliCard passing `useFeature('home.kundliCard').enabled` for
+ * itself, while HoroscopeSlider/ChatConversation/the kundli page keep
+ * fetching regardless of that flag, since they depend on kundli data for
+ * their own separate, non-toggled features (see admin-reports-dashboard's
+ * report for the full reasoning).
  */
-export function useKundli() {
+export function useKundli(enabled: boolean = true) {
   const { user, activeProfile } = useAuth();
+  const { i18n } = useTranslation();
+  const language = i18n.language;
   const [kundli, setKundli] = useState<Kundli | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,9 +39,18 @@ export function useKundli() {
 
   useEffect(() => {
     cancelled.current = false;
+    if (timer.current) clearTimeout(timer.current);
+
+    if (!enabled) {
+      setKundli(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     let attempt = 0;
 
-    const cacheKey = user ? buildKey("kundli", user.id, activeProfile?.id ?? "primary") : null;
+    const cacheKey = user ? buildKey("kundli", user.id, activeProfile?.id ?? "primary", language) : null;
     const cached = cacheKey ? cacheGet<Kundli>(cacheKey) : null;
     if (cached) {
       setKundli(cached);
@@ -40,7 +60,7 @@ export function useKundli() {
     async function poll() {
       if (cancelled.current) return;
       try {
-        const result: KundliResponse = await api.getKundli();
+        const result: KundliResponse = await api.getKundli(language);
         if (cancelled.current) return;
 
         if (result.status === "ready") {
@@ -73,7 +93,7 @@ export function useKundli() {
       cancelled.current = true;
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [activeProfile?.id, user?.id]);
+  }, [enabled, activeProfile?.id, user?.id, language]);
 
   return { kundli, loading, error };
 }

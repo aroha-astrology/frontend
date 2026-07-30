@@ -7,9 +7,11 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Sparkles, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { api, ApiError, type KundliResult } from "@/lib/api";
-import { readNested, readString } from "@/lib/kundli-helpers";
+import { readNested, readString, extractChartSigns } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 import { purgeUserCache } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
+import { useFeature } from "@/hooks/useFeature";
 
 /**
  * Home-screen card surfacing the current user's natal kundli.
@@ -18,18 +20,22 @@ import { useAuth } from "@/providers/auth-provider";
  *   - 200 ready                → render preview + link to full chart
  *   - 202 pending/generating   → spinner, poll every 2 s until ready
  *   - 422 missing_parameters   → CTA to complete the profile
- * Renders nothing when signed out.
+ * Renders nothing when signed out, or when an admin has disabled
+ * `home.kundliCard` — this component does its own independent fetch (it
+ * doesn't go through hooks/useKundli.ts), so the flag is read and enforced
+ * directly here rather than via that hook's `enabled` param.
  */
 export default function KundliCard() {
   const { t } = useTranslation();
   const { user, loading: authLoading, activeProfile } = useAuth();
+  const { enabled } = useFeature("home.kundliCard");
   const [result, setResult] = useState<KundliResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     // Wait for auth to resolve and a session user to exist.
-    if (authLoading || !user) return;
+    if (authLoading || !user || !enabled) return;
 
     const ctrl = new AbortController();
     abortRef.current?.abort();
@@ -48,10 +54,10 @@ export default function KundliCard() {
     })();
 
     return () => ctrl.abort();
-  }, [authLoading, user, t, activeProfile?.id]);
+  }, [authLoading, user, enabled, t, activeProfile?.id]);
 
-  // Hide entirely until a session exists — nothing to fetch.
-  if (authLoading || !user) return null;
+  // Hide entirely until a session exists, or when this card is admin-disabled — nothing to fetch/show.
+  if (authLoading || !user || !enabled) return null;
 
   const isPending =
     !result && !error
@@ -165,16 +171,14 @@ function FailedState({ onRetry }: { onRetry: () => void }) {
 function ReadyState({ kundli }: { kundli: Extract<KundliResult, { status: "ready" }> }) {
   const { t } = useTranslation();
   // Conservatively render only what we can guarantee from the loose schema.
-  const ascendant = readString(kundli.chart, "ascendant");
-  const moonSign = readString(kundli.chart, "moonSign") ?? readNested(kundli.chart, ["moon", "sign"]);
-  const sunSign = readString(kundli.chart, "sunSign") ?? readNested(kundli.chart, ["sun", "sign"]);
+  const { ascendant, moonSign, sunSign } = extractChartSigns(kundli.chart);
   const currentDasha =
     readString(kundli.dasha, "current") ?? readNested(kundli.dasha, ["currentMahadasha", "planet"]);
 
   const facts: Array<{ label: string; value: string }> = [];
-  if (ascendant) facts.push({ label: t("kundli.ascendant"), value: ascendant });
-  if (moonSign) facts.push({ label: t("kundli.moonSign"), value: moonSign });
-  if (sunSign) facts.push({ label: t("kundli.sunSign"), value: sunSign });
+  if (ascendant) facts.push({ label: t("kundli.ascendant"), value: zodiacSignLabel(t, ascendant) });
+  if (moonSign) facts.push({ label: t("kundli.moonSign"), value: zodiacSignLabel(t, moonSign) });
+  if (sunSign) facts.push({ label: t("kundli.sunSign"), value: zodiacSignLabel(t, sunSign) });
   if (currentDasha) facts.push({ label: t("kundli.dasha"), value: currentDasha });
 
   return (

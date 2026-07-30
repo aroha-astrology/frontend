@@ -1,7 +1,12 @@
 "use client";
 
 import ChatConversation from "@/components/ai-chat/ChatConversation";
+import FeatureGuard from "@/components/FeatureGuard";
 
 export default function AIChatPage() {
-  return <ChatConversation />;
+  return (
+    <FeatureGuard featureKey="nav.askAI">
+      <ChatConversation />
+    </FeatureGuard>
+  );
 }

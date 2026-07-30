@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { useKundli } from "@/hooks/useKundli";
 import Card from "@/components/ui/Card";
 import type { Kundli } from "@/lib/api";
+import { extractChartSigns } from "@/lib/kundli-helpers";
+import { zodiacSignLabel } from "@/data/zodiac";
 
 const PLANET_EMOJI: Record<string, string> = {
   Sun: "☀️", Moon: "🌙", Mars: "♂️", Mercury: "☿️",
@@ -12,11 +14,12 @@ const PLANET_EMOJI: Record<string, string> = {
 };
 
 function PlanetPill({ name, sign }: { name: string; sign: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold/15 bg-surface/50 text-xs">
       <span>{PLANET_EMOJI[name] ?? "🪐"}</span>
       <span className="text-foreground font-medium">{name}</span>
-      <span className="text-muted">{sign}</span>
+      <span className="text-muted">{zodiacSignLabel(t, sign)}</span>
     </div>
   );
 }
@@ -44,8 +47,7 @@ function extractChartInfo(kundli: Kundli) {
   const chart = kundli.chart as Record<string, unknown> | null;
   if (!chart) return { ascendant: null, planets: [] };
 
-  const asc = chart.ascendant as Record<string, unknown> | undefined;
-  const ascendantSign = (asc?.ascendantSign ?? asc?.sign ?? null) as string | null;
+  const { ascendant: ascendantSign } = extractChartSigns(chart);
 
   const rawPlanets = (chart.planets ?? []) as Array<Record<string, unknown>>;
   const planets = rawPlanets.map((p) => ({
@@ -56,7 +58,7 @@ function extractChartInfo(kundli: Kundli) {
     isRetrograde: Boolean(p.isRetrograde),
   }));
 
-  return { ascendant: ascendantSign, planets };
+  return { ascendant: ascendantSign ?? null, planets };
 }
 
 function extractDashaInfo(kundli: Kundli) {
@@ -103,7 +105,7 @@ export default function KundliSummary() {
             </h3>
             {ascendant && (
               <p className="text-xs text-muted">
-                {t("kundli.ascendant")}: <span className="text-gold font-medium">{ascendant}</span>
+                {t("kundli.ascendant")}: <span className="text-gold font-medium">{zodiacSignLabel(t, ascendant)}</span>
               </p>
             )}
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 type Planet = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu';
 
@@ -31,26 +32,21 @@ interface NorthIndianChartProps {
   onHouseClick?: (houseNum: number) => void;
 }
 
-const HOUSE_MEANINGS: Record<number, string> = {
-  1: 'Self / Body', 2: 'Wealth / Family', 3: 'Siblings / Courage',
-  4: 'Mother / Property', 5: 'Children / Study', 6: 'Enemies / Health',
-  7: 'Marriage / Partner', 8: 'Longevity / Age', 9: 'Luck / Religion',
-  10: 'Career / Work', 11: 'Gains / Benefits', 12: 'Losses / Foreign',
-};
-
 const PLANET_GLYPHS: Record<Planet, string> = {
   Sun: '☉', Moon: '☾', Mars: '♂', Mercury: '☿',
   Jupiter: '♃', Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋',
 };
 
-const PLANET_ABBR: Record<Planet, string> = {
-  Sun: 'Su', Moon: 'Mo', Mars: 'Ma', Mercury: 'Me',
-  Jupiter: 'Ju', Venus: 'Ve', Saturn: 'Sa', Rahu: 'Ra', Ketu: 'Ke',
+/** Maps a Planet's English key to the i18n `kundli.chart.planetAbbr` object key — that object is
+ * keyed by lowercase planet name (sun/moon/mars/...), not the capitalized `Planet` type values. */
+const PLANET_ABBR_KEY: Record<Planet, string> = {
+  Sun: 'sun', Moon: 'moon', Mars: 'mars', Mercury: 'mercury',
+  Jupiter: 'jupiter', Venus: 'venus', Saturn: 'saturn', Rahu: 'rahu', Ketu: 'ketu',
 };
 
-function getPlanetLabel(planet: Planet, isRetrograde: boolean): string {
+function getPlanetLabel(planet: Planet, isRetrograde: boolean, abbrMap: Record<string, string>): string {
   const glyph = PLANET_GLYPHS[planet] ?? '';
-  const abbr = PLANET_ABBR[planet] || planet.slice(0, 2);
+  const abbr = abbrMap[PLANET_ABBR_KEY[planet]] || planet.slice(0, 2);
   const base = glyph ? `${glyph} ${abbr}` : abbr;
   return isRetrograde ? `${base}(R)` : base;
 }
@@ -82,13 +78,19 @@ const STARS = [
 export default function NorthIndianChart({
   chartData,
   ascendantHouse = 1,
-  title = 'Rashi Chart',
+  title,
   instant = false,
   showMeanings = false,
   onHouseClick,
 }: NorthIndianChartProps) {
+  const { t } = useTranslation();
   const { houses, planets } = chartData;
   const skip = instant;
+  const resolvedTitle = title ?? t('kundli.chart.rashiChartTitle');
+  const ascLabel = t('kundli.chart.ascLabel');
+  const northIndianLabel = t('kundli.chart.northIndianLabel');
+  const planetAbbr = t('kundli.chart.planetAbbr', { returnObjects: true }) as Record<string, string>;
+  const houseMeanings = t('kundli.chart.houseMeaning', { returnObjects: true }) as string[];
 
   const drawLine = (delay: number) =>
     skip
@@ -118,7 +120,7 @@ export default function NorthIndianChart({
   const housePlanets: Record<number, string[]> = {};
   for (let i = 1; i <= 12; i++) housePlanets[i] = [];
   planets.forEach((p) => {
-    const label = getPlanetLabel(p.planet, p.isRetrograde);
+    const label = getPlanetLabel(p.planet, p.isRetrograde, planetAbbr);
     if (housePlanets[p.house]) housePlanets[p.house].push(label);
   });
 
@@ -127,7 +129,7 @@ export default function NorthIndianChart({
   }
 
   return (
-    <svg viewBox="0 0 400 400" className="w-full max-w-[400px]" role="img" aria-label={title}>
+    <svg viewBox="0 0 400 400" className="w-full max-w-[400px]" role="img" aria-label={resolvedTitle}>
       <defs>
         <radialGradient id="niCenterGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(212,175,55,0.07)" />
@@ -169,10 +171,10 @@ export default function NorthIndianChart({
 
       <text x="200" y="26" textAnchor="middle" fill="rgba(212,175,55,0.80)"
         fontSize="11" fontWeight="700" letterSpacing="2" fontFamily="Cinzel, Georgia, serif">
-        {title.toUpperCase()}
+        {resolvedTitle.toUpperCase()}
       </text>
       <text x="200" y="40" textAnchor="middle" fill="rgba(60,72,88,0.25)"
-        fontSize="8" letterSpacing="1.5">NORTH INDIAN</text>
+        fontSize="8" letterSpacing="1.5">{northIndianLabel}</text>
 
       <motion.path d="M 20 60 L 380 60 L 380 340 L 20 340 Z" fill="none"
         stroke="rgba(212,175,55,0.50)" strokeWidth="1.6" filter="url(#niLineGlow)" {...drawLine(0.05)} />
@@ -211,7 +213,7 @@ export default function NorthIndianChart({
             {isAscendant && (
               <text x={pos.numberX} y={pos.numberY - 12} textAnchor="middle"
                 fill="rgba(212,175,55,0.90)" fontSize="8" fontWeight="800" letterSpacing="1.3"
-                fontFamily="Cinzel, Georgia, serif">ASC</text>
+                fontFamily="Cinzel, Georgia, serif">{ascLabel}</text>
             )}
             <text x={pos.numberX} y={pos.numberY} textAnchor="middle"
               fill={isAscendant ? 'rgba(212,175,55,1)' : 'rgba(225,226,235,0.9)'}
@@ -226,10 +228,10 @@ export default function NorthIndianChart({
                 {label}
               </motion.text>
             ))}
-            {showMeanings && HOUSE_MEANINGS[house.house] && (
+            {showMeanings && houseMeanings[house.house - 1] && (
               <text x={pos.numberX} y={pos.numberY + 24} textAnchor="middle"
                 fill="rgba(60,72,88,0.40)" fontSize="7" fontFamily="DM Sans, sans-serif">
-                {HOUSE_MEANINGS[house.house]}
+                {houseMeanings[house.house - 1]}
               </text>
             )}
           </motion.g>

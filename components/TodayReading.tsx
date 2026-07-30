@@ -9,6 +9,7 @@ import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 import CategoryHookRotator from "@/components/home/CategoryHookRotator";
+import { useFeature } from "@/hooks/useFeature";
 
 /**
  * Home page's "Today's Reading" card — a brief Overall highlight from today's
@@ -21,8 +22,14 @@ import CategoryHookRotator from "@/components/home/CategoryHookRotator";
  */
 export default function TodayReading() {
   const { t } = useTranslation();
-  const { state, data } = usePersonalizedHoroscope("daily");
+  const { enabled } = useFeature("home.todayReading");
+  const { state, data } = usePersonalizedHoroscope("daily", enabled);
   const [showDetails, setShowDetails] = useState(false);
+
+  // Admin-disabled — render nothing rather than the hook's "empty" branch
+  // below (that branch's copy means "we tried, no reading available", which
+  // isn't the right message for an intentionally-hidden card).
+  if (!enabled) return null;
 
   if (state === "loading" || state === "generating") {
     return (

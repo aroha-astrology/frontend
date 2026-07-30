@@ -44,13 +44,91 @@ async function fetchPostOffices(term: string): Promise<PostOffice[]> {
   return data[0].PostOffice;
 }
 
+interface NominatimAddress {
+  city?: string;
+  town?: string;
+  village?: string;
+  municipality?: string;
+  hamlet?: string;
+  county?: string;
+  state?: string;
+  country?: string;
+}
+
+interface NominatimResult {
+  place_id: number;
+  lat: string;
+  lon: string;
+  class: string;
+  type: string;
+  display_name: string;
+  address?: NominatimAddress;
+}
+
+/** Worldwide city/town search for users who didn't sign in via phone (see
+ * hooks/usePlaceAutocomplete.ts) — India Post only knows Indian post
+ * offices, so a non-Indian birth place needs a real worldwide source.
+ * No pincode concept applies globally, so suggestions never carry one. */
+async function searchWorldwide(term: string) {
+  const url = `https://nominatim.openstreetmap.org/search?${new URLSearchParams({
+    q: term,
+    format: 'json',
+    addressdetails: '1',
+    limit: '8',
+  })}`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'ArohaAstrology/1.0' } });
+  if (!res.ok) return [];
+  const data: NominatimResult[] = await res.json();
+
+  const seen = new Set<string>();
+  return data
+    .map((r) => {
+      const a = r.address ?? {};
+      const name = a.city ?? a.town ?? a.village ?? a.municipality ?? a.hamlet;
+      // Filter out non-place results (roads, buildings, POIs) — a result
+      // with no recognizable city/town-level address component isn't one.
+      if (!name) return null;
+      const id = `nom-${r.place_id}`;
+      if (seen.has(id)) return null;
+      seen.add(id);
+      return {
+        id,
+        name,
+        district: a.county ?? '',
+        state: a.state ?? '',
+        pincode: '',
+        country: a.country ?? '',
+        lat: parseFloat(r.lat),
+        lon: parseFloat(r.lon),
+        description: [name, a.state, a.country].filter(Boolean).join(', '),
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null)
+    .slice(0, 8);
+}
+
 export async function GET(req: NextRequest) {
+  const input = req.nextUrl.searchParams.get('input')?.trim();
+  if (!input || input.length < 2) return NextResponse.json([]);
+
+  const worldwide = req.nextUrl.searchParams.get('worldwide') === '1';
+
+  if (worldwide) {
+    // Nominatim's public instance asks for restrained request volume — cap
+    // tighter than the India Post limiter below.
+    if (isRateLimited(`places-search-worldwide:${clientIp(req)}`, 20, 60_000)) {
+      return NextResponse.json([], { status: 429 });
+    }
+    try {
+      return NextResponse.json(await searchWorldwide(input));
+    } catch {
+      return NextResponse.json([]);
+    }
+  }
+
   if (isRateLimited(`places-search:${clientIp(req)}`, 30, 60_000)) {
     return NextResponse.json([], { status: 429 });
   }
-
-  const input = req.nextUrl.searchParams.get('input')?.trim();
-  if (!input || input.length < 2) return NextResponse.json([]);
 
   try {
     let postOffices = await fetchPostOffices(input);

@@ -36,8 +36,17 @@ function cacheKeyFor(lang: string, signIndex: number, period: Timescale): string
   return buildKey("moonSignForecast", lang, signIndex, period, currentPeriodKey(period));
 }
 
-/** Fetches all 12 moon-sign forecasts for a given timescale, shared by the home slider and the /horoscope page. */
-export function useMoonSignForecasts(period: Timescale = "daily") {
+/**
+ * Fetches all 12 moon-sign forecasts for a given timescale, shared by the
+ * home slider and the /horoscope page.
+ *
+ * `enabled` defaults to `true` — HoroscopeSlider (Home) passes
+ * `useFeature('home.horoscopeSlider').enabled`, the /horoscope page passes
+ * `useFeature('nav.horoscope').enabled` instead (different flag). When
+ * disabled, resets to an empty/non-loading state and skips the fetch effect
+ * entirely, matching useGemstone's pattern.
+ */
+export function useMoonSignForecasts(period: Timescale = "daily", enabled: boolean = true) {
   const { i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const [forecasts, setForecasts] = useState<SignForecast[]>([]);
@@ -45,6 +54,11 @@ export function useMoonSignForecasts(period: Timescale = "daily") {
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
+    if (!enabled) {
+      setForecasts([]);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
 
@@ -99,7 +113,7 @@ export function useMoonSignForecasts(period: Timescale = "daily") {
 
     fetchAll();
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, period, i18n.language]);
+  }, [authLoading, firebaseUser, enabled, period, i18n.language]);
 
   return { forecasts, loading };
 }

@@ -13,18 +13,7 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 import { purgeUserCache } from "@/lib/cache";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Formats a "HH:mm[:ss]" string for display (e.g. "02:30 PM"). */
-function formatTimeOfBirth(hhmmss: string | null | undefined): string {
-  if (!hhmmss) return "";
-  const [h, m] = hhmmss.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return hhmmss;
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-}
+import { formatTimeOfBirth } from "@/lib/format";
 
 interface EditForm {
   displayName: string;
@@ -278,7 +267,11 @@ export default function ProfilePage() {
           {!editing ? (
             <div>
               <ReadRow label={t("profile.name")} value={user?.displayName ?? ""} />
-              <ReadRow label={t("profile.phone")} value={user?.phoneE164 ?? ""} />
+              {user?.phoneE164 ? (
+                <ReadRow label={t("profile.phone")} value={user.phoneE164} />
+              ) : (
+                <ReadRow label={t("auth.emailLabel")} value={user?.email ?? ""} />
+              )}
               <ReadRow label={t("profile.gender")} value={genderLabel(user?.gender ?? null)} />
               <ReadRow
                 label={t("profile.dob")}
@@ -302,8 +295,12 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Phone is the OTP-verified identity — read-only even in edit mode */}
-              <ReadRow label={t("profile.phone")} value={user?.phoneE164 ?? ""} />
+              {/* Phone/email is the verified sign-in identity — read-only even in edit mode */}
+              {user?.phoneE164 ? (
+                <ReadRow label={t("profile.phone")} value={user.phoneE164} />
+              ) : (
+                <ReadRow label={t("auth.emailLabel")} value={user?.email ?? ""} />
+              )}
 
               <div>
                 <label className="text-[11px] text-muted uppercase tracking-wider mb-1 block">
@@ -358,6 +355,7 @@ export default function ProfilePage() {
                 <PlaceAutocomplete
                   placeholder={t("profile.placePlaceholder")}
                   inputClassName={inputClass}
+                  worldwide={!user?.phoneE164}
                   onSelect={(place) => {
                     setResolvedPlace(place);
                     setForm((f) => (f ? { ...f, placeName: place?.name ?? "" } : f));

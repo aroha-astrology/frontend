@@ -287,6 +287,13 @@ export async function* streamChat(
      * the target profile has relationship partner/spouse/prospective_match.
      */
     compareProfileId?: string;
+    /**
+     * An already-purchased match_report id (see reportsApi.purchase, key='match_report') to
+     * ground this turn in the full Guna Milan score, 8 life-area risk factors, and narrative
+     * cards the user already paid for and read, via the backend's buildMatchReportFacts.
+     * Independent of compareProfileId — a match_report is not a saved birth_profiles row.
+     */
+    matchReportId?: string;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -308,6 +315,7 @@ export async function* streamChat(
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
         ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),
+        ...(opts?.matchReportId ? { matchReportId: opts.matchReportId } : {}),
       }),
     });
 
@@ -425,3 +433,130 @@ export const swarmApi = {
   matchmaking,
   streamChat,
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* Voice Chat (Gemini Live) API                                                 */
+/* -------------------------------------------------------------------------- */
+//
+// The audio itself never touches our backend — the client opens a WebSocket
+// straight to Google. So these three calls are not a transport, they are the
+// billing and authorisation path: the backend mints a single-use token that
+// buys exactly one minute, and the only way to keep talking is to come back and
+// buy the next one. Minutes are charged when granted, never refunded on hangup.
+
+/** One purchased minute of voice: the token for it, and where that leaves the session. */
+export interface VoiceGrant {
+  voiceSessionId: string;
+  /** Single-use ephemeral token; hand straight to the Gemini Live socket. */
+  token: string;
+  model: string;
+  /** Epoch ms at which this minute's socket stops accepting audio. */
+  expiresAt: number;
+  minutesUsed: number;
+  minutesRemaining: number;
+  pricePerMinutePaise: number;
+}
+
+async function voicePost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const auth = getFirebaseAuth();
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error("Not authenticated");
+
+  const res = await fetch(`${BASE_URL}/v1/voice/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const parsed = (await res.json().catch(() => ({}))) as {
+      error?: { code?: string; message?: string };
+    };
+    throw new SwarmApiError(
+      res.status,
+      parsed.error?.code ?? "VOICE_ERROR",
+      parsed.error?.message ?? res.statusText,
+    );
+  }
+  return res.json() as Promise<T>;
+}
+
+/**
+ * Starts a session and buys its first minute.
+ *
+ * Throws a `SwarmApiError` with code `VOICE_CONSENT_REQUIRED` (403) when the
+ * user has not yet agreed to voice recording — the caller should open the
+ * consent sheet rather than treating that as an error.
+ */
+export function startVoiceSession(locale: string): Promise<VoiceGrant> {
+  return voicePost<VoiceGrant>("sessions", { locale });
+}
+
+/**
+ * Buys the next minute of an in-progress session.
+ *
+ * `resumptionHandle` is the handle Gemini issued over the socket; passing it
+ * back is what makes the new minute continue the same conversation instead of
+ * restarting it. Throws 409 once the server-side ceiling is reached.
+ */
+export function extendVoiceSession(
+  voiceSessionId: string,
+  locale: string,
+  resumptionHandle?: string,
+): Promise<VoiceGrant> {
+  return voicePost<VoiceGrant>(`sessions/${voiceSessionId}/extend`, {
+    locale,
+    ...(resumptionHandle ? { resumptionHandle } : {}),
+  });
+}
+
+/**
+ * Marks a session finished. Idempotent and best-effort — safe to fire on unload.
+ *
+ * Pass `connected: false` when the minute just charged never turned into a
+ * working call (socket refused, mic denied, immediate hangup) — the server
+ * refunds it if this arrives within a short grace window of the grant. Omit
+ * it, or pass `true`, for an ordinary hangup: nothing charged or refunded.
+ */
+export function endVoiceSession(
+  voiceSessionId: string,
+  connected?: boolean,
+): Promise<{ ok: true }> {
+  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/end`, {
+    ...(connected === undefined ? {} : { connected }),
+  });
+}
+
+/**
+ * Grants voice consent. Routed through the same audited consent pipeline as
+ * every other grant (PATCH /v1/me writes a user_consent_log row), rather than a
+ * bespoke endpoint — voice consent is revocable and has to be auditable.
+ */
+export async function grantVoiceConsent(): Promise<void> {
+  const auth = getFirebaseAuth();
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error("Not authenticated");
+
+  const res = await fetch(`${BASE_URL}/v1/me`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ consent: { voice: true } }),
+  });
+
+  if (!res.ok) {
+    const parsed = (await res.json().catch(() => ({}))) as {
+      error?: { code?: string; message?: string };
+    };
+    throw new SwarmApiError(
+      res.status,
+      parsed.error?.code ?? "VOICE_ERROR",
+      parsed.error?.message ?? res.statusText,
+    );
+  }
+}

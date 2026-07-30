@@ -621,6 +621,7 @@ export default function KundliPage() {
               <PlaceAutocomplete
                 placeholder={t("kundliPage.birthPlace")}
                 inputClassName={inputClass}
+                worldwide={!user?.phoneE164}
                 onSelect={(place) => {
                   setResolvedPlace(place);
                   setForm((f) => ({ ...f, place: place?.name ?? "" }));

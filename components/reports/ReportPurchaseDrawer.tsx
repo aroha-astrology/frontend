@@ -184,6 +184,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               placeholder={t("compatibilityPage.birthPlace")}
               inputClassName={inputClass}
               inputStyle={style}
+              worldwide={!user?.phoneE164}
               onSelect={(place) => setResolvedPartnerPlace(place)}
             />
             <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer text-muted">

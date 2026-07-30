@@ -285,6 +285,7 @@ export default function CompatibilityPage() {
           placeholder={t("compatibilityPage.birthPlace")}
           inputClassName={inputClass}
           inputStyle={style}
+          worldwide={!user?.phoneE164}
           onSelect={(place) => {
             setForm((prev) => ({ ...prev, [who]: { ...prev[who], place: place?.name ?? "" } }));
             if (who === "boy") setResolvedBoyPlace(place);

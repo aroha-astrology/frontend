@@ -17,6 +17,8 @@ interface PlaceAutocompleteProps {
   /** Inline style for the input (for pages that use style props instead of classes) */
   inputClassName?: string;
   inputStyle?: React.CSSProperties;
+  /** Search all cities/towns worldwide (Nominatim) instead of India Post's post-office index — no pincode. Callers pass `!user?.phoneE164` (Google/Apple sign-in implies non-India per the region-gated auth flow). */
+  worldwide?: boolean;
 }
 
 export default function PlaceAutocomplete({
@@ -25,12 +27,13 @@ export default function PlaceAutocomplete({
   className,
   inputClassName,
   inputStyle,
+  worldwide = false,
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation();
   const {
     query, setQuery, suggestions, loading, selectedPlace,
     select, clearSelection, geocodingId, selectError,
-  } = usePlaceAutocomplete();
+  } = usePlaceAutocomplete(worldwide);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);

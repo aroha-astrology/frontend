@@ -636,6 +636,7 @@ function OnboardingPageInner() {
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
               inputClassName="w-full bg-transparent py-3 px-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
+              worldwide={!user?.phoneE164}
               onSelect={(place) => {
                 if (!place) {
                   setResolvedPlace(null);

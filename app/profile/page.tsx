@@ -355,6 +355,7 @@ export default function ProfilePage() {
                 <PlaceAutocomplete
                   placeholder={t("profile.placePlaceholder")}
                   inputClassName={inputClass}
+                  worldwide={!user?.phoneE164}
                   onSelect={(place) => {
                     setResolvedPlace(place);
                     setForm((f) => (f ? { ...f, placeName: place?.name ?? "" } : f));

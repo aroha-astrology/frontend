@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import tzLookup from 'tz-lookup';
 import { isRateLimited, clientIp } from '@/lib/rate-limit';
 
 async function nominatimSearch(params: Record<string, string>) {
@@ -17,6 +18,22 @@ async function nominatimSearch(params: Record<string, string>) {
 export async function GET(req: NextRequest) {
   if (isRateLimited(`places-geocode:${clientIp(req)}`, 20, 60_000)) {
     return NextResponse.json(null, { status: 429 });
+  }
+
+  // Worldwide-search suggestions (see /api/places/search's worldwide branch)
+  // already carry coordinates from Nominatim's search step — skip straight
+  // to a timezone lookup instead of re-geocoding from a city name.
+  const latParam = req.nextUrl.searchParams.get('lat');
+  const lonParam = req.nextUrl.searchParams.get('lon');
+  if (latParam && lonParam) {
+    const lat = parseFloat(latParam);
+    const lon = parseFloat(lonParam);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return NextResponse.json(null);
+    try {
+      return NextResponse.json({ lat, lon, tz: tzLookup(lat, lon) });
+    } catch {
+      return NextResponse.json(null);
+    }
   }
 
   const city = req.nextUrl.searchParams.get('city')?.trim();
@@ -48,7 +65,11 @@ export async function GET(req: NextRequest) {
       result = await nominatimSearch({ postalcode: pincode, country: 'India' });
     }
 
-    return NextResponse.json(result);
+    if (!result) return NextResponse.json(null);
+    // Real IANA timezone from coordinates — every place used to be hardcoded
+    // to Asia/Kolkata here, which was silently correct only because search
+    // used to be India-only.
+    return NextResponse.json({ ...result, tz: tzLookup(result.lat, result.lon) });
   } catch {
     return NextResponse.json(null);
   }

@@ -35,6 +35,8 @@ export const resources = {
         remediesForYou: "Remedies For You",
         namaste: "Namaste {{name}},",
         namasteGuest: "Namaste,",
+        hello: "Hello {{name}},",
+        helloGuest: "Hello,",
         greeting: {
           morning: "Good Morning",
           afternoon: "Good Afternoon",
@@ -1540,6 +1542,8 @@ export const resources = {
         remediesForYou: "आपके लिए उपाय",
         namaste: "नमस्ते {{name}},",
         namasteGuest: "नमस्ते,",
+        hello: "हैलो {{name}},",
+        helloGuest: "हैलो,",
         greeting: {
           morning: "सुप्रभात",
           afternoon: "शुभ दोपहर",
@@ -2964,6 +2968,8 @@ export const resources = {
         remediesForYou: "আপনার জন্য প্রতিকার",
         namaste: "নমস্কার {{name}},",
         namasteGuest: "নমস্কার,",
+        hello: "হ্যালো {{name}},",
+        helloGuest: "হ্যালো,",
         greeting: {
           morning: "শুভ সকাল",
           afternoon: "শুভ অপরাহ্ন",
@@ -4386,6 +4392,8 @@ export const resources = {
         remediesForYou: "तुमच्यासाठी उपाय",
         namaste: "नमस्कार {{name}},",
         namasteGuest: "नमस्कार,",
+        hello: "हॅलो {{name}},",
+        helloGuest: "हॅलो,",
         greeting: {
           morning: "शुभ सकाळ",
           afternoon: "शुभ दुपार",
@@ -5808,6 +5816,8 @@ export const resources = {
         remediesForYou: "మీ కోసం పరిహారాలు",
         namaste: "నమస్తే {{name}},",
         namasteGuest: "నమస్తే,",
+        hello: "హలో {{name}},",
+        helloGuest: "హలో,",
         greeting: {
           morning: "శుభోదయం",
           afternoon: "శుభ మధ్యాహ్నం",
@@ -7226,6 +7236,8 @@ export const resources = {
         remediesForYou: "உங்களுக்கான பரிகாரங்கள்",
         namaste: "வணக்கம் {{name}},",
         namasteGuest: "வணக்கம்,",
+        hello: "ஹலோ {{name}},",
+        helloGuest: "ஹலோ,",
         greeting: {
           morning: "காலை வணக்கம்",
           afternoon: "மதிய வணக்கம்",
@@ -8648,6 +8660,8 @@ export const resources = {
         remediesForYou: "તમારા માટે ઉપાય",
         namaste: "નમસ્તે {{name}},",
         namasteGuest: "નમસ્તે,",
+        hello: "હેલો {{name}},",
+        helloGuest: "હેલો,",
         greeting: {
           morning: "શુભ સવાર",
           afternoon: "શુભ બપોર",

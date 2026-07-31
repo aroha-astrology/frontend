@@ -83,8 +83,8 @@ function NestedEntryRows({ entries }: { entries: NestedEntry[] }) {
           </div>
         ) : (
           <div key={i} className="flex justify-between gap-2 text-[11px] text-foreground/80">
-            <span className="min-w-0 break-words text-muted">{e.label}</span>
-            <span className="text-right break-words min-w-0 shrink-0">{e.display}</span>
+            <span className="shrink-0 max-w-[45%] break-words text-muted">{e.label}</span>
+            <span className="min-w-0 flex-1 text-right break-words">{e.display}</span>
           </div>
         ),
       )}

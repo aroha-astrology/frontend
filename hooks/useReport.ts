@@ -35,18 +35,25 @@ const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  * it just bumps an internal counter that's part of the effect's dependency
  * array, which re-runs the effect from scratch.
  */
+/** `state`/`data`/`failedError` as one object, set with a single setState call at every
+ * transition — two separate calls (setData then setState) could in principle leave a render
+ * observing "ready" with no data yet (or vice versa), which app/reports/[id]/page.tsx's
+ * state-keyed branches have no fallback for, so the whole page would render blank. See
+ * page.tsx's own trailing `else` fallback for the second line of defense. */
+interface ReportView {
+  state: ReportViewState;
+  data: ReportReady | null;
+  failedError: string | null;
+}
+
 export function useReport(id: string | null, language: string) {
   const { firebaseUser, loading: authLoading, user } = useAuth();
-  const [state, setState] = useState<ReportViewState>("idle");
-  const [data, setData] = useState<ReportReady | null>(null);
-  const [failedError, setFailedError] = useState<string | null>(null);
+  const [view, setView] = useState<ReportView>({ state: "idle", data: null, failedError: null });
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (authLoading || !firebaseUser || id === null) {
-      setState("idle");
-      setData(null);
-      setFailedError(null);
+      setView({ state: "idle", data: null, failedError: null });
       return;
     }
     let cancelled = false;
@@ -55,13 +62,10 @@ export function useReport(id: string | null, language: string) {
     const cacheKey = user ? buildKey("report", user.id, id, language) : null;
     const cached = cacheKey ? cacheGet<ReportReady>(cacheKey) : null;
     if (cached) {
-      setData(cached);
-      setState("ready");
+      setView({ state: "ready", data: cached, failedError: null });
     } else {
-      setState("loading");
-      setData(null);
+      setView({ state: "loading", data: null, failedError: null });
     }
-    setFailedError(null);
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
     let attempt = 0;
@@ -72,23 +76,19 @@ export function useReport(id: string | null, language: string) {
         .then((res) => {
           if (cancelled) return;
           if (res.status === "ready") {
-            setData(res);
-            setState("ready");
+            setView({ state: "ready", data: res, failedError: null });
             if (cacheKey) cacheSet(cacheKey, res, Date.now() + SWR_TTL_MS);
             return;
           }
           if (res.status === "failed") {
-            if (!cached) {
-              setState("failed");
-              setFailedError(res.error);
-            }
+            if (!cached) setView({ state: "failed", data: null, failedError: res.error });
             return;
           }
           // "generating" — keep polling until ready/failed or timed out.
-          if (!cached) setState("generating");
+          if (!cached) setView((v) => ({ ...v, state: "generating" }));
           const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
           if (Date.now() + delay > deadline) {
-            if (!cached) setState("error");
+            if (!cached) setView((v) => ({ ...v, state: "error" }));
             return;
           }
           timer = setTimeout(poll, delay);
@@ -96,7 +96,7 @@ export function useReport(id: string | null, language: string) {
         .catch(() => {
           if (cancelled) return;
           if (cached) return; // keep showing the cached report on a background revalidation error
-          setState("error");
+          setView((v) => ({ ...v, state: "error" }));
         });
     };
 
@@ -110,5 +110,5 @@ export function useReport(id: string | null, language: string) {
 
   const retry = () => setRetryCount((c) => c + 1);
 
-  return { state, data, failedError, retry };
+  return { ...view, retry };
 }

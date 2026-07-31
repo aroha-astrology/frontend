@@ -116,10 +116,25 @@ function scoreMaxFor(key: string): number {
   return 100;
 }
 
+/** Matches an ISO 8601 timestamp (e.g. a Dasha sub-period's startDate/endDate) so it's date-formatted
+ * instead of falling into the generic word-splitting `humanizeValue` path, which mangles the
+ * `-`/`T`/`:` punctuation into "2026 05 06 T21:49:29.651 Z". */
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
+/** Same fixed-locale (en-IN, day/month/year) convention as TimingWindowsCard.tsx's `formatWindowDate`
+ * — kept local rather than imported since this module is deliberately React-free (see top doc comment). */
+function formatNestedDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
+
 function formatNestedValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "boolean") return v ? "✓" : "✗";
-  if (typeof v === "string") return humanizeValue(v);
+  if (typeof v === "string") return ISO_DATE_RE.test(v) ? formatNestedDate(v) : humanizeValue(v);
   if (typeof v === "number") return Number.isFinite(v) ? String(v) : "—";
   if (Array.isArray(v)) return v.length ? v.map(formatNestedValue).join(", ") : "—";
   if (typeof v === "object") {
@@ -600,8 +615,10 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
 
 /** `header` and `verdict` render separately (ReportHeaderCard at the top of the page,
  * ReportVerdictCard at the bottom — see app/reports/[id]/page.tsx) rather than through this
- * generic facts grid, so they're excluded here to avoid rendering twice. */
-const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict"]);
+ * generic facts grid, so they're excluded here to avoid rendering twice. `userAnswers` is the
+ * reader's own optional pre-purchase questionnaire answers (see lib/report-questions.ts) — raw
+ * LLM-prompt input, not a fact worth displaying back to the user who just typed it. */
+const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict", "userAnswers"]);
 
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */
 export function buildScoreFacts(scores: Record<string, unknown> | null | undefined): ScoreFact[] {

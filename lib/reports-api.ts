@@ -61,6 +61,9 @@ export interface PurchaseReportBody {
   birthProfileId?: string | null;
   /** kundli_milan only. */
   partner?: ReportPartnerInput;
+  /** Optional answers to a small, skippable pre-purchase questionnaire — see
+   * lib/report-questions.ts for which report keys have one configured. */
+  answers?: Record<string, string>;
 }
 
 export interface PurchaseReportResultRow {

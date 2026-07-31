@@ -168,7 +168,39 @@ function PreferenceRing({ pct }: { pct: number }) {
   );
 }
 
-function GemRow({ gem }: { gem: GemstoneItem }) {
+/** Compact summary row for one gem in the unlocked list — mirrors ReportCard.tsx's list-row
+ * shape (visual, name, a CTA) rather than GemRow's full inline detail, since the full detail
+ * now lives on its own page (app/gemstones/[planet]/page.tsx). */
+function GemSummaryRow({ gem }: { gem: GemstoneItem }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const displayName = t(`kundli.gemstone.data.${gem.planet}.displayName`);
+  const gemName = t(`kundli.gemstone.data.${gem.planet}.gemName`);
+
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl border p-3 ${gem.recommended ? "border-gold/25 bg-gold/[0.04]" : "border-border bg-surface/40"}`}
+    >
+      <GemVisual color={gem.color} planet={gem.planet} size={40} />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold text-foreground truncate">{gemName}</p>
+        <p className="text-[11px] text-muted mt-0.5 truncate">
+          {t("kundli.gemstone.forPlanet", { planet: displayName })}
+        </p>
+      </div>
+      <PreferenceRing pct={gem.preferencePercent ?? STRENGTH_FALLBACK_PCT[gem.strength]} />
+      <button
+        type="button"
+        onClick={() => router.push(`/gemstones/${gem.planet.toLowerCase()}`)}
+        className="shrink-0 rounded-xl border border-gold/30 text-gold px-3 py-2 text-xs font-bold"
+      >
+        {t("reports.viewReport")}
+      </button>
+    </div>
+  );
+}
+
+export function GemRow({ gem }: { gem: GemstoneItem }) {
   const { t } = useTranslation();
   const [showCareDetails, setShowCareDetails] = useState(false);
   const dataKey = (field: string) => `kundli.gemstone.data.${gem.planet}.${field}`;
@@ -292,7 +324,6 @@ export default function GemstoneCard() {
   const unlocked = user?.gemstoneUnlocked ?? false;
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const [showWeightSheet, setShowWeightSheet] = useState(false);
 
   const { state, data } = useGemstone(unlocked);
@@ -310,8 +341,6 @@ export default function GemstoneCard() {
     if (!data?.gems) return [];
     return [...data.gems].sort((a, b) => Number(b.recommended) - Number(a.recommended));
   }, [data]);
-
-  const shownGems = expanded ? gems : gems.slice(0, 1);
 
   const handleUnlockClick = () => {
     if (credits < UNLOCK_COST_PAISE) {
@@ -418,18 +447,10 @@ export default function GemstoneCard() {
             </div>
           )}
           <div className="space-y-3">
-            {shownGems.map((gem) => (
-              <GemRow key={gem.planet} gem={gem} />
+            {gems.map((gem) => (
+              <GemSummaryRow key={gem.planet} gem={gem} />
             ))}
           </div>
-          {gems.length > 1 && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="mt-3 text-[11px] text-gold underline-offset-2 hover:underline"
-            >
-              {expanded ? t("kundli.gemstone.showLess") : t("kundli.gemstone.showAll", { count: gems.length })}
-            </button>
-          )}
           <p className="text-[9px] text-muted/70 text-center mt-4 leading-relaxed">
             {t("kundli.gemstone.disclaimer")}
           </p>

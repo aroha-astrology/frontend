@@ -240,6 +240,38 @@ export const resources = {
           caution: "Caution — Consult First",
           consultFirst: "Consult a qualified astrologer before wearing any gemstone.",
         },
+        atAGlance: {
+          eyebrow: "At A Glance",
+        },
+        questions: {
+          title: "A couple of quick questions (optional)",
+          notSure: "Not sure",
+          textPlaceholder: "Type here (optional)",
+          baby_name: {
+            hasChild: "Do you already have a child?",
+            childGenderLabel: "Is it a girl or a boy?",
+            childGenderGirl: "Girl",
+            childGenderBoy: "Boy",
+            planningBaby: "Are you planning to have a baby?",
+            namePreferenceLabel: "Which type of names do you prefer?",
+            namePreferenceWestern: "Western",
+            namePreferenceIndian: "Indian",
+            namePreferenceAncient: "Ancient/Classical",
+            namePreferenceOther: "Other",
+          },
+          health_monthly: {
+            concern: "Any current health concern you'd like this to focus on?",
+          },
+          career_monthly: {
+            concern: "Facing any difficulty in your job, or looking for a new one?",
+          },
+          finance_monthly: {
+            concern: "Any financial concern, or something you're planning for?",
+          },
+          relationship_monthly: {
+            concern: "Any specific concern in your relationship right now?",
+          },
+        },
         verdict: {
           title: "Final Verdict",
           keyTakeaways: "Key Takeaways",
@@ -1897,6 +1929,38 @@ export const resources = {
           caution: "सावधानी — पहले परामर्श लें",
           consultFirst: "कोई भी रत्न धारण करने से पहले किसी योग्य ज्योतिषी से सलाह लें।",
         },
+        atAGlance: {
+          eyebrow: "एक नज़र में",
+        },
+        questions: {
+          title: "कुछ त्वरित प्रश्न (वैकल्पिक)",
+          notSure: "पता नहीं",
+          textPlaceholder: "यहाँ लिखें (वैकल्पिक)",
+          baby_name: {
+            hasChild: "क्या आपका पहले से एक बच्चा है?",
+            childGenderLabel: "क्या वह लड़की है या लड़का?",
+            childGenderGirl: "लड़की",
+            childGenderBoy: "लड़का",
+            planningBaby: "क्या आप बच्चा पैदा करने की योजना बना रहे हैं?",
+            namePreferenceLabel: "आप किस प्रकार के नाम पसंद करते हैं?",
+            namePreferenceWestern: "पश्चिमी",
+            namePreferenceIndian: "भारतीय",
+            namePreferenceAncient: "प्राचीन/शास्त्रीय",
+            namePreferenceOther: "अन्य",
+          },
+          health_monthly: {
+            concern: "क्या कोई मौजूदा स्वास्थ्य चिंता है जिस पर आप ध्यान केंद्रित करना चाहेंगे?",
+          },
+          career_monthly: {
+            concern: "क्या आपको अपनी नौकरी में कोई कठिनाई हो रही है, या आप नई नौकरी की तलाश में हैं?",
+          },
+          finance_monthly: {
+            concern: "कोई वित्तीय चिंता, या भविष्य के लिए कुछ योजना बना रहे हैं?",
+          },
+          relationship_monthly: {
+            concern: "क्या इस समय आपके रिश्ते में कोई विशेष चिंता है?",
+          },
+        },
         verdict: {
           title: "अंतिम निष्कर्ष",
           keyTakeaways: "मुख्य बातें",
@@ -3469,6 +3533,38 @@ export const resources = {
           caution: "সতর্কতা — প্রথমে পরামর্শ নিন",
           consultFirst: "কোনো রত্ন ধারণ করার আগে একজন যোগ্য জ্যোতিষীর পরামর্শ নিন।",
         },
+        atAGlance: {
+          eyebrow: "এক নজরে",
+        },
+        questions: {
+          title: "কয়েকটি দ্রুত প্রশ্ন (ঐচ্ছিক)",
+          notSure: "নিশ্চিত নই",
+          textPlaceholder: "এখানে লিখুন (ঐচ্ছিক)",
+          baby_name: {
+            hasChild: "আপনার কি ইতিমধ্যে একটি সন্তান আছে?",
+            childGenderLabel: "সে কি মেয়ে নাকি ছেলে?",
+            childGenderGirl: "মেয়ে",
+            childGenderBoy: "ছেলে",
+            planningBaby: "আপনি কি সন্তান নেওয়ার পরিকল্পনা করছেন?",
+            namePreferenceLabel: "আপনি কোন ধরনের নাম পছন্দ করেন?",
+            namePreferenceWestern: "পাশ্চাত্য",
+            namePreferenceIndian: "ভারতীয়",
+            namePreferenceAncient: "প্রাচীন/শাস্ত্রীয়",
+            namePreferenceOther: "অন্যান্য",
+          },
+          health_monthly: {
+            concern: "এমন কোনো বর্তমান স্বাস্থ্য সমস্যা আছে যার উপর আপনি মনোযোগ দিতে চান?",
+          },
+          career_monthly: {
+            concern: "আপনার কাজে কোনো অসুবিধা হচ্ছে, বা নতুন চাকরি খুঁজছেন?",
+          },
+          finance_monthly: {
+            concern: "কোনো আর্থিক উদ্বেগ, বা ভবিষ্যতের জন্য কিছু পরিকল্পনা করছেন?",
+          },
+          relationship_monthly: {
+            concern: "এই মুহূর্তে আপনার সম্পর্কে কোনো নির্দিষ্ট উদ্বেগ আছে কি?",
+          },
+        },
         verdict: {
           title: "চূড়ান্ত সিদ্ধান্ত",
           keyTakeaways: "মূল বিষয়সমূহ",
@@ -5038,6 +5134,38 @@ export const resources = {
           benefit: "फायदा",
           caution: "सावधगिरी — आधी सल्ला घ्या",
           consultFirst: "कोणतेही रत्न धारण करण्यापूर्वी पात्र ज्योतिषाचा सल्ला घ्या.",
+        },
+        atAGlance: {
+          eyebrow: "एका दृष्टीक्षेपात",
+        },
+        questions: {
+          title: "काही द्रुत प्रश्न (ऐच्छिक)",
+          notSure: "खात्री नाही",
+          textPlaceholder: "इथे लिहा (ऐच्छिक)",
+          baby_name: {
+            hasChild: "तुम्हाला आधीच मूल आहे का?",
+            childGenderLabel: "ते मुलगी आहे की मुलगा?",
+            childGenderGirl: "मुलगी",
+            childGenderBoy: "मुलगा",
+            planningBaby: "तुम्ही बाळाचे नियोजन करत आहात का?",
+            namePreferenceLabel: "तुम्हाला कोणत्या प्रकारची नावे आवडतात?",
+            namePreferenceWestern: "पाश्चिमात्य",
+            namePreferenceIndian: "भारतीय",
+            namePreferenceAncient: "प्राचीन/शास्त्रीय",
+            namePreferenceOther: "इतर",
+          },
+          health_monthly: {
+            concern: "सध्या काही आरोग्याची चिंता आहे का ज्यावर तुम्हाला लक्ष केंद्रित करायचे आहे?",
+          },
+          career_monthly: {
+            concern: "तुमच्या नोकरीत काही अडचण येत आहे, की नवीन नोकरी शोधत आहात?",
+          },
+          finance_monthly: {
+            concern: "काही आर्थिक चिंता, किंवा भविष्यासाठी काही नियोजन करत आहात?",
+          },
+          relationship_monthly: {
+            concern: "सध्या तुमच्या नात्यात काही विशिष्ट चिंता आहे का?",
+          },
         },
         verdict: {
           title: "अंतिम निष्कर्ष",
@@ -6609,6 +6737,38 @@ export const resources = {
           caution: "జాగ్రత్త — ముందుగా సంప్రదించండి",
           consultFirst: "ఏదైనా రత్నం ధరించే ముందు అర్హత కలిగిన జ్యోతిష్కుడిని సంప్రదించండి.",
         },
+        atAGlance: {
+          eyebrow: "ఒక చూపులో",
+        },
+        questions: {
+          title: "కొన్ని త్వరిత ప్రశ్నలు (ఐచ్ఛికం)",
+          notSure: "ఖచ్చితంగా తెలియదు",
+          textPlaceholder: "ఇక్కడ టైప్ చేయండి (ఐచ్ఛికం)",
+          baby_name: {
+            hasChild: "మీకు ఇప్పటికే పిల్లలు ఉన్నారా?",
+            childGenderLabel: "అది అమ్మాయి లేదా అబ్బాయి?",
+            childGenderGirl: "అమ్మాయి",
+            childGenderBoy: "అబ్బాయి",
+            planningBaby: "మీరు బిడ్డను కనాలని ప్లాన్ చేస్తున్నారా?",
+            namePreferenceLabel: "మీరు ఏ రకమైన పేర్లను ఇష్టపడతారు?",
+            namePreferenceWestern: "పాశ్చాత్య",
+            namePreferenceIndian: "భారతీయ",
+            namePreferenceAncient: "పురాతన/సాంప్రదాయ",
+            namePreferenceOther: "ఇతర",
+          },
+          health_monthly: {
+            concern: "మీరు దృష్టి పెట్టాలనుకుంటున్న ప్రస్తుత ఆరోగ్య సమస్య ఏదైనా ఉందా?",
+          },
+          career_monthly: {
+            concern: "మీ ఉద్యోగంలో ఏదైనా ఇబ్బంది ఎదుర్కొంటున్నారా, లేదా కొత్త ఉద్యోగం కోసం చూస్తున్నారా?",
+          },
+          finance_monthly: {
+            concern: "ఏదైనా ఆర్థిక ఆందోళన, లేదా భవిష్యత్తు కోసం ఏదైనా ప్లాన్ చేస్తున్నారా?",
+          },
+          relationship_monthly: {
+            concern: "ప్రస్తుతం మీ సంబంధంలో ఏదైనా నిర్దిష్ట ఆందోళన ఉందా?",
+          },
+        },
         verdict: {
           title: "తుది నిర్ణయం",
           keyTakeaways: "ముఖ్యాంశాలు",
@@ -8174,6 +8334,38 @@ export const resources = {
           benefit: "நன்மை",
           caution: "எச்சரிக்கை — முதலில் ஆலோசிக்கவும்",
           consultFirst: "எந்த ரத்தினத்தையும் அணியும் முன் தகுதியான ஜோதிடரை அணுகவும்.",
+        },
+        atAGlance: {
+          eyebrow: "ஒரே பார்வையில்",
+        },
+        questions: {
+          title: "சில விரைவான கேள்விகள் (விருப்பத்தேர்வு)",
+          notSure: "தெரியவில்லை",
+          textPlaceholder: "இங்கே தட்டச்சு செய்யவும் (விருப்பத்தேர்வு)",
+          baby_name: {
+            hasChild: "உங்களுக்கு ஏற்கனவே குழந்தை உள்ளதா?",
+            childGenderLabel: "அது பெண் குழந்தையா அல்லது ஆண் குழந்தையா?",
+            childGenderGirl: "பெண்",
+            childGenderBoy: "ஆண்",
+            planningBaby: "நீங்கள் குழந்தை பெற திட்டமிடுகிறீர்களா?",
+            namePreferenceLabel: "நீங்கள் எந்த வகையான பெயர்களை விரும்புகிறீர்கள்?",
+            namePreferenceWestern: "மேற்கத்திய",
+            namePreferenceIndian: "இந்திய",
+            namePreferenceAncient: "பண்டைய/பாரம்பரிய",
+            namePreferenceOther: "மற்றவை",
+          },
+          health_monthly: {
+            concern: "நீங்கள் கவனம் செலுத்த விரும்பும் தற்போதைய ஆரோக்கிய கவலை ஏதேனும் உள்ளதா?",
+          },
+          career_monthly: {
+            concern: "உங்கள் வேலையில் ஏதேனும் சிரமம் உள்ளதா, அல்லது புதிய வேலையைத் தேடுகிறீர்களா?",
+          },
+          finance_monthly: {
+            concern: "ஏதேனும் நிதி கவலை, அல்லது எதிர்காலத்திற்காக ஏதாவது திட்டமிடுகிறீர்களா?",
+          },
+          relationship_monthly: {
+            concern: "தற்போது உங்கள் உறவில் ஏதேனும் குறிப்பிட்ட கவலை உள்ளதா?",
+          },
         },
         verdict: {
           title: "இறுதி முடிவு",
@@ -9743,6 +9935,38 @@ export const resources = {
           benefit: "ફાયદો",
           caution: "સાવચેતી — પહેલા સલાહ લો",
           consultFirst: "કોઈપણ રત્ન ધારણ કરતા પહેલા લાયક જ્યોતિષીની સલાહ લો.",
+        },
+        atAGlance: {
+          eyebrow: "એક નજરમાં",
+        },
+        questions: {
+          title: "થોડા ઝડપી પ્રશ્નો (વૈકલ્પિક)",
+          notSure: "ખાતરી નથી",
+          textPlaceholder: "અહીં લખો (વૈકલ્પિક)",
+          baby_name: {
+            hasChild: "શું તમારે પહેલેથી જ બાળક છે?",
+            childGenderLabel: "તે છોકરી છે કે છોકરો?",
+            childGenderGirl: "છોકરી",
+            childGenderBoy: "છોકરો",
+            planningBaby: "શું તમે બાળક પ્લાન કરી રહ્યા છો?",
+            namePreferenceLabel: "તમને કયા પ્રકારના નામ ગમે છે?",
+            namePreferenceWestern: "પશ્ચિમી",
+            namePreferenceIndian: "ભારતીય",
+            namePreferenceAncient: "પ્રાચીન/શાસ્ત્રીય",
+            namePreferenceOther: "અન્ય",
+          },
+          health_monthly: {
+            concern: "શું કોઈ વર્તમાન સ્વાસ્થ્ય ચિંતા છે જેના પર તમે ધ્યાન કેન્દ્રિત કરવા માંગો છો?",
+          },
+          career_monthly: {
+            concern: "શું તમને તમારી નોકરીમાં કોઈ મુશ્કેલી પડી રહી છે, અથવા નવી નોકરી શોધી રહ્યા છો?",
+          },
+          finance_monthly: {
+            concern: "કોઈ નાણાકીય ચિંતા, અથવા ભવિષ્ય માટે કંઈક આયોજન કરી રહ્યા છો?",
+          },
+          relationship_monthly: {
+            concern: "શું અત્યારે તમારા સંબંધમાં કોઈ ચોક્કસ ચિંતા છે?",
+          },
         },
         verdict: {
           title: "અંતિમ નિર્ણય",

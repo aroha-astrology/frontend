@@ -9,6 +9,7 @@ import IconButton from "@/components/ui/IconButton";
 import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
 import ReportHeaderCard from "@/components/reports/ReportHeaderCard";
 import ReportVerdictCard from "@/components/reports/ReportVerdictCard";
+import Callout from "@/components/reports/blocks/Callout";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
 import { formatPeriodMonth } from "@/lib/reports-logic";
@@ -72,7 +73,7 @@ export default function ReportDetailPage() {
           <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
         </div>
 
-        {(state === "idle" || state === "loading" || state === "generating") && (
+        {(state === "idle" || state === "loading" || state === "generating" || (state === "ready" && !data)) && (
           <ReportGeneratingSheet onClose={() => router.push("/reports")} />
         )}
 
@@ -106,6 +107,10 @@ export default function ReportDetailPage() {
             {data.periodMonth && <p className="text-sm text-muted -mt-1">{formatPeriodMonth(data.periodMonth)}</p>}
 
             {isReportHeader(data.scores.header) && <ReportHeaderCard header={data.scores.header} />}
+
+            {isReportVerdict(data.scores.verdict) && (
+              <Callout eyebrow={t("reports.atAGlance.eyebrow")}>{data.scores.verdict.headline}</Callout>
+            )}
 
             {data.sections.length > 1 && (
               <section className="rounded-2xl border border-gold/15 bg-card p-3.5">

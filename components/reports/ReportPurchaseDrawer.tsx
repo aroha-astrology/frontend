@@ -15,6 +15,7 @@ import {
   type PurchaseReportBody,
   type PurchaseReportResultRow,
 } from "@/lib/reports-api";
+import { REPORT_QUESTIONS } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
 
 interface ReportPurchaseDrawerProps {
@@ -61,6 +62,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const [partnerConsented, setPartnerConsented] = useState(false);
   const partnerValid = !!partnerDob && !!resolvedPartnerPlace && partnerConsented;
 
+  // ── Optional pre-purchase questionnaire (see lib/report-questions.ts) ─
+  const questions = REPORT_QUESTIONS[entry.key] ?? [];
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const visibleQuestions = questions.filter(
+    (q) => !q.showIf || answers[q.showIf.questionId] === q.showIf.value,
+  );
+
   // ── Monthly: current month only, no picker ────────────────────────────
   const alreadyPurchasedMonths = useMemo(() => purchasedMonthSet(entry.purchases), [entry.purchases]);
   const currentMonth = currentMonthKey();
@@ -93,6 +101,11 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           timezone: resolvedPartnerPlace.tz,
         };
       }
+      const visibleAnswerIds = new Set(visibleQuestions.map((q) => q.id));
+      const filteredAnswers = Object.fromEntries(
+        Object.entries(answers).filter(([id, v]) => visibleAnswerIds.has(id) && v.trim() !== ""),
+      );
+      if (Object.keys(filteredAnswers).length > 0) body.answers = filteredAnswers;
       const res = await reportsApi.purchase(body);
       await refresh();
       onPurchased(res.reports);
@@ -155,6 +168,51 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           <p className="text-[11px] text-muted text-center">
             {t("reports.statsCount", { count: formatCount(generatedCount) })}
           </p>
+        )}
+
+        {visibleQuestions.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wider">
+              {t("reports.questions.title")}
+            </p>
+            {visibleQuestions.map((q) => (
+              <div key={q.id} className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted ml-1">{t(q.labelKey)}</label>
+                {q.type === "text" ? (
+                  <input
+                    type="text"
+                    value={answers[q.id] ?? ""}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    placeholder={t("reports.questions.textPlaceholder")}
+                    className={inputClass}
+                    style={style}
+                  />
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {q.options?.map((opt) => {
+                      const selected = answers[q.id] === opt.value;
+                      return (
+                        <button
+                          type="button"
+                          key={opt.value}
+                          onClick={() =>
+                            setAnswers((a) => ({ ...a, [q.id]: selected ? "" : opt.value }))
+                          }
+                          className={`rounded-full px-3.5 py-2 text-xs font-medium border transition-colors ${
+                            selected
+                              ? "bg-gold text-[#1a0e00] border-gold"
+                              : "border-gold/20 text-foreground/80"
+                          }`}
+                        >
+                          {t(opt.labelKey)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {mode === "kundli_milan" && (

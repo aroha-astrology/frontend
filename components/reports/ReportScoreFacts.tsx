@@ -17,6 +17,7 @@ type RichFact = Extract<
   { type: "timingWindows" | "ageBands" | "archetype" | "decadeArc" | "doshaYoga" | "kootaBreakdown" }
 >;
 type NestedFact = Extract<ScoreFact, { type: "nested" }>;
+type RawFact = Extract<ScoreFact, { type: "raw" }>;
 
 function isSimpleFact(f: ScoreFact): f is SimpleFact {
   return f.type === "ring" || f.type === "badge" || f.type === "boolean" || f.type === "nested" || f.type === "raw";
@@ -48,16 +49,33 @@ export function isLongNestedFact(f: ScoreFact): f is NestedFact {
   return f.type === "nested" && nestedFactCombinedLength(f) > NESTED_FACT_FULL_WIDTH_THRESHOLD;
 }
 
+/**
+ * Same promotion as `isLongNestedFact`, for a top-level `raw` fact (e.g. marriage's
+ * seventhHouseTemperament, a full sentence rather than a short enum — see
+ * `isProseValue` in report-score-facts.ts, which is what routes it to `raw` instead
+ * of a title-cased `badge` in the first place).
+ */
+export function isLongRawFact(f: ScoreFact): f is RawFact {
+  return f.type === "raw" && f.label.length + f.value.length > NESTED_FACT_FULL_WIDTH_THRESHOLD;
+}
+
 /** Shared label/value row markup for a `nested` fact's entries — used by both the grid-tile and full-width-row renderings so the overflow handling (min-w-0 + break-words, see the module doc comment) lives in exactly one place. */
 function NestedEntryRows({ entries }: { entries: NestedEntry[] }) {
   return (
     <>
-      {entries.map((e, i) => (
-        <div key={i} className="flex justify-between gap-2 text-[11px] text-foreground/80">
-          <span className="min-w-0 break-words text-muted">{e.label}</span>
-          <span className="text-right break-words min-w-0 shrink-0">{e.display}</span>
-        </div>
-      ))}
+      {entries.map((e, i) =>
+        e.prose ? (
+          <div key={i} className="flex flex-col gap-1 text-[11px]">
+            <span className="text-muted">{e.label}</span>
+            <span className="text-foreground/80 leading-relaxed">{e.display}</span>
+          </div>
+        ) : (
+          <div key={i} className="flex justify-between gap-2 text-[11px] text-foreground/80">
+            <span className="min-w-0 break-words text-muted">{e.label}</span>
+            <span className="text-right break-words min-w-0 shrink-0">{e.display}</span>
+          </div>
+        ),
+      )}
     </>
   );
 }
@@ -69,11 +87,11 @@ function NestedEntryRows({ entries }: { entries: NestedEntry[] }) {
  * is empty/absent/malformed rather than an empty grid.
  *
  * The original 5 fact types (ring/badge/boolean/nested/raw) still render in
- * the same 2-column tile grid, byte-for-byte unchanged, EXCEPT a `nested`
- * fact whose combined entry text is long (see
- * `NESTED_FACT_FULL_WIDTH_THRESHOLD` above): that gets promoted to a
- * full-width row alongside the richFacts instead of being squeezed into a
- * half-width tile. The 5 newer enrichment shapes
+ * the same 2-column tile grid, byte-for-byte unchanged, EXCEPT a `nested` or
+ * `raw` fact whose text is long (see `NESTED_FACT_FULL_WIDTH_THRESHOLD`
+ * above): that gets promoted to a full-width row alongside the richFacts
+ * instead of being squeezed/title-cased into a half-width tile. The 5 newer
+ * enrichment shapes
  * (timingWindows/ageBands/archetype/decadeArc/doshaYoga) are richer than a
  * small tile can hold, so they render as full-width sections below the grid
  * instead, each delegating to its own component.
@@ -91,8 +109,11 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
     return i18nKey ? t(i18nKey) : f.label;
   };
 
-  const gridFacts = facts.filter((f): f is SimpleFact => isSimpleFact(f) && !isLongNestedFact(f));
+  const gridFacts = facts.filter(
+    (f): f is SimpleFact => isSimpleFact(f) && !isLongNestedFact(f) && !isLongRawFact(f),
+  );
   const longNestedFacts = facts.filter(isLongNestedFact);
+  const longRawFacts = facts.filter(isLongRawFact);
   const richFacts = facts.filter((f): f is RichFact => !isSimpleFact(f));
 
   return (
@@ -135,6 +156,13 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           <div className="flex flex-col gap-0.5">
             <NestedEntryRows entries={f.entries} />
           </div>
+        </div>
+      ))}
+
+      {longRawFacts.map((f) => (
+        <div key={f.key} className="rounded-2xl border border-gold/15 bg-card p-3 flex flex-col gap-1.5">
+          <span className="text-[10px] uppercase tracking-wider text-muted break-words">{labelFor(f)}</span>
+          <p className="text-sm text-foreground/90 leading-relaxed">{f.value}</p>
         </div>
       ))}
 

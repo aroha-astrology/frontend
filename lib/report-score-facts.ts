@@ -129,6 +129,19 @@ function formatNestedValue(v: unknown): string {
 export interface NestedEntry {
   label: string;
   display: string;
+  /** True when `display` is a full prose sentence (e.g. a backend-computed "note" field like
+   * marriage's `inLaws.note`) rather than a short enum/number value ("Aquarius", "1", "✗") — the
+   * renderer skips title-casing it and lays it out as a wrapping paragraph instead of squeezing
+   * it into a label/value row, see ReportScoreFacts.tsx's `NestedEntryRows`. */
+  prose?: boolean;
+}
+
+/** Notes are always long, space-containing sentences; every other nested value in this app's
+ * report schemas (sign names, counts, ✓/✗) is short — length is enough to tell them apart
+ * without a per-field allowlist that backend changes could silently fall out of sync with. */
+const PROSE_VALUE_MIN_LENGTH = 40;
+function isProseValue(v: string): boolean {
+  return v.length >= PROSE_VALUE_MIN_LENGTH && v.includes(" ");
 }
 
 export interface RingFact {
@@ -426,6 +439,15 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
 
   if (typeof value === "string") {
     if (value.trim() === "") return null;
+    // A top-level string fact is normally a short enum ("steady", "strong") worth
+    // title-casing into a badge — but a few keys (e.g. marriage's
+    // seventhHouseTemperament) carry a full descriptive sentence instead. Same
+    // isProseValue split as the nested-entry case above: skip title-casing and
+    // flag it `raw` so the renderer promotes it out of the cramped half-width
+    // badge tile instead of mangling/squeezing it (see ReportScoreFacts.tsx).
+    if (isProseValue(value)) {
+      return { key, label, type: "raw", value };
+    }
     return { key, label, type: "badge", value: humanizeValue(value) };
   }
 
@@ -435,14 +457,22 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
       key,
       label,
       type: "nested",
-      entries: value.map((item, i) => ({ label: String(i + 1), display: formatNestedValue(item) })),
+      entries: value.map((item, i) =>
+        typeof item === "string" && isProseValue(item)
+          ? { label: String(i + 1), display: item, prose: true }
+          : { label: String(i + 1), display: formatNestedValue(item) },
+      ),
     };
   }
 
   if (typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([, v]) => v !== null && v !== undefined)
-      .map(([k, v]) => ({ label: humanizeKey(k), display: formatNestedValue(v) }));
+      .map(([k, v]) =>
+        typeof v === "string" && isProseValue(v)
+          ? { label: humanizeKey(k), display: v, prose: true }
+          : { label: humanizeKey(k), display: formatNestedValue(v) },
+      );
     if (entries.length === 0) return null;
     return { key, label, type: "nested", entries };
   }

@@ -90,6 +90,34 @@ describe("buildScoreFacts", () => {
     expect(facts[0].type).toBe("nested");
   });
 
+  it("classifies a top-level prose sentence as 'raw' with untouched casing, not a title-cased 'badge'", () => {
+    const facts = buildScoreFacts({
+      seventhHouseTemperament: "steady, sensual, and loyal once trust is earned",
+      band: "steady",
+    });
+    expect(facts).toEqual([
+      { key: "seventhHouseTemperament", label: "Seventh House Temperament", type: "raw", value: "steady, sensual, and loyal once trust is earned" },
+      { key: "band", label: "Band", type: "badge", value: "Steady" },
+    ]);
+  });
+
+  it("marks a long sentence value as prose and leaves its casing untouched, unlike a short enum value", () => {
+    const facts = buildScoreFacts({
+      inLaws: {
+        fourthHouseSign: "Aquarius",
+        note: "The 4th house (home and family) falls in Aquarius, and its lord is classically average.",
+      },
+    });
+    expect(facts[0].type).toBe("nested");
+    if (facts[0].type !== "nested") return;
+    const [signEntry, noteEntry] = facts[0].entries;
+    expect(signEntry).toEqual({ label: "Fourth House Sign", display: "Aquarius" });
+    expect(noteEntry.prose).toBe(true);
+    expect(noteEntry.display).toBe(
+      "The 4th house (home and family) falls in Aquarius, and its lord is classically average.",
+    );
+  });
+
   it("does not crash on an out-of-range number and falls back to a raw fact", () => {
     const facts = buildScoreFacts({ weirdScore: 500 });
     expect(facts).toEqual([{ key: "weirdScore", label: "Weird Score", type: "raw", value: "500" }]);

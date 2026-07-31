@@ -10,6 +10,7 @@ import SegmentedToggle from "@/components/ui/SegmentedToggle";
 import FeatureGuard from "@/components/FeatureGuard";
 import ReportCard from "@/components/reports/ReportCard";
 import ReportPurchaseDrawer from "@/components/reports/ReportPurchaseDrawer";
+import GemstoneCard from "@/components/ui/GemstoneCard";
 import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
@@ -92,8 +93,19 @@ function ReportsCatalogue() {
                 entry={entry}
                 onBuy={() => setPurchasingEntry(entry)}
                 onAddMonths={() => setPurchasingEntry(entry)}
+                generatedCount={stats?.[entry.key]}
               />
             ))}
+          </div>
+        )}
+
+        {/* Gemstone recommendations — a separate credit-gated unlock, not part of the
+            reportsApi catalogue, so it's dropped in verbatim rather than reshaped into a
+            ReportCatalogueEntry it doesn't have data for. One-time tab only (there's no
+            monthly variant). */}
+        {tab === "oneTime" && (
+          <div className="mt-4">
+            <GemstoneCard />
           </div>
         )}
       </div>

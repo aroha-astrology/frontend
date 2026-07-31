@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
+import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
 import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
 import { useReport, type ReportReady } from "@/hooks/useReport";
@@ -56,10 +56,7 @@ export default function ReportDetailPage() {
         </div>
 
         {(state === "idle" || state === "loading" || state === "generating") && (
-          <>
-            <GeneratingSpinner label={t("reports.view.generatingTitle")} size={40} className="py-16" />
-            <p className="text-xs text-muted text-center -mt-2">{t("reports.view.generatingBody")}</p>
-          </>
+          <ReportGeneratingSheet onClose={() => router.push("/reports")} />
         )}
 
         {state === "failed" && (

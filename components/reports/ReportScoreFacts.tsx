@@ -10,10 +10,15 @@ import DoshaYogaPanel from "./DoshaYogaPanel";
 import GunaKootaBreakdown from "./GunaKootaBreakdown";
 import LifeContextCard from "./LifeContextCard";
 import ReportGemstonesCard from "./ReportGemstonesCard";
+import NumberChips from "./NumberChips";
+import ForecastTable from "./ForecastTable";
+import LoShuGridCard from "./LoShuGridCard";
+import ChallengeNumbersCard from "./ChallengeNumbersCard";
+import NamePlanesCard from "./NamePlanesCard";
 
 /** The 5 fact types the original 2-column tile grid renders — unchanged since before the bespoke shapes were added. */
 type SimpleFact = Extract<ScoreFact, { type: "ring" | "badge" | "boolean" | "nested" | "raw" }>;
-/** The 6 bespoke fact types, each rendered full-width by a dedicated component instead of a small grid tile. */
+/** The bespoke fact types, each rendered full-width by a dedicated component instead of a small grid tile. */
 type RichFact = Extract<
   ScoreFact,
   {
@@ -25,7 +30,13 @@ type RichFact = Extract<
       | "doshaYoga"
       | "kootaBreakdown"
       | "lifeContext"
-      | "gemstones";
+      | "gemstones"
+      | "loShuGrid"
+      | "challengeNumbers"
+      | "namePlanes"
+      | "numberChips"
+      | "monthlyForecast"
+      | "yearlyForecast";
   }
 >;
 type NestedFact = Extract<ScoreFact, { type: "nested" }>;
@@ -190,6 +201,30 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           {f.type === "kootaBreakdown" && <GunaKootaBreakdown entries={f.entries} />}
           {f.type === "lifeContext" && <LifeContextCard lifeContext={f.value} />}
           {f.type === "gemstones" && <ReportGemstonesCard gemstones={f.gemstones} />}
+          {f.type === "loShuGrid" && <LoShuGridCard value={f.value} />}
+          {f.type === "challengeNumbers" && <ChallengeNumbersCard value={f.value} />}
+          {f.type === "namePlanes" && <NamePlanesCard value={f.value} />}
+          {f.type === "numberChips" && <NumberChips values={f.values} />}
+          {f.type === "monthlyForecast" && (
+            <ForecastTable
+              rows={f.rows}
+              columns={[
+                { key: "month", labelKey: "reports.facts.numerology.colMonth" },
+                { key: "year", labelKey: "reports.facts.numerology.colYear" },
+                { key: "personalMonth", labelKey: "reports.facts.numerology.colPersonalMonth" },
+                { key: "personalYear", labelKey: "reports.facts.numerology.colPersonalYear" },
+              ]}
+            />
+          )}
+          {f.type === "yearlyForecast" && (
+            <ForecastTable
+              rows={f.rows}
+              columns={[
+                { key: "year", labelKey: "reports.facts.numerology.colYear" },
+                { key: "personalYear", labelKey: "reports.facts.numerology.colPersonalYear" },
+              ]}
+            />
+          )}
         </div>
       ))}
     </div>

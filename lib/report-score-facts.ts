@@ -103,6 +103,26 @@ export const SCORE_FACT_LABEL_KEYS: Record<string, string> = {
   lifeContext: "reportScores.label.lifeContext",
   gemstones: "reportScores.label.gemstones",
   verdict: "reportScores.label.verdict",
+  // numerology
+  name: "reportScores.label.name",
+  dob: "reportScores.label.dob",
+  mulank: "reportScores.label.mulank",
+  bhagyank: "reportScores.label.bhagyank",
+  lifePath: "reportScores.label.lifePath",
+  expression: "reportScores.label.expression",
+  soulUrge: "reportScores.label.soulUrge",
+  personality: "reportScores.label.personality",
+  luckyNumbers: "reportScores.label.luckyNumbers",
+  personalYear: "reportScores.label.personalYear",
+  personalMonth: "reportScores.label.personalMonth",
+  monthlyForecast: "reportScores.label.monthlyForecast",
+  yearlyForecast: "reportScores.label.yearlyForecast",
+  namePlanes: "reportScores.label.namePlanes",
+  kua: "reportScores.label.kua",
+  nameAlignment: "reportScores.label.nameAlignment",
+  luckyDayColor: "reportScores.label.luckyDayColor",
+  challengeNumbers: "reportScores.label.challengeNumbers",
+  loShuGrid: "reportScores.label.loShuGrid",
 };
 
 /** "steady" -> "Steady", "veryGood" -> "Very Good". */
@@ -115,6 +135,20 @@ function scoreMaxFor(key: string): number {
   if (k.includes("guna") || k.includes("milan") || k.includes("koota") || k.includes("kuta")) return 36;
   return 100;
 }
+
+/** Numerology's core digits (1-9, occasionally 11/22) are an IDENTITY number, not a score out of
+ * some max — rendering them as a 0-100 ring ("5%") falsely implies a progress/strength reading
+ * nothing in this app's numerology narrative supports. Shown as a plain badge instead. */
+const NUMEROLOGY_DIGIT_KEYS = new Set([
+  "mulank",
+  "bhagyank",
+  "lifePath",
+  "expression",
+  "soulUrge",
+  "personality",
+  "personalYear",
+  "personalMonth",
+]);
 
 /** Matches an ISO 8601 timestamp (e.g. a Dasha sub-period's startDate/endDate) so it's date-formatted
  * instead of falling into the generic word-splitting `humanizeValue` path, which mangles the
@@ -314,6 +348,41 @@ export interface KootaEntry {
   description: string;
 }
 
+/** Lo Shu Grid — `scores.loShuGrid` on numerology (jyotish-backend's numerology/vedic.ts). */
+export interface LoShuGridValue {
+  frequencies: Record<number, number>;
+  missing: number[];
+  cells: number[][];
+}
+
+/** Challenge Numbers — `scores.challengeNumbers` on numerology. */
+export interface ChallengeNumbersValue {
+  first: number;
+  second: number;
+  main: number;
+  fourth: number;
+  phases: { phase: number; ageRange: string; challenge: number }[];
+}
+
+/** Name Planes — `scores.namePlanes` on numerology. */
+export interface NamePlanesValue {
+  knowledge: number;
+  strength: number;
+  emotional: number;
+  spiritual: number;
+  letters: {
+    knowledge: string[];
+    strength: string[];
+    emotional: string[];
+    spiritual: string[];
+  };
+}
+
+/** One row of a forecast table — `scores.monthlyForecast`/`scores.yearlyForecast` on numerology. */
+export interface ForecastRow {
+  [key: string]: string | number;
+}
+
 export interface TimingWindowsFact {
   key: string;
   label: string;
@@ -362,9 +431,117 @@ export interface GemstonesFact {
   type: "gemstones";
   gemstones: ReportGemstone[];
 }
+export interface LoShuGridFact {
+  key: string;
+  label: string;
+  type: "loShuGrid";
+  value: LoShuGridValue;
+}
+export interface ChallengeNumbersFact {
+  key: string;
+  label: string;
+  type: "challengeNumbers";
+  value: ChallengeNumbersValue;
+}
+export interface NamePlanesFact {
+  key: string;
+  label: string;
+  type: "namePlanes";
+  value: NamePlanesValue;
+}
+export interface NumberChipsFact {
+  key: string;
+  label: string;
+  type: "numberChips";
+  values: number[];
+}
+export interface MonthlyForecastFact {
+  key: string;
+  label: string;
+  type: "monthlyForecast";
+  rows: ForecastRow[];
+}
+export interface YearlyForecastFact {
+  key: string;
+  label: string;
+  type: "yearlyForecast";
+  rows: ForecastRow[];
+}
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** An object with `frequencies`/`missing`/`cells` — distinguished from every other object shape
+ * here by requiring `cells` to be an array of arrays (the 3×3 grid template). */
+export function isLoShuGrid(v: unknown): v is LoShuGridValue {
+  if (!isRecord(v)) return false;
+  return (
+    isRecord(v.frequencies) &&
+    Array.isArray(v.missing) &&
+    Array.isArray(v.cells) &&
+    v.cells.every((row) => Array.isArray(row))
+  );
+}
+
+/** An object with `first`/`second`/`main`/`fourth` (all numbers) plus a `phases` array — unique
+ * to numerology's Challenge Numbers. */
+export function isChallengeNumbers(v: unknown): v is ChallengeNumbersValue {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.first === "number" &&
+    typeof v.second === "number" &&
+    typeof v.main === "number" &&
+    typeof v.fourth === "number" &&
+    Array.isArray(v.phases)
+  );
+}
+
+/** An object with `knowledge`/`strength`/`emotional`/`spiritual` (all numbers) plus a `letters`
+ * object — unique to numerology's Name Planes. */
+export function isNamePlanes(v: unknown): v is NamePlanesValue {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.knowledge === "number" &&
+    typeof v.strength === "number" &&
+    typeof v.emotional === "number" &&
+    typeof v.spiritual === "number" &&
+    isRecord(v.letters)
+  );
+}
+
+/** A flat array of plain numbers (e.g. `luckyNumbers`, `keyHouses`) — reads better as a row of
+ * chips than the generic numbered list the "nested" array branch below produces. Requires more
+ * than 1 entry so a lone number isn't needlessly promoted out of the grid. */
+export function isNumberArray(v: unknown): v is number[] {
+  return Array.isArray(v) && v.length > 1 && v.every((n) => typeof n === "number");
+}
+
+/** Distinguished from `isYearlyForecastArray` by requiring `month`/`calendarMonth` on every item —
+ * unique to numerology's 12-month rolling forecast. */
+export function isMonthlyForecastArray(v: unknown): v is ForecastRow[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.month === "string" &&
+      typeof item.calendarMonth === "number" &&
+      typeof item.personalMonth === "number" &&
+      typeof item.personalYear === "number",
+  );
+}
+
+/** Distinguished from `isMonthlyForecastArray` by requiring ONLY `year`/`personalYear` (no
+ * `calendarMonth`) — unique to numerology's 5-year-ahead forecast. */
+export function isYearlyForecastArray(v: unknown): v is ForecastRow[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.year === "number" &&
+      typeof item.personalYear === "number" &&
+      !("calendarMonth" in item),
+  );
 }
 
 function isLabelDetailArray(v: unknown): v is { label: string; detail: string }[] {
@@ -514,7 +691,13 @@ export type ScoreFact =
   | DoshaYogaFact
   | KootaBreakdownFact
   | LifeContextFact
-  | GemstonesFact;
+  | GemstonesFact
+  | LoShuGridFact
+  | ChallengeNumbersFact
+  | NamePlanesFact
+  | NumberChipsFact
+  | MonthlyForecastFact
+  | YearlyForecastFact;
 
 /**
  * Classifies one `scores` entry. Returns `null` for a value that shouldn't
@@ -556,6 +739,24 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   if (isLifeContext(value)) {
     return { key, label, type: "lifeContext", value };
   }
+  if (isLoShuGrid(value)) {
+    return { key, label, type: "loShuGrid", value };
+  }
+  if (isChallengeNumbers(value)) {
+    return { key, label, type: "challengeNumbers", value };
+  }
+  if (isNamePlanes(value)) {
+    return { key, label, type: "namePlanes", value };
+  }
+  if (isMonthlyForecastArray(value)) {
+    return { key, label, type: "monthlyForecast", rows: value };
+  }
+  if (isYearlyForecastArray(value)) {
+    return { key, label, type: "yearlyForecast", rows: value };
+  }
+  if (isNumberArray(value)) {
+    return { key, label, type: "numberChips", values: value };
+  }
 
   if (typeof value === "boolean") {
     return { key, label, type: "boolean", value };
@@ -563,6 +764,9 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
 
   if (typeof value === "number") {
     if (!Number.isFinite(value)) return null;
+    if (NUMEROLOGY_DIGIT_KEYS.has(key)) {
+      return { key, label, type: "badge", value: String(value) };
+    }
     const max = scoreMaxFor(key);
     if (value >= 0 && value <= max) {
       return { key, label, type: "ring", value, max, pct: Math.round((value / max) * 100) };

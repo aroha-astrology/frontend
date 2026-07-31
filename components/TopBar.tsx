@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import IconButton from "@/components/ui/IconButton";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
+import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
 import WalletBalance from "@/components/ui/WalletBalance";
@@ -48,6 +49,20 @@ export default function TopBar() {
   const { rightContent } = useTopBarContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  // One fetch on mount to know whether to show the unread dot (e.g. a "your report is ready"
+  // notification that arrived while the app was closed) — NotificationsSheet marks everything
+  // read as soon as it's opened, so the dot is cleared optimistically below rather than by
+  // re-fetching. No polling: the dot is a "something happened since you last checked" signal,
+  // not a live counter.
+  useEffect(() => {
+    if (!user) return;
+    api
+      .getNotifications()
+      .then((data) => setHasUnread(data.some((n) => !n.readAt)))
+      .catch(() => {});
+  }, [user]);
 
   const hidden =
     HIDDEN_TOPBAR_EXACT_ROUTES.includes(pathname) ||
@@ -71,8 +86,18 @@ export default function TopBar() {
                 <WalletBalance paise={user.walletBalancePaise} />
               </Link>
             )}
-            <IconButton aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>
+            <IconButton
+              aria-label="Notifications"
+              onClick={() => {
+                setNotificationsOpen(true);
+                setHasUnread(false);
+              }}
+              className="relative"
+            >
               <Bell size={20} />
+              {hasUnread && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" aria-hidden="true" />
+              )}
             </IconButton>
           </div>
         </div>

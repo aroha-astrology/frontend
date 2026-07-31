@@ -20,9 +20,11 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Flame,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
+import { useFeature } from "@/hooks/useFeature";
 import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
@@ -44,6 +46,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const remediesEnabled = useFeature("nav.remedies").enabled;
 
   // Only fetches while the panel is open — useKundli's SWR cache (7 days)
   // makes this cheap even on every open.
@@ -230,6 +233,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   href="/reports/history"
                   onClick={onClose}
                 />
+                {remediesEnabled && (
+                  <ListRow
+                    icon={<Flame size={16} />}
+                    label={t("menu.remedies")}
+                    href="/remedies"
+                    onClick={onClose}
+                  />
+                )}
                 <ListRow
                   icon={<HelpCircle size={16} />}
                   label={t("menu.needHelp")}

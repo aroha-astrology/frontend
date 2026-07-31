@@ -36,6 +36,7 @@ import {
   FileText,
   Hash,
   PenLine,
+  Flame,
 } from "lucide-react";
 
 /**
@@ -58,6 +59,7 @@ export type ReportHue =
   | "fuchsia"
   | "indigo"
   | "lime"
+  | "orange"
   | "gold";
 
 export interface ReportTheme {
@@ -87,6 +89,7 @@ export const REPORT_THEME: Record<string, ReportTheme> = {
   relationship_monthly: { icon: HeartPulse, hue: "fuchsia" },
   numerology: { icon: Hash, hue: "indigo" },
   name_change: { icon: PenLine, hue: "lime" },
+  remedies: { icon: Flame, hue: "orange" },
 };
 
 /** Neutral gold-toned fallback for any catalogue key this client build doesn't have a theme for yet. */

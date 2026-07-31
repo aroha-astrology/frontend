@@ -495,6 +495,9 @@ export interface GemstoneReportReady {
   status: "ready";
   intro: string;
   gems: GemstoneItem[];
+  /** Recommended gemstone weight in carats, computed from the body weight (kg) captured at
+   * unlock time. Null when no weight was ever supplied (e.g. unlocked before this existed). */
+  recommendedCarats: number | null;
 }
 
 /** 202 body: generation just started in the background, or the last attempt failed. */
@@ -872,12 +875,19 @@ export const api = {
 
   /**
    * Spend wallet balance to unlock the full gemstone report (whole report, one-time).
+   * `weightKg` (20-300) is captured here and used server-side to compute a recommended
+   * gemstone carat weight (see GemstoneReportReady.recommendedCarats) — stored for reuse
+   * elsewhere too, not just this one calculation.
    * Throws ApiError with status 409 if the user has insufficient balance or the
    * report is already unlocked. Caller should re-fetch the user (`refresh()`
    * from useAuth) afterward to pick up the updated wallet balance/gemstoneUnlocked.
    */
-  unlockGemstone: () =>
-    request<{ success: boolean }>("/v1/me/unlock-gemstone", { method: "POST", auth: true }),
+  unlockGemstone: (weightKg?: number) =>
+    request<{ success: boolean }>("/v1/me/unlock-gemstone", {
+      method: "POST",
+      auth: true,
+      body: { weightKg },
+    }),
 
   /**
    * Current user's personalized gemstone report — generated lazily the first

@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
+import { Scale } from "lucide-react";
 import Card from "./Card";
 import GeneratingSpinner from "./GeneratingSpinner";
+import BottomSheetModal from "./BottomSheetModal";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
 import { useGemstone } from "@/hooks/useGemstone";
@@ -12,6 +14,81 @@ import { useFeature } from "@/hooks/useFeature";
 import { purgeUserCache } from "@/lib/cache";
 
 import { formatRupees } from "@/lib/format";
+
+const MIN_WEIGHT_KG = 20;
+const MAX_WEIGHT_KG = 300;
+
+/**
+ * One-time prompt shown right before the gemstone unlock charge goes through
+ * — captures body weight (kg), which the backend uses to compute a
+ * recommended gemstone carat weight (see recommendedGemstoneCarats,
+ * astro-engine/gemstones.ts) and stores for reuse elsewhere. Optional: a
+ * user can skip and unlock without it, just without a carat recommendation.
+ */
+function GemstoneWeightSheet({
+  onSubmit,
+  onClose,
+  submitting,
+}: {
+  /** Called with a validated weight, or undefined if the user skips. */
+  onSubmit: (weightKg: number | undefined) => void;
+  onClose: () => void;
+  submitting: boolean;
+}) {
+  const { t } = useTranslation();
+  const [value, setValue] = useState("");
+  const parsed = Number(value);
+  const valid = value.trim() !== "" && Number.isFinite(parsed) && parsed >= MIN_WEIGHT_KG && parsed <= MAX_WEIGHT_KG;
+
+  return (
+    <BottomSheetModal
+      onClose={onClose}
+      closeLabel={t("common.close")}
+      header={
+        <h2 className="flex items-center gap-2 text-base font-semibold text-gold">
+          <Scale size={18} />
+          {t("kundli.gemstone.weightPromptTitle")}
+        </h2>
+      }
+    >
+      <p className="text-sm leading-relaxed text-muted mb-4">
+        {t("kundli.gemstone.weightPromptBody")}
+      </p>
+
+      <div className="flex items-center gap-2 mb-4">
+        <input
+          type="number"
+          inputMode="decimal"
+          min={MIN_WEIGHT_KG}
+          max={MAX_WEIGHT_KG}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t("kundli.gemstone.weightPlaceholder")}
+          className="flex-1 h-12 rounded-xl border border-gold/20 bg-surface px-4 text-sm text-foreground outline-none focus:border-gold/50"
+        />
+        <span className="text-sm text-muted">{t("kundli.gemstone.weightUnit")}</span>
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => valid && onSubmit(parsed)}
+          disabled={!valid || submitting}
+          className="flex-1 h-11 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-50"
+        >
+          {t("kundli.gemstone.weightContinue")}
+        </button>
+        <button
+          onClick={() => onSubmit(undefined)}
+          disabled={submitting}
+          className="flex-1 h-11 rounded-full border text-sm disabled:opacity-50"
+          style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+        >
+          {t("kundli.gemstone.weightSkip")}
+        </button>
+      </div>
+    </BottomSheetModal>
+  );
+}
 
 /** Faceted-gem SVG tinted in the stone's colour — the fallback when no photo is available. */
 function GemGlyph({ color, size }: { color: string; size: number }) {
@@ -216,6 +293,7 @@ export default function GemstoneCard() {
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [showWeightSheet, setShowWeightSheet] = useState(false);
 
   const { state, data } = useGemstone(unlocked);
 
@@ -235,19 +313,25 @@ export default function GemstoneCard() {
 
   const shownGems = expanded ? gems : gems.slice(0, 1);
 
-  const handleUnlock = async () => {
+  const handleUnlockClick = () => {
     if (credits < UNLOCK_COST_PAISE) {
       router.push("/payment");
       return;
     }
+    setShowWeightSheet(true);
+  };
+
+  const handleUnlock = async (weightKg: number | undefined) => {
     setUnlocking(true);
     setUnlockError(null);
     try {
-      await api.unlockGemstone();
+      await api.unlockGemstone(weightKg);
       await refresh();
       if (user) purgeUserCache(user.id, { scope: "gemstone" });
+      setShowWeightSheet(false);
     } catch {
       setUnlockError(t("kundli.gemstone.unlockError"));
+      setShowWeightSheet(false);
     } finally {
       setUnlocking(false);
     }
@@ -277,7 +361,7 @@ export default function GemstoneCard() {
         </p>
 
         <button
-          onClick={handleUnlock}
+          onClick={handleUnlockClick}
           disabled={unlocking}
           className="w-full h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold text-sm disabled:opacity-50 transition-opacity"
         >
@@ -293,6 +377,13 @@ export default function GemstoneCard() {
           </p>
         )}
         {unlockError && <p className="text-[11px] text-red-400 text-center mt-2">{unlockError}</p>}
+        {showWeightSheet && (
+          <GemstoneWeightSheet
+            onSubmit={(weightKg) => void handleUnlock(weightKg)}
+            onClose={() => setShowWeightSheet(false)}
+            submitting={unlocking}
+          />
+        )}
         <p className="text-[9px] text-muted/70 text-center mt-3 leading-relaxed">
           {t("kundli.gemstone.disclaimer")}
         </p>
@@ -317,6 +408,14 @@ export default function GemstoneCard() {
         <>
           {data.intro && (
             <p className="text-xs text-foreground/90 leading-relaxed mb-4">{data.intro}</p>
+          )}
+          {data.recommendedCarats != null && (
+            <div className="flex items-center gap-2 mb-4 rounded-xl border border-gold/20 bg-gold/[0.06] px-3 py-2.5">
+              <Scale size={14} className="text-gold shrink-0" />
+              <p className="text-xs text-foreground/90">
+                {t("kundli.gemstone.recommendedCarats", { carats: data.recommendedCarats })}
+              </p>
+            </div>
           )}
           <div className="space-y-3">
             {shownGems.map((gem) => (

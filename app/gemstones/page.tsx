@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
@@ -10,21 +10,19 @@ import { useGemstone } from "@/hooks/useGemstone";
 import { useAuth } from "@/providers/auth-provider";
 
 /**
- * Full detail view for a single gemstone — the body GemstoneCard.tsx's
- * GemRow already renders (facts grid, mantra, do's/don'ts, verify
- * authenticity), just on its own page instead of inline in the card's list.
- * Reuses useGemstone rather than a new fetch — same data, same cache key.
+ * Full gemstone report — every recommended gem's full detail (facts grid, mantra,
+ * do's/don'ts, verify authenticity), reusing GemstoneCard.tsx's GemRow unchanged. The card on
+ * the Kundli page only shows a single locked-looking summary + one "View Report" button (no
+ * gem names/images there) — everything gemstone-specific lives here, one page behind that tap.
  */
-export default function GemstoneDetailPage() {
+export default function GemstonesPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const params = useParams<{ planet: string }>();
   const { user } = useAuth();
   const unlocked = user?.gemstoneUnlocked ?? false;
   const { state, data } = useGemstone(unlocked);
 
-  const gem = data?.gems.find((g) => g.planet.toLowerCase() === params.planet.toLowerCase());
-  const displayName = gem ? t(`kundli.gemstone.data.${gem.planet}.gemName`) : t("kundli.gemstone.title");
+  const gems = data?.gems ? [...data.gems].sort((a, b) => Number(b.recommended) - Number(a.recommended)) : [];
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
@@ -33,7 +31,7 @@ export default function GemstoneDetailPage() {
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
           </IconButton>
-          <h1 className="text-lg font-display text-foreground flex-1 truncate">{displayName}</h1>
+          <h1 className="text-lg font-display text-foreground flex-1 truncate">{t("kundli.gemstone.title")}</h1>
         </div>
 
         {(state === "loading" || state === "generating") && (
@@ -47,7 +45,19 @@ export default function GemstoneDetailPage() {
           </div>
         )}
 
-        {state === "ready" && gem && <GemRow gem={gem} />}
+        {state === "ready" && data && (
+          <>
+            {data.intro && <p className="text-xs text-foreground/90 leading-relaxed">{data.intro}</p>}
+            <div className="space-y-3">
+              {gems.map((gem) => (
+                <GemRow key={gem.planet} gem={gem} />
+              ))}
+            </div>
+            <p className="text-[9px] text-muted/70 text-center leading-relaxed">
+              {t("kundli.gemstone.disclaimer")}
+            </p>
+          </>
+        )}
       </div>
     </main>
   );

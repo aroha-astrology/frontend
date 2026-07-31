@@ -9,12 +9,20 @@ import {
   isArchetype,
   isDoshaYogaSummary,
   isKootaBreakdownArray,
+  isGemstoneArray,
+  isLifeContext,
+  isReportHeader,
+  isReportVerdict,
   type RankedWindow,
   type AgeBand,
   type DecadeBand,
   type Archetype,
   type DoshaYogaSummary,
   type KootaEntry,
+  type ReportGemstone,
+  type LifeContextValue,
+  type ReportHeaderValue,
+  type ReportVerdictValue,
 } from "./report-score-facts";
 
 describe("humanizeKey", () => {
@@ -393,5 +401,96 @@ describe("no regression on pre-existing generic classification", () => {
   it("a boolean still classifies as 'boolean'", () => {
     const facts = buildScoreFacts({ isManglik: true });
     expect(facts[0].type).toBe("boolean");
+  });
+});
+
+describe("isGemstoneArray / gemstones classification", () => {
+  const sampleGemstones: ReportGemstone[] = [
+    {
+      planet: "Venus",
+      role: "Venus classically governs romantic harmony.",
+      benefit: "Supports a warmer marriage bond.",
+      strength: "strong",
+      reason: "Exalted in Pisces",
+      preference: 20,
+      color: "#a78bfa",
+      conditionalCautionApplies: false,
+    },
+  ];
+
+  it("classifies a ReportGemstone[] as a gemstones fact", () => {
+    expect(isGemstoneArray(sampleGemstones)).toBe(true);
+    const facts = buildScoreFacts({ gemstones: sampleGemstones });
+    expect(facts).toHaveLength(1);
+    expect(facts[0].type).toBe("gemstones");
+  });
+
+  it("is not misclassified by, and does not misclassify, the other array shapes", () => {
+    expect(isRankedWindowArray(sampleGemstones)).toBe(false);
+    expect(isKootaBreakdownArray(sampleGemstones)).toBe(false);
+    expect(isGemstoneArray([{ name: "Varna", score: 1, maxScore: 1, description: "Matched" }])).toBe(
+      false,
+    );
+  });
+
+  it("rejects an empty array (falls through to the generic empty-array handling)", () => {
+    expect(isGemstoneArray([])).toBe(false);
+  });
+});
+
+describe("isLifeContext classification", () => {
+  const sampleLifeContext: LifeContextValue = {
+    currentMahadasha: "Saturn",
+    currentAntardasha: "Moon",
+    endsOn: "2033-11-01",
+    domains: [
+      { domain: "career", score: 30, tone: "challenging", connectedHouses: [10], nextWindow: null },
+    ],
+  };
+
+  it("classifies a LifeContextValue object as a lifeContext fact", () => {
+    expect(isLifeContext(sampleLifeContext)).toBe(true);
+    const facts = buildScoreFacts({ lifeContext: sampleLifeContext });
+    expect(facts).toHaveLength(1);
+    expect(facts[0].type).toBe("lifeContext");
+  });
+
+  it("is not misclassified as an archetype or doshaYoga (both plain objects too)", () => {
+    expect(isArchetype(sampleLifeContext)).toBe(false);
+    expect(isDoshaYogaSummary(sampleLifeContext)).toBe(false);
+  });
+});
+
+describe("header/verdict are excluded from the generic facts grid", () => {
+  const sampleHeader: ReportHeaderValue = {
+    name: "Subir",
+    dob: "1993-04-17",
+    lagnaSign: "Scorpio",
+    moonSign: "Aquarius",
+    moonNakshatra: "Shatabhisha",
+    currentMahadasha: "Saturn",
+    currentAntardasha: "Moon",
+    dashaEndsOn: "2033-11-01",
+  };
+  const sampleVerdict: ReportVerdictValue = {
+    headline: "Your love is coming soon.",
+    bullets: ["a", "b", "c"],
+    nextStep: "Start a daily practice.",
+  };
+
+  it("isReportHeader/isReportVerdict correctly identify their own shapes", () => {
+    expect(isReportHeader(sampleHeader)).toBe(true);
+    expect(isReportVerdict(sampleVerdict)).toBe(true);
+    // header and lifeContext both carry currentMahadasha/currentAntardasha — must not cross-match.
+    expect(isLifeContext(sampleHeader)).toBe(false);
+    expect(isReportHeader({ currentMahadasha: "Saturn", currentAntardasha: "Moon", domains: [] })).toBe(
+      false,
+    );
+  });
+
+  it("buildScoreFacts never renders header or verdict — they're rendered separately by the page", () => {
+    const facts = buildScoreFacts({ header: sampleHeader, verdict: sampleVerdict, marriageScore: 64 });
+    expect(facts).toHaveLength(1);
+    expect(facts[0].key).toBe("marriageScore");
   });
 });

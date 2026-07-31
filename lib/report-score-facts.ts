@@ -99,6 +99,10 @@ export const SCORE_FACT_LABEL_KEYS: Record<string, string> = {
   monthScore: "reportScores.label.monthScore",
   keyHouses: "reportScores.label.keyHouses",
   tone: "reportScores.label.tone",
+  header: "reportScores.label.header",
+  lifeContext: "reportScores.label.lifeContext",
+  gemstones: "reportScores.label.gemstones",
+  verdict: "reportScores.label.verdict",
 };
 
 /** "steady" -> "Steady", "veryGood" -> "Very Good". */
@@ -235,6 +239,57 @@ export interface DoshaYogaSummary {
   cautions: { label: string; detail: string }[];
 }
 
+/** Cross-domain "what else is happening in your chart right now" read — same field name
+ * (`lifeContext`) on every report type (see jyotish-backend's report-life-context.ts). */
+export interface LifeContextDomain {
+  domain: "career" | "health" | "wealth" | "love";
+  score: number;
+  tone: "challenging" | "mixed" | "favorable";
+  connectedHouses: number[];
+  nextWindow: RankedWindow | null;
+}
+export interface LifeContextValue {
+  currentMahadasha: string | null;
+  currentAntardasha: string | null;
+  endsOn: string | null;
+  domains: LifeContextDomain[];
+}
+
+/** Gemstone recommendation list — `scores.gemstones`, only on the 5 flagship report types
+ * that carry one (see jyotish-backend's report-gemstones.ts). */
+export interface ReportGemstone {
+  planet: string;
+  role: string;
+  benefit: string;
+  strength: "weak" | "average" | "strong";
+  reason: string;
+  preference: number;
+  color: string;
+  conditionalCautionApplies: boolean;
+}
+
+/** Report identity header — `scores.header`, rendered separately at the top of the page
+ * (ReportHeaderCard), never through the generic facts grid below. */
+export interface ReportHeaderValue {
+  name: string | null;
+  dob: string | null;
+  lagnaSign?: string;
+  moonSign?: string;
+  moonNakshatra?: string;
+  currentMahadasha: string | null;
+  currentAntardasha: string | null;
+  dashaEndsOn: string | null;
+}
+
+/** Closing "Final Verdict" card — `scores.verdict`, generation-time-only (absent on a report
+ * generated before this feature shipped, or if that LLM call failed) — rendered separately at
+ * the bottom of the page (ReportVerdictCard), never through the generic facts grid. */
+export interface ReportVerdictValue {
+  headline: string;
+  bullets: string[];
+  nextStep: string;
+}
+
 /** Guna/koota compatibility breakdown — `gunaBreakdown` (36-point Ashtakoota) or
  * `dashakootaBreakdown` (10-point Dashakoota) on kundli_milan/match_report. */
 export interface KootaEntry {
@@ -279,6 +334,18 @@ export interface KootaBreakdownFact {
   label: string;
   type: "kootaBreakdown";
   entries: KootaEntry[];
+}
+export interface LifeContextFact {
+  key: string;
+  label: string;
+  type: "lifeContext";
+  value: LifeContextValue;
+}
+export interface GemstonesFact {
+  key: string;
+  label: string;
+  type: "gemstones";
+  gemstones: ReportGemstone[];
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -376,6 +443,49 @@ export function isKootaBreakdownArray(v: unknown): v is KootaEntry[] {
   );
 }
 
+/** Distinguished from every other array shape by requiring `planet` AND `conditionalCautionApplies`
+ * (a boolean) on every item — no other shape here carries either field. */
+export function isGemstoneArray(v: unknown): v is ReportGemstone[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.planet === "string" &&
+      typeof item.role === "string" &&
+      typeof item.benefit === "string" &&
+      typeof item.conditionalCautionApplies === "boolean"
+  );
+}
+
+/** An object (not array) with a `domains` array plus the two dasha-lord fields — distinguished
+ * from Archetype (`traits`) and DoshaYogaSummary (`positives`/`cautions`) by requiring `domains`. */
+export function isLifeContext(v: unknown): v is LifeContextValue {
+  if (!isRecord(v)) return false;
+  return (
+    Array.isArray(v.domains) &&
+    "currentMahadasha" in v &&
+    "currentAntardasha" in v &&
+    "endsOn" in v
+  );
+}
+
+/** An object with `lagnaSign`/`moonSign`/`dashaEndsOn` — distinguished from LifeContextValue
+ * (which also carries `currentMahadasha`/`currentAntardasha`) by requiring these header-only keys. */
+export function isReportHeader(v: unknown): v is ReportHeaderValue {
+  if (!isRecord(v)) return false;
+  return "lagnaSign" in v && "moonSign" in v && "dashaEndsOn" in v;
+}
+
+/** An object with `headline`/`bullets`/`nextStep` — the Final Verdict card shape. */
+export function isReportVerdict(v: unknown): v is ReportVerdictValue {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.headline === "string" &&
+    Array.isArray(v.bullets) &&
+    typeof v.nextStep === "string"
+  );
+}
+
 export type ScoreFact =
   | RingFact
   | BadgeFact
@@ -387,7 +497,9 @@ export type ScoreFact =
   | ArchetypeFact
   | DecadeArcFact
   | DoshaYogaFact
-  | KootaBreakdownFact;
+  | KootaBreakdownFact
+  | LifeContextFact
+  | GemstonesFact;
 
 /**
  * Classifies one `scores` entry. Returns `null` for a value that shouldn't
@@ -422,6 +534,12 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   }
   if (isKootaBreakdownArray(value)) {
     return { key, label, type: "kootaBreakdown", entries: value };
+  }
+  if (isGemstoneArray(value)) {
+    return { key, label, type: "gemstones", gemstones: value };
+  }
+  if (isLifeContext(value)) {
+    return { key, label, type: "lifeContext", value };
   }
 
   if (typeof value === "boolean") {
@@ -480,10 +598,16 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   return { key, label, type: "raw", value: String(value) };
 }
 
+/** `header` and `verdict` render separately (ReportHeaderCard at the top of the page,
+ * ReportVerdictCard at the bottom — see app/reports/[id]/page.tsx) rather than through this
+ * generic facts grid, so they're excluded here to avoid rendering twice. */
+const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict"]);
+
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */
 export function buildScoreFacts(scores: Record<string, unknown> | null | undefined): ScoreFact[] {
   if (!scores || typeof scores !== "object" || Array.isArray(scores)) return [];
   return Object.entries(scores)
+    .filter(([k]) => !SEPARATELY_RENDERED_KEYS.has(k))
     .map(([k, v]) => buildScoreFact(k, v))
     .filter((f): f is ScoreFact => f !== null);
 }

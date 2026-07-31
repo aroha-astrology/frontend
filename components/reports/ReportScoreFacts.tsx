@@ -8,13 +8,25 @@ import ArchetypeCard from "./ArchetypeCard";
 import DecadeArcCard from "./DecadeArcCard";
 import DoshaYogaPanel from "./DoshaYogaPanel";
 import GunaKootaBreakdown from "./GunaKootaBreakdown";
+import LifeContextCard from "./LifeContextCard";
+import ReportGemstonesCard from "./ReportGemstonesCard";
 
 /** The 5 fact types the original 2-column tile grid renders — unchanged since before the bespoke shapes were added. */
 type SimpleFact = Extract<ScoreFact, { type: "ring" | "badge" | "boolean" | "nested" | "raw" }>;
 /** The 6 bespoke fact types, each rendered full-width by a dedicated component instead of a small grid tile. */
 type RichFact = Extract<
   ScoreFact,
-  { type: "timingWindows" | "ageBands" | "archetype" | "decadeArc" | "doshaYoga" | "kootaBreakdown" }
+  {
+    type:
+      | "timingWindows"
+      | "ageBands"
+      | "archetype"
+      | "decadeArc"
+      | "doshaYoga"
+      | "kootaBreakdown"
+      | "lifeContext"
+      | "gemstones";
+  }
 >;
 type NestedFact = Extract<ScoreFact, { type: "nested" }>;
 type RawFact = Extract<ScoreFact, { type: "raw" }>;
@@ -176,6 +188,8 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           {f.type === "decadeArc" && <DecadeArcCard bands={f.bands} />}
           {f.type === "doshaYoga" && <DoshaYogaPanel summary={f.summary} />}
           {f.type === "kootaBreakdown" && <GunaKootaBreakdown entries={f.entries} />}
+          {f.type === "lifeContext" && <LifeContextCard lifeContext={f.value} />}
+          {f.type === "gemstones" && <ReportGemstonesCard gemstones={f.gemstones} />}
         </div>
       ))}
     </div>

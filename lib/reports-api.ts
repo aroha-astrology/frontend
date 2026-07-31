@@ -76,6 +76,10 @@ export interface PurchaseReportResponse {
 }
 
 export interface ReportSection {
+  /** Canonical section id, assigned server-side by position (see jyotish-backend's
+   * config/report-sections.ts) — absent for a report type not yet listed there, or a
+   * section-count mismatch. The page falls back to `heading` in that case. */
+  id?: string;
   heading: string;
   paragraphs: string[];
 }

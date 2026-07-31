@@ -117,7 +117,7 @@ function GemGlyph({ color, size }: { color: string; size: number }) {
  * when a planet is given; falls back to the tinted faceted-gem glyph if there's
  * no planet (locked teaser) or the image fails to load.
  */
-function GemVisual({ color, planet, size = 46 }: { color: string; planet?: string; size?: number }) {
+export function GemVisual({ color, planet, size = 46 }: { color: string; planet?: string; size?: number }) {
   const [imgError, setImgError] = useState(false);
   if (planet && !imgError) {
     return (

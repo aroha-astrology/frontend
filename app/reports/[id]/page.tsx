@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -45,8 +45,10 @@ export default function ReportDetailPage() {
   // user idly scrolls the page while it's essentially empty. PageTransition only resets scroll
   // on a PATHNAME change, not on this in-place generating->ready state flip, so without this the
   // page can stay scrolled to that old (now-blank) offset once the much taller ready content
-  // renders, showing blank space above content that's really further down the page.
-  useEffect(() => {
+  // renders, showing blank space above content that's really further down the page. Must run
+  // in useLayoutEffect (before paint), not useEffect, or the tall content briefly paints at the
+  // stale offset first and then jumps.
+  useLayoutEffect(() => {
     if (state === "ready" && data) window.scrollTo(0, 0);
   }, [state, data]);
 

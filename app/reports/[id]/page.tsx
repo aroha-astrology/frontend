@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -39,6 +40,15 @@ export default function ReportDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { state, data, failedError, retry } = useReport(id, i18n.language);
+
+  // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (200s) — long enough that a
+  // user idly scrolls the page while it's essentially empty. PageTransition only resets scroll
+  // on a PATHNAME change, not on this in-place generating->ready state flip, so without this the
+  // page can stay scrolled to that old (now-blank) offset once the much taller ready content
+  // renders, showing blank space above content that's really further down the page.
+  useEffect(() => {
+    if (state === "ready" && data) window.scrollTo(0, 0);
+  }, [state, data]);
 
   const title =
     state === "ready" && data

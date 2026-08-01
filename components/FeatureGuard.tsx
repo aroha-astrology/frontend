@@ -13,8 +13,11 @@ import { useFeature } from "@/hooks/useFeature";
  * than flashing the real page content first.
  *
  * Only wrap the pages that map 1:1 onto a `nav.*` key with an OFF switch —
- * /vastu, /horoscope, /panchang, /ai-chat. Do NOT wrap home, /kundli,
- * /profile, /settings, etc. — those aren't behind a `nav.*` toggle.
+ * /vastu, /horoscope, /panchang, /ai-chat, /reports. Do NOT wrap home,
+ * /kundli, /profile, /settings, etc. — those aren't behind a `nav.*` toggle.
+ * /vastu keeps its guard even though it left the bottom tab bar (see
+ * lib/nav-items.ts) — it's reached via a Home card now, but still needs its
+ * own kill switch.
  */
 export default function FeatureGuard({
   featureKey,

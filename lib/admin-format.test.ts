@@ -272,8 +272,8 @@ describe("groupFeaturesByGroup", () => {
     expect(grouped.map((g) => g.group)).toEqual(["nav", "experimental", "beta"]);
   });
 
-  it("FEATURE_GROUP_ORDER matches the backend contract's 4 groups", () => {
-    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports"]);
+  it("FEATURE_GROUP_ORDER matches the backend contract's groups", () => {
+    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang"]);
   });
 });
 

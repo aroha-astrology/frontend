@@ -20,6 +20,8 @@ import DiscountPrice from "./DiscountPrice";
 
 interface ReportCardProps {
   entry: ReportCatalogueEntry;
+  /** Not yet turned on by admin (catalogue's own `enabled`, or its `reports.<key>` toggle) — renders a plain non-tappable "Coming Soon" row instead of the normal price/CTA card. */
+  comingSoon?: boolean;
   /** Opens the purchase drawer for this report — used for the initial Buy AND the Retry CTA (a retry re-opens the same purchase flow, matching this app's other paid-feature retry UX). */
   onBuy: () => void;
   /** Monthly reports only — opens the drawer in month-picker mode. */
@@ -67,12 +69,24 @@ function ReportRowVisual({ reportKey, hue, Icon }: { reportKey: string; hue: Rep
  * CTA plus a purchased-months chip list), matching the spec's distinct
  * One Time / Monthly tab behaviors.
  */
-export default function ReportCard({ entry, onBuy, onAddMonths, generatedCount }: ReportCardProps) {
+export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, generatedCount }: ReportCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const label = t(`reports.labels.${entry.key}`, entry.label);
   const theme = getReportTheme(entry.key);
   const Icon = theme.icon;
+
+  if (comingSoon) {
+    return (
+      <Card className="p-4 flex items-center gap-3 opacity-60">
+        <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
+        <p className="text-sm font-semibold text-foreground line-clamp-2 break-words flex-1 min-w-0">{label}</p>
+        <span className="shrink-0 rounded-full border border-border text-muted px-3 py-1.5 text-[10px] font-semibold whitespace-nowrap">
+          {t("reports.comingSoon")}
+        </span>
+      </Card>
+    );
+  }
 
   if (entry.isMonthly) {
     const monthState = monthlyCardState(entry.purchases);

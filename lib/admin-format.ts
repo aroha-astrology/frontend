@@ -151,16 +151,17 @@ export function sortByTotalPaiseDescending<T extends { totalPaise: number }>(ite
   return [...items].sort((a, b) => b.totalPaise - a.totalPaise);
 }
 
-export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports";
+export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang";
 
-/** The 4 feature groups the backend contract defines, in the fixed display order every board (main + per-group overrides) uses. */
-export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports"];
+/** The feature groups the backend contract defines, in the fixed display order every board (main + per-group overrides) uses. */
+export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang"];
 
 export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   nav: "Navigation",
   home: "Home",
   paid: "Paid Features",
   reports: "Reports",
+  panchang: "Panchang",
 };
 
 /**

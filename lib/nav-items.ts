@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, Compass, Sparkles, Moon, CalendarDays } from "lucide-react";
+import { Home, Sparkles, Moon, CalendarDays, FileText } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -24,8 +24,8 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", icon: Home, i18nKey: "nav.home", featureKey: "nav.home", fillIconWhenActive: true },
-  { href: "/vastu", icon: Compass, i18nKey: "nav.vastu", featureKey: "nav.vastu", dataTour: "nav-vastu" },
-  { href: "/ai-chat", icon: Sparkles, i18nKey: "nav.askAI", featureKey: "nav.askAI", isCenter: true, dataTour: "ask-ai" },
   { href: "/horoscope", icon: Moon, i18nKey: "nav.horoscope", featureKey: "nav.horoscope", dataTour: "nav-horoscope" },
+  { href: "/ai-chat", icon: Sparkles, i18nKey: "nav.askAI", featureKey: "nav.askAI", isCenter: true, dataTour: "ask-ai" },
+  { href: "/reports", icon: FileText, i18nKey: "nav.reports", featureKey: "nav.reports", dataTour: "nav-reports" },
   { href: "/panchang", icon: CalendarDays, i18nKey: "nav.panchang", featureKey: "nav.panchang", dataTour: "nav-panchang" },
 ];

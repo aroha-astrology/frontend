@@ -15,7 +15,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { splitReportsByType, filterVisibleReports } from "@/lib/reports-logic";
+import { splitReportsByType } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 
 type Tab = "oneTime" | "monthly";
@@ -26,12 +26,12 @@ function ReportsCatalogue() {
   const { user } = useAuth();
   // Same gate FeatureGuard already enforces at the route level, applied again
   // at the fetch itself — matches every other feature-gated hook's convention
-  // (see hooks/useKundli.ts's `enabled` param). Reports no longer has its own
-  // 'nav.reports' tab (the whole route is reached via Home's "See All" or a
-  // direct link now), so this is gated on the Home section's own flag,
-  // 'home.reportsSection', instead — the same key FeatureGuard below checks.
-  const { enabled: reportsSectionEnabled } = useFeature("home.reportsSection");
-  const { reports, loading, error, refetch } = useReportCatalogue(reportsSectionEnabled);
+  // (see hooks/useKundli.ts's `enabled` param). 'nav.reports' is the page's
+  // own kill switch (Reports has its own bottom-tab slot again — see
+  // lib/nav-items.ts); 'home.reportsSection' is a separate, independent flag
+  // that only controls the Home teaser slider (ReportsSlider.tsx).
+  const { enabled: reportsTabEnabled } = useFeature("nav.reports");
+  const { reports, loading, error, refetch } = useReportCatalogue(reportsTabEnabled);
   // Fetched once here (not per-card) and threaded down to the purchase
   // drawer — see hooks/useReportStats.ts's doc comment for why this is a
   // single shared fetch rather than N per-card calls.
@@ -39,13 +39,17 @@ function ReportsCatalogue() {
   const [tab, setTab] = useState<Tab>("oneTime");
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
+  // The full catalogue is shown here (unlike the Home teaser slider, which
+  // still uses filterVisibleReports to hide anything not yet turned on) —
+  // a disabled report renders as a non-tappable "Coming Soon" card instead
+  // of being hidden, so users can see the full report lineup.
   const { oneTime, monthly } = useMemo(() => {
     if (!reports) return { oneTime: [] as ReportCatalogueEntry[], monthly: [] as ReportCatalogueEntry[] };
-    // The catalogue's own `enabled` is the source of truth once fetched, but
-    // each card is ALSO gated by its own `reports.<key>` admin toggle.
-    const visible = filterVisibleReports(reports, (key) => resolveFeature(user?.features, key).enabled);
-    return splitReportsByType(visible);
-  }, [reports, user?.features]);
+    return splitReportsByType(reports);
+  }, [reports]);
+
+  const isAvailable = (entry: ReportCatalogueEntry) =>
+    entry.enabled && resolveFeature(user?.features, `reports.${entry.key}`).enabled;
 
   const activeList = tab === "oneTime" ? oneTime : monthly;
 
@@ -91,6 +95,7 @@ function ReportsCatalogue() {
               <ReportCard
                 key={entry.key}
                 entry={entry}
+                comingSoon={!isAvailable(entry)}
                 onBuy={() => setPurchasingEntry(entry)}
                 onAddMonths={() => setPurchasingEntry(entry)}
                 generatedCount={stats?.[entry.key]}
@@ -124,7 +129,7 @@ function ReportsCatalogue() {
 
 export default function ReportsPage() {
   return (
-    <FeatureGuard featureKey="home.reportsSection">
+    <FeatureGuard featureKey="nav.reports">
       <ReportsCatalogue />
     </FeatureGuard>
   );

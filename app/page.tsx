@@ -10,6 +10,7 @@ import ReportsSlider from "@/components/ReportsSlider";
 import TodayReading from "@/components/TodayReading";
 import KundliCard from "@/components/KundliCard";
 import MatchMakingCard from "@/components/MatchMakingCard";
+import VastuCard from "@/components/VastuCard";
 import PalmReadingCard from "@/components/PalmReadingCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -87,6 +88,14 @@ function MatchMakingSection() {
   );
 }
 
+function VastuCardSection() {
+  return (
+    <div className="px-5 mt-8 mb-6">
+      <VastuCard />
+    </div>
+  );
+}
+
 function PalmReadingSection() {
   return (
     <div className="px-5 mt-8 mb-6">
@@ -108,6 +117,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
   { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },
   { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
+  { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
   { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
 ];
 

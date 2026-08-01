@@ -9,6 +9,7 @@ import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 import CategoryHookRotator from "@/components/home/CategoryHookRotator";
+import TodayReadingProgress from "@/components/home/TodayReadingProgress";
 import { useFeature } from "@/hooks/useFeature";
 
 /**
@@ -32,13 +33,7 @@ export default function TodayReading() {
   if (!enabled) return null;
 
   if (state === "loading" || state === "generating") {
-    return (
-      <Card className="p-5 border-gold/10 animate-pulse">
-        <div className="h-4 w-32 rounded bg-gold/10 mb-3" />
-        <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
-        <div className="h-3 w-2/3 rounded bg-gold/5" />
-      </Card>
-    );
+    return <TodayReadingProgress />;
   }
 
   if (state === "empty") {

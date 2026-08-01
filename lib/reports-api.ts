@@ -78,6 +78,23 @@ export interface PurchaseReportResponse {
   reports: PurchaseReportResultRow[];
 }
 
+/** A single ranked/scored/highlightable entry inside a section — currently only name_change
+ * populates this, for its "Suggested Names" and "Suggested Spelling Adjustments" sections. */
+export interface ReportSectionItem {
+  /** The name, or the variant spelling. */
+  title: string;
+  /** Short fact chip, e.g. "Chaldean 5". */
+  badge?: string;
+  /** 0-100 match score. */
+  score?: number;
+  /** Top-2-by-score flag — renders as the "Best Match" pill. */
+  highlight?: boolean;
+  /** Spelling variants only: the exact edit applied, e.g. `added "a" at the end`. */
+  note?: string;
+  /** The practical benefits, in pointer form. */
+  bullets: string[];
+}
+
 export interface ReportSection {
   /** Canonical section id, assigned server-side by position (see jyotish-backend's
    * config/report-sections.ts) — absent for a report type not yet listed there, or a
@@ -85,6 +102,10 @@ export interface ReportSection {
   id?: string;
   heading: string;
   paragraphs: string[];
+  /** Section-level bullet list, rendered under `paragraphs`. */
+  bullets?: string[];
+  /** Card-rendered ranked/scored items, rendered under `bullets`. */
+  items?: ReportSectionItem[];
 }
 
 /** match_report only — one of the 8 life-area severities computed deterministically by the

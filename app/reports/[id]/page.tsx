@@ -11,6 +11,8 @@ import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
 import ReportHeaderCard from "@/components/reports/ReportHeaderCard";
 import ReportVerdictCard from "@/components/reports/ReportVerdictCard";
 import Callout from "@/components/reports/blocks/Callout";
+import Checklist from "@/components/reports/blocks/Checklist";
+import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
 import { formatPeriodMonth } from "@/lib/reports-logic";
@@ -62,18 +64,42 @@ export default function ReportDetailPage() {
       ? t(sectionHeadingKey(data?.reportKey ?? "", s.id), { defaultValue: s.heading })
       : s.heading;
 
-  const renderSection = (s: ReportSection, i: number) => (
-    <section key={i}>
-      <h2 className="font-display text-base text-gold mb-2">{resolveHeading(s)}</h2>
-      <div className="space-y-2.5">
-        {s.paragraphs.map((p, j) => (
-          <p key={j} className="text-sm text-foreground/85 leading-relaxed">
-            {p}
-          </p>
-        ))}
-      </div>
-    </section>
-  );
+  const renderSection = (s: ReportSection, i: number) => {
+    // Variant items carry `note` (the exact spelling edit) — ranked suggestion items don't. Only
+    // the former needs `currentName` (for the before/after highlight); only the latter gets a
+    // rank badge. See NameSuggestionCard's own doc comment.
+    const isVariantItems = Boolean(s.items?.[0]?.note);
+    const currentName =
+      typeof (data?.scores as Record<string, unknown> | undefined)?.currentName === "string"
+        ? ((data?.scores as Record<string, unknown>).currentName as string)
+        : undefined;
+
+    return (
+      <section key={i}>
+        <h2 className="font-display text-base text-gold mb-2">{resolveHeading(s)}</h2>
+        <div className="space-y-2.5">
+          {s.paragraphs.map((p, j) => (
+            <p key={j} className="text-sm text-foreground/85 leading-relaxed">
+              {p}
+            </p>
+          ))}
+        </div>
+        {s.bullets && s.bullets.length > 0 && <Checklist items={s.bullets} className="mt-2.5" />}
+        {s.items && s.items.length > 0 && (
+          <div className="mt-3 flex flex-col gap-3">
+            {s.items.map((item, j) => (
+              <NameSuggestionCard
+                key={j}
+                item={item}
+                rank={isVariantItems ? undefined : j + 1}
+                currentName={isVariantItems ? currentName : undefined}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>

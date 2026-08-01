@@ -155,6 +155,11 @@ const NUMEROLOGY_DIGIT_KEYS = new Set([
  * `-`/`T`/`:` punctuation into "2026 05 06 T21:49:29.651 Z". */
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
+/** Matches a plain `YYYY-MM-DD` date-only string (e.g. name_change's `scores.dob`) — same
+ * mangling problem as ISO_DATE_RE above (`humanizeValue` would turn "1990-05-15" into
+ * "1990 05 15"), just without a time component. */
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 /** Same fixed-locale (en-IN, day/month/year) convention as TimingWindowsCard.tsx's `formatWindowDate`
  * — kept local rather than imported since this module is deliberately React-free (see top doc comment). */
 function formatNestedDate(iso: string): string {
@@ -776,6 +781,11 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
 
   if (typeof value === "string") {
     if (value.trim() === "") return null;
+    // A plain YYYY-MM-DD date (e.g. name_change's `dob`) date-formats instead of falling into
+    // humanizeValue's word-splitting, which would mangle it into "1990 05 15".
+    if (DATE_ONLY_RE.test(value)) {
+      return { key, label, type: "badge", value: formatNestedDate(value) };
+    }
     // A top-level string fact is normally a short enum ("steady", "strong") worth
     // title-casing into a badge — but a few keys (e.g. marriage's
     // seventhHouseTemperament) carry a full descriptive sentence instead. Same
@@ -821,8 +831,12 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
  * ReportVerdictCard at the bottom — see app/reports/[id]/page.tsx) rather than through this
  * generic facts grid, so they're excluded here to avoid rendering twice. `userAnswers` is the
  * reader's own optional pre-purchase questionnaire answers (see lib/report-questions.ts) — raw
- * LLM-prompt input, not a fact worth displaying back to the user who just typed it. */
-const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict", "userAnswers"]);
+ * LLM-prompt input, not a fact worth displaying back to the user who just typed it. `currentName`
+ * and `variants` are name_change-only: the name already appears in the report header/narrative,
+ * and the variants now render as NameSuggestionCard items inside "Suggested Spelling
+ * Adjustments" (see page.tsx's renderSection) — showing them again here would just repeat the
+ * same title-cased "Added \"a\" At The End" row this redesign was meant to replace. */
+const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict", "userAnswers", "currentName", "variants"]);
 
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */
 export function buildScoreFacts(scores: Record<string, unknown> | null | undefined): ScoreFact[] {

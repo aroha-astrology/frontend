@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   humanizeKey,
   humanizeValue,
+  buildScoreFact,
   buildScoreFacts,
   isRankedWindowArray,
   isAgeBandArray,
@@ -492,5 +493,28 @@ describe("header/verdict are excluded from the generic facts grid", () => {
     const facts = buildScoreFacts({ header: sampleHeader, verdict: sampleVerdict, marriageScore: 64 });
     expect(facts).toHaveLength(1);
     expect(facts[0].key).toBe("marriageScore");
+  });
+
+  it("buildScoreFacts never renders currentName or variants — name_change now renders both via NameSuggestionCard", () => {
+    const facts = buildScoreFacts({
+      currentName: "Priya Sharma",
+      variants: [{ variant: "Priya Sharmaa", chaldean: 6, change: 'added "a" at the end' }],
+      dob: "1990-05-15",
+    });
+    expect(facts.map((f) => f.key)).toEqual(["dob"]);
+  });
+});
+
+describe("a plain YYYY-MM-DD date string (e.g. name_change's dob) is date-formatted, not word-split", () => {
+  it("does not mangle the date into space-separated digits", () => {
+    const fact = buildScoreFact("dob", "1990-05-15");
+    expect(fact?.type).toBe("badge");
+    expect((fact as { value: string }).value).not.toBe("1990 05 15");
+    expect((fact as { value: string }).value).toContain("1990");
+  });
+
+  it("still falls back to word-splitting for a non-date string with hyphens", () => {
+    const fact = buildScoreFact("someKey", "very-good-match");
+    expect((fact as { value: string }).value).toBe("Very Good Match");
   });
 });

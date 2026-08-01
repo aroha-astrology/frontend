@@ -229,6 +229,7 @@ export const resources = {
           twelve_month_forecast: "Your 12-Month Forecast",
           luckiest_days_colors_years: "Your Luckiest Days, Colors & Years Ahead",
           numerological_signature: "Your Name's Numerological Signature",
+          name_change_benefits: "What Changing Your Name Could Bring You",
           suggested_spelling_adjustments: "Suggested Spelling Adjustments",
           karmic_debts: "Your Karmic Debts (Rin)",
           planet_remedies: "Planet-by-Planet Remedies",
@@ -267,6 +268,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "At A Glance",
+        },
+        nameChange: {
+          bestMatch: "Best Match",
+          match: "Match",
+          currentSpelling: "Current Spelling",
+          suggestedSpelling: "Suggested Spelling",
+          rank: "#{{n}}",
         },
         questions: {
           title: "A couple of quick questions (optional)",
@@ -1967,6 +1975,7 @@ export const resources = {
           twelve_month_forecast: "आपका 12-माह पूर्वानुमान",
           luckiest_days_colors_years: "आपके सबसे भाग्यशाली दिन, रंग और आने वाले वर्ष",
           numerological_signature: "आपके नाम का अंकशास्त्रीय हस्ताक्षर",
+          name_change_benefits: "नाम बदलने से आपको क्या मिल सकता है",
           suggested_spelling_adjustments: "सुझाए गए वर्तनी परिवर्तन",
           karmic_debts: "आपके कर्म ऋण (ऋण)",
           planet_remedies: "ग्रह-दर-ग्रह उपाय",
@@ -2005,6 +2014,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "एक नज़र में",
+        },
+        nameChange: {
+          bestMatch: "सर्वश्रेष्ठ मेल",
+          match: "मेल",
+          currentSpelling: "मौजूदा वर्तनी",
+          suggestedSpelling: "सुझाई गई वर्तनी",
+          rank: "#{{n}}",
         },
         questions: {
           title: "कुछ त्वरित प्रश्न (वैकल्पिक)",
@@ -3620,6 +3636,7 @@ export const resources = {
           twelve_month_forecast: "আপনার ১২-মাসের পূর্বাভাস",
           luckiest_days_colors_years: "আপনার সবচেয়ে ভাগ্যবান দিন, রং ও আগামী বছরগুলি",
           numerological_signature: "আপনার নামের সংখ্যাতাত্ত্বিক স্বাক্ষর",
+          name_change_benefits: "নাম পরিবর্তনে আপনি কী পেতে পারেন",
           suggested_spelling_adjustments: "প্রস্তাবিত বানান পরিবর্তন",
           karmic_debts: "আপনার কর্মঋণ (ঋণ)",
           planet_remedies: "গ্রহ অনুযায়ী প্রতিকার",
@@ -3658,6 +3675,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "এক নজরে",
+        },
+        nameChange: {
+          bestMatch: "সেরা মিল",
+          match: "মিল",
+          currentSpelling: "বর্তমান বানান",
+          suggestedSpelling: "প্রস্তাবিত বানান",
+          rank: "#{{n}}",
         },
         questions: {
           title: "কয়েকটি দ্রুত প্রশ্ন (ঐচ্ছিক)",
@@ -5271,6 +5295,7 @@ export const resources = {
           twelve_month_forecast: "तुमचा १२-महिन्यांचा अंदाज",
           luckiest_days_colors_years: "तुमचे सर्वात भाग्यवान दिवस, रंग आणि पुढील वर्षे",
           numerological_signature: "तुमच्या नावाची अंकशास्त्रीय स्वाक्षरी",
+          name_change_benefits: "नाव बदलल्याने तुम्हाला काय मिळू शकते",
           suggested_spelling_adjustments: "सुचवलेले शब्दलेखन बदल",
           karmic_debts: "तुमचे कर्मऋण (ऋण)",
           planet_remedies: "ग्रहानुसार उपाय",
@@ -5309,6 +5334,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "एका दृष्टीक्षेपात",
+        },
+        nameChange: {
+          bestMatch: "सर्वोत्तम जुळणी",
+          match: "जुळणी",
+          currentSpelling: "सध्याची शब्दलेखन",
+          suggestedSpelling: "सुचवलेले शब्दलेखन",
+          rank: "#{{n}}",
         },
         questions: {
           title: "काही द्रुत प्रश्न (ऐच्छिक)",
@@ -6922,6 +6954,7 @@ export const resources = {
           twelve_month_forecast: "మీ 12-నెలల అంచనా",
           luckiest_days_colors_years: "మీ అదృష్టవంతమైన రోజులు, రంగులు మరియు రాబోయే సంవత్సరాలు",
           numerological_signature: "మీ పేరు యొక్క సంఖ్యాశాస్త్ర సంతకం",
+          name_change_benefits: "పేరు మార్చడం వల్ల మీకు ఏమి లభించవచ్చు",
           suggested_spelling_adjustments: "సూచించిన స్పెల్లింగ్ మార్పులు",
           karmic_debts: "మీ కర్మ రుణాలు (ఋణ)",
           planet_remedies: "గ్రహాల వారీగా పరిహారాలు",
@@ -6960,6 +6993,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "ఒక చూపులో",
+        },
+        nameChange: {
+          bestMatch: "ఉత్తమ సరిపోలిక",
+          match: "సరిపోలిక",
+          currentSpelling: "ప్రస్తుత స్పెల్లింగ్",
+          suggestedSpelling: "సూచించిన స్పెల్లింగ్",
+          rank: "#{{n}}",
         },
         questions: {
           title: "కొన్ని త్వరిత ప్రశ్నలు (ఐచ్ఛికం)",
@@ -8569,6 +8609,7 @@ export const resources = {
           twelve_month_forecast: "உங்கள் 12-மாத முன்னறிவிப்பு",
           luckiest_days_colors_years: "உங்கள் அதிர்ஷ்ட நாட்கள், வண்ணங்கள் மற்றும் வரும் ஆண்டுகள்",
           numerological_signature: "உங்கள் பெயரின் எண் கணித கையொப்பம்",
+          name_change_benefits: "பெயரை மாற்றுவதால் உங்களுக்குக் கிடைக்கக்கூடியவை",
           suggested_spelling_adjustments: "பரிந்துரைக்கப்பட்ட எழுத்துப் பிழை மாற்றங்கள்",
           karmic_debts: "உங்கள் கர்ம கடன்கள் (ரின்)",
           planet_remedies: "கிரகம் வாரியான பரிகாரங்கள்",
@@ -8607,6 +8648,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "ஒரே பார்வையில்",
+        },
+        nameChange: {
+          bestMatch: "சிறந்த பொருத்தம்",
+          match: "பொருத்தம்",
+          currentSpelling: "தற்போதைய எழுத்துப்பிழை",
+          suggestedSpelling: "பரிந்துரைக்கப்பட்ட எழுத்துப்பிழை",
+          rank: "#{{n}}",
         },
         questions: {
           title: "சில விரைவான கேள்விகள் (விருப்பத்தேர்வு)",
@@ -10219,6 +10267,7 @@ export const resources = {
           twelve_month_forecast: "તમારી 12-મહિનાની આગાહી",
           luckiest_days_colors_years: "તમારા સૌથી ભાગ્યશાળી દિવસો, રંગો અને આગામી વર્ષો",
           numerological_signature: "તમારા નામની અંકશાસ્ત્રીય સહી",
+          name_change_benefits: "નામ બદલવાથી તમને શું મળી શકે",
           suggested_spelling_adjustments: "સૂચવેલા જોડણી ફેરફારો",
           karmic_debts: "તમારા કર્મ ઋણ (ઋણ)",
           planet_remedies: "ગ્રહ પ્રમાણે ઉપાયો",
@@ -10257,6 +10306,13 @@ export const resources = {
         },
         atAGlance: {
           eyebrow: "એક નજરમાં",
+        },
+        nameChange: {
+          bestMatch: "શ્રેષ્ઠ મેચ",
+          match: "મેચ",
+          currentSpelling: "હાલની જોડણી",
+          suggestedSpelling: "સૂચવેલ જોડણી",
+          rank: "#{{n}}",
         },
         questions: {
           title: "થોડા ઝડપી પ્રશ્નો (વૈકલ્પિક)",

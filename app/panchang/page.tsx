@@ -20,6 +20,7 @@ import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { isCurrentlyActive } from "@/lib/panchang/time-window";
 import FeatureGuard from "@/components/FeatureGuard";
+import { useFeature } from "@/hooks/useFeature";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -81,6 +82,7 @@ export default function PanchangPage() {
   const { t, i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
+  const { enabled: purchasePlanEnabled } = useFeature("panchang.purchasePlan");
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const region: RegionId = LANGUAGE_TO_REGION[i18n.language] ?? "north";
@@ -409,22 +411,24 @@ export default function PanchangPage() {
               </div>
             )}
 
-            {/* Planning to Buy */}
-            <Card id="purchase-plans" className="p-4 border-gold/15">
-              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                <div>
-                  <p className="text-sm font-display text-foreground">{t("horoscope.panchang.planningToBuyTitle")}</p>
-                  <p className="text-[11px] text-muted mt-0.5">{t("horoscope.panchang.planningToBuySubtitle")}</p>
+            {/* Planning to Buy — gated by the panchang.purchasePlan admin toggle */}
+            {purchasePlanEnabled && (
+              <Card id="purchase-plans" className="p-4 border-gold/15">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                  <div>
+                    <p className="text-sm font-display text-foreground">{t("horoscope.panchang.planningToBuyTitle")}</p>
+                    <p className="text-[11px] text-muted mt-0.5">{t("horoscope.panchang.planningToBuySubtitle")}</p>
+                  </div>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl bg-gold text-[#1a0e00] text-xs font-semibold"
+                  >
+                    {t("horoscope.panchang.planningToBuyTitle")}
+                  </button>
                 </div>
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="px-3 py-1.5 rounded-xl bg-gold text-[#1a0e00] text-xs font-semibold"
-                >
-                  {t("horoscope.panchang.planningToBuyTitle")}
-                </button>
-              </div>
-              {plans.length > 0 && <PurchasePlanResults plans={plans} pollingId={pollingId} onPolled={handlePolled} onDelete={handleDelete} />}
-            </Card>
+                {plans.length > 0 && <PurchasePlanResults plans={plans} pollingId={pollingId} onPolled={handlePolled} onDelete={handleDelete} />}
+              </Card>
+            )}
 
             <p className="flex items-center gap-1.5 text-[10px] text-muted justify-center pt-2">
               <Clock size={11} /> {data.date}

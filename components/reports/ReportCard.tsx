@@ -101,7 +101,7 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
               <DiscountPrice
                 pricePaise={entry.pricePaise}
                 originalPricePaise={entry.originalPricePaise}
-                priceLabel={t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
+                priceLabel={formatRupees(entry.pricePaise)}
               />
             </div>
           </div>

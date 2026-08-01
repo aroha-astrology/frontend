@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { Scale } from "lucide-react";
+import { ChevronRight, Scale } from "lucide-react";
 import Card from "./Card";
-import GeneratingSpinner from "./GeneratingSpinner";
 import BottomSheetModal from "./BottomSheetModal";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
@@ -134,17 +133,6 @@ export function GemVisual({ color, planet, size = 46 }: { color: string; planet?
     );
   }
   return <GemGlyph color={color} size={size} />;
-}
-
-function Heading({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-gold mb-3 flex items-center gap-2">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/gemstone.png" alt="" className="w-5 h-5 rounded-full shrink-0" />
-      {children}
-      <span className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
-    </h3>
-  );
 }
 
 /** Fallback % for reports cached before preferencePercent existed. */
@@ -329,97 +317,88 @@ export default function GemstoneCard() {
     }
   };
 
-  // ── Locked ──────────────────────────────────────────────────────────────
+  // Same compact row shell as components/reports/ReportCard.tsx's one-time
+  // layout (icon + label + badge + price/CTA row) — this card sits directly
+  // below that list on /reports and should read as one more row in it, not
+  // a visually distinct block, even though gemstone isn't a ReportCatalogueEntry
+  // and has its own unlock/weight-prompt/generating flow underneath.
+  const price = <span className="text-sm font-semibold text-gold">{formatRupees(UNLOCK_COST_PAISE)}</span>;
+
+  let ctaNode: React.ReactNode;
   if (showLocked) {
-    const canAfford = credits >= UNLOCK_COST_PAISE;
-    return (
-      <Card className="p-4">
-        <Heading>{t("kundli.gemstone.title")}</Heading>
-
-        {/* Blurred teaser row of gems */}
-        <div className="relative mb-4">
-          <div className="flex justify-center gap-3 blur-[3px] opacity-70 select-none pointer-events-none">
-            {["#ef4444", "#e2e8f0", "#22c55e", "#eab308", "#3b82f6"].map((c) => (
-              <GemVisual key={c} color={c} size={40} />
-            ))}
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl">🔒</span>
-          </div>
-        </div>
-
-        <p className="text-xs text-muted text-center leading-relaxed mb-4">
-          {t("kundli.gemstone.lockedBody")}
-        </p>
-
-        <button
-          onClick={handleUnlockClick}
-          disabled={unlocking}
-          className="w-full h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold text-sm disabled:opacity-50 transition-opacity"
-        >
-          {unlocking
-            ? t("kundli.gemstone.unlocking")
-            : canAfford
-              ? t("kundli.gemstone.unlockButton", { cost: formatRupees(UNLOCK_COST_PAISE) })
-              : t("kundli.gemstone.buyCredits")}
-        </button>
-        {!canAfford && (
-          <p className="text-[10px] text-muted text-center mt-2">
-            {t("kundli.gemstone.notEnough", { cost: formatRupees(UNLOCK_COST_PAISE) })}
-          </p>
-        )}
-        {unlockError && <p className="text-[11px] text-red-400 text-center mt-2">{unlockError}</p>}
-        {showWeightSheet && (
-          <GemstoneWeightSheet
-            onSubmit={(weightKg) => void handleUnlock(weightKg)}
-            onClose={() => setShowWeightSheet(false)}
-            submitting={unlocking}
-          />
-        )}
-        <p className="text-[9px] text-muted/70 text-center mt-3 leading-relaxed">
-          {t("kundli.gemstone.disclaimer")}
-        </p>
-      </Card>
+    ctaNode = (
+      <button
+        type="button"
+        onClick={handleUnlockClick}
+        disabled={unlocking}
+        className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-xs font-bold disabled:opacity-50"
+      >
+        {unlocking ? t("kundli.gemstone.unlocking") : t("reports.buy")}
+      </button>
+    );
+  } else if (state === "loading" || state === "generating") {
+    ctaNode = (
+      <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-3.5 py-2 text-[11px] font-semibold">
+        {t("reports.generating")}
+      </span>
+    );
+  } else if (state === "error") {
+    ctaNode = (
+      <button
+        type="button"
+        onClick={() => router.push("/gemstones")}
+        className="shrink-0 rounded-xl border border-red-500/30 text-red-400 px-4 py-2.5 text-xs font-bold"
+      >
+        {t("reports.retry")}
+      </button>
+    );
+  } else {
+    ctaNode = (
+      <button
+        type="button"
+        onClick={() => router.push("/gemstones")}
+        className="shrink-0 rounded-xl border border-gold/30 text-gold px-4 py-2.5 text-xs font-bold"
+      >
+        {t("reports.viewReport")}
+      </button>
     );
   }
 
-  // ── Unlocked ────────────────────────────────────────────────────────────
   return (
-    <Card className="p-4">
-      <Heading>{t("kundli.gemstone.title")}</Heading>
+    <Card className="p-4 flex flex-col gap-3">
+      <div className="flex items-start gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/gemstone.png" alt="" width={44} height={44} className="shrink-0 w-11 h-11 rounded-xl object-cover" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold text-foreground line-clamp-2 break-words">{t("kundli.gemstone.title")}</p>
+            {showLocked && <ChevronRight size={16} className="shrink-0 mt-0.5 text-muted" />}
+          </div>
 
-      {(state === "loading" || state === "generating") && (
-        <GeneratingSpinner label={t("kundli.gemstone.generating")} />
-      )}
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
+            <span className="text-[10px] font-medium text-muted border border-border rounded-full px-2 py-0.5">
+              {t("reports.tabOneTime")}
+            </span>
+          </div>
 
-      {state === "error" && (
-        <p className="text-xs text-red-400 text-center py-6">{t("kundli.gemstone.error")}</p>
-      )}
-
-      {state === "ready" && data && (
-        <>
-          {data.intro && (
-            <p className="text-xs text-foreground/90 leading-relaxed mb-4">{data.intro}</p>
+          {!showLocked && state === "ready" && data?.intro && (
+            <p className="text-xs text-muted mt-1.5 leading-relaxed line-clamp-2">{data.intro}</p>
           )}
-          {data.recommendedCarats != null && (
-            <div className="flex items-center gap-2 mb-4 rounded-xl border border-gold/20 bg-gold/[0.06] px-3 py-2.5">
-              <Scale size={14} className="text-gold shrink-0" />
-              <p className="text-xs text-foreground/90">
-                {t("kundli.gemstone.recommendedCarats", { carats: data.recommendedCarats })}
-              </p>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => router.push("/gemstones")}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold text-sm"
-          >
-            {t("reports.viewReport")}
-          </button>
-          <p className="text-[9px] text-muted/70 text-center mt-3 leading-relaxed">
-            {t("kundli.gemstone.disclaimer")}
-          </p>
-        </>
+
+          <div className="flex items-center justify-between gap-3 mt-2">
+            {price}
+            {ctaNode}
+          </div>
+        </div>
+      </div>
+
+      {unlockError && <p className="text-[11px] text-red-400">{unlockError}</p>}
+      {showWeightSheet && (
+        <GemstoneWeightSheet
+          onSubmit={(weightKg) => void handleUnlock(weightKg)}
+          onClose={() => setShowWeightSheet(false)}
+          submitting={unlocking}
+        />
       )}
     </Card>
   );

@@ -117,7 +117,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
       <DiscountPrice
         pricePaise={entry.pricePaise}
         originalPricePaise={entry.originalPricePaise}
-        priceLabel={t("reports.perMonth", { price: formatRupees(entry.pricePaise) })}
+        priceLabel={formatRupees(entry.pricePaise)}
         size="xs"
       />
     );

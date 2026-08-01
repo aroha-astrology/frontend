@@ -275,6 +275,7 @@ export interface PanchangRegionalMonth {
   monthSystem: string;
   monthIndex: number;
   monthName: string;
+  dayOfMonth?: number;
   paksha?: string;
   year: number;
   isAdhikMaas?: boolean;
@@ -354,6 +355,7 @@ export interface PanchangMonthDay {
   isFullMoon: boolean;
   isNewMoon: boolean;
   isEkadashi: boolean;
+  regionalMonths?: Record<RegionId, PanchangRegionalMonth> | null;
 }
 
 // ─── Purchase plan ("Planning to Buy") ────────────────────────────────────────

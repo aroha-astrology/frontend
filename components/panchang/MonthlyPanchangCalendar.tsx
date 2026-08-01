@@ -10,7 +10,7 @@ import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { tithiPakshaDayNumber, type RegionId } from "@/lib/panchang/regions";
 
-/** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). "v2": bumped alongside adding regionalMonths to this response — without it, a pre-existing cached entry from before that change would keep being served (same key) with no regional data, forever. */
+/** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). Version bumped whenever this response's shape grows — e.g. v2 added the whole-month regionalMonths label, v3 added per-day regionalMonths (needed for the grid's dayOfMonth) — without a bump, a pre-existing cached entry from before that change would keep being served (same key) missing the new data, forever. */
 const PANCHANG_MONTH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface MonthlyPanchangCalendarProps {
@@ -18,8 +18,7 @@ interface MonthlyPanchangCalendarProps {
   onSelectDate: (date: string) => void;
   lat?: number;
   lon?: number;
-  /** Which regional lunar/solar calendar convention to show alongside the Gregorian month —
-   * derived from the app's current language (see app/panchang/page.tsx), not user-selected. */
+  /** Which regional lunar/solar calendar convention to show alongside the Gregorian month — see hooks/usePanchangRegion.ts (defaults from app language, user-overridable via RegionPicker on the Panchang page). */
   region: RegionId;
 }
 
@@ -53,7 +52,7 @@ export default function MonthlyPanchangCalendar({
     // shown — every day in a requested month is immutable once computed.
     const cacheKey = buildKey(
       "panchangMonth",
-      "v2",
+      "v3",
       cursor.year,
       cursor.month,
       lat != null ? roundCoord(lat) : undefined,
@@ -202,12 +201,21 @@ export default function MonthlyPanchangCalendar({
               }`}
             >
               <span>{cell.day}</span>
-              {region !== "punjab" && (
-                <span className={`text-[8px] leading-none ${isSelected ? "text-[#1a0e00]/70" : "text-emerald-400"}`}>
-                  {cell.paksha === "Krishna" ? "K" : "S"}
-                  {tithiPakshaDayNumber(cell.tithiNumber, cell.paksha)}
-                </span>
-              )}
+              <span className={`text-[8px] leading-none ${isSelected ? "text-[#1a0e00]/70" : "text-emerald-400"}`}>
+                {(() => {
+                  // Solar (day-of-solar-month, approx) and fixed_solar
+                  // (Nanakshahi, exact) regions carry their own dayOfMonth on
+                  // THIS day's regional snapshot — genuinely region-specific,
+                  // so it changes when the picker changes region. Lunisolar
+                  // regions (purnimanta/amanta) have no separate day-of-month
+                  // concept; their "date" is the tithi, which is the same
+                  // across every lunisolar region (only the month NAME
+                  // differs, shown in the header above) — not a bug.
+                  const regionalDay = cell.regionalMonths?.[region]?.dayOfMonth;
+                  if (regionalDay != null) return regionalDay;
+                  return `${cell.paksha === "Krishna" ? "K" : "S"}${tithiPakshaDayNumber(cell.tithiNumber, cell.paksha)}`;
+                })()}
+              </span>
               {(() => {
                 // Every marker shown here must use the SAME symbol as its legend
                 // entry below — festivals carry their own specific emoji in data

@@ -47,52 +47,39 @@ export const REGION_META: Record<RegionId, RegionMeta> = {
   punjab: { id: "punjab", label: "Punjabi", calendarName: "Nanakshahi" },
 };
 
-interface NativeDateTithi {
-  name: string;
-  paksha: string;
-}
-
 interface NativeDateRegionalMonth {
   calendar: string;
-  monthSystem: string;
-  monthName: string;
   year: number;
-  isAdhikMaas?: boolean;
 }
 
 /**
- * Combines the day's tithi/paksha with the selected region's month + era
- * year into one native-calendar date line, e.g. "Krishna Trayodashi,
- * Chaitra, Vikram Samvat 2082". `fixed_solar` regions (Nanakshahi) have no
- * tithi/paksha concept, so they degrade to just "{month}, {calendar} {year}".
- * Returns null if the inputs needed for the region aren't loaded yet.
+ * The selected region's calendar name + era year, e.g. "Vikram Samvat 2082"
+ * — shown next to the RegionPicker trigger on the Panchang page. Deliberately
+ * just calendar + year: the month is already shown in MonthlyPanchangCalendar's
+ * header below, and the day-level date is shown per-cell in the grid (see
+ * tithiPakshaDayNumber below), so repeating either here would be redundant.
+ * Returns null if the region's data isn't loaded yet.
  */
-export function formatNativeDate(
-  tithi: NativeDateTithi | null | undefined,
-  regionalMonth: NativeDateRegionalMonth | null | undefined,
-): string | null {
+export function formatNativeDate(regionalMonth: NativeDateRegionalMonth | null | undefined): string | null {
   if (!regionalMonth) return null;
-  const monthLabel = regionalMonth.isAdhikMaas ? `Adhika ${regionalMonth.monthName}` : regionalMonth.monthName;
-  if (regionalMonth.monthSystem === "fixed_solar") {
-    return `${monthLabel}, ${regionalMonth.calendar} ${regionalMonth.year}`;
-  }
-  if (!tithi) return null;
-  return `${tithi.paksha} ${tithi.name}, ${monthLabel}, ${regionalMonth.calendar} ${regionalMonth.year}`;
+  return `${regionalMonth.calendar} ${regionalMonth.year}`;
 }
 
 /**
  * The "date" to show under a Gregorian day number in the monthly calendar
- * grid: the tithi's day-within-paksha (1-15, e.g. "Shukla 5" / "Krishna
- * 10") — the number every printed Indian calendar shows regardless of which
- * regional month-naming convention is in use, since tithi is a Panchang-wide
- * concept shared by every lunisolar and solar region alike. `tithiNumber`
- * runs 1-30 across the full lunar month (see classifyTithiForCalendar in
- * astro.service.ts); Krishna paksha is the back half (16-30), so it's
- * shifted down to the same 1-15 range as Shukla.
+ * grid for lunisolar (purnimanta/amanta) regions: the tithi's day-within-
+ * paksha (1-15, e.g. "Shukla 5" / "Krishna 10") — the number every printed
+ * Indian calendar shows for these regions, since tithi is a Panchang-wide
+ * concept shared identically across all of them (only the month NAME
+ * differs by region, shown in the header). `tithiNumber` runs 1-30 across
+ * the full lunar month (see classifyTithiForCalendar in astro.service.ts);
+ * Krishna paksha is the back half (16-30), so it's shifted down to the same
+ * 1-15 range as Shukla.
  *
- * Not shown for Punjab (Nanakshahi) — that calendar has no tithi/lunar
- * concept at all (see formatNativeDate's fixed_solar branch above), so
- * showing a tithi number there would be a fabricated, meaningless figure.
+ * Solar and fixed_solar (Nanakshahi) regions instead use their own
+ * `dayOfMonth` from the day's regionalMonths entry (see
+ * MonthlyPanchangCalendar.tsx) — that's genuinely region-specific and
+ * changes when the picker changes region, unlike tithi.
  */
 export function tithiPakshaDayNumber(tithiNumber: number, paksha: string): number {
   return paksha === "Krishna" ? tithiNumber - 15 : tithiNumber;

@@ -20,7 +20,6 @@ import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { isCurrentlyActive } from "@/lib/panchang/time-window";
 import FeatureGuard from "@/components/FeatureGuard";
-import { useFeature } from "@/hooks/useFeature";
 import { usePanchangRegion } from "@/hooks/usePanchangRegion";
 import RegionPicker from "@/components/panchang/RegionPicker";
 
@@ -38,6 +37,23 @@ function FactCard({ label, value, sub }: { label: string; value: string; sub?: s
       <p className="text-sm text-foreground font-semibold mt-1">{value}</p>
       {sub && <p className="text-[10px] text-muted mt-0.5">{sub}</p>}
     </Card>
+  );
+}
+
+function LocationSearchOverlay() {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-5 bg-background/95 backdrop-blur-sm px-10 text-center">
+      <div className="relative w-20 h-20 flex items-center justify-center">
+        <span className="absolute inset-0 rounded-full bg-gold/20 animate-ping" />
+        <span className="absolute inset-3 rounded-full bg-gold/25 animate-ping [animation-delay:300ms]" />
+        <MapPin size={34} className="relative text-gold" />
+      </div>
+      <div>
+        <p className="text-sm font-display text-foreground">{t("horoscope.panchang.locatingOverlay.title")}</p>
+        <p className="text-xs text-muted mt-1.5">{t("horoscope.panchang.locatingOverlay.subtitle")}</p>
+      </div>
+    </div>
   );
 }
 
@@ -69,7 +85,7 @@ export default function PanchangPage() {
   const { t, i18n } = useTranslation();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
-  const { enabled: purchasePlanEnabled } = useFeature("panchang.purchasePlan");
+  // Planning to Buy card below is commented out — its useFeature("panchang.purchasePlan") gate went with it.
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const { region, setRegion } = usePanchangRegion();
@@ -162,7 +178,7 @@ export default function PanchangPage() {
   const data = source === "mine" && userData ? userData : refData;
   const state =
     source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
-  const nativeCalendarDate = data ? formatNativeDate(data.tithi, data.regionalMonths?.[region]) : null;
+  const nativeCalendarDate = data ? formatNativeDate(data.regionalMonths?.[region]) : null;
 
   const regions: RegionId[] = ["north", "south", "west", "east"];
 
@@ -224,23 +240,12 @@ export default function PanchangPage() {
   const regionMeta = REGION_META[region];
   const adhik = findAdhikMaas(selectedDate);
 
-  // Share text for PanchangHeader's native-share button — a plain-text
-  // summary of today's core facts, not a deep link (no shareable per-date
-  // URL exists for this page yet).
-  const shareText = data
-    ? t("horoscope.panchang.shareText", {
-        date: data.date,
-        tithi: data.tithi?.name ?? "—",
-        nakshatra: data.nakshatra?.name ?? "—",
-        vara: data.vara ?? "—",
-      })
-    : t("horoscope.panchang.todayTitle");
-
   return (
     <FeatureGuard featureKey="nav.panchang">
+    {geo.status === "requesting" && <LocationSearchOverlay />}
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
-        <PanchangHeader subtitle={data?.date ?? ""} shareText={shareText} />
+        <PanchangHeader subtitle={data?.date ?? ""} />
 
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
@@ -411,7 +416,7 @@ export default function PanchangPage() {
               </div>
             )}
 
-            {/* Planning to Buy — gated by the panchang.purchasePlan admin toggle */}
+            {/* Planning to Buy — commented out per request, was gated by the panchang.purchasePlan admin toggle
             {purchasePlanEnabled && (
               <Card id="purchase-plans" className="p-4 border-gold/15">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -429,6 +434,7 @@ export default function PanchangPage() {
                 {plans.length > 0 && <PurchasePlanResults plans={plans} pollingId={pollingId} onPolled={handlePolled} onDelete={handleDelete} />}
               </Card>
             )}
+            */}
 
             <p className="flex items-center gap-1.5 text-[10px] text-muted justify-center pt-2">
               <Clock size={11} /> {data.date}

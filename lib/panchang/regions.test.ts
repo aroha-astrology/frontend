@@ -1,17 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNativeDate, tithiPakshaDayNumber } from "./regions";
-
-describe("formatNativeDate", () => {
-  it("combines calendar name + era year only", () => {
-    expect(formatNativeDate({ calendar: "Vikram Samvat", year: 2082 })).toBe("Vikram Samvat 2082");
-    expect(formatNativeDate({ calendar: "Nanakshahi", year: 558 })).toBe("Nanakshahi 558");
-  });
-
-  it("returns null when the regional month isn't loaded yet", () => {
-    expect(formatNativeDate(null)).toBeNull();
-    expect(formatNativeDate(undefined)).toBeNull();
-  });
-});
+import { tithiPakshaDayNumber } from "./regions";
 
 describe("tithiPakshaDayNumber", () => {
   it("keeps Shukla tithis as-is (1-15)", () => {

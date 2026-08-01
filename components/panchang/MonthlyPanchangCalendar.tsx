@@ -213,7 +213,7 @@ export default function MonthlyPanchangCalendar({
                   // differs, shown in the header above) — not a bug.
                   const regionalDay = cell.regionalMonths?.[region]?.dayOfMonth;
                   if (regionalDay != null) return regionalDay;
-                  return `${cell.paksha === "Krishna" ? "K" : "S"}${tithiPakshaDayNumber(cell.tithiNumber, cell.paksha)}`;
+                  return tithiPakshaDayNumber(cell.tithiNumber, cell.paksha);
                 })()}
               </span>
               {(() => {

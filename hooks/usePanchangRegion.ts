@@ -28,6 +28,13 @@ export function usePanchangRegion() {
   const defaultRegion = LANGUAGE_TO_REGION[i18n.language] ?? "north";
   const [region, setRegionState] = useState<RegionId>(defaultRegion);
   const [isManual, setIsManual] = useState(false);
+  // Gates the language-sync effect below until the localStorage-restore
+  // effect has actually run and committed — both effects fire in the same
+  // pass on mount, and without this gate the language-sync effect still
+  // reads `isManual` from the initial (false) render and immediately
+  // overwrites whatever the restore effect just set, silently discarding
+  // the user's saved region on every page load.
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -36,13 +43,15 @@ export function usePanchangRegion() {
       setRegionState(saved);
       setIsManual(true);
     }
+    setHydrated(true);
   }, []);
 
-  // Track the language default until the user manually overrides.
+  // Track the language default until the user manually overrides — but only
+  // once hydration above has resolved, so this can't race the restore.
   useEffect(() => {
-    if (!isManual) setRegionState(defaultRegion);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultRegion, isManual]);
+    if (!hydrated || isManual) return;
+    setRegionState(defaultRegion);
+  }, [defaultRegion, isManual, hydrated]);
 
   function setRegion(id: RegionId) {
     setRegionState(id);

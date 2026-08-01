@@ -47,24 +47,6 @@ export const REGION_META: Record<RegionId, RegionMeta> = {
   punjab: { id: "punjab", label: "Punjabi", calendarName: "Nanakshahi" },
 };
 
-interface NativeDateRegionalMonth {
-  calendar: string;
-  year: number;
-}
-
-/**
- * The selected region's calendar name + era year, e.g. "Vikram Samvat 2082"
- * — shown next to the RegionPicker trigger on the Panchang page. Deliberately
- * just calendar + year: the month is already shown in MonthlyPanchangCalendar's
- * header below, and the day-level date is shown per-cell in the grid (see
- * tithiPakshaDayNumber below), so repeating either here would be redundant.
- * Returns null if the region's data isn't loaded yet.
- */
-export function formatNativeDate(regionalMonth: NativeDateRegionalMonth | null | undefined): string | null {
-  if (!regionalMonth) return null;
-  return `${regionalMonth.calendar} ${regionalMonth.year}`;
-}
-
 /**
  * The "date" to show under a Gregorian day number in the monthly calendar
  * grid for lunisolar (purnimanta/amanta) regions: the tithi's day-within-

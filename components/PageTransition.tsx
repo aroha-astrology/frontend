@@ -10,13 +10,27 @@ const TAB_ORDER = ["/", "/vastu", "/ai-chat", "/horoscope", "/panchang"];
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevIndexRef = useRef(0);
+  const isNativeRef = useRef(false);
+
+  useEffect(() => {
+    import("@capacitor/core")
+      .then(({ Capacitor }) => {
+        isNativeRef.current = Capacitor.isNativePlatform();
+      })
+      .catch(() => {});
+  }, []);
 
   // Every route change should land at the top, regardless of where the
   // previous page was scrolled to. Next's default scroll-to-top on
   // navigation isn't reliable inside the Capacitor WebView, so we force it
   // explicitly here alongside the transition that already keys off pathname.
+  // Native-only: on a plain mobile browser this same imperative scrollTo
+  // triggers the browser's own toolbar show/hide animation, which drags the
+  // `fixed` bottom nav along with it — a visible resize/jump on every single
+  // tab switch. Next's default scroll restoration already handles the web
+  // case without that side effect.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (isNativeRef.current) window.scrollTo(0, 0);
   }, [pathname]);
 
   const index = TAB_ORDER.indexOf(pathname);

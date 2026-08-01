@@ -139,7 +139,8 @@ export function GemVisual({ color, planet, size = 46 }: { color: string; planet?
 function Heading({ children }: { children: React.ReactNode }) {
   return (
     <h3 className="text-[10px] font-semibold tracking-[0.25em] uppercase text-gold mb-3 flex items-center gap-2">
-      <span className="text-gold text-xs">💎</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/gemstone.png" alt="" className="w-5 h-5 rounded-full shrink-0" />
       {children}
       <span className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
     </h3>

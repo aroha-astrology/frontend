@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 
-/** Home-screen entry point for Vastu — same card shell as MatchMakingCard.tsx/PalmReadingCard.tsx, but with a real illustration (bundled at build time, so no onError fallback needed) instead of an inline SVG glyph. */
+/** Home-screen entry point for Vastu — same card shell as MatchMakingCard.tsx/PalmReadingCard.tsx, with a real illustration (bundled at build time, so no onError fallback needed) instead of an inline SVG glyph. */
 export default function VastuCard() {
   const { t } = useTranslation();
   return (

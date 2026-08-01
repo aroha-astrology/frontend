@@ -48,8 +48,17 @@ export default function RegionPicker({
     const rect = buttonRef.current.getBoundingClientRect();
     const viewportH = window.innerHeight;
     const viewportW = window.innerWidth;
+    // Unlike LanguagePicker (triggered from the top bar, always with the
+    // whole page below it), this trigger sits mid-page above the app's
+    // fixed bottom nav (components/BottomNavigation.tsx) — clamp the
+    // downward-opening boundary to the nav's top edge so the dropdown stops
+    // above it instead of rendering underneath/behind it. `bottom` below is
+    // still measured from the true window edge (CSS `position: fixed`
+    // semantics), so this only affects the downward-space calculation.
+    const navTop = document.querySelector("nav")?.getBoundingClientRect().top;
+    const effectiveBottom = navTop && navTop > 0 && navTop < viewportH ? navTop : viewportH;
 
-    const spaceBelow = viewportH - rect.bottom - GAP;
+    const spaceBelow = effectiveBottom - rect.bottom - GAP;
     const spaceAbove = rect.top - GAP;
     const openUpward = spaceBelow < DROPDOWN_HEIGHT_ESTIMATE && spaceAbove > spaceBelow;
 

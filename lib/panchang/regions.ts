@@ -79,3 +79,21 @@ export function formatNativeDate(
   if (!tithi) return null;
   return `${tithi.paksha} ${tithi.name}, ${monthLabel}, ${regionalMonth.calendar} ${regionalMonth.year}`;
 }
+
+/**
+ * The "date" to show under a Gregorian day number in the monthly calendar
+ * grid: the tithi's day-within-paksha (1-15, e.g. "Shukla 5" / "Krishna
+ * 10") — the number every printed Indian calendar shows regardless of which
+ * regional month-naming convention is in use, since tithi is a Panchang-wide
+ * concept shared by every lunisolar and solar region alike. `tithiNumber`
+ * runs 1-30 across the full lunar month (see classifyTithiForCalendar in
+ * astro.service.ts); Krishna paksha is the back half (16-30), so it's
+ * shifted down to the same 1-15 range as Shukla.
+ *
+ * Not shown for Punjab (Nanakshahi) — that calendar has no tithi/lunar
+ * concept at all (see formatNativeDate's fixed_solar branch above), so
+ * showing a tithi number there would be a fabricated, meaningless figure.
+ */
+export function tithiPakshaDayNumber(tithiNumber: number, paksha: string): number {
+  return paksha === "Krishna" ? tithiNumber - 15 : tithiNumber;
+}

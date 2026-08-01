@@ -8,7 +8,7 @@ import Card from "@/components/ui/Card";
 import { getFestivalsForDate } from "@/lib/panchang/hindu-festivals";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
-import type { RegionId } from "@/lib/panchang/regions";
+import { tithiPakshaDayNumber, type RegionId } from "@/lib/panchang/regions";
 
 /** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). "v2": bumped alongside adding regionalMonths to this response — without it, a pre-existing cached entry from before that change would keep being served (same key) with no regional data, forever. */
 const PANCHANG_MONTH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -202,6 +202,12 @@ export default function MonthlyPanchangCalendar({
               }`}
             >
               <span>{cell.day}</span>
+              {region !== "punjab" && (
+                <span className={`text-[8px] leading-none ${isSelected ? "text-[#1a0e00]/70" : "text-emerald-400"}`}>
+                  {cell.paksha === "Krishna" ? "K" : "S"}
+                  {tithiPakshaDayNumber(cell.tithiNumber, cell.paksha)}
+                </span>
+              )}
               {(() => {
                 // Every marker shown here must use the SAME symbol as its legend
                 // entry below — festivals carry their own specific emoji in data

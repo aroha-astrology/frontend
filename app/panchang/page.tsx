@@ -15,12 +15,14 @@ import TithiHero from "@/components/panchang/TithiHero";
 import SunMoonTimings from "@/components/panchang/SunMoonTimings";
 import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import AuspiciousDays from "@/components/panchang/AuspiciousDays";
-import { REGION_META, type RegionId } from "@/lib/panchang/regions";
+import { REGION_META, formatNativeDate, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { isCurrentlyActive } from "@/lib/panchang/time-window";
 import FeatureGuard from "@/components/FeatureGuard";
 import { useFeature } from "@/hooks/useFeature";
+import { usePanchangRegion } from "@/hooks/usePanchangRegion";
+import RegionPicker from "@/components/panchang/RegionPicker";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -28,21 +30,6 @@ const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 /** Delhi/NCR — the same national reference point GET /astro/panchang defaults to server-side. */
 const REFERENCE_LAT = 28.6139;
 const REFERENCE_LON = 77.209;
-
-/** Which regional lunar/solar calendar convention to show alongside the Gregorian month —
- * derived from the app's own selected language rather than a manual direction toggle (removed:
- * "North/South/West/East" read as compass directions to users, when this has only ever been
- * about which calendar-naming convention to display). Telugu and Tamil both map to "south" —
- * there's no separate region for them in the underlying regional.ts calculation, which only
- * models 4 conventions (Vikram Samvat, Shalivahana Shaka x2 spellings, Bengali San). */
-const LANGUAGE_TO_REGION: Record<string, RegionId> = {
-  hi: "north",
-  bn: "east",
-  mr: "west",
-  gu: "west",
-  te: "south",
-  ta: "south",
-};
 
 function FactCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -85,7 +72,7 @@ export default function PanchangPage() {
   const { enabled: purchasePlanEnabled } = useFeature("panchang.purchasePlan");
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const region: RegionId = LANGUAGE_TO_REGION[i18n.language] ?? "north";
+  const { region, setRegion } = usePanchangRegion();
 
   const [refData, setRefData] = useState<PanchangData | null>(null);
   const [refState, setRefState] = useState<"loading" | "ready" | "unavailable">("loading");
@@ -111,12 +98,13 @@ export default function PanchangPage() {
     // Hard cache (see lib/cache.ts): `date` (selectedDate) is always passed
     // explicitly here — a fixed TTL, not periodExpiresAt('daily'), since a
     // past/future date's panchang is immutable regardless of today's rollover.
-    // "v2" bumped alongside the moonrise/moonset + tithi/nakshatra endsAt
-    // fields added to PanchangData — without it, a pre-existing localStorage
+    // Version bumped whenever PanchangData's shape grows (e.g. v2 added
+    // moonrise/moonset + tithi/nakshatra endsAt; v3 added the 7 new
+    // regionalMonths keys) — without a bump, a pre-existing localStorage
     // entry from before that change would keep being served (matching this
-    // same key) and silently look like "no moonrise", forever, since nothing
-    // else about the key would ever invalidate it.
-    const cacheKey = buildKey("panchang", "v2", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
+    // same key) and silently look "unavailable" for the new fields forever,
+    // since nothing else about the key would ever invalidate it.
+    const cacheKey = buildKey("panchang", "v3", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setRefData(cached);
@@ -145,7 +133,7 @@ export default function PanchangPage() {
     let cancelled = false;
     setUserState("loading");
 
-    const cacheKey = buildKey("panchang", "v2", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
+    const cacheKey = buildKey("panchang", "v3", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setUserData(cached);
@@ -174,6 +162,7 @@ export default function PanchangPage() {
   const data = source === "mine" && userData ? userData : refData;
   const state =
     source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
+  const nativeCalendarDate = data ? formatNativeDate(data.tithi, data.regionalMonths?.[region]) : null;
 
   const regions: RegionId[] = ["north", "south", "west", "east"];
 
@@ -291,9 +280,20 @@ export default function PanchangPage() {
           </p>
         )}
 
+        {/* Native regional-calendar date — below the Gregorian date shown in
+            PanchangHeader above. RegionPicker lets the user override the
+            language-derived default (see usePanchangRegion); the choice
+            persists and also drives MonthlyPanchangCalendar's header below. */}
+        {data && (
+          <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+            {nativeCalendarDate && <p className="text-xs text-foreground">{nativeCalendarDate}</p>}
+            <RegionPicker region={region} onChange={setRegion} />
+          </div>
+        )}
+
         {/* Adhik Maas banner — a specific-day fact (unlike the calendar's own regional month/year
             header below, which is a whole-month label), so it stays keyed off selectedDate here. */}
-        {adhik && (
+        {adhik && regionMeta.adhikMaasName && (
           <Card className="mt-4 p-3.5 border-gold/10 flex items-center justify-between flex-wrap gap-2">
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-red-500/10 border border-red-500/25 text-red-400">
               🚫 {regionMeta.adhikMaasName} · {t("horoscope.panchang.adhikMaasAvoid")}

@@ -9,6 +9,7 @@
 import { getFirebaseAuth } from "./firebase";
 import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
+import type { RegionId } from "@/lib/panchang/regions";
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
@@ -269,13 +270,15 @@ export interface PanchangTimeWindow {
 }
 
 export interface PanchangRegionalMonth {
-  region: "north" | "south" | "west" | "east";
+  region: RegionId;
   calendar: string;
   monthSystem: string;
   monthIndex: number;
   monthName: string;
   paksha?: string;
   year: number;
+  isAdhikMaas?: boolean;
+  adhikMaasLabel?: string;
 }
 
 export interface ChoghadiyaSlot {
@@ -333,7 +336,7 @@ export interface PanchangData {
   moonriseTime?: string;
   /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
   moonsetTime?: string;
-  regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+  regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];
 }
@@ -983,7 +986,7 @@ export const api = {
       year: number;
       month: number;
       days: PanchangMonthDay[];
-      regionalMonths?: Record<"north" | "south" | "west" | "east", PanchangRegionalMonth>;
+      regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
     }>(`/v1/panchang/month?${params.toString()}`, { auth: true });
   },
 

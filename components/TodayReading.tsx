@@ -9,7 +9,7 @@ import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 import CategoryHookRotator from "@/components/home/CategoryHookRotator";
-import TodayReadingProgress from "@/components/home/TodayReadingProgress";
+import PersonalizedProgress from "@/components/horoscope/PersonalizedProgress";
 import { useFeature } from "@/hooks/useFeature";
 
 /**
@@ -33,7 +33,7 @@ export default function TodayReading() {
   if (!enabled) return null;
 
   if (state === "loading" || state === "generating") {
-    return <TodayReadingProgress />;
+    return <PersonalizedProgress titleKey="home.todayReadingTitle" />;
   }
 
   if (state === "empty") {

@@ -12,6 +12,7 @@ import FeatureGuard from "@/components/FeatureGuard";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
+import PersonalizedProgress from "@/components/horoscope/PersonalizedProgress";
 import Card from "@/components/ui/Card";
 import { QUALITY_BADGE_KEYS, type Timescale } from "@/components/horoscope/types";
 import { zodiacSignLabel } from "@/data/zodiac";
@@ -37,16 +38,7 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   }, [period]);
 
   if (state === "loading" || state === "generating") {
-    return (
-      <Card className="p-5 border-gold/10 animate-pulse">
-        <div className="h-4 w-40 rounded bg-gold/10 mb-3" />
-        <div className="h-3 w-full rounded bg-gold/5 mb-1.5" />
-        <div className="h-3 w-3/4 rounded bg-gold/5" />
-        {state === "generating" && (
-          <p className="mt-3 text-xs text-muted text-center">{t("horoscope.personalizedGenerating")}</p>
-        )}
-      </Card>
-    );
+    return <PersonalizedProgress titleKey="horoscope.personalizedTitle" />;
   }
 
   if (state === "empty") {

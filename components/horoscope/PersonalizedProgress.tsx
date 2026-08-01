@@ -15,14 +15,17 @@ const STEP_KEYS = [
 ] as const;
 
 /**
- * Shown in place of TodayReading's plain skeleton while the daily reading is
- * still being generated (state "loading"/"generating" in
- * usePersonalizedHoroscope). Ticks one step every STEP_MS, capped at the
+ * Shown in place of a plain skeleton while a personalized horoscope is still
+ * being generated (state "loading"/"generating" in
+ * usePersonalizedHoroscope) — used by both Home's TodayReading card and the
+ * /horoscope page's PersonalizedCard, for every period (daily/weekly/
+ * monthly/yearly). Ticks one step every STEP_MS, capped at the
  * second-to-last step — the final step only ever checks off when the parent
  * swaps this out for the real card on state "ready", so it never claims done
- * before the reading actually is.
+ * before the reading actually is. Step copy is period-agnostic on purpose
+ * (chart/transits/dasha/predictions apply the same way regardless of period).
  */
-export default function TodayReadingProgress() {
+export default function PersonalizedProgress({ titleKey }: { titleKey: string }) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -40,7 +43,7 @@ export default function TodayReadingProgress() {
     <Card className="p-5 border-gold/10">
       <div className="flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider mb-4">
         <Sparkles size={14} />
-        {t("home.todayReadingTitle")}
+        {t(titleKey)}
       </div>
       <div className="flex flex-col gap-3">
         {STEP_KEYS.map((key, i) => {

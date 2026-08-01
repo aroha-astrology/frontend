@@ -12,6 +12,7 @@ import {
   Clock,
   MapPin,
   UserPlus,
+  Globe,
   MessageCircle,
   Wallet,
   FileText,
@@ -28,8 +29,10 @@ import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
 import { zodiacSignLabel } from "@/data/zodiac";
+import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
+import LanguagePicker from "@/components/LanguagePicker";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 
 /**
@@ -72,6 +75,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   };
 
   const initial = (user?.displayName ?? user?.phoneE164 ?? user?.email ?? "?").trim().charAt(0).toUpperCase();
+  const languageNames = LANGUAGES.map((l) => l.native).join(", ");
 
   return (
     <AnimatePresence>
@@ -200,6 +204,12 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
 
               {/* Rows */}
               <div className="flex flex-col gap-2">
+                <ListRow
+                  icon={<Globe size={16} />}
+                  label={t("settings.language")}
+                  subtitle={t("menu.languageAvailable", { languages: languageNames })}
+                  right={<LanguagePicker />}
+                />
                 <ListRow
                   icon={<MessageCircle size={16} />}
                   label={t("menu.chatHistory")}

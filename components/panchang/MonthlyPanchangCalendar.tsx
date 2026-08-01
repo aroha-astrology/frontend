@@ -247,6 +247,7 @@ export default function MonthlyPanchangCalendar({
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[9px] text-muted justify-center border-t border-gold/10 pt-3">
+         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-400" /> {t("horoscope.panchang.legend.regionalDate")}</div>
          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-red-500/20 border border-red-500/40" /> {t("horoscope.panchang.legend.adhikMaas")}</div>
          <div className="flex items-center gap-1.5"><span>🌕</span> {t("horoscope.panchang.legend.purnima")}</div>
          <div className="flex items-center gap-1.5"><span>🌑</span> {t("horoscope.panchang.legend.amavasya")}</div>

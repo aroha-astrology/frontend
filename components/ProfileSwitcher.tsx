@@ -8,6 +8,7 @@ import { Check, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import Avatar from "@/components/ui/Avatar";
 import type { Profile, ProfileRelationship } from "@/lib/api";
 
 /** Maps each relationship enum value to its i18n key under profileSwitcher.relationship. */
@@ -72,7 +73,6 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
               const isBusy = switchingId === profile.id;
               const disabled = switchingId !== null;
               const name = profile.displayName?.trim() || t("profileSwitcher.unnamed");
-              const initial = name.charAt(0).toUpperCase();
               return (
                 <button
                   key={profile.id}
@@ -84,9 +84,7 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
                     profile.isActive ? "border-gold/50 bg-gold/10" : "border-gold/10 hover:border-gold/30"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/25 flex items-center justify-center text-gold text-sm font-semibold shrink-0">
-                    {initial}
-                  </div>
+                  <Avatar name={name} size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="text-foreground text-sm font-medium truncate">{name}</div>
                     {!profile.isPrimary && profile.relationship && (

@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
     // server-reported device-compatibility field for a different purpose.
     NEXT_PUBLIC_APP_VERSION: packageJson.version,
   },
+  async headers() {
+    return [
+      {
+        source: "/models/:path*.glb",
+        headers: [
+          // ponytail: immutable means a same-filename model swap won't reach
+          // already-cached clients for up to a year — rename the file
+          // (e.g. earth-v2.glb) if a model ever needs replacing.
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

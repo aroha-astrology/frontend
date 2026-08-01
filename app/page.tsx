@@ -162,7 +162,7 @@ export default function HomePage() {
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       {/* Backgrounds */}
       <ParticleBackground />
-      <MoonBackground />
+      <MoonBackground planet="mercury" />
       <SplashScreen onDone={() => setSplashDone(true)} />
       {tourOpen && <AppTour onFinish={finishTour} />}
 

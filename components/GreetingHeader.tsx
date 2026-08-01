@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { UserCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
+import Avatar from "@/components/ui/Avatar";
 
 function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "night" {
   if (hour < 12) return "morning";
@@ -46,9 +46,7 @@ export default function GreetingHeader() {
       transition={{ duration: 0.4 }}
       className="px-5 pt-8 pb-2 flex items-center gap-3"
     >
-      <div className="w-11 h-11 rounded-full bg-gold/10 border border-gold/25 flex items-center justify-center text-gold shrink-0">
-        <UserCircle size={26} />
-      </div>
+      <Avatar name={displayName} size="md" />
       <div>
         <p className="text-foreground text-base font-semibold leading-tight">
           {firstName

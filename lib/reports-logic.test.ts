@@ -2,11 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   splitReportsByType,
   deriveOneTimeCardState,
-  purchasedMonthSet,
-  purchasedMonthChips,
-  hasActiveMonthlyPurchase,
+  monthlyCardState,
   currentMonthKey,
   formatPeriodMonth,
+  formatMonthName,
   filterVisibleReports,
   computeDiscount,
   type ReportPurchase,
@@ -69,57 +68,44 @@ describe("deriveOneTimeCardState", () => {
   });
 });
 
-describe("purchasedMonthSet", () => {
-  it("collects all non-null periodMonth values", () => {
-    const purchases = [
-      purchase("p1", "ready", "2026-08"),
-      purchase("p2", "generating", "2026-09"),
-    ];
-    expect(purchasedMonthSet(purchases)).toEqual(new Set(["2026-08", "2026-09"]));
+describe("monthlyCardState", () => {
+  it("is 'none' with no purchases at all", () => {
+    expect(monthlyCardState([], "2026-08")).toEqual({ state: "none" });
   });
 
-  it("is empty for an empty purchase list", () => {
-    expect(purchasedMonthSet([])).toEqual(new Set());
-  });
-});
-
-describe("purchasedMonthChips", () => {
-  it("sorts chips chronologically regardless of input order", () => {
-    const purchases = [
-      purchase("p1", "ready", "2026-10"),
-      purchase("p2", "generating", "2026-08"),
-      purchase("p3", "failed", "2026-09"),
-    ];
-    expect(purchasedMonthChips(purchases).map((c) => c.periodMonth)).toEqual(["2026-08", "2026-09", "2026-10"]);
+  it("is 'ready' when THIS month's report is ready", () => {
+    expect(monthlyCardState([purchase("p1", "ready", "2026-08")], "2026-08")).toEqual({
+      state: "ready",
+      purchaseId: "p1",
+    });
   });
 
-  it("carries over status and purchase id per chip", () => {
-    const purchases = [purchase("p1", "ready", "2026-08")];
-    expect(purchasedMonthChips(purchases)).toEqual([{ periodMonth: "2026-08", status: "ready", purchaseId: "p1" }]);
-  });
-});
-
-describe("hasActiveMonthlyPurchase", () => {
-  it("is false with no purchases", () => {
-    expect(hasActiveMonthlyPurchase([])).toBe(false);
+  it("rolls over to 'none' once the month changes, ignoring every past month", () => {
+    const purchases = [purchase("p1", "ready", "2026-06"), purchase("p2", "ready", "2026-07")];
+    expect(monthlyCardState(purchases, "2026-08")).toEqual({ state: "none" });
   });
 
-  it("is false when every purchase failed (must not permanently flip the button off 'Buy')", () => {
-    const purchases = [purchase("p1", "failed", "2026-08"), purchase("p2", "failed", "2026-09")];
-    expect(hasActiveMonthlyPurchase(purchases)).toBe(false);
+  it("is 'generating' while this month's report is still being written", () => {
+    const purchases = [purchase("p1", "ready", "2026-07"), purchase("p2", "generating", "2026-08")];
+    expect(monthlyCardState(purchases, "2026-08")).toEqual({ state: "generating", purchaseId: "p2" });
   });
 
-  it("is true when a generating purchase exists", () => {
-    expect(hasActiveMonthlyPurchase([purchase("p1", "generating", "2026-08")])).toBe(true);
+  it("is 'failed' when this month's only attempt failed", () => {
+    expect(monthlyCardState([purchase("p1", "failed", "2026-08")], "2026-08")).toEqual({
+      state: "failed",
+      purchaseId: "p1",
+    });
   });
 
-  it("is true when a ready purchase exists", () => {
-    expect(hasActiveMonthlyPurchase([purchase("p1", "ready", "2026-08")])).toBe(true);
+  it("ignores one-time (null periodMonth) rows", () => {
+    expect(monthlyCardState([purchase("p1", "ready", null)], "2026-08")).toEqual({ state: "none" });
   });
 
-  it("is true when ready and failed purchases are mixed", () => {
-    const purchases = [purchase("p1", "failed", "2026-08"), purchase("p2", "ready", "2026-09")];
-    expect(hasActiveMonthlyPurchase(purchases)).toBe(true);
+  it("defaults to the real current month", () => {
+    expect(monthlyCardState([purchase("p1", "ready", currentMonthKey())])).toEqual({
+      state: "ready",
+      purchaseId: "p1",
+    });
   });
 });
 
@@ -145,6 +131,14 @@ describe("formatPeriodMonth", () => {
   it("is stable regardless of the host machine's local timezone (uses UTC)", () => {
     expect(formatPeriodMonth("2026-01")).toBe("January 2026");
     expect(formatPeriodMonth("2026-12")).toBe("December 2026");
+  });
+});
+
+describe("formatMonthName", () => {
+  it("returns the month name alone, no year", () => {
+    expect(formatMonthName("2026-08")).toBe("August");
+    expect(formatMonthName("2026-01")).toBe("January");
+    expect(formatMonthName("2026-12")).toBe("December");
   });
 });
 

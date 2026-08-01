@@ -58,38 +58,19 @@ export function deriveOneTimeCardState(purchases: readonly ReportPurchase[]): On
   return { state: "none" };
 }
 
-/** Every 'YYYY-MM' month already purchased (any status) for a monthly report — used by the purchase drawer to detect whether the current month is already purchased, and by the report cards for their purchased-month chips. */
-export function purchasedMonthSet(purchases: readonly ReportPurchase[]): Set<string> {
-  return new Set(
-    purchases.filter((p): p is ReportPurchase & { periodMonth: string } => p.periodMonth !== null).map((p) => p.periodMonth),
-  );
-}
-
-export interface MonthChip {
-  periodMonth: string;
-  status: ReportPurchase["status"];
-  purchaseId: string;
-}
-
-/** Chip list for a monthly report's card — one per purchased month, sorted chronologically ('YYYY-MM' sorts lexicographically = chronologically). */
-export function purchasedMonthChips(purchases: readonly ReportPurchase[]): MonthChip[] {
-  return purchases
-    .filter((p): p is ReportPurchase & { periodMonth: string } => p.periodMonth !== null)
-    .map((p) => ({ periodMonth: p.periodMonth, status: p.status, purchaseId: p.id }))
-    .sort((a, b) => a.periodMonth.localeCompare(b.periodMonth));
-}
-
 /**
- * Whether a monthly report's card CTA should read "Add months" rather than
- * "Buy" — true only when the user actually owns a month (`ready`) or is
- * waiting on one (`generating`). Deliberately NOT based on
- * `purchasedMonthChips().length > 0`: that list intentionally still includes
- * `failed` purchases (so the chip row's Retry affordance stays reachable),
- * but a purchase that only ever failed shouldn't permanently flip the button
- * away from "Buy" for a user who owns nothing.
+ * A monthly report's card state — the SAME four states as a one-time report,
+ * scoped to the current calendar month only. Past months are deliberately
+ * invisible on the catalogue card: the card offers exactly one action, either
+ * reading this month's report or buying it, and rolls over to "buy" on its
+ * own the moment the month changes. (Older months stay reachable by their
+ * /reports/<id> link — e.g. from a notification — just not listed here.)
  */
-export function hasActiveMonthlyPurchase(purchases: readonly ReportPurchase[]): boolean {
-  return purchases.some((p) => p.status === "ready" || p.status === "generating");
+export function monthlyCardState(
+  purchases: readonly ReportPurchase[],
+  month: string = currentMonthKey(),
+): OneTimeCardState {
+  return deriveOneTimeCardState(purchases.filter((p) => p.periodMonth === month));
 }
 
 /**
@@ -117,6 +98,12 @@ export function formatPeriodMonth(periodMonth: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+/** Month name alone (e.g. "August") — the monthly CTA names the month it buys, where the year is noise. Same fixed-locale/UTC convention as formatPeriodMonth. */
+export function formatMonthName(periodMonth: string): string {
+  const [y, m] = periodMonth.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-IN", { month: "long", timeZone: "UTC" });
 }
 
 export interface DiscountInfo {

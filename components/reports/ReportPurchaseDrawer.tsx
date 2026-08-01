@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
@@ -8,7 +8,7 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees, formatCount } from "@/lib/format";
-import { purchasedMonthSet, currentMonthKey } from "@/lib/reports-logic";
+import { currentMonthKey } from "@/lib/reports-logic";
 import {
   reportsApi,
   type ReportCatalogueEntry,
@@ -70,10 +70,12 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   );
 
   // ── Monthly: current month only, no picker ────────────────────────────
-  const alreadyPurchasedMonths = useMemo(() => purchasedMonthSet(entry.purchases), [entry.purchases]);
+  // A `failed` row is deliberately NOT treated as already-purchased: the backend
+  // reclaims and regenerates a failed row on a repeat purchase (see claimReportRow's
+  // `claimable` guard), so blocking the buy here would strand the month forever.
   const currentMonth = currentMonthKey();
-  const currentMonthAlreadyPurchased = alreadyPurchasedMonths.has(currentMonth);
   const currentMonthPurchase = entry.purchases.find((p) => p.periodMonth === currentMonth) ?? null;
+  const currentMonthAlreadyPurchased = !!currentMonthPurchase && currentMonthPurchase.status !== "failed";
 
   // ── Price + confirm ────────────────────────────────────────────────────
   const costPaise = entry.pricePaise;

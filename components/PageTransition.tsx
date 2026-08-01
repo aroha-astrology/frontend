@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 /** Bottom-nav tab order — determines slide direction between them. */
 const TAB_ORDER = ["/", "/vastu", "/ai-chat", "/horoscope", "/panchang"];
@@ -28,25 +28,23 @@ export default function PageTransition({ children }: { children: React.ReactNode
   if (index !== -1) prevIndexRef.current = index;
 
   return (
-    // No `mode="wait"`: that mode holds the new page unmounted until the
-    // outgoing page's exit animation fully resolves, and a second nav tap
-    // while the first exit is still playing (rapid taps, a slow device, a
-    // tab switch during the ~220ms window) can leave that exit promise
-    // never resolving — the URL/pathname changes (the tap "worked"), but
-    // the gate AnimatePresence is waiting on never opens, so the new page
-    // never mounts. Default (sync) mode mounts the new page immediately
-    // regardless of the old one's exit state, trading a brief crossfade
-    // overlap for never getting stuck.
-    <AnimatePresence initial={false}>
-      <motion.div
-        key={pathname}
-        initial={{ x: direction * 24, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -direction * 24, opacity: 0 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    // Enter-only, no AnimatePresence. An exit animation keeps the outgoing
+    // page mounted alongside the incoming one, and since both are plain
+    // block elements in normal document flow they STACK: the (invisible,
+    // fading) old page occupies its full height ABOVE the new page, which
+    // reads as a screen-tall blank gap at the top of every freshly-opened
+    // page. `mode="wait"` would fix the stacking but reintroduces the
+    // stuck-exit hazard (a second nav tap during the exit can leave the
+    // gate closed so the new page never mounts at all). Dropping the exit
+    // animation avoids both: the old page unmounts instantly, the new one
+    // still slides in on its `key` change.
+    <motion.div
+      key={pathname}
+      initial={{ x: direction * 24, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
   );
 }

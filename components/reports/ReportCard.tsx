@@ -10,9 +10,9 @@ import { formatRupees, formatCount } from "@/lib/format";
 import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import {
   deriveOneTimeCardState,
-  purchasedMonthChips,
-  hasActiveMonthlyPurchase,
-  formatPeriodMonth,
+  monthlyCardState,
+  currentMonthKey,
+  formatMonthName,
 } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import { HUE_GRADIENT } from "./ReportThemeCard";
@@ -75,10 +75,10 @@ export default function ReportCard({ entry, onBuy, onAddMonths, generatedCount }
   const Icon = theme.icon;
 
   if (entry.isMonthly) {
-    const chips = purchasedMonthChips(entry.purchases);
-    const hasActive = hasActiveMonthlyPurchase(entry.purchases);
+    const monthState = monthlyCardState(entry.purchases);
+    const month = formatMonthName(currentMonthKey());
     return (
-      <Card className="p-4 flex flex-col gap-2.5">
+      <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
@@ -91,37 +91,33 @@ export default function ReportCard({ entry, onBuy, onAddMonths, generatedCount }
               />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onAddMonths}
-            className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-3.5 py-2.5 text-xs font-bold"
-          >
-            {hasActive ? t("reports.addMonths") : t("reports.buy")}
-          </button>
+
+          {monthState.state === "ready" ? (
+            <button
+              type="button"
+              onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
+              className="shrink-0 rounded-xl border border-gold/30 text-gold px-3.5 py-2.5 text-xs font-bold"
+            >
+              {t("reports.viewReport")}
+            </button>
+          ) : monthState.state === "generating" ? (
+            <button
+              type="button"
+              onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
+              className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-3.5 py-2 text-[11px] font-semibold"
+            >
+              {t("reports.generating")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onAddMonths}
+              className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-3.5 py-2.5 text-xs font-bold"
+            >
+              {monthState.state === "failed" ? t("reports.retry") : t("reports.buyForMonth", { month })}
+            </button>
+          )}
         </div>
-        {chips.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {chips.map((c) => (
-              <button
-                type="button"
-                key={c.purchaseId}
-                onClick={() => c.status === "ready" && router.push(`/reports/${c.purchaseId}`)}
-                disabled={c.status !== "ready"}
-                className={`text-[10px] rounded-full px-2.5 py-1 border transition-colors ${
-                  c.status === "ready"
-                    ? "border-gold/30 text-gold"
-                    : c.status === "generating"
-                      ? "border-amber-500/30 text-amber-400"
-                      : "border-red-500/30 text-red-400"
-                }`}
-              >
-                {formatPeriodMonth(c.periodMonth)}
-                {c.status === "generating" && ` · ${t("reports.generating")}`}
-                {c.status === "failed" && ` · ${t("reports.retry")}`}
-              </button>
-            ))}
-          </div>
-        )}
       </Card>
     );
   }

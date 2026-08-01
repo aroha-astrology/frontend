@@ -9,7 +9,7 @@ import Card from "@/components/ui/Card";
 import { formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getReportTheme, type ReportHue } from "@/lib/report-theme";
-import { deriveOneTimeCardState, purchasedMonthChips, hasActiveMonthlyPurchase } from "@/lib/reports-logic";
+import { deriveOneTimeCardState, monthlyCardState, currentMonthKey, formatMonthName } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
 
@@ -87,15 +87,14 @@ interface ReportThemeCardProps {
 /**
  * The Home-slider presentation of a report catalogue entry. Reuses the exact
  * same 4-state purchase logic as components/reports/ReportCard.tsx
- * (deriveOneTimeCardState / purchasedMonthChips, no reimplementation) — only
+ * (deriveOneTimeCardState / monthlyCardState, no reimplementation) — only
  * the chrome differs: an icon badge on a gradient wash instead of a plain
  * text row, sized to match HoroscopeSlider's fixed 160px cards.
  *
- * Monthly reports get a simplified treatment vs. ReportCard's full
- * purchased-months chip list, which doesn't fit a 160px-wide card: if any
- * month is ready, the WHOLE card becomes tappable to open the most recent
- * ready month, alongside a plain Buy/Add Months CTA. The full chip list
- * stays on the /reports page's ReportCard, reachable via "See All".
+ * Monthly reports show the CURRENT month only (see monthlyCardState): View
+ * Report once this month's is ready, otherwise "Buy for <Month>", which
+ * re-arms on its own when the month rolls over. Same on the /reports page's
+ * ReportCard — the two surfaces read identically.
  */
 export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }: ReportThemeCardProps) {
   const { t } = useTranslation();
@@ -109,14 +108,9 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
   let ctaNode: ReactNode;
 
   if (entry.isMonthly) {
-    const chips = purchasedMonthChips(entry.purchases);
-    const hasActive = hasActiveMonthlyPurchase(entry.purchases);
-    const readyChips = chips.filter((c) => c.status === "ready");
-    // purchasedMonthChips sorts ascending by 'YYYY-MM', so the last ready
-    // chip is the most recent ready month.
-    const mostRecentReady = readyChips.length > 0 ? readyChips[readyChips.length - 1] : undefined;
-    if (mostRecentReady) {
-      cardOnClick = () => router.push(`/reports/${mostRecentReady.purchaseId}`);
+    const monthState = monthlyCardState(entry.purchases);
+    if (monthState.state === "ready" || monthState.state === "generating") {
+      cardOnClick = () => router.push(`/reports/${monthState.purchaseId}`);
     }
 
     priceNode = (
@@ -127,18 +121,36 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
         size="xs"
       />
     );
-    ctaNode = (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onAddMonths?.();
-        }}
-        className="w-full rounded-xl bg-gold text-[#1a0e00] px-2 py-2 text-[11px] font-bold"
-      >
-        {hasActive ? t("reports.addMonths") : t("reports.buy")}
-      </button>
-    );
+    ctaNode =
+      monthState.state === "ready" ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/reports/${monthState.purchaseId}`);
+          }}
+          className="w-full rounded-xl border border-gold/30 text-gold px-2 py-2 text-[11px] font-bold"
+        >
+          {t("reports.viewReport")}
+        </button>
+      ) : monthState.state === "generating" ? (
+        <span className="block w-full text-center rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-2 py-1.5 text-[10px] font-semibold">
+          {t("reports.generating")}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddMonths?.();
+          }}
+          className="w-full rounded-xl bg-gold text-[#1a0e00] px-2 py-2 text-[11px] font-bold"
+        >
+          {monthState.state === "failed"
+            ? t("reports.retry")
+            : t("reports.buyForMonth", { month: formatMonthName(currentMonthKey()) })}
+        </button>
+      );
   } else {
     const cardState = deriveOneTimeCardState(entry.purchases);
     priceNode = (

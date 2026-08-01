@@ -15,7 +15,7 @@ import TithiHero from "@/components/panchang/TithiHero";
 import SunMoonTimings from "@/components/panchang/SunMoonTimings";
 import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import AuspiciousDays from "@/components/panchang/AuspiciousDays";
-import { REGION_META, type RegionId } from "@/lib/panchang/regions";
+import { REGION_META, REGION_OPTIONS, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { isCurrentlyActive } from "@/lib/panchang/time-window";
@@ -179,7 +179,7 @@ export default function PanchangPage() {
   const state =
     source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
 
-  const regions: RegionId[] = ["north", "south", "west", "east"];
+  const regions: RegionId[] = REGION_OPTIONS.map((o) => o.value);
 
   // ─── Planning to Buy state ──────────────────────────────────────────────────
   const [modalOpen, setModalOpen] = useState(false);
@@ -285,15 +285,12 @@ export default function PanchangPage() {
         )}
 
         {/* Selected regional calendar — below the Gregorian date shown in
-            PanchangHeader above. Just the region's name: it doesn't depend
-            on panchang data being loaded (shows immediately), and it's the
-            one thing that's always meaningful regardless of which region is
-            picked (calendar system + era year is shown per-region in the
-            grid below instead). RegionPicker lets the user override the
-            language-derived default (see usePanchangRegion); the choice
-            persists and also drives MonthlyPanchangCalendar's header below. */}
-        <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
-          <p className="text-xs text-foreground">{REGION_META[region].label}</p>
+            PanchangHeader above. RegionPicker's trigger shows the icon +
+            selected region's name directly, so no separate label is needed
+            here. Lets the user override the language-derived default (see
+            usePanchangRegion); the choice persists and also drives
+            MonthlyPanchangCalendar's header below. */}
+        <div className="mt-3 flex items-center justify-end gap-2 flex-wrap">
           <RegionPicker region={region} onChange={setRegion} />
         </div>
 

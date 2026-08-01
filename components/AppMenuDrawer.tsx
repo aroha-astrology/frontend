@@ -201,11 +201,6 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
               {/* Rows */}
               <div className="flex flex-col gap-2">
                 <ListRow
-                  icon={<UserPlus size={16} />}
-                  label={t("menu.addProfiles")}
-                  onClick={() => setSwitcherOpen(true)}
-                />
-                <ListRow
                   icon={<MessageCircle size={16} />}
                   label={t("menu.chatHistory")}
                   href="/chat-history"

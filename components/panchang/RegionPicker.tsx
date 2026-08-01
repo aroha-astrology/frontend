@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CalendarDays, Check } from "lucide-react";
+import { CalendarDays, Check, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { REGION_META, type RegionId } from "@/lib/panchang/regions";
-import IconButton from "@/components/ui/IconButton";
 
 type DropdownPos =
   | { top: number; left: number; maxHeight: number; bottom?: undefined }
@@ -86,14 +85,17 @@ export default function RegionPicker({
 
   return (
     <>
-      <IconButton
+      <button
         ref={buttonRef}
         onClick={() => setOpen((o) => !o)}
         aria-label={t("horoscope.panchang.regionPicker.ariaLabel")}
         aria-expanded={open}
+        className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-card px-3 py-1.5 text-xs font-semibold text-gold hover:bg-gold/10 transition-colors"
       >
-        <CalendarDays size={16} />
-      </IconButton>
+        <CalendarDays size={14} />
+        {REGION_META[region].label}
+        <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
 
       {typeof document !== "undefined" &&
         createPortal(

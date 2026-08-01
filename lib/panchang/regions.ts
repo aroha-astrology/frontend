@@ -12,7 +12,7 @@ export type RegionId =
   | "kannada";
 
 export const REGION_OPTIONS: { value: RegionId; label: string }[] = [
-  { value: "north", label: "Hindi / Bihari" },
+  { value: "north", label: "Hindi" },
   { value: "west", label: "Marathi" },
   { value: "gujarat", label: "Gujarati" },
   { value: "east", label: "Bengali" },
@@ -34,7 +34,7 @@ export interface RegionMeta {
 }
 
 export const REGION_META: Record<RegionId, RegionMeta> = {
-  north: { id: "north", label: "Hindi / Bihari", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
+  north: { id: "north", label: "Hindi", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
   south: { id: "south", label: "Telugu", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masam" },
   kannada: { id: "kannada", label: "Kannada", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masa" },
   west: { id: "west", label: "Marathi", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhik Maas" },

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
+  Download,
   Globe,
+  Loader2,
   Moon,
   ScrollText,
   ShieldCheck,
@@ -71,6 +73,9 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const [deletingProfile, setDeletingProfile] = useState<Profile | null>(null);
   const [deleteProfileBusy, setDeleteProfileBusy] = useState(false);
   const [deleteProfileError, setDeleteProfileError] = useState<string | null>(null);
@@ -90,6 +95,31 @@ export default function SettingsPage() {
       await refresh();
     } finally {
       setConsentBusy(false);
+    }
+  };
+
+  /**
+   * DPDP §11 access right (and GDPR Arts. 15/20). Fetches the export and
+   * saves it via an object URL — a plain anchor to the API would drop the
+   * bearer token, and the endpoint is authenticated.
+   */
+  const handleExportData = async () => {
+    setExportBusy(true);
+    setExportError(null);
+    try {
+      const data = await api.exportMyData();
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "aroha-my-data.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError(t("settings.downloadDataError"));
+    } finally {
+      setExportBusy(false);
     }
   };
 
@@ -197,6 +227,23 @@ export default function SettingsPage() {
             <LogOut size={16} />
             <span className="text-sm font-medium">{t("menu.signOut")}</span>
           </button>
+        </Card>
+        <Card className="p-1">
+          <button
+            onClick={handleExportData}
+            disabled={exportBusy}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-left hover:bg-white/5 transition-colors disabled:opacity-50"
+          >
+            {exportBusy ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Download size={16} />
+            )}
+            <span className="text-sm font-medium">{t("settings.downloadData")}</span>
+          </button>
+          {exportError && (
+            <p className="px-3 pb-2 text-[12px] text-red-400">{exportError}</p>
+          )}
         </Card>
         <Card className="p-1">
           <button

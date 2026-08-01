@@ -42,6 +42,12 @@ export interface User {
   profileCompletedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /**
+   * Version of the Terms the user actually agreed to. Compared against
+   * LEGAL_VERSION in AuthGuard to re-prompt when the documents change —
+   * null for accounts that consented before versions were recorded.
+   */
+  termsVersion: string | null;
   /** Wallet balance in paise, spendable for unlocking kundli house details (POST /v1/me/unlock-house). */
   walletBalancePaise: number;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
@@ -831,6 +837,12 @@ export const api = {
 
   /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
+  /**
+   * DPDP §11 / GDPR Art. 15 & 20 data export. Returns the raw JSON so the
+   * caller can hand it straight to a download — deliberately untyped, since
+   * the payload is a snapshot of many tables rather than a fixed contract.
+   */
+  exportMyData: () => request<unknown>("/v1/me/export", { auth: true }),
 
   /** All profiles on this account — the primary (self) profile plus any added ones. */
   listProfiles: () => request<Profile[]>("/v1/profiles", { auth: true }),

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import ConsentGate from "@/components/ConsentGate";
 import AuthLoadingScreen from "@/components/AuthLoadingScreen";
+import { LEGAL_VERSION } from "@/lib/legal-content";
 
 // /legal/* must be readable pre-auth: sign-in/onboarding link to the Terms
 // and Privacy Policy, and consent to an unreadable document is not valid
@@ -54,16 +55,26 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   // path in the app. Onboarding itself already collects consent, so skip
   // this on that route to avoid asking twice in the same flow. Admins never
   // go through onboarding at all, so they're exempt from this gate too.
+  //
+  // The same gate also handles a *stale* consent: a user who agreed to an
+  // earlier version of the Terms/Privacy Policy is re-asked once the
+  // documents change materially. Without this, a version bump would never
+  // reach an existing user and their consent record would permanently name
+  // a superseded document. `termsVersion` is already on the user DTO, so
+  // this needs no schema change.
+  const consentStale =
+    !!user?.dataProcessingConsentActive && user.termsVersion !== LEGAL_VERSION;
+
   if (
     firebaseUser &&
     user &&
     !isAdmin &&
     user.profileCompletedAt &&
-    !user.dataProcessingConsentActive &&
+    (!user.dataProcessingConsentActive || consentStale) &&
     !isOnboarding &&
     !isPublic
   ) {
-    return <ConsentGate />;
+    return <ConsentGate stale={consentStale} />;
   }
 
   return <>{children}</>;

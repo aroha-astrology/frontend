@@ -8,15 +8,23 @@ import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import BrandLogo from "@/components/ui/BrandLogo";
+import { LEGAL_VERSION } from "@/lib/legal-content";
 
 /**
- * Blocking gate shown for any signed-in, already-onboarded user whose
- * `dataProcessingConsentActive` is false — e.g. anyone who completed
- * onboarding before the consent checkbox existed there. Without this,
- * `requireConsent` permanently 403s their chat/forecast/matchmaking calls
- * with no way to recover from within the app.
+ * Blocking gate shown for any signed-in, already-onboarded user who either
+ * has no data-processing consent (e.g. anyone who completed onboarding
+ * before the consent checkbox existed there) or consented to a superseded
+ * version of the documents. Without this, `requireConsent` permanently 403s
+ * their chat/forecast/matchmaking calls with no way to recover from within
+ * the app, and a version bump would never reach an existing user.
+ *
+ * The version stamped here MUST be the version of the text the user can
+ * actually read from the links below — it used to be hardcoded "1.0.0"
+ * while the rendered documents said "1.1.0", which made every consent
+ * record written through this gate name a document nobody was shown.
+ * Import the constant; never restate the literal.
  */
-export default function ConsentGate() {
+export default function ConsentGate({ stale = false }: { stale?: boolean }) {
   const { t } = useTranslation();
   const { refresh } = useAuth();
   const [consented, setConsented] = useState(false);
@@ -31,8 +39,8 @@ export default function ConsentGate() {
       await api.updateMe({
         consent: {
           dataProcessing: true,
-          terms: { version: "1.0.0" },
-          privacy: { version: "1.0.0" },
+          terms: { version: LEGAL_VERSION },
+          privacy: { version: LEGAL_VERSION },
         },
       });
       await refresh();
@@ -45,8 +53,12 @@ export default function ConsentGate() {
   return (
     <div className="cosmic-bg min-h-screen flex flex-col items-center justify-center px-6 text-center text-foreground">
       <BrandLogo size={72} className="mb-6 opacity-90" />
-      <h1 className="font-display text-xl text-foreground mb-3">{t("onboarding.confirmTitle")}</h1>
-      <p className="text-sm text-muted max-w-xs mb-6 leading-relaxed">{t("consentGate.body")}</p>
+      <h1 className="font-display text-xl text-foreground mb-3">
+        {stale ? t("consentGate.updatedTitle") : t("onboarding.confirmTitle")}
+      </h1>
+      <p className="text-sm text-muted max-w-xs mb-6 leading-relaxed">
+        {stale ? t("consentGate.updatedBody") : t("consentGate.body")}
+      </p>
 
       <label className="flex items-start gap-2.5 mb-2 max-w-xs text-left text-[12px] text-muted leading-relaxed cursor-pointer">
         <input

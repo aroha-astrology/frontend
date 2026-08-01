@@ -70,6 +70,24 @@ function isValidDob(v: string) {
   const [d, m, y] = v.split("/").map(Number);
   return d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 1900 && y <= new Date().getFullYear();
 }
+/**
+ * 18+ check on a "DD/MM/YYYY" string. The Service is 18-and-over (Terms §1)
+ * because the DPDP Act requires verifiable parental consent below that, which
+ * we don't support — so an account simply cannot be created for a minor.
+ * The backend enforces the same rule on the onboarding PATCH; this is the
+ * friendly half, so the user finds out on the date step rather than after
+ * filling in the whole flow.
+ *
+ * Deliberately NOT applied in new-profile mode: a birth profile the user
+ * creates for someone else (compatibility matching) may legitimately be a
+ * child, and Terms §6 governs that case with a guardian-consent clause
+ * instead.
+ */
+function isAdultDob(v: string) {
+  const [d, m, y] = v.split("/").map(Number);
+  const eighteenth = new Date(y + 18, m - 1, d);
+  return eighteenth <= new Date();
+}
 function isValidTob(v: string) {
   if (!/^\d{2}:\d{2}$/.test(v)) return false;
   const [h, m] = v.split(":").map(Number);
@@ -289,6 +307,7 @@ function OnboardingPageInner() {
     } else if (step === 3) { // dob — the date input holds ISO; store DD/MM/YYYY
       const dob = isoToDob(val);
       if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
+      if (!isNewProfileMode && !isAdultDob(dob)) { setInputErr(t("onboarding.ageError")); return; }
       await advance({ dob }, dob, Q[3]);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }

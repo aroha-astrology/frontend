@@ -12,6 +12,9 @@ import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
 import WalletBalance from "@/components/ui/WalletBalance";
 import { api, ApiError, type TopUpAmount, type CouponValidation } from "@/lib/api";
+import { isNativeAndroid } from "@/lib/play-billing";
+
+type PaymentMethod = "google_play" | "razorpay";
 
 function TopUpCard({
   amount,
@@ -54,6 +57,10 @@ export default function PaymentPage() {
   const [packsLoading, setPacksLoading] = useState(true);
   const [selectedAmountId, setSelectedAmountId] = useState<string | null>(null);
 
+  const [razorpayEnabled, setRazorpayEnabled] = useState(false);
+  const [playAvailable, setPlayAvailable] = useState(false);
+  const [method, setMethod] = useState<PaymentMethod>("razorpay");
+
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -65,12 +72,22 @@ export default function PaymentPage() {
   useEffect(() => {
     api
       .billingTopUpAmounts()
-      .then(({ amounts }) => {
+      .then(({ amounts, razorpayEnabled }) => {
         setAmounts(amounts);
+        setRazorpayEnabled(razorpayEnabled);
         setSelectedAmountId((prev) => prev ?? amounts.find((p) => p.popular)?.id ?? amounts[0]?.id ?? null);
       })
       .catch(() => setAmounts([]))
       .finally(() => setPacksLoading(false));
+  }, []);
+
+  // Google Play billing only exists inside the native Android build; on the
+  // web (and iOS) Razorpay is the only way to pay.
+  useEffect(() => {
+    isNativeAndroid().then((native) => {
+      setPlayAvailable(native);
+      if (native) setMethod("google_play");
+    });
   }, []);
 
   const selectedAmount = amounts.find((p) => p.id === selectedAmountId) ?? null;
@@ -107,20 +124,12 @@ export default function PaymentPage() {
 
   async function handlePay() {
     if (!selectedAmount) return;
+    const code = couponApplied ? couponResult?.code : undefined;
     setPaying(true);
     setPayError(null);
     try {
-      const order = await api.checkout(selectedAmount.id, couponApplied ? couponResult?.code : undefined);
-
-      let isNativeAndroid = false;
-      try {
-        const { Capacitor } = await import("@capacitor/core");
-        isNativeAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
-      } catch {
-        // @capacitor/core not resolvable — plain web build, definitely not native.
-      }
-
-      if (isNativeAndroid) {
+      if (method === "google_play") {
+        await api.checkout(selectedAmount.id, code);
         const { PlayBilling } = await import("@/lib/play-billing");
         const purchase = await PlayBilling.purchaseProduct({ productId: selectedAmount.id });
         await api.confirmGooglePlayOrder({
@@ -128,7 +137,32 @@ export default function PaymentPage() {
           productId: purchase.productId,
         });
       } else {
-        await api.confirmOrder(order.id);
+        const { order, razorpayOrderId, razorpayKeyId } = await api.razorpayCheckout(
+          selectedAmount.id,
+          code,
+        );
+        const { payWithRazorpay } = await import("@/lib/razorpay");
+        const result = await payWithRazorpay({
+          keyId: razorpayKeyId,
+          razorpayOrderId,
+          amountPaise: order.finalAmountPaise,
+          currency: order.currency,
+          name: "Aroha Astrology",
+          description: t("payment.rechargeDescription"),
+          prefill: {
+            ...(user?.displayName ? { name: user.displayName } : {}),
+            ...(user?.phoneE164 ? { contact: user.phoneE164 } : {}),
+            ...(user?.email ? { email: user.email } : {}),
+          },
+        });
+        // User closed the modal without paying — nothing happened, no error.
+        if (!result) return;
+        await api.verifyRazorpayPayment({
+          orderId: order.id,
+          razorpayOrderId: result.razorpay_order_id,
+          razorpayPaymentId: result.razorpay_payment_id,
+          razorpaySignature: result.razorpay_signature,
+        });
       }
 
       await refreshUser();
@@ -138,10 +172,11 @@ export default function PaymentPage() {
         err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
       if (isUserCancelled) {
         // User backed out of the Play purchase sheet — not an error, nothing to show.
+      } else if (err instanceof ApiError) {
+        setPayError(err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"));
       } else {
-        setPayError(
-          err instanceof ApiError && err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"),
-        );
+        // Razorpay's own payment.failed carries a reason worth showing verbatim.
+        setPayError(err instanceof Error ? err.message : t("payment.genericError"));
       }
     } finally {
       setPaying(false);
@@ -271,6 +306,39 @@ export default function PaymentPage() {
                   </div>
                 </div>
               </Card>
+            )}
+
+            {/* Only a choice when both rails are actually usable here. */}
+            {playAvailable && razorpayEnabled && (
+              <div className="mb-4">
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted mb-2">
+                  {t("payment.methodLabel")}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["google_play", "razorpay"] as const).map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setMethod(option)}
+                      className={`rounded-2xl border p-3 text-left transition-all ${
+                        method === option
+                          ? "border-gold bg-gold/10"
+                          : "border-gold/15 bg-surface/40 hover:border-gold/35"
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold text-foreground">
+                        {t(option === "google_play" ? "payment.methodPlay" : "payment.methodRazorpay")}
+                      </span>
+                      <span className="block text-[10px] text-muted mt-0.5">
+                        {t(
+                          option === "google_play"
+                            ? "payment.methodPlayHint"
+                            : "payment.methodRazorpayHint",
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             {payError && (

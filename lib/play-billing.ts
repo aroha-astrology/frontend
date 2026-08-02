@@ -16,3 +16,13 @@ interface PlayBillingPluginInterface {
  * npm package. Only usable when Capacitor.isNativePlatform() is true.
  */
 export const PlayBilling = registerPlugin<PlayBillingPluginInterface>("PlayBilling");
+
+/** True only inside the native Android build — the one place Play Billing can run. */
+export async function isNativeAndroid(): Promise<boolean> {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+  } catch {
+    return false; // @capacitor/core not resolvable — plain web build.
+  }
+}

@@ -1052,7 +1052,10 @@ export const api = {
     pollKundli(opts),
 
   /** Purchasable top-up amounts. */
-  billingTopUpAmounts: () => request<{ amounts: TopUpAmount[] }>("/v1/billing/top-up-amounts", { auth: true }),
+  billingTopUpAmounts: () =>
+    request<{ amounts: TopUpAmount[]; razorpayEnabled: boolean }>("/v1/billing/top-up-amounts", {
+      auth: true,
+    }),
 
   /** Preview the discount a coupon would apply to a top-up amount, without redeeming it. */
   validateCoupon: (code: string, packId: string) =>
@@ -1079,6 +1082,26 @@ export const api = {
   confirmOrder: (orderId: string) =>
     request<{ order: Order; walletBalancePaise: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
+      auth: true,
+    }),
+
+  /** Create a pending order plus its Razorpay order — everything checkout.js needs to open the modal. */
+  razorpayCheckout: (packId: string, couponCode?: string) =>
+    request<{ order: Order; razorpayOrderId: string; razorpayKeyId: string }>(
+      "/v1/billing/razorpay/order",
+      { method: "POST", body: couponCode ? { packId, couponCode } : { packId }, auth: true },
+    ),
+
+  /** Hand Razorpay's payment ids back to the server, which verifies the signature before granting. */
+  verifyRazorpayPayment: (params: {
+    orderId: string;
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }) =>
+    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/razorpay/verify", {
+      method: "POST",
+      body: params,
       auth: true,
     }),
 

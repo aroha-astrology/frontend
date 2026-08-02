@@ -90,6 +90,18 @@ export default function PaymentPage() {
     });
   }, []);
 
+  // Razorpay is offered only to phone/OTP accounts: its checkout demands a
+  // mobile number, and a Google-signup user has none on file, so they'd hit
+  // its "Contact details" gate before ever seeing a payment method.
+  const razorpayAvailable = razorpayEnabled && Boolean(user?.phoneE164);
+  const canPay = playAvailable || razorpayAvailable;
+
+  // Keep the selected method honest if the only rail it named goes away.
+  useEffect(() => {
+    if (method === "razorpay" && !razorpayAvailable && playAvailable) setMethod("google_play");
+    if (method === "google_play" && !playAvailable && razorpayAvailable) setMethod("razorpay");
+  }, [method, razorpayAvailable, playAvailable]);
+
   const selectedAmount = amounts.find((p) => p.id === selectedAmountId) ?? null;
   const couponApplied = couponResult?.valid === true;
   const discountPaise = couponApplied ? couponResult?.discountPaise ?? 0 : 0;
@@ -313,7 +325,7 @@ export default function PaymentPage() {
             )}
 
             {/* Only a choice when both rails are actually usable here. */}
-            {playAvailable && razorpayEnabled && (
+            {playAvailable && razorpayAvailable && (
               <div className="mb-4">
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted mb-2">
                   {t("payment.methodLabel")}
@@ -345,13 +357,17 @@ export default function PaymentPage() {
               </div>
             )}
 
+            {!canPay && !packsLoading && (
+              <p className="text-xs text-amber-300/90 text-center mb-3">{t("payment.phoneRequired")}</p>
+            )}
+
             {payError && (
               <p className="text-xs text-red-400 text-center mb-3">{payError}</p>
             )}
 
             <button
               onClick={handlePay}
-              disabled={!selectedAmount || paying}
+              disabled={!selectedAmount || paying || !canPay}
               className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
             >
               {paying ? (

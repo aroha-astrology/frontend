@@ -151,7 +151,11 @@ export default function PaymentPage() {
           description: t("payment.rechargeDescription"),
           prefill: {
             ...(user?.displayName ? { name: user.displayName } : {}),
-            ...(user?.phoneE164 ? { contact: user.phoneE164 } : {}),
+            // Razorpay's contact field already renders a +91 selector, so the
+            // E.164 form lands in it as a duplicated country code and the
+            // field comes back blank — which puts its "Contact details" gate
+            // in front of the payment methods (UPI included) for every user.
+            ...(user?.phoneE164 ? { contact: user.phoneE164.replace(/^\+91/, "") } : {}),
             ...(user?.email ? { email: user.email } : {}),
           },
         });

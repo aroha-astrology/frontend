@@ -13,6 +13,7 @@ import {
   GEMINI_OUTPUT_USD_PER_MILLION_TOKENS,
   GST_RATE,
   isValidCustomRange,
+  splitFreeVsPaid,
 } from "@/lib/admin-format";
 import { fetchUsdInrRate, FALLBACK_RATE, type UsdInrRate } from "@/lib/fx";
 import DateRangePicker, { type AdminRangeValue } from "@/components/admin/DateRangePicker";
@@ -21,6 +22,7 @@ import ErrorRetry from "@/components/admin/ErrorRetry";
 import RevenueLineChart from "@/components/admin/RevenueLineChart";
 import SpendByFeatureBarChart from "@/components/admin/SpendByFeatureBarChart";
 import Card from "@/components/ui/Card";
+import CostSplitBar from "@/components/admin/CostSplitBar";
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -232,6 +234,19 @@ function AdminOverviewContent() {
                     ))}
                   </select>
                 </div>
+
+                {/* Total cost first, then the free-vs-paid split beneath it — green is
+                    what the free key pool absorbed, red is what actually hit the paid
+                    reserve. Same split.freePercent + split.paidPercent === 100 rule as
+                    the per-row bars below (see splitFreeVsPaid in lib/admin-format.ts). */}
+                <Card className="p-4 mb-3">
+                  <p className="text-xs text-muted mb-1">Total (if unsubsidised)</p>
+                  <p className="text-2xl font-semibold text-foreground mb-3">
+                    {formatRupees(llmListPriceTotalPaise)}
+                  </p>
+                  <CostSplitBar split={splitFreeVsPaid(llmListPriceTotalPaise, llmCostTotalPaise)} />
+                </Card>
+
                 <Card className="p-4 overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -243,12 +258,13 @@ function AdminOverviewContent() {
                         <th className="pb-2 font-medium text-right">Paid Calls</th>
                         <th className="pb-2 font-medium text-right">Billed (₹)</th>
                         <th className="pb-2 font-medium text-right">If Unsubsidised (₹)</th>
+                        <th className="pb-2 font-medium text-left pl-3">Free vs Paid</th>
                       </tr>
                     </thead>
                     <tbody>
                       {llmCostRows.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="text-muted text-center py-4">
+                          <td colSpan={8} className="text-muted text-center py-4">
                             {userId ? "No AI usage for this user in this range" : "No data"}
                           </td>
                         </tr>
@@ -263,6 +279,9 @@ function AdminOverviewContent() {
                               <td className="py-2 text-right text-foreground">{row.paidCalls.toLocaleString()}</td>
                               <td className="py-2 text-right text-foreground">{formatRupees(row.costPaise)}</td>
                               <td className="py-2 text-right text-muted">{formatRupees(row.listPricePaise)}</td>
+                              <td className="py-2 pl-3 min-w-[160px]">
+                                <CostSplitBar split={splitFreeVsPaid(row.listPricePaise, row.costPaise)} compact />
+                              </td>
                             </tr>
                           ))}
                           <tr className="border-t border-border font-semibold">
@@ -273,6 +292,12 @@ function AdminOverviewContent() {
                             <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-gold">{formatRupees(llmCostTotalPaise)}</td>
                             <td className="py-2 text-right text-muted">{formatRupees(llmListPriceTotalPaise)}</td>
+                            <td className="py-2 pl-3 min-w-[160px]">
+                              <CostSplitBar
+                                split={splitFreeVsPaid(llmListPriceTotalPaise, llmCostTotalPaise)}
+                                compact
+                              />
+                            </td>
                           </tr>
                         </>
                       )}
@@ -280,6 +305,9 @@ function AdminOverviewContent() {
                   </table>
                 </Card>
                 <p className="text-[11px] text-muted mt-2 max-w-xl">
+                  <strong className="text-green-400">Green</strong> = covered by the free key pool, real ₹ NOT
+                  spent. <strong className="text-red-400">Red</strong> = served by the paid reserve, real ₹ spent.
+                  Both bars split the same "If Unsubsidised" total, so they always add up to 100%.{" "}
                   <strong>Billed</strong> counts only calls served by the paid reserve key — the free key pool costs
                   ₹0 however many tokens it burns, so on an ordinary day this is ₹0 and that is correct.{" "}
                   <strong>If Unsubsidised</strong> is what the same usage would have cost at list price, i.e. what the

@@ -271,6 +271,46 @@ export function addGst(paise: number): number {
   return paise * (1 + GST_RATE);
 }
 
+export interface CostSplit {
+  /** What the usage would cost with nothing subsidised. */
+  totalPaise: number;
+  /** The share the free key pool absorbed — real money NOT spent. */
+  freePaise: number;
+  /** The share served by the paid reserve — real money spent. */
+  paidPaise: number;
+  freePercent: number;
+  paidPercent: number;
+}
+
+/**
+ * Splits a feature's total cost into the part the free key pool absorbed and the
+ * part the paid reserve actually billed.
+ *
+ * The two percentages are derived from ONE rounding (paid), with free taken as
+ * the remainder, so they always sum to exactly 100 — independently rounding both
+ * is how a table ends up displaying "80% + 21%".
+ *
+ * A zero total reports 0/0 rather than NaN, and `paidPaise` is clamped into
+ * [0, total]: the paid figure comes from a different SQL aggregate than the
+ * total, and a stray row should never render a negative "free" share.
+ */
+export function splitFreeVsPaid(totalPaise: number, paidPaise: number): CostSplit {
+  const total = Math.max(0, totalPaise);
+  const paid = Math.min(Math.max(0, paidPaise), total);
+  const free = total - paid;
+  if (total === 0) {
+    return { totalPaise: 0, freePaise: 0, paidPaise: 0, freePercent: 0, paidPercent: 0 };
+  }
+  const paidPercent = Math.round((paid / total) * 100);
+  return {
+    totalPaise: total,
+    freePaise: free,
+    paidPaise: paid,
+    freePercent: 100 - paidPercent,
+    paidPercent,
+  };
+}
+
 /**
  * Estimates the ₹ cost (in paise, so it can be passed straight to
  * `formatRupees()`) of one agent's token usage, using the pricing constants

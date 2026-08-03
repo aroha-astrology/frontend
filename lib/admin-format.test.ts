@@ -21,6 +21,7 @@ import {
   isUserOnline,
   ONLINE_WINDOW_MS,
   addGst,
+  splitFreeVsPaid,
   GST_RATE,
 } from "./admin-format";
 
@@ -420,5 +421,50 @@ describe("addGst / rate injection", () => {
       15.1553,
       3,
     );
+  });
+});
+
+describe("splitFreeVsPaid", () => {
+  it("splits 80/20 exactly as the user described (80 paise free, 20 paise paid of a 100 paise total)", () => {
+    expect(splitFreeVsPaid(100, 20)).toEqual({
+      totalPaise: 100,
+      freePaise: 80,
+      paidPaise: 20,
+      freePercent: 80,
+      paidPercent: 20,
+    });
+  });
+
+  it("always sums the two percentages to exactly 100, never double-rounding to 99 or 101", () => {
+    // 1/3 paid would independently round to 33% and 67% -> 100, fine; but pick a
+    // total where naive per-side rounding actually breaks (33.5/66.5 pattern).
+    const s = splitFreeVsPaid(700, 235); // 235/700 = 33.57% -> rounds to 34
+    expect(s.paidPercent + s.freePercent).toBe(100);
+    expect(s.paidPercent).toBe(34);
+    expect(s.freePercent).toBe(66);
+  });
+
+  it("reports 0/0 rather than NaN when there is no spend at all", () => {
+    expect(splitFreeVsPaid(0, 0)).toEqual({
+      totalPaise: 0,
+      freePaise: 0,
+      paidPaise: 0,
+      freePercent: 0,
+      paidPercent: 0,
+    });
+  });
+
+  it("is all-green (100% free) when nothing was billed", () => {
+    expect(splitFreeVsPaid(500, 0)).toMatchObject({ freePercent: 100, paidPercent: 0 });
+  });
+
+  it("is all-red (100% paid) when the entire total was billed", () => {
+    expect(splitFreeVsPaid(500, 500)).toMatchObject({ freePercent: 0, paidPercent: 100 });
+  });
+
+  it("clamps a paid figure that exceeds the total instead of reporting negative free spend", () => {
+    // Paid/list price come from separate SQL aggregates computed at different
+    // moments; a stray inconsistency must not render a negative free share.
+    expect(splitFreeVsPaid(100, 150)).toMatchObject({ freePaise: 0, paidPaise: 100, paidPercent: 100 });
   });
 });

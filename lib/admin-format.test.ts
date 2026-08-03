@@ -13,6 +13,11 @@ import {
   groupFeaturesByGroup,
   validateGroupName,
   FEATURE_GROUP_ORDER,
+  estimateLlmCostPaise,
+  estimateLlmListPricePaise,
+  GEMINI_INPUT_USD_PER_MILLION_TOKENS,
+  GEMINI_OUTPUT_USD_PER_MILLION_TOKENS,
+  USD_TO_INR_RATE,
 } from "./admin-format";
 
 describe("ADMIN_DATE_RANGE_PRESETS", () => {
@@ -288,5 +293,60 @@ describe("validateGroupName", () => {
 
   it("rejects a whitespace-only name", () => {
     expect(validateGroupName("   ").ok).toBe(false);
+  });
+});
+
+describe("estimateLlmCostPaise", () => {
+  it("charges nothing for usage served entirely by the free key tier", () => {
+    // The whole point of the free pool: a million tokens through it is still
+    // ₹0. Reporting list price here would invent spend that never happened.
+    expect(
+      estimateLlmCostPaise({ paidTokensIn: 0, paidTokensOut: 0 }),
+    ).toBe(0);
+  });
+
+  it("charges only the paid-tier tokens", () => {
+    const oneMillionIn = estimateLlmCostPaise({ paidTokensIn: 1_000_000, paidTokensOut: 0 });
+    expect(oneMillionIn).toBeCloseTo(
+      GEMINI_INPUT_USD_PER_MILLION_TOKENS * USD_TO_INR_RATE * 100,
+      6,
+    );
+
+    const oneMillionOut = estimateLlmCostPaise({ paidTokensIn: 0, paidTokensOut: 1_000_000 });
+    expect(oneMillionOut).toBeCloseTo(
+      GEMINI_OUTPUT_USD_PER_MILLION_TOKENS * USD_TO_INR_RATE * 100,
+      6,
+    );
+  });
+
+  it("prices output tokens above input tokens", () => {
+    expect(estimateLlmCostPaise({ paidTokensIn: 0, paidTokensOut: 1000 })).toBeGreaterThan(
+      estimateLlmCostPaise({ paidTokensIn: 1000, paidTokensOut: 0 }),
+    );
+  });
+
+  it("treats a row from before the paid tier existed as free, not as missing data", () => {
+    // Historical ai_usage rows have no tier and no paid columns. They were all
+    // free-tier, so 0 is the correct answer — NaN would poison the total.
+    expect(estimateLlmCostPaise({})).toBe(0);
+  });
+});
+
+describe("estimateLlmListPricePaise", () => {
+  it("prices every token, so the free pool's value is visible", () => {
+    expect(estimateLlmListPricePaise({ tokensIn: 1_000_000, tokensOut: 0 })).toBeCloseTo(
+      GEMINI_INPUT_USD_PER_MILLION_TOKENS * USD_TO_INR_RATE * 100,
+      6,
+    );
+  });
+
+  it("is at least the billed cost for the same row, never less", () => {
+    const row = { tokensIn: 5000, tokensOut: 9000, paidTokensIn: 1000, paidTokensOut: 2000 };
+    expect(estimateLlmListPricePaise(row)).toBeGreaterThan(estimateLlmCostPaise(row));
+  });
+
+  it("agrees with the billed cost when every call was on the paid tier", () => {
+    const row = { tokensIn: 4000, tokensOut: 7000, paidTokensIn: 4000, paidTokensOut: 7000 };
+    expect(estimateLlmListPricePaise(row)).toBeCloseTo(estimateLlmCostPaise(row), 6);
   });
 });

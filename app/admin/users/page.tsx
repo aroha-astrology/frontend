@@ -246,6 +246,12 @@ export default function AdminUsersPage() {
                           >
                             Tickets
                           </Link>
+                          <Link
+                            href={`/admin?userId=${encodeURIComponent(u.id)}`}
+                            className="px-3 py-1.5 rounded-full border border-border text-muted text-xs hover:text-foreground transition-colors"
+                          >
+                            AI Cost
+                          </Link>
                         </div>
                       </td>
                     </tr>

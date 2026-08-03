@@ -221,8 +221,32 @@ export const USD_TO_INR_RATE = 88;
  * `formatRupees()`) of one agent's token usage, using the pricing constants
  * above. This is an estimate derived from token counts, not a real ledger
  * entry — unlike other `*Paise` fields in this file, it may be fractional.
+ *
+ * Only tokens served by the PAID key tier are charged. The free tier costs ₹0
+ * however many tokens it burns, so billing every token at list price would
+ * overstate real spend by roughly the ratio of free-to-paid traffic — which on
+ * an ordinary day is all of it. Rows predating the paid reserve carry no paid
+ * tokens and correctly price at zero.
  */
-export function estimateLlmCostPaise(usage: { tokensIn: number; tokensOut: number }): number {
+export function estimateLlmCostPaise(usage: {
+  paidTokensIn?: number;
+  paidTokensOut?: number;
+}): number {
+  const inputUsd = ((usage.paidTokensIn ?? 0) / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION_TOKENS;
+  const outputUsd = ((usage.paidTokensOut ?? 0) / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
+  return (inputUsd + outputUsd) * USD_TO_INR_RATE * 100;
+}
+
+/**
+ * What the same usage WOULD have cost if none of it had been on the free tier.
+ * Shown alongside the real figure so the dashboard can express the value the
+ * free key pool is providing, rather than silently reporting ₹0 and looking
+ * broken on a normal day.
+ */
+export function estimateLlmListPricePaise(usage: {
+  tokensIn: number;
+  tokensOut: number;
+}): number {
   const inputUsd = (usage.tokensIn / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION_TOKENS;
   const outputUsd = (usage.tokensOut / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
   return (inputUsd + outputUsd) * USD_TO_INR_RATE * 100;

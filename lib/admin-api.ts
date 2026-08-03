@@ -37,6 +37,10 @@ export interface AdminLlmCostByAgentRow {
   tokensIn: number;
   tokensOut: number;
   calls: number;
+  /** The billed subset — free-tier calls cost ₹0 regardless of token count. */
+  paidTokensIn: number;
+  paidTokensOut: number;
+  paidCalls: number;
 }
 
 export interface AdminOverview {
@@ -186,10 +190,14 @@ export interface AdminDateRangeParams {
 
 export const adminApi = {
   /** Revenue/usage analytics for a date range. */
-  overview: (params: AdminDateRangeParams) =>
-    request<AdminOverview>(`/v1/admin/overview?${buildAdminRangeQuery(params.preset, params.from, params.to)}`, {
-      auth: true,
-    }),
+  overview: (params: AdminDateRangeParams & { userId?: string }) =>
+    request<AdminOverview>(
+      `/v1/admin/overview?${buildAdminRangeQuery(params.preset, params.from, params.to)}` +
+        // Narrows the LLM cost breakdown only — the revenue and funnel figures
+        // in the same response stay business-wide.
+        (params.userId ? `&userId=${encodeURIComponent(params.userId)}` : ""),
+      { auth: true },
+    ),
 
   /** Per-report-type revenue breakdown for a date range. */
   reports: (params: AdminDateRangeParams) =>

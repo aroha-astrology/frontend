@@ -1,10 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { adminApi, type AdminOverview } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
-import { estimateLlmCostPaise, isValidCustomRange, USD_TO_INR_RATE } from "@/lib/admin-format";
+import {
+  estimateLlmCostPaise,
+  estimateLlmListPricePaise,
+  isValidCustomRange,
+  USD_TO_INR_RATE,
+} from "@/lib/admin-format";
 import DateRangePicker, { type AdminRangeValue } from "@/components/admin/DateRangePicker";
 import KpiTile from "@/components/admin/KpiTile";
 import ErrorRetry from "@/components/admin/ErrorRetry";
@@ -23,11 +29,22 @@ function defaultCustomRange(): { from: string; to: string } {
   return { from: isoDate(from), to: isoDate(to) };
 }
 
-export default function AdminOverviewPage() {
+function AdminOverviewContent() {
+  const searchParams = useSearchParams();
   const [range, setRange] = useState<AdminRangeValue>({ preset: "last30d", from: "", to: "" });
   const [data, setData] = useState<AdminOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Deep-linkable so the users table can link straight to "what has this person
+  // cost us in AI" — same ?userId= pattern the tickets page already uses.
+  const [userIdInput, setUserIdInput] = useState(searchParams.get("userId") ?? "");
+  const [userId, setUserId] = useState(searchParams.get("userId") ?? "");
+
+  // Debounced so typing/pasting a uuid doesn't fire a request per keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setUserId(userIdInput.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [userIdInput]);
 
   const canFetch = range.preset !== "custom" || isValidCustomRange(range.from, range.to);
 
@@ -39,23 +56,36 @@ export default function AdminOverviewPage() {
     const rows = (data?.llmCostByAgent ?? []).map((row) => ({
       ...row,
       costPaise: estimateLlmCostPaise(row),
+      listPricePaise: estimateLlmListPricePaise(row),
     }));
-    return rows.sort((a, b) => b.costPaise - a.costPaise);
+    // Sort by list price, not billed cost: on a normal day everything is free
+    // tier and billed cost is ₹0 across the board, which would leave the table
+    // in arbitrary order exactly when you most want to see the volume drivers.
+    return rows.sort((a, b) => b.listPricePaise - a.listPricePaise);
   }, [data]);
 
   const llmCostTotalPaise = useMemo(() => llmCostRows.reduce((sum, row) => sum + row.costPaise, 0), [llmCostRows]);
+  const llmListPriceTotalPaise = useMemo(
+    () => llmCostRows.reduce((sum, row) => sum + row.listPricePaise, 0),
+    [llmCostRows],
+  );
 
   const fetchOverview = useCallback(() => {
     if (!canFetch) return;
     setLoading(true);
     setError(null);
     adminApi
-      .overview({ preset: range.preset, from: range.from || undefined, to: range.to || undefined })
+      .overview({
+        preset: range.preset,
+        from: range.from || undefined,
+        to: range.to || undefined,
+        userId: userId || undefined,
+      })
       .then(setData)
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load overview"))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range.preset, range.from, range.to, canFetch]);
+  }, [range.preset, range.from, range.to, canFetch, userId]);
 
   useEffect(() => {
     fetchOverview();
@@ -155,23 +185,45 @@ export default function AdminOverviewPage() {
               </div>
 
               <div>
-                <h2 className="text-sm font-semibold text-foreground mb-3">LLM Cost by Agent</h2>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <h2 className="text-sm font-semibold text-foreground">AI Cost by Feature</h2>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={userIdInput}
+                      onChange={(e) => setUserIdInput(e.target.value)}
+                      placeholder="Filter by user ID…"
+                      className="rounded-lg border border-border bg-surface px-2 py-1 text-xs text-foreground placeholder:text-muted w-56"
+                    />
+                    {userId && (
+                      <button
+                        type="button"
+                        onClick={() => setUserIdInput("")}
+                        className="text-xs text-muted underline"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <Card className="p-4 overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-[11px] text-muted uppercase tracking-wide">
-                        <th className="pb-2 font-medium">Agent</th>
+                        <th className="pb-2 font-medium">Feature</th>
                         <th className="pb-2 font-medium text-right">Tokens In</th>
                         <th className="pb-2 font-medium text-right">Tokens Out</th>
                         <th className="pb-2 font-medium text-right">Calls</th>
-                        <th className="pb-2 font-medium text-right">Cost (₹)</th>
+                        <th className="pb-2 font-medium text-right">Paid Calls</th>
+                        <th className="pb-2 font-medium text-right">Billed (₹)</th>
+                        <th className="pb-2 font-medium text-right">If Unsubsidised (₹)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {llmCostRows.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="text-muted text-center py-4">
-                            No data
+                          <td colSpan={7} className="text-muted text-center py-4">
+                            {userId ? "No AI usage for this user in this range" : "No data"}
                           </td>
                         </tr>
                       ) : (
@@ -182,7 +234,9 @@ export default function AdminOverviewPage() {
                               <td className="py-2 text-right text-foreground">{row.tokensIn.toLocaleString()}</td>
                               <td className="py-2 text-right text-foreground">{row.tokensOut.toLocaleString()}</td>
                               <td className="py-2 text-right text-foreground">{row.calls.toLocaleString()}</td>
+                              <td className="py-2 text-right text-foreground">{row.paidCalls.toLocaleString()}</td>
                               <td className="py-2 text-right text-foreground">{formatRupees(row.costPaise)}</td>
+                              <td className="py-2 text-right text-muted">{formatRupees(row.listPricePaise)}</td>
                             </tr>
                           ))}
                           <tr className="border-t border-border font-semibold">
@@ -190,7 +244,9 @@ export default function AdminOverviewPage() {
                             <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-foreground" />
+                            <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-gold">{formatRupees(llmCostTotalPaise)}</td>
+                            <td className="py-2 text-right text-muted">{formatRupees(llmListPriceTotalPaise)}</td>
                           </tr>
                         </>
                       )}
@@ -198,12 +254,13 @@ export default function AdminOverviewPage() {
                   </table>
                 </Card>
                 <p className="text-[11px] text-muted mt-2 max-w-xl">
-                  Cost is an estimate from token counts (Gemini Flash-Lite pricing, ₹{USD_TO_INR_RATE}/USD), not a
-                  billed amount. Two known gaps: <strong>Chat is the highest-traffic AI feature but isn&apos;t
-                  tracked here yet</strong> — chat calls don&apos;t log token usage, so its real cost is invisible in
-                  this table (see engineering). <strong>Report cost is combined across all 11 report types</strong>{" "}
-                  (marriage, wealth, kundli milan, etc.) into one &quot;report&quot; row — the underlying data can&apos;t
-                  currently be broken down by report type.
+                  <strong>Billed</strong> counts only calls served by the paid reserve key — the free key pool costs
+                  ₹0 however many tokens it burns, so on an ordinary day this is ₹0 and that is correct.{" "}
+                  <strong>If Unsubsidised</strong> is what the same usage would have cost at list price, i.e. what the
+                  free pool is saving. Both are estimates from token counts (Gemini Flash-Lite pricing, ₹
+                  {USD_TO_INR_RATE}/USD), not invoiced amounts. Reports appear per type (
+                  <code>report:marriage</code> and so on); rows recorded before per-user attribution shipped have no
+                  user and will not appear under a user filter.
                 </p>
               </div>
             </section>
@@ -211,5 +268,15 @@ export default function AdminOverviewPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminOverviewPage() {
+  // useSearchParams needs a Suspense boundary to avoid opting the whole route
+  // into client-side rendering — same wrapper the tickets page uses.
+  return (
+    <Suspense fallback={<p className="text-sm text-muted text-center py-10">Loading…</p>}>
+      <AdminOverviewContent />
+    </Suspense>
   );
 }

@@ -55,6 +55,8 @@ export const metadata: Metadata = {
   title: "Aroha Astrology",
   description: "Vedic Astrology & AI Astrologer",
   manifest: "/manifest.json",
+  // App, not the marketing site — keep it out of search results.
+  robots: { index: false, follow: false },
 };
 
 export const viewport = {

@@ -97,7 +97,7 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
-  /** Must match CHAT_MESSAGE_COST in the backend's astro.routes.ts — 2000 is only the fallback for the fail-open case; the resolved feature price is authoritative when present. */
+  /** Matches astro.routes.ts's chatMessageCostPaise — the backend resolves the same 'paid.chat' feature price and charges that, so this estimate and the actual debit can't drift. 2000 is only the fallback for the fail-open case. */
   const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
   const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   const [messages, setMessages] = useState<Message[]>([

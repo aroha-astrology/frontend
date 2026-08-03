@@ -72,6 +72,7 @@ export function useGoogleAuth() {
       const session = await establishSession();
       return { ok: true, created: session.created };
     } catch (err) {
+      console.error("Google sign-in failed", err);
       setErrorKey(authErrorKey(err));
       return { ok: false };
     } finally {

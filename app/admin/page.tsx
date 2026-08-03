@@ -2,15 +2,19 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { adminApi, type AdminOverview } from "@/lib/admin-api";
+import { adminApi, type AdminOverview, type AdminUserRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import {
+  addGst,
   estimateLlmCostPaise,
   estimateLlmListPricePaise,
+  GEMINI_INPUT_USD_PER_MILLION_TOKENS,
+  GEMINI_OUTPUT_USD_PER_MILLION_TOKENS,
+  GST_RATE,
   isValidCustomRange,
-  USD_TO_INR_RATE,
 } from "@/lib/admin-format";
+import { fetchUsdInrRate, FALLBACK_RATE, type UsdInrRate } from "@/lib/fx";
 import DateRangePicker, { type AdminRangeValue } from "@/components/admin/DateRangePicker";
 import KpiTile from "@/components/admin/KpiTile";
 import ErrorRetry from "@/components/admin/ErrorRetry";
@@ -37,16 +41,42 @@ function AdminOverviewContent() {
   const [error, setError] = useState<string | null>(null);
   // Deep-linkable so the users table can link straight to "what has this person
   // cost us in AI" — same ?userId= pattern the tickets page already uses.
-  const [userIdInput, setUserIdInput] = useState(searchParams.get("userId") ?? "");
   const [userId, setUserId] = useState(searchParams.get("userId") ?? "");
 
-  // Debounced so typing/pasting a uuid doesn't fire a request per keystroke.
+  // Whole user list for the filter dropdown — small enough (dozens, not
+  // thousands) to fetch once rather than build a searchable typeahead.
+  const [users, setUsers] = useState<AdminUserRow[]>([]);
   useEffect(() => {
-    const timer = setTimeout(() => setUserId(userIdInput.trim()), 300);
-    return () => clearTimeout(timer);
-  }, [userIdInput]);
+    adminApi
+      .listUsers({ limit: 100 })
+      .then((res) => setUsers(res.users))
+      .catch(() => setUsers([]));
+  }, []);
+  const sortedUsers = useMemo(
+    () =>
+      [...users].sort((a, b) =>
+        (a.displayName ?? a.phoneE164 ?? a.email ?? a.id).localeCompare(
+          b.displayName ?? b.phoneE164 ?? b.email ?? b.id,
+        ),
+      ),
+    [users],
+  );
 
   const canFetch = range.preset !== "custom" || isValidCustomRange(range.from, range.to);
+
+  // Live USD→INR, fetched once per mount. Starts on the pinned fallback so the
+  // table renders immediately rather than blocking on a third-party endpoint,
+  // then re-renders with the real rate when it lands.
+  const [fx, setFx] = useState<UsdInrRate>(FALLBACK_RATE);
+  useEffect(() => {
+    let cancelled = false;
+    void fetchUsdInrRate().then((r) => {
+      if (!cancelled) setFx(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Estimated ₹ cost per agent, sorted so the biggest cost drivers surface
   // first — the backend deliberately returns raw tokens only (see
@@ -55,14 +85,16 @@ function AdminOverviewContent() {
   const llmCostRows = useMemo(() => {
     const rows = (data?.llmCostByAgent ?? []).map((row) => ({
       ...row,
-      costPaise: estimateLlmCostPaise(row),
-      listPricePaise: estimateLlmListPricePaise(row),
+      // GST-inclusive: this account is billed in INR, so Google adds GST on top
+      // of the converted list price and that is what reaches the invoice.
+      costPaise: addGst(estimateLlmCostPaise(row, fx.rate)),
+      listPricePaise: addGst(estimateLlmListPricePaise(row, fx.rate)),
     }));
     // Sort by list price, not billed cost: on a normal day everything is free
     // tier and billed cost is ₹0 across the board, which would leave the table
     // in arbitrary order exactly when you most want to see the volume drivers.
     return rows.sort((a, b) => b.listPricePaise - a.listPricePaise);
-  }, [data]);
+  }, [data, fx.rate]);
 
   const llmCostTotalPaise = useMemo(() => llmCostRows.reduce((sum, row) => sum + row.costPaise, 0), [llmCostRows]);
   const llmListPriceTotalPaise = useMemo(
@@ -187,24 +219,18 @@ function AdminOverviewContent() {
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <h2 className="text-sm font-semibold text-foreground">AI Cost by Feature</h2>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={userIdInput}
-                      onChange={(e) => setUserIdInput(e.target.value)}
-                      placeholder="Filter by user ID…"
-                      className="rounded-lg border border-border bg-surface px-2 py-1 text-xs text-foreground placeholder:text-muted w-56"
-                    />
-                    {userId && (
-                      <button
-                        type="button"
-                        onClick={() => setUserIdInput("")}
-                        className="text-xs text-muted underline"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
+                  <select
+                    value={userId}
+                    onChange={(e) => setUserId(e.target.value)}
+                    className="rounded-lg border border-border bg-surface px-2 py-1 text-xs text-foreground w-56"
+                  >
+                    <option value="">All users</option>
+                    {sortedUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.displayName ?? u.phoneE164 ?? u.email ?? u.id}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <Card className="p-4 overflow-x-auto">
                   <table className="w-full text-sm">
@@ -257,8 +283,14 @@ function AdminOverviewContent() {
                   <strong>Billed</strong> counts only calls served by the paid reserve key — the free key pool costs
                   ₹0 however many tokens it burns, so on an ordinary day this is ₹0 and that is correct.{" "}
                   <strong>If Unsubsidised</strong> is what the same usage would have cost at list price, i.e. what the
-                  free pool is saving. Both are estimates from token counts (Gemini Flash-Lite pricing, ₹
-                  {USD_TO_INR_RATE}/USD), not invoiced amounts. Reports appear per type (
+                  free pool is saving. Both are estimates from token counts (Gemini Flash-Lite pricing at $
+                  {GEMINI_INPUT_USD_PER_MILLION_TOKENS}/$
+                  {GEMINI_OUTPUT_USD_PER_MILLION_TOKENS} per 1M in/out tokens), converted at ₹{fx.rate.toFixed(2)}/USD
+                  {fx.isFallback ? " (offline fallback rate — live lookup failed)" : ` (ECB, ${fx.asOf})`} and shown
+                  inclusive of {Math.round(GST_RATE * 100)}% GST, since this account is billed in INR. GST is normally
+                  recoverable as input tax credit, so net cost is {(1 / (1 + GST_RATE)).toFixed(3)}× these figures.{" "}
+                  <strong>Voice calls are not counted here at all</strong> — Gemini Live is billed separately and never
+                  writes to <code>ai_usage</code>. Reports appear per type (
                   <code>report:marriage</code> and so on); rows recorded before per-user attribution shipped have no
                   user and will not appear under a user filter.
                 </p>

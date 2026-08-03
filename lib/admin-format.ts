@@ -199,6 +199,35 @@ export function validateGroupName(name: string): { ok: true } | { ok: false; err
   return { ok: true };
 }
 
+// ─── Presence ───────────────────────────────────────────────────────────────
+
+/**
+ * How recently a user must have been seen to count as "online".
+ *
+ * Deliberately the same 5 minutes the backend already uses to define "logged in
+ * simultaneously" (CONCURRENT_ACTIVE_WINDOW_MS in admin-alerts.service.ts) —
+ * there is no presence/websocket tracking anywhere in this stack, only the
+ * `lastActiveAt` heartbeat `requireUser` bumps on every authenticated request.
+ * Picking a different number here would mean the users table and the "high
+ * concurrent activity" Telegram alert disagree about who is online.
+ */
+export const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+
+/**
+ * True when `lastActiveAt` is within {@link ONLINE_WINDOW_MS} of `now`.
+ *
+ * A never-seen user (null) is offline. A timestamp slightly in the FUTURE counts
+ * as online rather than offline: the server clock writing the heartbeat and the
+ * browser clock reading it are not synchronised, and a few seconds of skew
+ * should not flicker a user offline.
+ */
+export function isUserOnline(lastActiveAt: string | null | undefined, now: number = Date.now()): boolean {
+  if (!lastActiveAt) return false;
+  const seenAt = new Date(lastActiveAt).getTime();
+  if (Number.isNaN(seenAt)) return false;
+  return now - seenAt <= ONLINE_WINDOW_MS;
+}
+
 // ─── LLM cost estimation ────────────────────────────────────────────────────
 
 /**
@@ -214,7 +243,33 @@ export function validateGroupName(name: string): { ok: true } | { ok: false; err
  */
 export const GEMINI_INPUT_USD_PER_MILLION_TOKENS = 0.25;
 export const GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = 1.5;
-export const USD_TO_INR_RATE = 88;
+
+/**
+ * FALLBACK USD→INR rate, used only when the live rate lookup in lib/fx.ts fails.
+ *
+ * This used to be the single hardcoded source of truth at 88, which is how the
+ * dashboard came to understate every cost by ~8% — a hardcoded FX rate is wrong
+ * the day after you write it. The live rate is now fetched (see fetchUsdInrRate)
+ * and passed into the functions below; this constant only catches the offline
+ * case. Keep it roughly current anyway so a failed lookup degrades gently.
+ */
+export const USD_TO_INR_RATE = 95.3;
+
+/**
+ * GST charged by Google on India-billed Cloud accounts, on top of the USD list
+ * price converted to rupees. Included because the dashboard's job is to show
+ * what actually lands on the invoice, not Google's pre-tax list price.
+ *
+ * Note for whoever reads the number: GST is normally recoverable as input tax
+ * credit for a GST-registered business, so the true net cost is the ex-GST
+ * figure. Both are surfaced on the dashboard rather than picking one silently.
+ */
+export const GST_RATE = 0.18;
+
+/** Adds {@link GST_RATE} to a rupee-paise figure, i.e. list price → invoice price. */
+export function addGst(paise: number): number {
+  return paise * (1 + GST_RATE);
+}
 
 /**
  * Estimates the ₹ cost (in paise, so it can be passed straight to
@@ -228,13 +283,16 @@ export const USD_TO_INR_RATE = 88;
  * an ordinary day is all of it. Rows predating the paid reserve carry no paid
  * tokens and correctly price at zero.
  */
-export function estimateLlmCostPaise(usage: {
-  paidTokensIn?: number;
-  paidTokensOut?: number;
-}): number {
+export function estimateLlmCostPaise(
+  usage: {
+    paidTokensIn?: number;
+    paidTokensOut?: number;
+  },
+  usdToInr: number = USD_TO_INR_RATE,
+): number {
   const inputUsd = ((usage.paidTokensIn ?? 0) / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION_TOKENS;
   const outputUsd = ((usage.paidTokensOut ?? 0) / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
-  return (inputUsd + outputUsd) * USD_TO_INR_RATE * 100;
+  return (inputUsd + outputUsd) * usdToInr * 100;
 }
 
 /**
@@ -243,11 +301,14 @@ export function estimateLlmCostPaise(usage: {
  * free key pool is providing, rather than silently reporting ₹0 and looking
  * broken on a normal day.
  */
-export function estimateLlmListPricePaise(usage: {
-  tokensIn: number;
-  tokensOut: number;
-}): number {
+export function estimateLlmListPricePaise(
+  usage: {
+    tokensIn: number;
+    tokensOut: number;
+  },
+  usdToInr: number = USD_TO_INR_RATE,
+): number {
   const inputUsd = (usage.tokensIn / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION_TOKENS;
   const outputUsd = (usage.tokensOut / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
-  return (inputUsd + outputUsd) * USD_TO_INR_RATE * 100;
+  return (inputUsd + outputUsd) * usdToInr * 100;
 }

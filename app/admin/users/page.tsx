@@ -5,7 +5,12 @@ import Link from "next/link";
 import { adminApi, type AdminUserRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
-import { computeWalletDeltaPaise, validateWalletNote, type WalletAdjustSign } from "@/lib/admin-format";
+import {
+  computeWalletDeltaPaise,
+  isUserOnline,
+  validateWalletNote,
+  type WalletAdjustSign,
+} from "@/lib/admin-format";
 import ErrorRetry from "@/components/admin/ErrorRetry";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
@@ -180,6 +185,13 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    // The online dot is derived from `lastActiveAt` at render time, so without a
+    // refetch it freezes at page-load and keeps claiming someone is online long
+    // after they left. Re-poll well inside ONLINE_WINDOW_MS so the dot decays on
+    // its own. Cheap: this only ever refetches the 20 rows already on screen,
+    // and `loading` is gated on `!users`, so it never flashes the spinner.
+    const timer = setInterval(fetchUsers, 60_000);
+    return () => clearInterval(timer);
   }, [fetchUsers]);
 
   function handleAdjusted(userId: string, newBalancePaise: number) {
@@ -230,7 +242,25 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-2 text-foreground">{u.email ?? "—"}</td>
                       <td className="px-4 py-2 text-right text-foreground">{formatRupees(u.walletBalancePaise)}</td>
                       <td className="px-4 py-2 text-muted">{formatDate(u.createdAt)}</td>
-                      <td className="px-4 py-2 text-muted">{formatDate(u.lastActiveAt)}</td>
+                      <td className="px-4 py-2 text-muted">
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            aria-hidden="true"
+                            title={isUserOnline(u.lastActiveAt) ? "Online now" : "Offline"}
+                            className={`h-2 w-2 shrink-0 rounded-full ${
+                              isUserOnline(u.lastActiveAt) ? "bg-green-500" : "bg-muted/40"
+                            }`}
+                          />
+                          <span className="sr-only">
+                            {isUserOnline(u.lastActiveAt) ? "Online now" : "Offline"}
+                          </span>
+                          {isUserOnline(u.lastActiveAt) ? (
+                            <span className="text-green-400">Online</span>
+                          ) : (
+                            formatDate(u.lastActiveAt)
+                          )}
+                        </span>
+                      </td>
                       <td className="px-4 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button

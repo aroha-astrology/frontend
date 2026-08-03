@@ -30,12 +30,12 @@ import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
 import { zodiacSignLabel } from "@/data/zodiac";
-import { shareReferralCode } from "@/lib/referral";
 import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
 import LanguagePicker from "@/components/LanguagePicker";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
+import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 
 /**
  * Right-side profile panel triggered by TopBar's kebab button. Replaces the
@@ -48,6 +48,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const remediesEnabled = useFeature("nav.remedies").enabled;
 
   // Only fetches while the panel is open — useKundli's SWR cache (7 days)
@@ -66,14 +67,6 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
 
   // Close on hardware back press instead of exiting the app/navigating away.
   useDismissOnBackPress(open, onClose);
-
-  const handleShareReferral = async () => {
-    if (!user?.referralCode) return;
-    const code = user.referralCode;
-    await shareReferralCode(t, code, () => {
-      navigator.clipboard.writeText(code);
-    });
-  };
 
   const handleSignOut = async () => {
     try {
@@ -226,7 +219,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   </div>
                   <button
                     type="button"
-                    onClick={handleShareReferral}
+                    onClick={() => setShareOpen(true)}
                     className="w-full py-2.5 rounded-xl bg-gold/15 border border-gold/40 text-gold text-sm font-medium hover:bg-gold/25 transition-colors"
                   >
                     {t("referral.shareBtn")}
@@ -311,6 +304,9 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
           </motion.aside>
 
           <ProfileSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+          {user?.referralCode && (
+            <ShareOptionsSheet open={shareOpen} onClose={() => setShareOpen(false)} code={user.referralCode} />
+          )}
         </>
       )}
     </AnimatePresence>

@@ -1042,6 +1042,12 @@ export const resources = {
         cta: "Share Now",
         notNow: "Not Now",
       },
+      shareSheet: {
+        title: "Share via",
+        copyLink: "Copy Link",
+        copied: "Copied!",
+        more: "More options",
+      },
       transactions: {
         title: "Wallet History",
         history: "History",
@@ -3223,6 +3229,12 @@ export const resources = {
         cta: "अभी शेयर करें",
         notNow: "अभी नहीं",
       },
+      shareSheet: {
+        title: "इसके ज़रिए शेयर करें",
+        copyLink: "लिंक कॉपी करें",
+        copied: "कॉपी हो गया!",
+        more: "और विकल्प",
+      },
       transactions: {
         title: "वॉलेट इतिहास",
         history: "इतिहास",
@@ -4902,6 +4914,12 @@ export const resources = {
         body: "Aroha Astrology বন্ধু ও পরিবারের সাথে শেয়ার করুন — প্রতিটি বন্ধু যোগ দিলে ₹100 উপার্জন করুন!",
         cta: "এখনই শেয়ার করুন",
         notNow: "এখন নয়",
+      },
+      shareSheet: {
+        title: "যেভাবে শেয়ার করবেন",
+        copyLink: "লিঙ্ক কপি করুন",
+        copied: "কপি হয়েছে!",
+        more: "আরও অপশন",
       },
       transactions: {
         title: "ওয়ালেট ইতিহাস",
@@ -6583,6 +6601,12 @@ export const resources = {
         cta: "आता शेअर करा",
         notNow: "आता नाही",
       },
+      shareSheet: {
+        title: "याद्वारे शेअर करा",
+        copyLink: "लिंक कॉपी करा",
+        copied: "कॉपी झाले!",
+        more: "अधिक पर्याय",
+      },
       transactions: {
         title: "वॉलेट इतिहास",
         history: "इतिहास",
@@ -8258,6 +8282,12 @@ export const resources = {
         body: "Aroha Astrology ని స్నేహితులు మరియు కుటుంబంతో షేర్ చేయండి — ప్రతి స్నేహితుడు జాయిన్ అయితే ₹100 సంపాదించండి!",
         cta: "ఇప్పుడే షేర్ చేయండి",
         notNow: "ఇప్పుడు వద్దు",
+      },
+      shareSheet: {
+        title: "దీని ద్వారా షేర్ చేయండి",
+        copyLink: "లింక్ కాపీ చేయండి",
+        copied: "కాపీ అయ్యింది!",
+        more: "మరిన్ని ఎంపికలు",
       },
       transactions: {
         title: "వాలెట్ చరిత్ర",
@@ -9939,6 +9969,12 @@ export const resources = {
         cta: "இப்போது பகிரவும்",
         notNow: "இப்போது வேண்டாம்",
       },
+      shareSheet: {
+        title: "இதன் மூலம் பகிரவும்",
+        copyLink: "இணைப்பை நகலெடு",
+        copied: "நகலெடுக்கப்பட்டது!",
+        more: "மேலும் விருப்பங்கள்",
+      },
       transactions: {
         title: "வாலெட் வரலாறு",
         history: "வரலாறு",
@@ -11613,6 +11649,12 @@ export const resources = {
         body: "Aroha Astrology ને મિત્રો અને પરિવાર સાથે શેર કરો — દરેક મિત્ર જોડાય ત્યારે ₹100 કમાઓ!",
         cta: "હમણાં શેર કરો",
         notNow: "હમણાં નહીં",
+      },
+      shareSheet: {
+        title: "આના દ્વારા શેર કરો",
+        copyLink: "લિંક કૉપિ કરો",
+        copied: "કૉપિ થયું!",
+        more: "વધુ વિકલ્પો",
       },
       transactions: {
         title: "વોલેટ ઇતિહાસ",

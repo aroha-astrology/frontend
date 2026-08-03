@@ -7,7 +7,7 @@ import { Gift } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
-import { shareReferralCode } from "@/lib/referral";
+import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 
 const SEEN_KEY = "aroha:sharePromptSeen:v1";
 
@@ -22,6 +22,7 @@ export default function ShareAppPrompt() {
   const { user } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const [visible, setVisible] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -38,16 +39,13 @@ export default function ShareAppPrompt() {
   // Hardware back press counts as "not now", same as PermissionsPrompt.
   useDismissOnBackPress(visible, dismiss);
 
-  const handleShare = async () => {
-    if (!user?.referralCode) return;
-    const code = user.referralCode;
-    await shareReferralCode(t, code, () => {
-      navigator.clipboard.writeText(code);
-    });
+  const handleShare = () => {
+    setSheetOpen(true);
     dismiss();
   };
 
   return (
+    <>
     <AnimatePresence>
       {visible && (
         <motion.div
@@ -93,5 +91,9 @@ export default function ShareAppPrompt() {
         </motion.div>
       )}
     </AnimatePresence>
+    {user?.referralCode && (
+      <ShareOptionsSheet open={sheetOpen} onClose={() => setSheetOpen(false)} code={user.referralCode} />
+    )}
+    </>
   );
 }

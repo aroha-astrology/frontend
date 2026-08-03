@@ -13,8 +13,8 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 import { purgeUserCache } from "@/lib/cache";
-import { shareReferralCode } from "@/lib/referral";
 import { formatTimeOfBirth } from "@/lib/format";
+import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 
 interface EditForm {
   displayName: string;
@@ -54,6 +54,7 @@ export default function ProfilePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const GENDERS: { key: Exclude<Gender, null>; label: string }[] = [
     { key: "male", label: t("onboarding.step7male") },
@@ -138,11 +139,6 @@ export default function ProfilePage() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  async function handleShare() {
-    if (!user?.referralCode) return;
-    await shareReferralCode(t, user.referralCode, handleCopy);
   }
 
   function handleCopy() {
@@ -235,14 +231,18 @@ export default function ProfilePage() {
                   {copied ? <span className="text-[10px] font-bold">COPIED</span> : <Copy size={14} />}
                 </button>
               </div>
-              <button 
-                onClick={handleShare}
+              <button
+                onClick={() => setShareOpen(true)}
                 className="bg-gold text-[#1a0e00] px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap"
               >
                 {t("referral.shareBtn", "Share Now")}
               </button>
             </div>
           </Card>
+        )}
+
+        {user?.referralCode && (
+          <ShareOptionsSheet open={shareOpen} onClose={() => setShareOpen(false)} code={user.referralCode} />
         )}
 
         <div className="text-center mb-2">

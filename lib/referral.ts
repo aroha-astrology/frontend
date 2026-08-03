@@ -32,21 +32,30 @@ export function clearPendingReferralCode() {
   }
 }
 
-/** Native share sheet for a user's referral code/link, with a fallback (e.g. clipboard copy)
- * for browsers/dismissals where the share sheet isn't usable. */
-export async function shareReferralCode(t: TFunction, code: string, onFallback: () => void) {
-  const text = t("referral.shareMessage", {
+export function buildReferralShareText(t: TFunction, code: string): string {
+  return t("referral.shareMessage", {
     code,
     url: `https://app.arohaastrology.in?ref=${code}`,
   });
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: "Aroha Astrology", text });
-      return;
-    } catch (err) {
-      // User dismissed the native share sheet — that's a deliberate "no", not a failure.
-      if (err instanceof DOMException && err.name === "AbortError") return;
-    }
-  }
-  onFallback();
+}
+
+export interface ReferralShareLinks {
+  whatsapp: string;
+  telegram: string;
+  sms: string;
+  text: string;
+}
+
+/** Per-app deep links for the referral message — used by ShareOptionsSheet's app picker.
+ * Built explicitly (rather than relying solely on navigator.share) because the Web Share
+ * API is unreliable inside the Capacitor Android WebView the shipped app runs in. */
+export function buildReferralShareLinks(t: TFunction, code: string): ReferralShareLinks {
+  const text = buildReferralShareText(t, code);
+  const link = `https://app.arohaastrology.in?ref=${code}`;
+  return {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`,
+    sms: `sms:?body=${encodeURIComponent(text)}`,
+    text,
+  };
 }

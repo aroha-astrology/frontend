@@ -3,7 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { MessageCircle, Send, MessageSquare, Copy, Share2, X, Check } from "lucide-react";
+import { MessageSquare, Copy, Share2, X, Check } from "lucide-react";
+import Image from "next/image";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { buildReferralShareLinks } from "@/lib/referral";
 
@@ -81,15 +82,15 @@ export default function ShareOptionsSheet({
 
             <div className="grid grid-cols-4 gap-3">
               <ShareOption
-                icon={<MessageCircle size={20} />}
+                icon={<Image src="/icons/whatsapp.png" alt="" width={28} height={28} />}
                 label="WhatsApp"
-                colorClass="bg-green-500/15 text-green-500"
+                colorClass="bg-green-500/15"
                 onClick={() => openAndClose(links.whatsapp)}
               />
               <ShareOption
-                icon={<Send size={20} />}
+                icon={<Image src="/icons/telegram.png" alt="" width={28} height={28} />}
                 label="Telegram"
-                colorClass="bg-sky-500/15 text-sky-500"
+                colorClass="bg-sky-500/15"
                 onClick={() => openAndClose(links.telegram)}
               />
               <ShareOption

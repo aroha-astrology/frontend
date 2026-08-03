@@ -331,35 +331,45 @@ export default function PaymentPage() {
               </Card>
             )}
 
-            {/* Only a choice when both rails are actually usable here. */}
-            {playAvailable && razorpayAvailable && (
+            {/* Razorpay works today for every phone/OTP account; Google Play is
+                native-Android-only and shown as a disabled "coming soon" card
+                everywhere else. */}
+            {razorpayAvailable && (
               <div className="mb-4">
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted mb-2">
                   {t("payment.methodLabel")}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {(["google_play", "razorpay"] as const).map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setMethod(option)}
-                      className={`rounded-2xl border p-3 text-left transition-all ${
-                        method === option
-                          ? "border-gold bg-gold/10"
-                          : "border-gold/15 bg-surface/40 hover:border-gold/35"
-                      }`}
-                    >
-                      <span className="block text-sm font-semibold text-foreground">
-                        {t(option === "google_play" ? "payment.methodPlay" : "payment.methodRazorpay")}
-                      </span>
-                      <span className="block text-[10px] text-muted mt-0.5">
-                        {t(
-                          option === "google_play"
-                            ? "payment.methodPlayHint"
-                            : "payment.methodRazorpayHint",
-                        )}
-                      </span>
-                    </button>
-                  ))}
+                  {(["razorpay", "google_play"] as const).map((option) => {
+                    const disabled = option === "google_play" && !playAvailable;
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => !disabled && setMethod(option)}
+                        disabled={disabled}
+                        className={`rounded-2xl border p-3 text-left transition-all ${
+                          disabled
+                            ? "border-gold/10 bg-surface/20 opacity-50 cursor-not-allowed"
+                            : method === option
+                              ? "border-gold bg-gold/10"
+                              : "border-gold/15 bg-surface/40 hover:border-gold/35"
+                        }`}
+                      >
+                        <span className="block text-sm font-semibold text-foreground">
+                          {t(option === "google_play" ? "payment.methodPlay" : "payment.methodRazorpay")}
+                        </span>
+                        <span className="block text-[10px] text-muted mt-0.5">
+                          {disabled
+                            ? t("payment.comingSoon")
+                            : t(
+                                option === "google_play"
+                                  ? "payment.methodPlayHint"
+                                  : "payment.methodRazorpayHint",
+                              )}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

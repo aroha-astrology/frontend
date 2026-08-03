@@ -13,6 +13,7 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 import { purgeUserCache } from "@/lib/cache";
+import { shareReferralCode } from "@/lib/referral";
 import { formatTimeOfBirth } from "@/lib/format";
 
 interface EditForm {
@@ -141,21 +142,7 @@ export default function ProfilePage() {
 
   async function handleShare() {
     if (!user?.referralCode) return;
-    const text = t("referral.shareMessage", {
-      code: user.referralCode,
-      url: `https://app.arohaastrology.in?ref=${user.referralCode}`,
-    });
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Aroha Astrology", text });
-      } catch (err) {
-        // User dismissed the native share sheet — that's a deliberate "no", not a failure.
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        handleCopy();
-      }
-    } else {
-      handleCopy();
-    }
+    await shareReferralCode(t, user.referralCode, handleCopy);
   }
 
   function handleCopy() {

@@ -13,6 +13,7 @@ import TopBar from "@/components/TopBar";
 import BottomNavigationGate from "@/components/BottomNavigationGate";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
+import ShareAppPrompt from "@/components/ShareAppPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -86,6 +87,7 @@ export default function RootLayout({
                         <PageTransition>{children}</PageTransition>
                         <BottomNavigationGate />
                         <PermissionsPrompt />
+                        <ShareAppPrompt />
                       </AuthGuard>
                     </TopBarProvider>
                     <BackButtonListener />

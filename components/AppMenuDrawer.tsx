@@ -12,6 +12,7 @@ import {
   Clock,
   MapPin,
   UserPlus,
+  Gift,
   Globe,
   MessageCircle,
   Wallet,
@@ -29,6 +30,7 @@ import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
 import { zodiacSignLabel } from "@/data/zodiac";
+import { shareReferralCode } from "@/lib/referral";
 import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
@@ -64,6 +66,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
 
   // Close on hardware back press instead of exiting the app/navigating away.
   useDismissOnBackPress(open, onClose);
+
+  const handleShareReferral = async () => {
+    if (!user?.referralCode) return;
+    const code = user.referralCode;
+    await shareReferralCode(t, code, () => {
+      navigator.clipboard.writeText(code);
+    });
+  };
 
   const handleSignOut = async () => {
     try {
@@ -201,6 +211,28 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   {t("menu.promoCta")}
                 </button>
               </Card>
+
+              {/* Refer & Earn promo */}
+              {user?.referralCode && (
+                <Card className="p-4 border-gold/20 bg-gradient-to-br from-gold/10 via-card to-purple-950/10">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center text-gold shrink-0">
+                      <Gift size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{t("referral.title")}</p>
+                      <p className="text-xs text-muted mt-0.5">{t("referral.desc")}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleShareReferral}
+                    className="w-full py-2.5 rounded-xl bg-gold/15 border border-gold/40 text-gold text-sm font-medium hover:bg-gold/25 transition-colors"
+                  >
+                    {t("referral.shareBtn")}
+                  </button>
+                </Card>
+              )}
 
               {/* Rows */}
               <div className="flex flex-col gap-2">

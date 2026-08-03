@@ -16,6 +16,12 @@ import { isNativeAndroid } from "@/lib/play-billing";
 
 type PaymentMethod = "google_play" | "razorpay";
 
+/** Bare 10-digit national number, whatever shape the stored number is in. */
+function toIndianMobile(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+
 function TopUpCard({
   amount,
   selected,
@@ -163,11 +169,12 @@ export default function PaymentPage() {
           description: t("payment.rechargeDescription"),
           prefill: {
             ...(user?.displayName ? { name: user.displayName } : {}),
-            // Razorpay's contact field already renders a +91 selector, so the
-            // E.164 form lands in it as a duplicated country code and the
-            // field comes back blank — which puts its "Contact details" gate
-            // in front of the payment methods (UPI included) for every user.
-            ...(user?.phoneE164 ? { contact: user.phoneE164.replace(/^\+91/, "") } : {}),
+            // Razorpay's contact field renders its own +91 selector and wants
+            // the bare 10-digit national number. Anything else (E.164, spaces,
+            // a leading 91) is silently dropped, leaving the field blank — and
+            // a blank contact puts its "Contact details" gate in front of the
+            // payment methods, which is what made UPI look missing.
+            ...(user?.phoneE164 ? { contact: toIndianMobile(user.phoneE164) } : {}),
             ...(user?.email ? { email: user.email } : {}),
           },
         });

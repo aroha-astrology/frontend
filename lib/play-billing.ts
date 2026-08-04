@@ -26,3 +26,13 @@ export async function isNativeAndroid(): Promise<boolean> {
     return false; // @capacitor/core not resolvable — plain web build.
   }
 }
+
+/** True only inside the native iOS build — Apple's IAP rules block Razorpay there. */
+export async function isNativeIOS(): Promise<boolean> {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+  } catch {
+    return false;
+  }
+}

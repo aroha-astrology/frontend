@@ -12,7 +12,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
 import WalletBalance from "@/components/ui/WalletBalance";
 import { api, ApiError, type TopUpAmount, type CouponValidation } from "@/lib/api";
-import { isNativeAndroid } from "@/lib/play-billing";
+import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
 
 type PaymentMethod = "google_play" | "razorpay";
 
@@ -65,6 +65,7 @@ export default function PaymentPage() {
 
   const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [playAvailable, setPlayAvailable] = useState(false);
+  const [iosNative, setIosNative] = useState(false);
   const [method, setMethod] = useState<PaymentMethod>("razorpay");
 
   const [couponCode, setCouponCode] = useState("");
@@ -88,18 +89,20 @@ export default function PaymentPage() {
   }, []);
 
   // Google Play billing only exists inside the native Android build; on the
-  // web (and iOS) Razorpay is the only way to pay.
+  // web Razorpay is the only way to pay. Apple's IAP rules block Razorpay
+  // inside the native iOS build entirely, so that platform gets neither.
   useEffect(() => {
-    isNativeAndroid().then((native) => {
-      setPlayAvailable(native);
-      if (native) setMethod("google_play");
+    Promise.all([isNativeAndroid(), isNativeIOS()]).then(([android, ios]) => {
+      setPlayAvailable(android);
+      setIosNative(ios);
+      if (android) setMethod("google_play");
     });
   }, []);
 
   // Razorpay is offered only to phone/OTP accounts: its checkout demands a
   // mobile number, and a Google-signup user has none on file, so they'd hit
   // its "Contact details" gate before ever seeing a payment method.
-  const razorpayAvailable = razorpayEnabled && Boolean(user?.phoneE164);
+  const razorpayAvailable = razorpayEnabled && Boolean(user?.phoneE164) && !iosNative;
   const canPay = playAvailable || razorpayAvailable;
 
   // Keep the selected method honest if the only rail it named goes away.
@@ -375,7 +378,9 @@ export default function PaymentPage() {
             )}
 
             {!canPay && !packsLoading && (
-              <p className="text-xs text-amber-300/90 text-center mb-3">{t("payment.phoneRequired")}</p>
+              <p className="text-xs text-amber-300/90 text-center mb-3">
+                {t(iosNative ? "payment.iosComingSoon" : "payment.phoneRequired")}
+              </p>
             )}
 
             {payError && (

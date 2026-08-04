@@ -2,6 +2,11 @@ import type { TFunction } from "i18next";
 
 const STORAGE_KEY = "pending_referral_code";
 
+/** Where the referral share link should send people — the Play Store listing,
+ * not the web app, so a friend without the app installed lands on "install"
+ * rather than a browser tab. There's no App Store listing yet. */
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.aroha.astrology";
+
 /** Reads `?ref=`/`?referralCode=` from the current URL and stashes it for onboarding. */
 export function capturePendingReferralCode() {
   if (typeof window === "undefined") return;
@@ -35,7 +40,7 @@ export function clearPendingReferralCode() {
 export function buildReferralShareText(t: TFunction, code: string): string {
   return t("referral.shareMessage", {
     code,
-    url: `https://app.arohaastrology.in?ref=${code}`,
+    url: PLAY_STORE_URL,
   });
 }
 
@@ -51,7 +56,7 @@ export interface ReferralShareLinks {
  * API is unreliable inside the Capacitor Android WebView the shipped app runs in. */
 export function buildReferralShareLinks(t: TFunction, code: string): ReferralShareLinks {
   const text = buildReferralShareText(t, code);
-  const link = `https://app.arohaastrology.in?ref=${code}`;
+  const link = PLAY_STORE_URL;
   return {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
     telegram: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`,

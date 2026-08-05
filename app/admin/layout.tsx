@@ -45,6 +45,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/features", label: "Features" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/active-users", label: "Active Users" },
   { href: "/admin/groups", label: "Groups" },
   { href: "/admin/tickets", label: "Tickets" },
 ];

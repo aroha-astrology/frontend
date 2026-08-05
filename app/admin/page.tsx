@@ -104,6 +104,37 @@ function AdminOverviewContent() {
     [llmCostRows],
   );
 
+  // Fixed-period AI billing totals (Today/Yesterday/This Week/This Month) —
+  // independent of the DateRangePicker above, so these always show "as of
+  // now" regardless of what range the rest of the page is scoped to. Reruns
+  // whenever the user filter changes, same as the AI Cost by Feature table.
+  const BILLING_PERIODS = ["today", "yesterday", "last7d", "this_month"] as const;
+  const [periodBillingPaise, setPeriodBillingPaise] = useState<Record<(typeof BILLING_PERIODS)[number], number> | null>(
+    null,
+  );
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(BILLING_PERIODS.map((preset) => adminApi.overview({ preset, userId: userId || undefined })))
+      .then((results) => {
+        if (cancelled) return;
+        const totals = {} as Record<(typeof BILLING_PERIODS)[number], number>;
+        BILLING_PERIODS.forEach((preset, i) => {
+          totals[preset] = results[i].llmCostByAgent.reduce(
+            (sum, row) => sum + addGst(estimateLlmCostPaise(row, fx.rate)),
+            0,
+          );
+        });
+        setPeriodBillingPaise(totals);
+      })
+      .catch(() => {
+        if (!cancelled) setPeriodBillingPaise(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, fx.rate]);
+
   const fetchOverview = useCallback(() => {
     if (!canFetch) return;
     setLoading(true);
@@ -215,6 +246,44 @@ function AdminOverviewContent() {
                       )}
                     </tbody>
                   </table>
+                </Card>
+
+                <h2 className="text-sm font-semibold text-foreground mb-3 mt-6">AI Billing</h2>
+                <Card className="p-4">
+                  {periodBillingPaise ? (
+                    <dl className="grid grid-cols-2 gap-4">
+                      <div>
+                        <dt className="text-[11px] text-muted uppercase tracking-wide">Today</dt>
+                        <dd className="text-lg font-semibold text-foreground">
+                          {formatRupees(periodBillingPaise.today)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[11px] text-muted uppercase tracking-wide">Yesterday</dt>
+                        <dd className="text-lg font-semibold text-foreground">
+                          {formatRupees(periodBillingPaise.yesterday)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[11px] text-muted uppercase tracking-wide">This Week</dt>
+                        <dd className="text-lg font-semibold text-foreground">
+                          {formatRupees(periodBillingPaise.last7d)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[11px] text-muted uppercase tracking-wide">This Month</dt>
+                        <dd className="text-lg font-semibold text-foreground">
+                          {formatRupees(periodBillingPaise.this_month)}
+                        </dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p className="text-sm text-muted">Loading…</p>
+                  )}
+                  <p className="text-[11px] text-muted mt-3">
+                    {userId ? "Scoped to the user selected below." : "All users."} Real ₹ billed to the paid reserve
+                    key — same figure as "Billed (₹)" in the table on the right, at list price GST-inclusive.
+                  </p>
                 </Card>
               </div>
 

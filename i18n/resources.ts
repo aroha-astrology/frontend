@@ -1036,6 +1036,12 @@ export const resources = {
         shareMessage: "Join Aroha Astrology using my referral code: {{code}} — you get ₹50 and I get ₹100!\n{{url}}",
         autoApplied: "Applied automatically from your invite link",
       },
+      updatePrompt: {
+        title: "Update Available",
+        body: "A newer version of Aroha Astrology is ready on the Play Store, with the latest features and fixes.",
+        cta: "Update Now",
+        later: "Later",
+      },
       sharePrompt: {
         title: "Share & Earn ₹100!",
         body: "Share Aroha Astrology with friends and family — earn ₹100 for every friend who joins!",
@@ -3247,6 +3253,12 @@ export const resources = {
         shareMessage: "मेरे रेफरल कोड {{code}} से Aroha Astrology जॉइन करें — आपको ₹50 और मुझे ₹100 मिलेंगे!\n{{url}}",
         autoApplied: "आपके इनवाइट लिंक से अपने आप लागू हो गया",
       },
+      updatePrompt: {
+        title: "अपडेट उपलब्ध है",
+        body: "प्ले स्टोर पर अरोहा एस्ट्रोलॉजी का नया संस्करण तैयार है, जिसमें नई सुविधाएँ और सुधार शामिल हैं।",
+        cta: "अभी अपडेट करें",
+        later: "बाद में",
+      },
       sharePrompt: {
         title: "शेयर करें और ₹100 कमाएं!",
         body: "Aroha Astrology को दोस्तों और परिवार के साथ शेयर करें — हर दोस्त के जुड़ने पर ₹100 कमाएं!",
@@ -4944,6 +4956,12 @@ export const resources = {
         codeInputPlaceholder: "কোড আছে? এখানে দিন",
         shareMessage: "আমার রেফারেল কোড {{code}} দিয়ে Aroha Astrology-তে যোগ দিন — আপনি ₹50 পাবেন এবং আমি ₹100 পাব!\n{{url}}",
         autoApplied: "আপনার আমন্ত্রণ লিঙ্ক থেকে স্বয়ংক্রিয়ভাবে প্রয়োগ হয়েছে",
+      },
+      updatePrompt: {
+        title: "আপডেট উপলব্ধ",
+        body: "প্লে স্টোরে অরোহা অ্যাস্ট্রোলজির নতুন সংস্করণ এসেছে, নতুন সুবিধা ও সংশোধন সহ।",
+        cta: "এখনই আপডেট করুন",
+        later: "পরে",
       },
       sharePrompt: {
         title: "শেয়ার করুন ও ₹100 উপার্জন করুন!",
@@ -6643,6 +6661,12 @@ export const resources = {
         shareMessage: "माझ्या रेफरल कोड {{code}} वापरून Aroha Astrology जॉइन करा — तुम्हाला ₹50 आणि मला ₹100 मिळतील!\n{{url}}",
         autoApplied: "तुमच्या आमंत्रण लिंकवरून आपोआप लागू झाले",
       },
+      updatePrompt: {
+        title: "अपडेट उपलब्ध",
+        body: "प्ले स्टोअरवर अरोहा ॲस्ट्रोलॉजीची नवीन आवृत्ती उपलब्ध आहे, नवीन वैशिष्ट्ये आणि सुधारणांसह.",
+        cta: "आता अपडेट करा",
+        later: "नंतर",
+      },
       sharePrompt: {
         title: "शेअर करा आणि ₹100 कमवा!",
         body: "Aroha Astrology मित्र आणि कुटुंबासोबत शेअर करा — प्रत्येक मित्र सामील झाल्यावर ₹100 कमवा!",
@@ -8336,6 +8360,12 @@ export const resources = {
         codeInputPlaceholder: "కోడ్ ఉందా? ఇక్కడ నమోదు చేయండి",
         shareMessage: "నా రెఫరల్ కోడ్ {{code}} ఉపయోగించి Aroha Astrology లో చేరండి — మీకు ₹50 మరియు నాకు ₹100 లభిస్తుంది!\n{{url}}",
         autoApplied: "మీ ఆహ్వాన లింక్ నుండి స్వయంచాలకంగా వర్తించబడింది",
+      },
+      updatePrompt: {
+        title: "అప్‌డేట్ అందుబాటులో ఉంది",
+        body: "ప్లే స్టోర్‌లో అరోహా ఆస్ట్రాలజీ కొత్త వెర్షన్ సిద్ధంగా ఉంది, కొత్త ఫీచర్లు మరియు మెరుగుదలలతో.",
+        cta: "ఇప్పుడే అప్‌డేట్ చేయండి",
+        later: "తర్వాత",
       },
       sharePrompt: {
         title: "షేర్ చేయండి & ₹100 సంపాదించండి!",
@@ -10035,6 +10065,12 @@ export const resources = {
         shareMessage: "எனது பரிந்துரை குறியீடு {{code}} மூலம் Aroha Astrology-ஐ இணையுங்கள் — உங்களுக்கு ₹50 மற்றும் எனக்கு ₹100 கிடைக்கும்!\n{{url}}",
         autoApplied: "உங்கள் அழைப்பு இணைப்பிலிருந்து தானாகப் பயன்படுத்தப்பட்டது",
       },
+      updatePrompt: {
+        title: "புதுப்பிப்பு கிடைக்கிறது",
+        body: "ப்ளே ஸ்டோரில் அரோஹா ஆஸ்ட்ராலஜியின் புதிய பதிப்பு தயாராக உள்ளது, புதிய அம்சங்கள் மற்றும் திருத்தங்களுடன்.",
+        cta: "இப்போது புதுப்பிக்கவும்",
+        later: "பிறகு",
+      },
       sharePrompt: {
         title: "பகிர்ந்து ₹100 சம்பாதியுங்கள்!",
         body: "Aroha Astrology-ஐ நண்பர்கள் மற்றும் குடும்பத்துடன் பகிரவும் — ஒவ்வொரு நண்பரும் இணையும்போது ₹100 சம்பாதியுங்கள்!",
@@ -11727,6 +11763,12 @@ export const resources = {
         codeInputPlaceholder: "કોડ છે? અહીં દાખલ કરો",
         shareMessage: "મારા રેફરલ કોડ {{code}} વડે Aroha Astrology જોડાઓ — તમને ₹50 અને મને ₹100 મળશે!\n{{url}}",
         autoApplied: "તમારી આમંત્રણ લિંક પરથી આપમેળે લાગુ થયું",
+      },
+      updatePrompt: {
+        title: "અપડેટ ઉપલબ્ધ છે",
+        body: "પ્લે સ્ટોર પર અરોહા એસ્ટ્રોલોજીનું નવું વર્ઝન તૈયાર છે, નવી સુવિધાઓ અને સુધારાઓ સાથે.",
+        cta: "હમણાં અપડેટ કરો",
+        later: "પછી",
       },
       sharePrompt: {
         title: "શેર કરો અને ₹100 કમાઓ!",

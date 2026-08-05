@@ -47,8 +47,10 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/active-users", label: "Active Users" },
   { href: "/admin/groups", label: "Groups" },
+  { href: "/admin/referrals", label: "Referrals" },
   { href: "/admin/tickets", label: "Tickets" },
 ];
+
 
 /**
  * Looks exactly like a generic "page not found" — deliberately NOT a

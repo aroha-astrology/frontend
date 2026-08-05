@@ -178,6 +178,27 @@ export interface UpdateAdminGroupFeatureBody {
   enabled: boolean | null;
 }
 
+// ─── Referrals ─────────────────────────────────────────────────────────────
+
+export interface AdminReferredUser {
+  id: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  createdAt: string;
+}
+
+export interface AdminReferralRow {
+  referrer: { id: string; displayName: string | null; phoneE164: string | null };
+  count: number;
+  referredUsers: AdminReferredUser[];
+}
+
+export interface AdminReferralsResponse {
+  referrals: AdminReferralRow[];
+}
+
+
+
 // ─── Client ────────────────────────────────────────────────────────────────
 
 export interface AdminDateRangeParams {
@@ -286,4 +307,8 @@ export const adminApi = {
   /** Updates a ticket's status and/or adminNote (at least one required). Backend auto-stamps/clears resolvedAt on terminal-status transitions. */
   updateSupportTicket: (id: string, body: { status?: string; adminNote?: string }) =>
     request<AdminSupportTicket>(`/v1/admin/support/tickets/${id}`, { method: "PATCH", body, auth: true }),
+
+  /** All referral relationships — who referred whom, grouped by referrer, sorted by count desc. */
+  listReferrals: () => request<AdminReferralsResponse>("/v1/admin/referrals", { auth: true }),
 };
+

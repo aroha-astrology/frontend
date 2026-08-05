@@ -16,6 +16,29 @@ const ASKED_KEY = "aroha:reviewAsked:v1";
 // means the one time the card does show lands on a user who's had months of use.
 const COOLDOWN_MS = 120 * 24 * 60 * 60 * 1000;
 
+const GOOD_REPLIES_KEY = "aroha:goodChatReplies:v1";
+
+/**
+ * Counts real AI chat replies (ones that actually produced text) toward the
+ * review-prompt milestone — persisted in localStorage rather than in-memory,
+ * so it accumulates across separate visits/days instead of resetting on every
+ * page refresh. Most chat sessions are only 1-2 messages long, so requiring 5
+ * in one sitting almost never fired in practice; this makes "5 good replies,
+ * ever" the actual bar. Returns the new cumulative count; the caller checks
+ * for the exact milestone value (see ChatConversation.tsx) so the review
+ * prompt only fires once as the count crosses it, not on every reply after.
+ */
+export function recordGoodChatReply(): number {
+  try {
+    const count = Number(window.localStorage.getItem(GOOD_REPLIES_KEY) ?? 0) + 1;
+    window.localStorage.setItem(GOOD_REPLIES_KEY, String(count));
+    return count;
+  } catch {
+    // localStorage blocked/unavailable — never claim a milestone we can't trust.
+    return 0;
+  }
+}
+
 /**
  * Show Google's in-app review card, at most once per cooldown, on native Android
  * only. Fire-and-forget by design: Google never reports the star count, whether a

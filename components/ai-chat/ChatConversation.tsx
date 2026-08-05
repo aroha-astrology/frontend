@@ -42,6 +42,55 @@ interface Message {
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
 
+/** Recursively pulls plain text out of ReactMarkdown's children tree (strings, nested elements) — used to tell whether a rendered paragraph is a question. */
+function extractText(node: React.ReactNode): string {
+  if (typeof node === "string") return node;
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (node && typeof node === "object" && "props" in node) {
+    return extractText((node as { props: { children?: React.ReactNode } }).props.children);
+  }
+  return "";
+}
+
+/**
+ * Direct-mode replies are plain prose (OUTPUT_STYLE bans markdown there), so
+ * when the model tacks a clarifying/follow-up question onto the same
+ * sentence run as its answer, it renders as one dense wall of text with the
+ * question buried inside it (the "Ask next:" convention only catches a
+ * question the model puts in its own dedicated trailing line — not one
+ * folded mid-paragraph). Pull any question sentence out onto its own
+ * paragraph so it always gets a visual line break, regardless of how the
+ * model formatted it. Skipped for Details-mode replies (real markdown
+ * headers/lists/tables) — those are already structured, and this text-level
+ * split would corrupt list items or table rows.
+ */
+function separateQuestions(text: string): string {
+  if (/^\s*(#{1,3}\s|[-*]\s|\d+\.\s|\|)/m.test(text)) return text;
+
+  return text
+    .split(/\n{2,}/)
+    .map((para) => {
+      const sentences = para.match(/[^.!?]+[.!?]+(?:\s+|$)/g);
+      if (!sentences) return para;
+      const out: string[] = [];
+      let buf = "";
+      for (const raw of sentences) {
+        const s = raw.trim();
+        if (!s) continue;
+        if (s.endsWith("?")) {
+          if (buf) out.push(buf);
+          buf = "";
+          out.push(s);
+        } else {
+          buf += (buf ? " " : "") + s;
+        }
+      }
+      if (buf) out.push(buf);
+      return out.join("\n\n");
+    })
+    .join("\n\n");
+}
+
 /**
  * Assistant replies are markdown (short direct replies happen to have no
  * markdown syntax and pass through unchanged; Details-mode replies use real
@@ -53,7 +102,14 @@ function renderMessageContent(content: string) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+        p: ({ children }) => {
+          const isQuestion = extractText(children).trim().endsWith("?");
+          return (
+            <p className={isQuestion ? "mb-1.5 last:mb-0 mt-1.5 text-gold/90 font-medium" : "mb-1.5 last:mb-0"}>
+              {children}
+            </p>
+          );
+        },
         ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 my-1.5">{children}</ul>,
         ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 my-1.5">{children}</ol>,
         li: ({ children }) => <li>{children}</li>,
@@ -680,7 +736,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                       : {}
                   }
                 >
-                  {msg.role === "assistant" ? renderMessageContent(assistantText) : msg.content}
+                  {msg.role === "assistant" ? renderMessageContent(separateQuestions(assistantText)) : msg.content}
                   {/* Cursor while streaming — only once tokens have actually started
                       arriving. Before that, `msg.content` is still empty and the
                       dedicated typing indicator below is showing instead; without

@@ -217,11 +217,21 @@ export const adminApi = {
    * Searches/paginates users. Also the single user-search primitive reused
    * by the group member-add control — don't build a second search.
    */
-  listUsers: (params: { q?: string; offset?: number; limit?: number } = {}) => {
+  listUsers: (
+    params: {
+      q?: string;
+      offset?: number;
+      limit?: number;
+      sortBy?: "createdAt" | "lastActiveAt";
+      sortDir?: "asc" | "desc";
+    } = {},
+  ) => {
     const qs = new URLSearchParams();
     if (params.q) qs.set("q", params.q);
     qs.set("offset", String(params.offset ?? 0));
     qs.set("limit", String(params.limit ?? 20));
+    if (params.sortBy) qs.set("sortBy", params.sortBy);
+    if (params.sortDir) qs.set("sortDir", params.sortDir);
     return request<AdminUsersResponse>(`/v1/admin/users?${qs.toString()}`, { auth: true });
   },
 

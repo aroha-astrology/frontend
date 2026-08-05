@@ -161,6 +161,18 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [walletTarget, setWalletTarget] = useState<AdminUserRow | null>(null);
+  const [sortBy, setSortBy] = useState<"createdAt" | "lastActiveAt">("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function toggleSort(col: "createdAt" | "lastActiveAt") {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("desc");
+    }
+    setOffset(0);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -174,14 +186,14 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
     adminApi
-      .listUsers({ q: debouncedQuery || undefined, offset, limit: LIMIT })
+      .listUsers({ q: debouncedQuery || undefined, offset, limit: LIMIT, sortBy, sortDir })
       .then((res) => {
         setUsers(res.users);
         setTotal(res.total);
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load users"))
       .finally(() => setLoading(false));
-  }, [debouncedQuery, offset]);
+  }, [debouncedQuery, offset, sortBy, sortDir]);
 
   useEffect(() => {
     fetchUsers();
@@ -229,8 +241,26 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium">Phone</th>
                     <th className="px-4 py-2 font-medium">Email</th>
                     <th className="px-4 py-2 font-medium text-right">Wallet</th>
-                    <th className="px-4 py-2 font-medium">Created</th>
-                    <th className="px-4 py-2 font-medium">Last Active</th>
+                    <th className="px-4 py-2 font-medium">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("createdAt")}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Created
+                        {sortBy === "createdAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
+                    <th className="px-4 py-2 font-medium">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("lastActiveAt")}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Last Active
+                        {sortBy === "lastActiveAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
                     <th className="px-4 py-2 font-medium" />
                   </tr>
                 </thead>

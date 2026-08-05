@@ -21,6 +21,22 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId,
 );
 
+// Google/Apple popup sign-in loads its handler from `authDomain` but authorises
+// with `apiKey`; when the two name different Firebase projects the handler dies
+// on `INVALID_CONTINUE_URI` and the app surfaces only a generic error. That
+// shipped to production once already, from a half-done aroha-prod migration
+// that moved authDomain/appId but not apiKey/projectId. This module is imported
+// during prerender, so throwing here fails the build instead of failing at
+// users' sign-in.
+if (
+  isFirebaseConfigured &&
+  !firebaseConfig.authDomain!.startsWith(`${firebaseConfig.projectId}.`)
+) {
+  throw new Error(
+    `Firebase config mixes projects: authDomain "${firebaseConfig.authDomain}" does not belong to projectId "${firebaseConfig.projectId}". All NEXT_PUBLIC_FIREBASE_AUTH_* vars must come from one project.`,
+  );
+}
+
 let authInstance: Auth | null = null;
 
 /** Get the Firebase Auth instance, initialising the app on first call. */

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send, Wallet, Volume2, VolumeX, ThumbsUp, ThumbsDown, Mic, Square, Copy, Share2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
-import { streamChat, sendChatFeedback, SwarmApiError, type ChatDetailLevel } from "@/lib/swarm-api";
+import { streamChat, sendChatFeedback, SwarmApiError } from "@/lib/swarm-api";
+import { PLAY_STORE_URL } from "@/lib/app-review";
 import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
@@ -95,6 +96,35 @@ function splitFollowUp(content: string): { text: string; followUp: string | null
   return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
 }
 
+/**
+ * Web Speech API's recognizer, feature-detected at call time rather than
+ * module load — `window` doesn't exist during SSR, and the constructor lives
+ * under a vendor-prefixed name in the Capacitor Android WebView this app
+ * actually ships in. Returns null (never throws) wherever unsupported —
+ * notably iOS Safari/WKWebView, where the composer's mic button is simply
+ * hidden rather than shown-and-broken. No TS lib.dom types exist for this API,
+ * hence the `any`-typed constructor/instance below.
+ */
+function getSpeechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+}
+
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh } = useAuth();
@@ -118,8 +148,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
-  // All chats use "direct" mode; the Direct/Details toggle was removed.
-  const detailLevel: ChatDetailLevel = "direct";
   // Scroll target for new messages — the messages pane itself (see the
   // `overflow-y-auto` div in the JSX below), not a sentinel node. Scrolling a
   // sentinel via `scrollIntoView` walks and scrolls EVERY scrollable
@@ -128,8 +156,22 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // out from under the (visually) pinned header. Scrolling this container's
   // `scrollTop` directly keeps the effect scoped to just this pane.
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sessionIdRef = useRef<string | undefined>(undefined);
+  // The in-flight request's own cancellation handle, created fresh per send —
+  // wired to the Stop button below. Separate from streamChat's internal
+  // 5-minute timeout controller, which the caller has no access to (see
+  // swarm-api.ts's signal bridge for how the two are reconciled).
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  // Feature-detected once per mount, not on every render — the constructor
+  // itself never changes mid-session.
+  const SpeechRecognitionCtor = useMemo(() => getSpeechRecognitionCtor(), []);
+  // Transient "Copied!" confirmation, keyed by message id like speakingId/
+  // voteMap below — cleared automatically after a couple seconds.
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Cycle the "thinking" label while waiting for the first token, so the
   // wait doesn't feel like a stalled/frozen request.
@@ -194,6 +236,60 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     return () => ttsBackend?.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Dictation into the composer — the only voice input left on this screen
+  // that's free; the mic that used to live here was replaced by the paid
+  // realtime voice call (see the header's VoiceCall icon), which left typing
+  // as the only way to ask a question in a language that's slow to type on a
+  // phone keyboard. Appends onto whatever's already in the box rather than
+  // replacing it, so a user can dictate part of a question and type the rest.
+  const handleDictate = useCallback(() => {
+    if (!SpeechRecognitionCtor) return;
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = i18n.language;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript ?? "";
+      if (transcript) {
+        setInput((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript));
+      }
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    setIsListening(true);
+    recognition.start();
+  }, [SpeechRecognitionCtor, isListening, i18n.language]);
+
+  useEffect(() => {
+    return () => recognitionRef.current?.stop();
+  }, []);
+
+  const handleCopy = useCallback((msg: Message, text: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedId(msg.id);
+      setTimeout(() => setCopiedId((current) => (current === msg.id ? null : current)), 2000);
+    }).catch(() => {});
+  }, []);
+
+  // WhatsApp-first share (matches the referral flow's own reasoning — see
+  // lib/referral.ts — WhatsApp forwarding is the actual growth channel here,
+  // not the Web Share API's generic app picker). Appends the Play Store link
+  // so a forwarded reply can turn into an install, the same "share the
+  // insight, gain a user" loop the referral program already relies on.
+  const handleShareReply = useCallback((text: string) => {
+    const shareText = `${text}\n\n${t("aiChatPage.title")} — ${PLAY_STORE_URL}`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({ text: shareText }).catch(() => {});
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank");
+    }
+  }, [t]);
 
   const handleVote = useCallback((msg: Message, questionText: string | undefined, vote: "up" | "down") => {
     if (voteMap[msg.id]) return;
@@ -293,14 +389,29 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
 
-  const sendMessage = useCallback(async (text?: string) => {
+  // Auto-grow the composer, keyed off `input` itself rather than only the
+  // onChange handler — reacting to every change (including sendMessage's
+  // setInput("") after a send, or handleDictate appending text) is what makes
+  // the box actually collapse back down after a long message goes out; doing
+  // the resize only inside onChange left it stuck tall on a programmatic clear.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
+
+  const sendMessage = useCallback(async (text?: string, opts?: { isFree?: boolean }) => {
     const msg = text ?? input;
     if (!msg.trim() || streaming) return;
 
     // Out of credits: still show the message as sent (rather than silently
     // dropping it, which reads as the app being broken) but reply with a
     // canned recharge prompt instead of spending a real request on the LLM.
-    if (!canAfford) {
+    // Skipped when this is the model's own suggested follow-up (opts.isFree)
+    // — the backend charges nothing for it (see astro.routes.ts's
+    // isFreeFollowUp), so a low balance must never block tapping it.
+    if (!canAfford && !opts?.isFree) {
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "user", content: msg },
@@ -319,6 +430,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     setInput("");
     setStreaming(true);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    // Declared outside the try block (not `let` inside it) so the catch
+    // block's user_stopped branch below can still read whatever streamed in
+    // before the abort — a try-scoped `let` would be out of scope there.
+    let fullContent = "";
+
     try {
       const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
       pendingCompareProfileIdRef.current = undefined;
@@ -326,13 +444,12 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       pendingMatchReportIdRef.current = undefined;
       const stream = streamChat(msg, {
         sessionId: sessionIdRef.current,
-        detailLevel,
         chartId,
         locale: i18n.language,
+        signal: controller.signal,
         ...(compareProfileIdForThisTurn ? { compareProfileId: compareProfileIdForThisTurn } : {}),
         ...(matchReportIdForThisTurn ? { matchReportId: matchReportIdForThisTurn } : {}),
       });
-      let fullContent = "";
 
       for await (const event of stream) {
         if (event.type === "token") {
@@ -408,6 +525,20 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         return;
       }
 
+      // A deliberate Stop-button click, not a real failure — never show an
+      // error. Whatever text had already streamed in (tracked in `fullContent`
+      // above, via the same setMessages calls the token loop already made)
+      // stays as the final reply, same as closing the tab mid-answer today.
+      // Only roll back the optimistic turn if nothing streamed at all yet, so
+      // an instant stop doesn't leave a dangling empty bubble.
+      if (err instanceof SwarmApiError && err.code === "user_stopped") {
+        if (!fullContent.trim()) {
+          setMessages((prev) => prev.slice(0, -2));
+          setInput(msg);
+        }
+        return;
+      }
+
       const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
@@ -425,12 +556,17 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       });
     } finally {
       setStreaming(false);
+      if (abortControllerRef.current === controller) abortControllerRef.current = null;
       // Credits are charged server-side the moment the request is accepted
       // (even if generation then fails) — refresh so the balance shown in
       // the top bar reflects the new total right away.
       refresh().catch(() => {});
     }
-  }, [input, streaming, canAfford, t, detailLevel, refresh]);
+  }, [input, streaming, canAfford, t, refresh]);
+
+  const handleStop = useCallback(() => {
+    abortControllerRef.current?.abort();
+  }, []);
 
   // A caller (e.g. the compatibility page's "Ask an Astrologer" button) can
   // hand off a pre-composed first message via sessionStorage so the
@@ -464,6 +600,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Used to keep the starter chips and the per-message price line visible
+  // through the first exchange instead of vanishing the instant one message
+  // is sent — a blank input right after the first reply was the single
+  // biggest reason a conversation didn't continue (0.9 messages/session in
+  // production before this).
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
 
   return (
     <main className="h-[calc(100dvh-var(--topbar-h))] overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
@@ -597,26 +740,58 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                   {voteMap[msg.id] && (
                     <span className="text-[10px] text-[var(--text-muted)]">{t("aiChatPage.feedbackThanks")}</span>
                   )}
+                  <button
+                    onClick={() => handleCopy(msg, assistantText)}
+                    aria-label={t(copiedId === msg.id ? "aiChatPage.copied" : "aiChatPage.copyReply")}
+                    className="transition-colors"
+                    style={{ color: copiedId === msg.id ? "#22c55e" : "var(--text-muted)" }}
+                  >
+                    {copiedId === msg.id ? <Check size={15} /> : <Copy size={15} />}
+                  </button>
+                  <button
+                    onClick={() => handleShareReply(assistantText)}
+                    aria-label={t("aiChatPage.shareReply")}
+                    className="transition-colors"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    <Share2 size={15} />
+                  </button>
                 </div>
               )}
-              {/* Suggested follow-up — tappable, sends it as the next message */}
-              {followUp && (
-                <button
-                  onClick={() => sendMessage(followUp)}
-                  disabled={streaming}
-                  className="ml-9 mt-1.5 max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
-                >
-                  {followUp}
-                </button>
-              )}
+              {/* Suggested follow-up — tappable, sends it as the next message. Free
+                  ONLY when it's still the model's own most recent suggestion (the
+                  last message in the array) — the server verifies this against the
+                  same stored transcript (isFreeFollowUp in astro.routes.ts), so an
+                  older, already-superseded chip further back in the conversation
+                  is intentionally left at full price if it's still tapped. */}
+              {followUp && (() => {
+                const isFreeTap = i === messages.length - 1;
+                return (
+                  <button
+                    onClick={() => sendMessage(followUp, { isFree: isFreeTap })}
+                    disabled={streaming}
+                    className="ml-9 mt-1.5 max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
+                  >
+                    {followUp}
+                    {isFreeTap && (
+                      <span className="ml-1.5 text-[10px] font-semibold text-green-500">
+                        · {t("aiChatPage.freeFollowUp")}
+                      </span>
+                    )}
+                  </button>
+                );
+              })()}
             </motion.div>
             );
           })}
         </AnimatePresence>
 
-        {/* Conversation starters — only before the user has sent anything, so a
-            blank input box isn't the first thing a new chat asks of them. */}
-        {messages.length === 1 && !streaming && (
+        {/* Conversation starters — visible before the first message (so a blank
+            input box isn't the first thing a new chat asks of them) AND through
+            the first reply, so a fresh conversation always has a next step
+            available instead of just a bare composer once the astrologer's
+            own "Ask next:" chip has already been used or wasn't offered. */}
+        {userMessageCount <= 1 && !streaming && (
           <div className="flex flex-wrap gap-2 ml-9">
             {(["suggestion1", "suggestion2", "suggestion3", "suggestion4", "suggestion5"] as const).map((key) => (
               <button
@@ -695,33 +870,73 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 {t("payment.buyCredits")}
               </Link>
             </p>
-          ) : (
+          ) : userMessageCount === 0 ? (
+            // Shown once, before the first message only — a permanent per-turn
+            // meter on every single reply was the "pricing kills the
+            // conversation" complaint; the price is still discoverable (here,
+            // plus the low-balance warning above once it's relevant again).
             <p className="text-center text-[10px] text-[var(--text-muted)]/70 mb-1.5">
               {t("aiChatPage.costPerMessage", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
             </p>
-          )}
+          ) : null}
           {/* Voice used to live here as a mic button; it is now a call icon in
-              the header, so this row is just the text composer again. */}
-          <div className="flex gap-3">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder={t("aiChatPage.inputPlaceholder")}
-              className="flex-1 h-14 rounded-full px-5 outline-none border text-sm disabled:opacity-50"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-              }}
-            />
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || streaming}
-              className="h-14 w-14 rounded-full bg-yellow-500 text-black flex items-center justify-center disabled:opacity-40 transition-opacity"
+              the header. A second mic (dictate) lives inline in the composer
+              below — free text-to-speech input, not the paid realtime call. */}
+          <div className="flex gap-3 items-end">
+            <div
+              className="flex-1 flex items-end gap-1 rounded-3xl px-3 py-1.5 border"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
-              <Send size={20} />
-            </button>
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter sends; Shift+Enter inserts a newline (default
+                  // textarea behavior — nothing to intercept for that case).
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder={t("aiChatPage.inputPlaceholder")}
+                rows={1}
+                className="flex-1 resize-none outline-none text-sm py-2.5 bg-transparent max-h-[120px] disabled:opacity-50"
+                style={{ color: "var(--foreground)" }}
+              />
+              {SpeechRecognitionCtor && (
+                <button
+                  type="button"
+                  onClick={handleDictate}
+                  aria-label={t(isListening ? "aiChatPage.listeningNow" : "aiChatPage.dictate")}
+                  className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center transition-colors mb-0.5"
+                  style={{
+                    color: isListening ? "#ef4444" : "var(--text-muted)",
+                    background: isListening ? "rgba(239, 68, 68, 0.1)" : "transparent",
+                  }}
+                >
+                  <Mic size={18} className={isListening ? "animate-pulse" : ""} />
+                </button>
+              )}
+            </div>
+            {streaming ? (
+              <button
+                onClick={handleStop}
+                aria-label={t("aiChatPage.stopGenerating")}
+                className="h-14 w-14 flex-shrink-0 rounded-full border-2 flex items-center justify-center transition-colors"
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+              >
+                <Square size={18} fill="currentColor" />
+              </button>
+            ) : (
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                className="h-14 w-14 flex-shrink-0 rounded-full bg-yellow-500 text-black flex items-center justify-center disabled:opacity-40 transition-opacity"
+              >
+                <Send size={20} />
+              </button>
+            )}
           </div>
         </div>
       </div>

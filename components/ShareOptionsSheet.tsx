@@ -7,6 +7,7 @@ import { MessageSquare, Copy, Share2, X, Check } from "lucide-react";
 import Image from "next/image";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { buildReferralShareLinks } from "@/lib/referral";
+import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 
 /**
  * App-choice picker for sharing a referral link — WhatsApp/Telegram/SMS/Copy,
@@ -25,7 +26,9 @@ export default function ShareOptionsSheet({
 }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const links = buildReferralShareLinks(t, code);
+  // Amounts come from the admin-set referral features so the shared message
+  // quotes what the recipient will actually receive.
+  const links = buildReferralShareLinks(t, code, useReferralAmounts());
   const canShareMore = typeof navigator !== "undefined" && !!navigator.share;
 
   useDismissOnBackPress(open, onClose);

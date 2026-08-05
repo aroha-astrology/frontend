@@ -132,9 +132,6 @@ export interface MatchmakingResponse {
   lagnaCaveat?: string;
 }
 
-/** Reply depth: "direct" (short, default) or "details" (long-form, structured). */
-export type ChatDetailLevel = "direct" | "details";
-
 // Chat SSE events
 export interface ChatTokenEvent {
   type: "token";
@@ -276,8 +273,6 @@ export async function* streamChat(
      * memory).
      */
     sessionId?: string;
-    /** "direct" (short, default) or "details" (long-form, structured). */
-    detailLevel?: ChatDetailLevel;
     /** User's Kundli chart ID for grounding AI responses in birth chart data. */
     chartId?: string;
     /**
@@ -294,6 +289,13 @@ export async function* streamChat(
      * Independent of compareProfileId — a match_report is not a saved birth_profiles row.
      */
     matchReportId?: string;
+    /**
+     * Caller-controlled cancellation (e.g. a Stop button) — separate from the
+     * internal 5-minute timeout below, both because the caller has no access
+     * to that internal AbortController and because the two need to surface
+     * differently: a user-initiated stop must never show a "timed out" error.
+     */
+    signal?: AbortSignal;
   },
 ): AsyncGenerator<ChatStreamEvent> {
   const headers = await authHeaders();
@@ -303,6 +305,26 @@ export async function* streamChat(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 300000);
 
+  // Bridge the caller's signal onto the internal controller so a Stop click
+  // aborts the same in-flight fetch the timeout would — but track WHICH one
+  // fired so the catch block below can tell a user stop from a real timeout.
+  let userAborted = false;
+  if (opts?.signal) {
+    if (opts.signal.aborted) {
+      userAborted = true;
+      controller.abort();
+    } else {
+      opts.signal.addEventListener(
+        "abort",
+        () => {
+          userAborted = true;
+          controller.abort();
+        },
+        { once: true },
+      );
+    }
+  }
+
   try {
     const res = await fetch(`${BASE_URL}/v1/chat`, {
       method: "POST",
@@ -311,7 +333,6 @@ export async function* streamChat(
       body: JSON.stringify({
         message,
         locale: opts?.locale ?? "en",
-        detailLevel: opts?.detailLevel ?? "direct",
         ...(opts?.sessionId ? { sessionId: opts.sessionId } : {}),
         ...(opts?.chartId ? { chartId: opts.chartId } : {}),
         ...(opts?.compareProfileId ? { compareProfileId: opts.compareProfileId } : {}),
@@ -332,16 +353,14 @@ export async function* streamChat(
     const reader = res.body?.getReader();
     if (!reader) throw new SwarmApiError(0, "no_body", "Response has no body");
 
-    // Details-mode replies are long structured markdown (headers, tables) —
-    // flushing every ~100 chars/2 newlines like a short direct reply chops
-    // that structure mid-header/mid-table-row, so use a much looser
-    // threshold and flush on paragraph boundaries (blank line) instead.
-    const isDetails = opts?.detailLevel === "details";
-    const FLUSH_CHAR_THRESHOLD = isDetails ? 400 : 100;
+    // Every reply is short-form now (Details mode was removed — see
+    // astro.schemas.ts's detailLevel comment on the backend), so there's only
+    // ever the one flush cadence: ~2 newlines or 100 chars.
+    const FLUSH_CHAR_THRESHOLD = 100;
 
     const decoder = new TextDecoder();
     let buffer = "";
-    let tokenBuffer = ""; // Buffer tokens into ~2-line (or paragraph, in Details mode) chunks
+    let tokenBuffer = ""; // Buffer tokens into ~2-line chunks before flushing
 
     try {
       while (true) {
@@ -377,12 +396,10 @@ export async function* streamChat(
               const content = data.content ?? "";
               tokenBuffer += content;
 
-              // Direct mode: flush on ~2 newlines or 100 chars. Details mode:
-              // flush on a paragraph break (blank line) or 400 chars, so a
-              // markdown header/table row is far less likely to split mid-line.
-              const shouldFlush = isDetails
-                ? tokenBuffer.includes("\n\n") || tokenBuffer.length > FLUSH_CHAR_THRESHOLD
-                : (tokenBuffer.match(/\n/g) || []).length >= 2 || tokenBuffer.length > FLUSH_CHAR_THRESHOLD;
+              // Flush on ~2 newlines or 100 chars — keeps the UI feeling
+              // responsive without flushing so often it stutters.
+              const shouldFlush =
+                (tokenBuffer.match(/\n/g) || []).length >= 2 || tokenBuffer.length > FLUSH_CHAR_THRESHOLD;
               if (shouldFlush) {
                 yield { type: "token", data: { content: tokenBuffer } };
                 tokenBuffer = "";
@@ -401,6 +418,20 @@ export async function* streamChat(
                 tokenBuffer = "";
               }
               yield { type: "done", data: { status: data.status ?? "complete" } };
+            } else if (eventType === "session_id") {
+              // Without this branch the frame is silently dropped, sessionIdRef
+              // in ChatConversation never gets set, and EVERY question opens a
+              // brand-new chat session — which is exactly what production was
+              // doing (304 sessions for 404 messages). The producer
+              // (astro.routes.ts), the type (ChatSessionIdEvent) and the
+              // consumer all already existed; only this dispatch was missing.
+              // Flush pending tokens first so the reply text is never left
+              // buffered behind the id.
+              if (tokenBuffer) {
+                yield { type: "token", data: { content: tokenBuffer } };
+                tokenBuffer = "";
+              }
+              yield { type: "session_id", data: { sessionId: data.sessionId } };
             } else if (eventType === "error") {
               yield { type: "error", data: { message: data.message ?? "Unknown error" } };
             }
@@ -419,7 +450,13 @@ export async function* streamChat(
     }
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
-      throw new SwarmApiError(408, "timeout", "Chat request timed out after 5 minutes");
+      // Same underlying AbortController either way (see the bridge above) —
+      // `userAborted` is what tells a deliberate Stop-button click apart from
+      // the 5-minute safety timeout, so the caller can treat them differently
+      // (a user stop keeps the partial reply and shows no error at all).
+      throw userAborted
+        ? new SwarmApiError(0, "user_stopped", "Stopped by user")
+        : new SwarmApiError(408, "timeout", "Chat request timed out after 5 minutes");
     }
     throw err;
   } finally {

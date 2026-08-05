@@ -15,6 +15,7 @@ import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from
 import { purgeUserCache } from "@/lib/cache";
 import { formatTimeOfBirth } from "@/lib/format";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
+import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 
 interface EditForm {
   displayName: string;
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, loading, refresh } = useAuth();
+  const referralAmounts = useReferralAmounts();
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<EditForm | null>(null);
@@ -220,7 +222,11 @@ export default function ProfilePage() {
                   {t("referral.title", "Refer & Earn")}
                 </h3>
                 <p className="text-xs text-muted mt-1 max-w-[200px]">
-                  {t("referral.desc", "Share your code. You both get ₹50 when they join. Earn up to ₹2000!")}
+                  {/* No inline English fallback with amounts in it: the previous
+                      one said "You both get ₹50", which was already wrong (the
+                      referrer gets more) and would go stale again the moment an
+                      admin retunes the bonus. */}
+                  {t("referral.desc", referralAmounts)}
                 </p>
               </div>
             </div>

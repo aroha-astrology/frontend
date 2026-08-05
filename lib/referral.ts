@@ -36,10 +36,25 @@ export function clearPendingReferralCode() {
   }
 }
 
-export function buildReferralShareText(t: TFunction, code: string): string {
+/**
+ * `amounts` carries the admin-resolved referral bonuses (see
+ * `useReferralAmounts`) — the share text quotes real figures, so it must never
+ * fall back to literals baked into the copy. Callers in React should pass
+ * `useReferralAmounts()`; the defaults here mirror the backend registry and
+ * exist only for a caller with no feature map available.
+ */
+export function buildReferralShareText(
+  t: TFunction,
+  code: string,
+  amounts: { referrerBonus: string; refereeBonus: string } = {
+    referrerBonus: "₹100",
+    refereeBonus: "₹50",
+  },
+): string {
   return t("referral.shareMessage", {
     code,
     url: PLAY_STORE_URL,
+    ...amounts,
   });
 }
 
@@ -53,8 +68,12 @@ export interface ReferralShareLinks {
 /** Per-app deep links for the referral message — used by ShareOptionsSheet's app picker.
  * Built explicitly (rather than relying solely on navigator.share) because the Web Share
  * API is unreliable inside the Capacitor Android WebView the shipped app runs in. */
-export function buildReferralShareLinks(t: TFunction, code: string): ReferralShareLinks {
-  const text = buildReferralShareText(t, code);
+export function buildReferralShareLinks(
+  t: TFunction,
+  code: string,
+  amounts?: { referrerBonus: string; refereeBonus: string },
+): ReferralShareLinks {
+  const text = buildReferralShareText(t, code, amounts);
   const link = PLAY_STORE_URL;
   return {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,

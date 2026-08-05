@@ -8,6 +8,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
+import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 
 const SEEN_KEY = "aroha:sharePromptSeen:v1";
 
@@ -20,6 +21,7 @@ const SEEN_KEY = "aroha:sharePromptSeen:v1";
 export default function ShareAppPrompt() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const referralAmounts = useReferralAmounts();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -67,9 +69,9 @@ export default function ShareAppPrompt() {
               </span>
               <div>
                 <h2 className="text-lg font-display text-foreground mb-1">
-                  {t("sharePrompt.title")}
+                  {t("sharePrompt.title", referralAmounts)}
                 </h2>
-                <p className="text-sm text-muted leading-relaxed">{t("sharePrompt.body")}</p>
+                <p className="text-sm text-muted leading-relaxed">{t("sharePrompt.body", referralAmounts)}</p>
               </div>
             </div>
 

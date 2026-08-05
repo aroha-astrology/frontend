@@ -26,6 +26,7 @@ import {
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
+import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
@@ -45,6 +46,7 @@ import ShareOptionsSheet from "@/components/ShareOptionsSheet";
  */
 export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const referralAmounts = useReferralAmounts();
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [switcherOpen, setSwitcherOpen] = useState(false);
@@ -214,7 +216,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{t("referral.title")}</p>
-                      <p className="text-xs text-muted mt-0.5">{t("referral.desc")}</p>
+                      <p className="text-xs text-muted mt-0.5">{t("referral.desc", referralAmounts)}</p>
                     </div>
                   </div>
                   <button

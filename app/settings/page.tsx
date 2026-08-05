@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,8 +8,10 @@ import {
   Download,
   Globe,
   Loader2,
+  MessageSquare,
   Moon,
   ScrollText,
+  Star,
   ShieldCheck,
   LogOut,
   Sparkles,
@@ -22,6 +24,9 @@ import Card from "@/components/ui/Card";
 import Switch from "@/components/ui/Switch";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import ListRow from "@/components/ui/ListRow";
+import FeedbackSheet from "@/components/FeedbackSheet";
+import { PLAY_STORE_URL } from "@/lib/app-review";
+import { isNativeAndroid } from "@/lib/play-billing";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import { useAuth } from "@/providers/auth-provider";
@@ -75,6 +80,14 @@ export default function SettingsPage() {
 
   const [exportBusy, setExportBusy] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // The Play listing only exists for the native Android build — never offer it
+  // on iOS or on the plain web app.
+  const [playAvailable, setPlayAvailable] = useState(false);
+  useEffect(() => {
+    isNativeAndroid().then(setPlayAvailable);
+  }, []);
 
   const [deletingProfile, setDeletingProfile] = useState<Profile | null>(null);
   const [deleteProfileBusy, setDeleteProfileBusy] = useState(false);
@@ -166,7 +179,24 @@ export default function SettingsPage() {
         <div className="space-y-2.5 mb-6">
           <ListRow icon={<Globe size={16} />} label={t("settings.language")} right={<LanguagePicker />} />
           <ListRow icon={<Moon size={16} />} label={t("settings.theme")} right={<ThemeSwitch />} />
+          <ListRow
+            icon={<MessageSquare size={16} />}
+            label={t("settings.sendFeedback")}
+            onClick={() => setFeedbackOpen(true)}
+          />
+          {playAvailable && (
+            // A plain deep link, deliberately not AppReview.requestReview():
+            // Google's quota can make that card silently do nothing, which reads
+            // as a broken button. The listing always opens.
+            <ListRow
+              icon={<Star size={16} />}
+              label={t("settings.rateOnPlayStore")}
+              onClick={() => window.open(PLAY_STORE_URL, "_blank")}
+            />
+          )}
         </div>
+
+        {feedbackOpen && <FeedbackSheet onClose={() => setFeedbackOpen(false)} />}
 
         {/* Profiles */}
         {profiles !== null && (

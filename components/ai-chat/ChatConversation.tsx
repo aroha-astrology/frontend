@@ -23,6 +23,7 @@ import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
 import { formatRupees } from "@/lib/format";
+import { maybeRequestReview } from "@/lib/app-review";
 
 /** Below this balance (but still affordable), nudge the user to top up before they run out mid-conversation. Pure UI threshold, unrelated to server pricing. */
 const LOW_CREDIT_THRESHOLD_PAISE = 8000;
@@ -156,6 +157,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // for the first reply).
   const pendingCompareProfileIdRef = useRef<string | undefined>(undefined);
   const pendingMatchReportIdRef = useRef<string | undefined>(undefined);
+  /** Replies that actually produced text this mount — the review milestone below.
+   * A ref, not derived from `messages`, so the streaming callback isn't reading a
+   * stale closure and so a resumed session's replayed history doesn't count. */
+  const goodRepliesRef = useRef(0);
 
   // Per-message TTS + feedback state. Keyed by client-generated message id
   // (see the Message interface above) rather than array index, since index
@@ -380,6 +385,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           }
           return next;
         });
+      } else if (++goodRepliesRef.current === 5) {
+        // Five real answers in one sitting means the user got what they came
+        // for — a milestone worth offering Google's review card on.
+        void maybeRequestReview();
       }
     } catch (err) {
       // Pacing rejections are the one failure the user must never be shown,

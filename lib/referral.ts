@@ -1,11 +1,10 @@
 import type { TFunction } from "i18next";
+// The referral share link sends people to the Play Store listing, not the web
+// app, so a friend without the app installed lands on "install" rather than a
+// browser tab.
+import { PLAY_STORE_URL } from "./app-review";
 
 const STORAGE_KEY = "pending_referral_code";
-
-/** Where the referral share link should send people — the Play Store listing,
- * not the web app, so a friend without the app installed lands on "install"
- * rather than a browser tab. There's no App Store listing yet. */
-const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.aroha.astrology";
 
 /** Reads `?ref=`/`?referralCode=` from the current URL and stashes it for onboarding. */
 export function capturePendingReferralCode() {

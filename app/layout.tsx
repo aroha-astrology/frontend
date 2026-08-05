@@ -14,6 +14,7 @@ import BottomNavigationGate from "@/components/BottomNavigationGate";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import ShareAppPrompt from "@/components/ShareAppPrompt";
+import FeedbackPrompt from "@/components/FeedbackPrompt";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -90,6 +91,7 @@ export default function RootLayout({
                         <BottomNavigationGate />
                         <PermissionsPrompt />
                         <ShareAppPrompt />
+                        <FeedbackPrompt />
                       </AuthGuard>
                     </TopBarProvider>
                     <BackButtonListener />

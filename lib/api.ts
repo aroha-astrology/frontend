@@ -1128,6 +1128,11 @@ export const api = {
   /** The current user's own support tickets, newest first — never another user's. */
   listMySupportTickets: () =>
     request<{ tickets: SupportTicket[] }>("/v1/support/tickets", { auth: true }),
+
+  /** Our own star rating + written comment. Unrelated to the Play Store review
+   * card (lib/app-review.ts), which reports nothing back and stores nothing here. */
+  submitFeedback: (body: { rating: number; comment?: string }) =>
+    request<{ id: string; received: boolean }>("/v1/feedback", { method: "POST", body, auth: true }),
 };
 
 // ─── Kundli helpers ──────────────────────────────────────────────────────────

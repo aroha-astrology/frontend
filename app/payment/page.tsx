@@ -13,6 +13,7 @@ import { formatRupees } from "@/lib/format";
 import WalletBalance from "@/components/ui/WalletBalance";
 import { api, ApiError, type TopUpAmount, type CouponValidation } from "@/lib/api";
 import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
+import { maybeRequestReview } from "@/lib/app-review";
 
 type PaymentMethod = "google_play" | "razorpay";
 
@@ -98,6 +99,12 @@ export default function PaymentPage() {
       if (android) setMethod("google_play");
     });
   }, []);
+
+  // A completed top-up is the clearest "this app was worth paying for" moment we
+  // get, so it's one of the milestones that offers Google's review card.
+  useEffect(() => {
+    if (success) void maybeRequestReview();
+  }, [success]);
 
   // Razorpay is offered only to phone/OTP accounts: its checkout demands a
   // mobile number, and a Google-signup user has none on file, so they'd hit

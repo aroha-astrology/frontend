@@ -28,12 +28,15 @@ function ShlokaGrid({ items }: { items: Shloka[] }) {
           href={`/shlokas/${s.slug}`}
           className="rounded-2xl overflow-hidden border border-gold/20 bg-card active:scale-[0.98] transition-transform"
         >
-          <div className="relative aspect-[3/4] bg-gold/5">
+          {/* 10:17 matches the source artwork's own ratio (~200x340), so
+              object-cover has nothing to crop. The old 3:4 box sliced the top
+              and bottom off every deity. See the detail page for the same fix. */}
+          <div className="relative aspect-[10/17] bg-gold/5">
             <Image
               src={IMG_BASE + s.img}
               alt=""
               fill
-              sizes="(max-width: 640px) 50vw, 240px"
+              sizes="(max-width: 640px) 45vw, 200px"
               className="object-cover"
             />
           </div>

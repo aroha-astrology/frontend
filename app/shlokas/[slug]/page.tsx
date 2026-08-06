@@ -67,12 +67,19 @@ function ShlokaDetail({ slug }: { slug: string }) {
 
         {shloka && (
           <>
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-gold/20 bg-gold/5">
+            {/* Portrait frame at the artwork's own 10:17 ratio, deliberately
+                capped at 190px wide. The source PNGs are only ~200x340, so a
+                full-bleed hero both cropped the deity's head/feet off (a 4:3
+                landscape box object-cover'ing a portrait image) and upscaled a
+                200px source across a ~350px viewport into visible mush. Small
+                and sharp beats big and soft — do not widen this without
+                higher-resolution source art. */}
+            <div className="relative mx-auto w-[190px] aspect-[10/17] rounded-2xl overflow-hidden border border-gold/25 bg-gold/5 shadow-lg shadow-black/30">
               <Image
                 src={IMG_BASE + shloka.img}
                 alt=""
                 fill
-                sizes="(max-width: 640px) 100vw, 512px"
+                sizes="190px"
                 className="object-cover"
                 priority
               />

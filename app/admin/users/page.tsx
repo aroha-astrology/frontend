@@ -16,6 +16,8 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
 const LIMIT = 20;
 
+type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise";
+
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -161,10 +163,10 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [walletTarget, setWalletTarget] = useState<AdminUserRow | null>(null);
-  const [sortBy, setSortBy] = useState<"createdAt" | "lastActiveAt">("createdAt");
+  const [sortBy, setSortBy] = useState<SortColumn>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  function toggleSort(col: "createdAt" | "lastActiveAt") {
+  function toggleSort(col: SortColumn) {
     if (sortBy === col) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
@@ -240,7 +242,16 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium">Name</th>
                     <th className="px-4 py-2 font-medium">Phone</th>
                     <th className="px-4 py-2 font-medium">Email</th>
-                    <th className="px-4 py-2 font-medium text-right">Wallet</th>
+                    <th className="px-4 py-2 font-medium text-right">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("walletBalancePaise")}
+                        className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Wallet
+                        {sortBy === "walletBalancePaise" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
                     <th className="px-4 py-2 font-medium">
                       <button
                         type="button"

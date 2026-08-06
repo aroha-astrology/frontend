@@ -243,7 +243,7 @@ export const adminApi = {
       q?: string;
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {

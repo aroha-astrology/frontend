@@ -12,6 +12,7 @@ import KundliCard from "@/components/KundliCard";
 import MatchMakingCard from "@/components/MatchMakingCard";
 import VastuCard from "@/components/VastuCard";
 import PalmReadingCard from "@/components/PalmReadingCard";
+import ShlokasCard from "@/components/ShlokasCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -104,6 +105,14 @@ function PalmReadingSection() {
   );
 }
 
+function ShlokasSection() {
+  return (
+    <div className="px-5 mt-8 mb-6">
+      <ShlokasCard />
+    </div>
+  );
+}
+
 interface HomeSection {
   id: string;
   featureKey: string;
@@ -119,6 +128,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
   { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
   { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
+  { id: "shlokas", featureKey: "home.shlokas", Component: ShlokasSection },
 ];
 
 export default function HomePage() {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Which login method a visitor should see. India keeps Firebase phone OTP;
-// everywhere else gets Google sign-in only (see the region-auth design doc).
+// Whether a visitor is offered Firebase phone OTP on top of Google sign-in.
+// 'phone' (India) = OTP form + Google; 'google' = Google only. Google is
+// available everywhere; OTP is the India-only extra.
 export type AuthMethod = 'phone' | 'google';
 
 export const dynamic = 'force-dynamic';

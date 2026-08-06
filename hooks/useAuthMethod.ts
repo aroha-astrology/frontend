@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/** Which login method to show: Firebase phone OTP (India) or Google sign-in (elsewhere). */
+/** "phone" = India (OTP form shown above Google); "google" = Google only. */
 export type AuthMethod = "phone" | "google";
 
 const OVERRIDE_KEY = "aroha:auth-method-override";

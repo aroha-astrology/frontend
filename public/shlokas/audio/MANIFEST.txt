@@ -1,0 +1,52 @@
+# id | slug | audio file | title (en)
+
+ 1 | gayatri-mantra             | gayatri-mantra.mp3             | Gayatri Mantra
+ 2 | mahamrityunjaya-mantra     | mahamrityunjaya-mantra.mp3     | Mahamrityunjaya Mantra
+ 3 | ganesh-vandana             | ganesh-vandana.mp3             | Ganesha Vandana
+ 4 | guru-mantra                | guru-mantra.mp3                | Guru Mantra
+ 5 | saraswati-vandana          | saraswati-vandana.mp3          | Saraswati Vandana
+ 6 | shanti-mantra              | shanti-mantra.mp3              | Shanti Mantra (Om Saha Navavatu)
+ 7 | asato-ma-sadgamaya         | asato-ma-sadgamaya.mp3         | Asato Ma Sadgamaya
+ 8 | purnamadah-purnamidam      | purnamadah-purnamidam.mp3      | Purnamadah Purnamidam
+ 9 | karagre-vasate-lakshmi     | karagre-vasate-lakshmi.mp3     | Karagre Vasate Lakshmi
+10 | shubham-karoti-kalyanam    | shubham-karoti-kalyanam.mp3    | Shubham Karoti Kalyanam
+11 | tvameva-mata               | tvameva-mata.mp3               | Tvameva Mata Cha Pita Tvameva
+12 | shri-rama-stuti            | shri-rama-stuti.mp3            | Shri Rama Stuti
+13 | hanuman-dhyana             | hanuman-dhyana.mp3             | Hanuman Dhyana Shloka
+14 | vishnu-shantakaram         | vishnu-shantakaram.mp3         | Vishnu Shantakaram
+15 | lakshmi-mantra             | lakshmi-mantra.mp3             | Lakshmi Mantra
+16 | durga-mantra               | durga-mantra.mp3               | Durga Mantra
+17 | navagraha-mantra           | navagraha-mantra.mp3           | Navagraha Mantra
+18 | aditya-hrudayam            | aditya-hrudayam.mp3            | Aditya Hrudayam (selected verses)
+19 | gita-2-47                  | gita-2-47.mp3                  | Bhagavad Gita 2.47
+20 | gita-4-7                   | gita-4-7.mp3                   | Bhagavad Gita 4.7
+21 | gita-4-8                   | gita-4-8.mp3                   | Bhagavad Gita 4.8
+22 | gita-18-66                 | gita-18-66.mp3                 | Bhagavad Gita 18.66
+23 | gita-12-15                 | gita-12-15.mp3                 | Bhagavad Gita 12.15
+24 | gita-6-5                   | gita-6-5.mp3                   | Bhagavad Gita 6.5
+25 | gita-2-20                  | gita-2-20.mp3                  | Bhagavad Gita 2.20
+26 | narayana-mantra            | narayana-mantra.mp3            | Narayana Mantra (Ashtakshari)
+27 | krishna-mantra             | krishna-mantra.mp3             | Krishna Mantra
+28 | shiva-panchakshari         | shiva-panchakshari.mp3         | Shiva Panchakshari
+29 | vishnu-dwadashakshari      | vishnu-dwadashakshari.mp3      | Vishnu Dwadashakshari
+30 | hare-krishna-mahamantra    | hare-krishna-mahamantra.mp3    | Hare Krishna Mahamantra
+31 | rama-taraka-mantra         | rama-taraka-mantra.mp3         | Rama Taraka Mantra
+32 | shri-sukta                 | shri-sukta.mp3                 | Shri Sukta (opening verse)
+33 | purusha-sukta              | purusha-sukta.mp3              | Purusha Sukta (opening verse)
+34 | narayanopanishad-mantra    | narayanopanishad-mantra.mp3    | Narayanopanishad Mantra
+35 | narasimha-mantra           | narasimha-mantra.mp3           | Narasimha Mantra
+36 | dattatreya-mantra          | dattatreya-mantra.mp3          | Dattatreya Mantra
+37 | kalabhairava-mantra        | kalabhairava-mantra.mp3        | Kalabhairava Mantra
+38 | annapurna-stotram          | annapurna-stotram.mp3          | Annapurna Stotram (key verse)
+39 | shiva-dhyana               | shiva-dhyana.mp3               | Shiva Dhyana Shloka (Karpura Gauram)
+40 | ganga-stotram              | ganga-stotram.mp3              | Ganga Stotram (opening verse)
+41 | tulsi-prarthana            | tulsi-prarthana.mp3            | Tulsi Prarthana
+42 | surya-namaskar-mantra      | surya-namaskar-mantra.mp3      | Surya Namaskar Mantras
+43 | shiva-tandava-stotram      | shiva-tandava-stotram.mp3      | Shiva Tandava Stotram (opening verse)
+44 | lingashtakam               | lingashtakam.mp3               | Lingashtakam (opening verse)
+45 | madhurashtakam             | madhurashtakam.mp3             | Madhurashtakam (opening verse)
+46 | govindashtakam             | govindashtakam.mp3             | Govindashtakam (opening verse)
+47 | rama-raksha-stotram        | rama-raksha-stotram.mp3        | Rama Raksha Stotram (opening verses)
+48 | devi-kavacham              | devi-kavacham.mp3              | Devi Kavacham (Navadurga verses)
+49 | hanuman-gayatri            | hanuman-gayatri.mp3            | Hanuman Gayatri
+50 | narayana-gayatri           | narayana-gayatri.mp3           | Narayana Gayatri

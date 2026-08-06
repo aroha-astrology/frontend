@@ -49,9 +49,26 @@ describe("shlokas.json", () => {
   it("points every img/audio filename at a file that actually exists", () => {
     for (const s of shlokas) {
       expect(existsSync(join(PUBLIC, "img", s.img)), `missing img for ${s.slug}: ${s.img}`).toBe(true);
-      if (s.audio) {
-        expect(existsSync(join(PUBLIC, "audio", s.audio)), `missing audio for ${s.slug}: ${s.audio}`).toBe(true);
-      }
+      expect(existsSync(join(PUBLIC, "audio", s.audio!)), `missing audio for ${s.slug}: ${s.audio}`).toBe(true);
+    }
+  });
+
+  it("has chant audio on every shloka, named <slug>.mp3", () => {
+    // The whole naming contract in one assertion: the file is always the slug.
+    // No lookup table exists anywhere, so this is what keeps it true.
+    for (const s of shlokas) {
+      expect(s.audio, `${s.slug} has no audio`).toBe(`${s.slug}.mp3`);
+    }
+  });
+
+  it("has no silent-length audio (a truncated render reads as a tiny file)", () => {
+    // The shortest legitimate clip is shiva-panchakshari ("om namah shivaya",
+    // 5 syllables, ~1.4s / 12KB). Anything under 8KB is a failed render, not a
+    // short mantra — vagdhenu emits a valid-but-near-empty file when a clip
+    // fails rather than erroring, so file size is the cheap proxy for it.
+    for (const s of shlokas) {
+      const bytes = readFileSync(join(PUBLIC, "audio", s.audio!)).byteLength;
+      expect(bytes, `${s.audio} is only ${bytes} bytes`).toBeGreaterThan(8 * 1024);
     }
   });
 

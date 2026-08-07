@@ -2,15 +2,27 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/providers/auth-provider";
+import { api } from "@/lib/api";
+import { getDeviceId } from "@/lib/device-id";
 
 /**
  * Listens for interactions with push notifications (e.g., user taps on a notification).
  * If the notification payload contains a `navigate` field in its data, this will
  * redirect the user to that route within the app.
+ *
+ * Also silently re-registers the device's FCM token on every launch when
+ * notification permission is already granted — this is what actually fixes
+ * an expired/rotated token (the backend revokes a token once FCM reports it
+ * dead; registerDeviceToken() resets that on the next launch with zero user
+ * interaction). PermissionsPrompt.tsx only handles the one-time/30-day ASK;
+ * this handles every launch thereafter.
  */
 export default function PushNotificationListener() {
   const router = useRouter();
   const routerRef = useRef(router);
+  const { user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
     routerRef.current = router;
@@ -26,13 +38,30 @@ export default function PushNotificationListener() {
         if (cancelled || !Capacitor.isNativePlatform()) return;
 
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-        
+
         listener = await FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
           const data = event.notification.data as Record<string, string> | undefined;
           if (data && data.navigate) {
             routerRef.current.push(data.navigate);
           }
         });
+
+        if (userId) {
+          try {
+            const perm = await FirebaseMessaging.checkPermissions();
+            if (perm.receive === "granted") {
+              const { token } = await FirebaseMessaging.getToken();
+              const platform = Capacitor.getPlatform();
+              if (token && (platform === "android" || platform === "ios")) {
+                await api.registerDeviceToken({ token, platform, deviceId: getDeviceId() });
+              }
+            }
+          } catch (err) {
+            // Best-effort refresh — a failure here shouldn't block the app;
+            // the next launch (or the 30-day PermissionsPrompt re-ask) retries.
+            console.error("[PushNotificationListener] silent token refresh failed", err);
+          }
+        }
       } catch (err) {
         // fail silently if plugins are not available
       }
@@ -42,7 +71,7 @@ export default function PushNotificationListener() {
       cancelled = true;
       if (listener) listener.remove();
     };
-  }, []);
+  }, [userId]);
 
   return null;
 }

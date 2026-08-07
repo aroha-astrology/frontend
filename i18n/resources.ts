@@ -1679,6 +1679,9 @@ export const resources = {
         notificationReason: "Notifications let us tell you the moment your daily horoscope is ready.",
         notNow: "Not now",
         enable: "Enable",
+        reEnableTitle: "Turn notifications back on",
+        reEnableBody: "You'll only get timely astrology alerts if notifications are enabled in your phone settings.",
+        openSettings: "Open Settings",
       },
       tour: {
         welcomeTitle: "Welcome to Aroha ✨",
@@ -3272,6 +3275,9 @@ export const resources = {
         notificationReason: "नोटिफिकेशन से हम आपको बताएंगे जैसे ही आपकी दैनिक राशिफल तैयार हो।",
         notNow: "अभी नहीं",
         enable: "चालू करें",
+        reEnableTitle: "नोटिफिकेशन फिर से चालू करें",
+        reEnableBody: "समय पर ज्योतिष अलर्ट पाने के लिए फोन की सेटिंग्स में नोटिफिकेशन चालू करें।",
+        openSettings: "सेटिंग्स खोलें",
       },
       remedies: {
         love: "प्रेम और\nरिश्ते",
@@ -5007,6 +5013,9 @@ export const resources = {
         notificationReason: "নোটিফিকেশন আমাদের জানাতে সাহায্য করে যখনই আপনার দৈনিক রাশিফল প্রস্তুত হয়।",
         notNow: "এখন নয়",
         enable: "চালু করুন",
+        reEnableTitle: "নোটিফিকেশন আবার চালু করুন",
+        reEnableBody: "সময়মতো জ্যোতিষ সতর্কতা পেতে ফোনের সেটিংসে নোটিফিকেশন চালু করুন।",
+        openSettings: "সেটিংস খুলুন",
       },
       remedies: {
         love: "প্রেম ও\nসম্পর্ক",
@@ -6742,6 +6751,9 @@ export const resources = {
         notificationReason: "तुमची दैनंदिन रास भविष्य तयार होताच नोटिफिकेशनद्वारे आम्ही तुम्हाला कळवू.",
         notNow: "आता नको",
         enable: "सुरू करा",
+        reEnableTitle: "नोटिफिकेशन पुन्हा सुरू करा",
+        reEnableBody: "वेळेवर ज्योतिष सूचना मिळवण्यासाठी फोनच्या सेटिंग्जमध्ये नोटिफिकेशन सुरू करा.",
+        openSettings: "सेटिंग्ज उघडा",
       },
       remedies: {
         love: "प्रेम आणि\nनाती",
@@ -8473,6 +8485,9 @@ export const resources = {
         notificationReason: "మీ రోజువారీ రాశిఫలం సిద్ధమైన వెంటనే మేము మీకు తెలియజేయడానికి నోటిఫికేషన్‌లు సహాయపడతాయి.",
         notNow: "ఇప్పుడు వద్దు",
         enable: "ఆన్ చేయండి",
+        reEnableTitle: "నోటిఫికేషన్‌లను మళ్లీ ఆన్ చేయండి",
+        reEnableBody: "సకాలంలో జ్యోతిష హెచ్చరికలు పొందడానికి మీ ఫోన్ సెట్టింగ్‌లలో నోటిఫికేషన్‌లను ఆన్ చేయండి.",
+        openSettings: "సెట్టింగ్‌లను తెరవండి",
       },
       remedies: {
         love: "ప్రేమ &\nసంబంధాలు",
@@ -10208,6 +10223,9 @@ export const resources = {
         notificationReason: "உங்கள் தினசரி ராசிபலன் தயாரானவுடன் அறிவிப்புகள் மூலம் உங்களுக்குத் தெரிவிப்போம்.",
         notNow: "இப்போது வேண்டாம்",
         enable: "இயக்கு",
+        reEnableTitle: "அறிவிப்புகளை மீண்டும் இயக்கவும்",
+        reEnableBody: "சரியான நேரத்தில் ஜோதிட எச்சரிக்கைகளைப் பெற உங்கள் தொலைபேசி அமைப்புகளில் அறிவிப்புகளை இயக்கவும்.",
+        openSettings: "அமைப்புகளைத் திறக்கவும்",
       },
       remedies: {
         love: "காதல் &\nஉறவுகள்",
@@ -11938,6 +11956,9 @@ export const resources = {
         notificationReason: "તમારું દૈનિક રાશિફળ તૈયાર થાય કે તરત જ નોટિફિકેશન દ્વારા અમે તમને જણાવીશું.",
         notNow: "અત્યારે નહીં",
         enable: "ચાલુ કરો",
+        reEnableTitle: "નોટિફિકેશન ફરીથી ચાલુ કરો",
+        reEnableBody: "સમયસર જ્યોતિષ ચેતવણીઓ મેળવવા માટે તમારા ફોનની સેટિંગ્સમાં નોટિફિકેશન ચાલુ કરો.",
+        openSettings: "સેટિંગ્સ ખોલો",
       },
       remedies: {
         love: "પ્રેમ અને\nસંબંધો",

@@ -223,7 +223,7 @@ export default function AdminUsersPage() {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name, phone, or email…"
+        placeholder="Search by name, phone, email, or user ID…"
         className="w-full max-w-sm bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground mb-6"
       />
 

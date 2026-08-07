@@ -503,6 +503,22 @@ describe("header/verdict are excluded from the generic facts grid", () => {
     });
     expect(facts.map((f) => f.key)).toEqual(["dob"]);
   });
+
+  // vargas/partnerVargas/ashtakavargaSummary are backend narrative-prompt grounding (see the
+  // SEPARATELY_RENDERED_KEYS doc comment). They arrive on EVERY report read, since `scores` is
+  // recomputed per-request rather than persisted — so without this exclusion the facts grid would
+  // show a raw divisional-chart object dump and an untranslated English bindu sentence.
+  it("buildScoreFacts never renders vargas/partnerVargas/ashtakavargaSummary — prompt grounding, not user-facing facts", () => {
+    const facts = buildScoreFacts({
+      vargas: [{ key: "D9", lagna: "Leo", planets: { Sun: "Leo", Moon: "Aries" } }],
+      partnerVargas: [{ key: "D9", lagna: "Virgo", planets: { Sun: "Virgo" } }],
+      ashtakavargaSummary: [
+        "Ashtakavarga (raw Sarvashtakavarga bindu count per house): H1:28, H2:31. Structurally weak (<25 bindus): House 3.",
+      ],
+      marriageScore: 64,
+    });
+    expect(facts.map((f) => f.key)).toEqual(["marriageScore"]);
+  });
 });
 
 describe("a plain YYYY-MM-DD date string (e.g. name_change's dob) is date-formatted, not word-split", () => {

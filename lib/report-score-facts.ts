@@ -835,8 +835,23 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
  * and `variants` are name_change-only: the name already appears in the report header/narrative,
  * and the variants now render as NameSuggestionCard items inside "Suggested Spelling
  * Adjustments" (see page.tsx's renderSection) — showing them again here would just repeat the
- * same title-cased "Added \"a\" At The End" row this redesign was meant to replace. */
-const SEPARATELY_RENDERED_KEYS = new Set(["header", "verdict", "userAnswers", "currentName", "variants"]);
+ * same title-cased "Added \"a\" At The End" row this redesign was meant to replace.
+ * `vargas`/`partnerVargas` (divisional-chart placements) and `ashtakavargaSummary` (house-strength
+ * bindu lines) are the same category as `userAnswers`: backend grounding fed to the narrative
+ * prompt so the prose can cite them, NOT standalone facts. Rendering them here would dump a raw
+ * `1: {key: D9, lagna: Leo, planets: {…}}` block and a pre-formatted English bindu sentence into
+ * the facts grid — the latter also bypassing translation, since scores prose is only translated
+ * for the explicit SCORES_PROSE_ALLOWLIST dot-paths (backend lib/llm/report-scores.ts). */
+const SEPARATELY_RENDERED_KEYS = new Set([
+  "header",
+  "verdict",
+  "userAnswers",
+  "currentName",
+  "variants",
+  "vargas",
+  "partnerVargas",
+  "ashtakavargaSummary",
+]);
 
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */
 export function buildScoreFacts(scores: Record<string, unknown> | null | undefined): ScoreFact[] {

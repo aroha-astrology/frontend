@@ -265,7 +265,7 @@ function AdminOverviewContent() {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[11px] text-muted uppercase tracking-wide">This Week</dt>
+                        <dt className="text-[11px] text-muted uppercase tracking-wide">Last 7 Days</dt>
                         <dd className="text-lg font-semibold text-foreground">
                           {formatRupees(periodBillingPaise.last7d)}
                         </dd>
@@ -282,7 +282,9 @@ function AdminOverviewContent() {
                   )}
                   <p className="text-[11px] text-muted mt-3">
                     {userId ? "Scoped to the user selected below." : "All users."} Real ₹ billed to the paid reserve
-                    key — same figure as "Billed (₹)" in the table on the right, at list price GST-inclusive.
+                    key, at list price GST-inclusive, for these fixed periods — independent of the date range
+                    selected above, so this only matches "Billed (₹)" in the table on the right when that range
+                    happens to cover the same period.
                   </p>
                 </Card>
               </div>

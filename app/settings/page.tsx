@@ -77,6 +77,10 @@ export default function SettingsPage() {
   const [consentBusy, setConsentBusy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  // Deleting is a request now, not an act — the modal switches to an
+  // acknowledgement instead of closing, and only signs out once it's read.
+  const [deleteRequested, setDeleteRequested] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [exportBusy, setExportBusy] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -136,13 +140,29 @@ export default function SettingsPage() {
     }
   };
 
+  /**
+   * Files a deletion request for review — nothing is erased here. The user is
+   * signed out afterwards, but only once they've acknowledged the "we've got
+   * it, 3–7 business days" message, otherwise landing back on the sign-in
+   * screen reads as the request having failed.
+   */
   const handleDeleteAccount = async () => {
     setDeleteBusy(true);
+    setDeleteError(null);
     try {
       await api.deleteMe();
-      await signOut();
+      setDeleteRequested(true);
+    } catch {
+      setDeleteError(t("settings.deleteAccountRequestError"));
     } finally {
       setDeleteBusy(false);
+    }
+  };
+
+  const handleDeleteRequestAcknowledged = async () => {
+    try {
+      await signOut();
+    } finally {
       setShowDeleteConfirm(false);
       router.replace("/sign-in");
     }
@@ -288,31 +308,54 @@ export default function SettingsPage() {
 
       {showDeleteConfirm && (
         <BottomSheetModal
-          onClose={() => !deleteBusy && setShowDeleteConfirm(false)}
+          onClose={() =>
+            deleteRequested
+              ? void handleDeleteRequestAcknowledged()
+              : !deleteBusy && setShowDeleteConfirm(false)
+          }
           closeLabel={t("common.close")}
           header={
             <h2 className="text-base font-display text-foreground">
-              {t("settings.deleteAccountConfirmTitle")}
+              {deleteRequested
+                ? t("settings.deleteAccountRequestedTitle")
+                : t("settings.deleteAccountConfirmTitle")}
             </h2>
           }
         >
-          <p className="text-sm text-muted mb-5">{t("settings.deleteAccountConfirmBody")}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              disabled={deleteBusy}
-              className="flex-1 px-4 py-3 rounded-2xl border border-gold/20 text-sm font-medium text-foreground disabled:opacity-50"
-            >
-              {t("settings.cancel")}
-            </button>
-            <button
-              onClick={handleDeleteAccount}
-              disabled={deleteBusy}
-              className="flex-1 px-4 py-3 rounded-2xl bg-red-500 text-white text-sm font-medium disabled:opacity-50"
-            >
-              {t("settings.deleteAccountConfirmButton")}
-            </button>
-          </div>
+          {deleteRequested ? (
+            <>
+              <p className="text-sm text-muted mb-5">
+                {t("settings.deleteAccountRequestedBody")}
+              </p>
+              <button
+                onClick={handleDeleteRequestAcknowledged}
+                className="w-full px-4 py-3 rounded-2xl bg-gold/15 border border-gold/20 text-sm font-medium text-foreground"
+              >
+                {t("settings.deleteAccountRequestedButton")}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted mb-5">{t("settings.deleteAccountConfirmBody")}</p>
+              {deleteError && <p className="text-[12px] text-red-400 mb-3">{deleteError}</p>}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteBusy}
+                  className="flex-1 px-4 py-3 rounded-2xl border border-gold/20 text-sm font-medium text-foreground disabled:opacity-50"
+                >
+                  {t("settings.cancel")}
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteBusy}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-red-500 text-white text-sm font-medium disabled:opacity-50"
+                >
+                  {t("settings.deleteAccountConfirmButton")}
+                </button>
+              </div>
+            </>
+          )}
         </BottomSheetModal>
       )}
 

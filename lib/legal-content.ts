@@ -31,8 +31,8 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-export const LEGAL_VERSION = "1.2.0";
-export const LEGAL_UPDATED = "1 August 2026";
+export const LEGAL_VERSION = "1.3.0";
+export const LEGAL_UPDATED = "7 August 2026";
 
 export interface LegalSection {
   heading: string;
@@ -201,9 +201,10 @@ export const PRIVACY: LegalDoc = {
     {
       heading: "6. Retention and Deletion",
       paragraphs: [
-        "We retain personal data while your account is active. When you delete your account in the app (Settings → Delete Account), erasure is immediate rather than scheduled: your name, gender, email, date, time and place of birth, gotra, current location, relationship status and every other identifying field on your profile — and the same fields on any third-party birth profile you created — are irreversibly overwritten as part of that request, not merely flagged as deleted.",
+        "We retain personal data while your account is active. Deleting your account in the app (Settings → Delete Account) submits a deletion request, which we review before acting on it — normally within three to seven business days. We do this so that an irreversible erasure is never triggered by a mis-tap, and we will tell you on screen that the request has been received. Your account continues to work during the review, though we stop sending you notifications and stop generating new readings for you from the moment you ask.",
+        "Once the request is approved the erasure itself is irreversible and is not merely a flag: your name, gender, email, date, time and place of birth, gotra, current location, relationship status and every other identifying field on your profile — and the same fields on any third-party birth profile you created — are overwritten outright.",
         "Your palm photographs, chat transcripts, saved AI memory, and feedback are the highest-risk categories, so they are permanently destroyed outright rather than overwritten in place. Push notification tokens for your devices are revoked and scrubbed.",
-        "Two things are deliberately retained, and we would rather state them than imply a completeness we do not deliver. First, your mobile number and authentication identifier are kept on the emptied account shell. This is a security measure, not a use of your data: mobile numbers in India are recycled to new subscribers, and keeping the shell is what guarantees that whoever is issued your number next receives a blank, freshly-onboardable account instead of inheriting anything of yours. Nothing of substance remains attached to it. Second, the consent audit log keeps a skeleton record — which consent, which document version, and when — because the DPDP Act's accountability provisions require us to be able to evidence the lawful basis on which we processed data; the IP address and device string on those records are scrubbed with everything else.",
+        "Two things are deliberately retained, and we would rather state them than imply a completeness we do not deliver. First, your mobile number and authentication identifier are kept on the emptied account shell. This is a security and anti-abuse measure, not a use of your data. It serves two purposes: mobile numbers in India are recycled to new subscribers, and keeping the shell is what guarantees that whoever is issued your number next receives a blank, freshly-onboardable account instead of inheriting anything of yours; and because new accounts receive a one-time sign-up credit, retaining the number is what stops the same person from claiming that credit repeatedly by deleting and re-registering. If you sign in again on that number you return to the same emptied account — we will say so, and you will need to enter your details afresh. Nothing of substance remains attached to it. Second, the consent audit log keeps a skeleton record — which consent, which document version, and when — because the DPDP Act's accountability provisions require us to be able to evidence the lawful basis on which we processed data; the IP address and device string on those records are scrubbed with everything else.",
         "Payment and tax records are retained for the period Indian law requires. Backup copies purge on their own rotation cycle. If you want the retained shell and consent skeleton removed as well, write to the Grievance Officer in Section 10 and we will action it manually.",
       ],
     },

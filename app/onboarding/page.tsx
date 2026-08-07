@@ -277,6 +277,13 @@ function OnboardingPageInner() {
   // ── Kick off the conversation
   useEffect(() => {
     (async () => {
+      // Someone whose account was erased signs back in on the SAME row (their
+      // phone number is deliberately kept — see the backend's anonymizeUserById),
+      // so they arrive here with everything blank. Say so, rather than greeting
+      // them as a stranger when they know they've been here before.
+      if (user?.previouslyDeleted && !isNewProfileMode) {
+        await botSay(t("onboarding.welcomeBackAfterDeletion"), 600);
+      }
       await botSay(t("onboarding.greeting"), 600);
       await botSay(Q[0], 900);
       setStep(1);

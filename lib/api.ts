@@ -40,6 +40,20 @@ export interface User {
   /** False once the user has used their one lifetime birth-detail (DOB/time/place) edit. */
   canEditBirthDetails: boolean;
   profileCompletedAt: string | null;
+  /**
+   * This account was erased once and the same person has signed back in. Their
+   * phone number is deliberately kept on the account shell, so they land on the
+   * SAME account with every detail blank rather than a brand-new one — this is
+   * only used to greet them with "welcome back, we'll need your details again"
+   * instead of treating them as a first-time user.
+   */
+  previouslyDeleted: boolean;
+  /**
+   * ISO timestamp of a deletion request awaiting admin review, or null. While
+   * set, the account still works but receives no push notifications and no
+   * generated horoscopes.
+   */
+  deletionRequestedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
   /**
@@ -835,7 +849,13 @@ export const api = {
   /** Mark all notifications as read */
   markNotificationsRead: () => request<{ success: boolean }>("/v1/me/notifications/read", { method: "PATCH", auth: true }),
 
-  /** Erase the current account — scrubs PII/chat history server-side (see users.repo.ts anonymizeUserById). */
+  /**
+   * Request deletion of the current account. This does NOT erase anything — it
+   * files a request an admin reviews within 3–7 business days, and only their
+   * approval runs the actual scrub (users.repo.ts anonymizeUserById). The
+   * account keeps working until then, minus push notifications and horoscopes.
+   * Idempotent: calling it again keeps the original request date.
+   */
   deleteMe: () => request<void>("/v1/me", { method: "DELETE", auth: true }),
   /**
    * DPDP §11 / GDPR Art. 15 & 20 data export. Returns the raw JSON so the

@@ -211,7 +211,7 @@ export const PRIVACY: LegalDoc = {
     {
       heading: "7. Your Rights (DPDP Act, Sections 11–14)",
       paragraphs: [
-        "You have the right to: access a summary of your personal data and the processing done on it — Settings → Download My Data exports everything we hold on you as a machine-readable file, at any time and without asking us; correct and update it (your profile is editable in the app); erase it (delete your account, or write to us); a readily available grievance mechanism (Section 10 above); and nominate another individual to exercise your rights if you die or are incapacitated.",
+        "You have the right to: access a summary of your personal data and the processing done on it (write to us and we will provide a machine-readable export); correct and update it (your profile is editable in the app); erase it (delete your account, or write to us); a readily available grievance mechanism (Section 10 above); and nominate another individual to exercise your rights if you die or are incapacitated.",
         "You also have duties under Section 15 of the DPDP Act, including not to impersonate another person or suppress material information when providing data.",
       ],
     },

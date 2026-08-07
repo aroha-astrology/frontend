@@ -5,23 +5,19 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
-  Download,
   Globe,
-  Loader2,
   MessageSquare,
   Moon,
   ScrollText,
   Star,
   ShieldCheck,
   LogOut,
-  Sparkles,
   Trash2,
   UserCircle,
   Wallet,
 } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
-import Switch from "@/components/ui/Switch";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import ListRow from "@/components/ui/ListRow";
 import FeedbackSheet from "@/components/FeedbackSheet";
@@ -72,18 +68,14 @@ function ProfileRow({ profile, onDelete }: { profile: Profile; onDelete: () => v
 export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user, signOut, refresh, profiles, refreshProfiles } = useAuth();
+  const { signOut, profiles, refreshProfiles } = useAuth();
 
-  const [consentBusy, setConsentBusy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   // Deleting is a request now, not an act — the modal switches to an
   // acknowledgement instead of closing, and only signs out once it's read.
   const [deleteRequested, setDeleteRequested] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const [exportBusy, setExportBusy] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   // The Play listing only exists for the native Android build — never offer it
@@ -102,41 +94,6 @@ export default function SettingsPage() {
       await signOut();
     } finally {
       router.replace("/sign-in");
-    }
-  };
-
-  const handleToggleConsent = async (next: boolean) => {
-    setConsentBusy(true);
-    try {
-      await api.updateMe({ consent: { dataProcessing: next } });
-      await refresh();
-    } finally {
-      setConsentBusy(false);
-    }
-  };
-
-  /**
-   * DPDP §11 access right (and GDPR Arts. 15/20). Fetches the export and
-   * saves it via an object URL — a plain anchor to the API would drop the
-   * bearer token, and the endpoint is authenticated.
-   */
-  const handleExportData = async () => {
-    setExportBusy(true);
-    setExportError(null);
-    try {
-      const data = await api.exportMyData();
-      const url = URL.createObjectURL(
-        new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-      );
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "aroha-my-data.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      setExportError(t("settings.downloadDataError"));
-    } finally {
-      setExportBusy(false);
     }
   };
 
@@ -244,26 +201,6 @@ export default function SettingsPage() {
           <ListRow href="/legal/privacy" icon={<ShieldCheck size={16} />} label={t("legal.privacy")} />
         </div>
 
-        {/* Privacy */}
-        <SectionLabel>{t("legal.privacy")}</SectionLabel>
-        <div className="space-y-2.5 mb-6">
-          <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl border border-gold/15 bg-card">
-            <span className="text-gold mt-0.5">
-              <Sparkles size={16} />
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground">{t("settings.dataConsent")}</p>
-              <p className="text-xs text-muted mt-0.5">{t("settings.dataConsentDescription")}</p>
-            </div>
-            <Switch
-              checked={user?.dataProcessingConsentActive ?? false}
-              onChange={handleToggleConsent}
-              disabled={consentBusy || !user}
-              aria-label={t("settings.dataConsent")}
-            />
-          </div>
-        </div>
-
         {/* Account */}
         <SectionLabel>{t("settings.account")}</SectionLabel>
         <div className="space-y-2.5 mb-2.5">
@@ -277,23 +214,6 @@ export default function SettingsPage() {
             <LogOut size={16} />
             <span className="text-sm font-medium">{t("menu.signOut")}</span>
           </button>
-        </Card>
-        <Card className="p-1">
-          <button
-            onClick={handleExportData}
-            disabled={exportBusy}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-left hover:bg-white/5 transition-colors disabled:opacity-50"
-          >
-            {exportBusy ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Download size={16} />
-            )}
-            <span className="text-sm font-medium">{t("settings.downloadData")}</span>
-          </button>
-          {exportError && (
-            <p className="px-3 pb-2 text-[12px] text-red-400">{exportError}</p>
-          )}
         </Card>
         <Card className="p-1">
           <button

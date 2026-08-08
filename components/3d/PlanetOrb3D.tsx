@@ -197,7 +197,7 @@ function ProceduralPlanet({ id }: { id: ProceduralId }) {
 
 export default function PlanetOrb3D({
   planet = "moon",
-  cycle = true,
+  cycle = false,
   cycleMs = 5000,
   className,
   style,
@@ -208,7 +208,17 @@ export default function PlanetOrb3D({
    * other 7 GLB-backed ids sets the cycle's start point when `cycle` is true.
    */
   planet?: PlanetId;
-  /** Auto-advance through the 9 GLB-backed planets (default true). No-op when `planet` is `moon`/`sun`. */
+  /**
+   * Auto-advance through the 9 GLB-backed planets. No-op when `planet` is
+   * `moon`/`sun`. Defaults to OFF: cycling holds every visited model in
+   * useGLTF's cache forever (`dispose={null}` below never releases them), so
+   * a background left open walks the whole 21 MB of public/models — including
+   * earth.glb at 12.9 MB and pluto.glb at 7 MB — and OOMs the Android WebView
+   * renderer. Capacitor registers no WebViewListener, so `onRenderProcessGone`
+   * returns false and Android kills the whole app process: the user sees the
+   * app vanish. Only turn this on somewhere the models are small and the view
+   * is short-lived.
+   */
   cycle?: boolean;
   /** Milliseconds per planet (default 5000 = swap every 5s). */
   cycleMs?: number;
@@ -219,9 +229,9 @@ export default function PlanetOrb3D({
   // mercury/venus/earth/mars/jupiter/saturn/uranus/neptune/pluto) — they're
   // rendered procedurally below instead. Previously `BODIES.findIndex` fell
   // through to -1 for these two, `Math.max(0, -1)` silently landed on index 0
-  // (mercury), and — since `cycle` defaults to true — the component cycled
-  // through all 9 GLB bodies instead of showing the requested moon/sun at
-  // all. Pin explicitly instead of ever falling into that cycle.
+  // (mercury), and — since `cycle` defaulted to true back then — the component
+  // cycled through all 9 GLB bodies instead of showing the requested moon/sun
+  // at all. Pin explicitly instead of ever falling into that cycle.
   const isProcedural = planet === "moon" || planet === "sun";
 
   const foundIndex = BODIES.findIndex((b) => b.id === planet);

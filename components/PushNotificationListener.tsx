@@ -4,19 +4,23 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/lib/api";
-import { getDeviceId } from "@/lib/device-id";
+import { getDeviceId, isPushRefreshDue, markPushRefreshed } from "@/lib/device-id";
 
 /**
  * Listens for interactions with push notifications (e.g., user taps on a notification).
  * If the notification payload contains a `navigate` field in its data, this will
  * redirect the user to that route within the app.
  *
- * Also silently re-registers the device's FCM token on every launch when
+ * Also silently re-registers the device's FCM token, at most once a day, when
  * notification permission is already granted — this is what actually fixes
  * an expired/rotated token (the backend revokes a token once FCM reports it
  * dead; registerDeviceToken() resets that on the next launch with zero user
  * interaction). PermissionsPrompt.tsx only handles the one-time/30-day ASK;
- * this handles every launch thereafter.
+ * this handles the refresh thereafter.
+ *
+ * The once-a-day throttle is load-bearing, not an optimisation — see
+ * isPushRefreshDue() in lib/device-id.ts for the native NPE that running this
+ * on every cold start was exposing every logged-in user to.
  */
 export default function PushNotificationListener() {
   const router = useRouter();
@@ -46,7 +50,7 @@ export default function PushNotificationListener() {
           }
         });
 
-        if (userId) {
+        if (userId && isPushRefreshDue()) {
           try {
             const perm = await FirebaseMessaging.checkPermissions();
             if (perm.receive === "granted") {
@@ -54,6 +58,7 @@ export default function PushNotificationListener() {
               const platform = Capacitor.getPlatform();
               if (token && (platform === "android" || platform === "ios")) {
                 await api.registerDeviceToken({ token, platform, deviceId: getDeviceId() });
+                markPushRefreshed();
               }
             }
           } catch (err) {

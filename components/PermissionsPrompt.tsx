@@ -9,7 +9,7 @@ import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { api } from "@/lib/api";
-import { getDeviceId } from "@/lib/device-id";
+import { getDeviceId, markPushRefreshed } from "@/lib/device-id";
 
 // v3: re-asks at most once every RE_ASK_AFTER_DAYS instead of permanently
 // suppressing after the first ask. v2's ASKED_KEY blocked this prompt from
@@ -154,6 +154,7 @@ export default function PermissionsPrompt() {
           if (token && (currentPlatform === "android" || currentPlatform === "ios")) {
             await api.registerDeviceToken({ token, platform: currentPlatform, deviceId: getDeviceId() });
             console.log("[PermissionsPrompt] registerDeviceToken -> ok");
+            markPushRefreshed(); // Just registered — don't let the next launch re-fetch the token.
             permanent = true; // Reached full success — a real, permanent decision.
           }
         } catch (err) {

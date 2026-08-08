@@ -27,12 +27,11 @@ interface AuthMethodPanelProps {
 }
 
 /**
- * The auth card shared by the sign-in and sign-up pages. Google sign-in is
- * offered everywhere; India additionally gets Firebase phone OTP above it
- * (OTP is India-only — that's what the region check decides). Outside India
- * a low-key link still reveals the OTP form for the wrong-region cases (an
- * Indian user travelling, a VPN user). Brand mark, incentive pill, and
- * cross-link footer stay in the page — only the card body lives here.
+ * The auth card shared by the sign-in and sign-up pages. India gets Firebase
+ * phone OTP only; Google (and the iOS Apple button) is offered outside India
+ * (region detected server-side via `/api/region`). Brand mark, incentive
+ * pill, and cross-link footer stay in the page — only the card body lives
+ * here.
  */
 export default function AuthMethodPanel({ variant, onIdleChange }: AuthMethodPanelProps) {
   const { t } = useTranslation();
@@ -70,8 +69,6 @@ export default function AuthMethodPanel({ variant, onIdleChange }: AuthMethodPan
 
   const cleaned = phone.replace(/\D/g, "");
   const masked = `+91 ${"•".repeat(6)}${cleaned.slice(-4)}`;
-  // Google/Apple are offered everywhere now, so their errors get their own slot
-  // next to the social buttons instead of sharing the phone field's slot.
   const socialErrorKey = googleAuth.errorKey ?? appleAuth.errorKey;
   const socialError = socialErrorKey ? t(socialErrorKey) : "";
   const errorText = phoneAuth.errorKey ? t(phoneAuth.errorKey) : "";
@@ -180,15 +177,19 @@ export default function AuthMethodPanel({ variant, onIdleChange }: AuthMethodPan
               {phoneAuth.sending ? <Loader2 size={16} className="animate-spin" /> : <>{t("auth.sendOtp")} <ArrowRight size={16} /></>}
             </button>
 
-            <div className="my-5 h-px bg-gold/15" />
-            {socialButtons}
-
             <p className="mt-5 text-center text-[11px] text-muted/60 leading-relaxed">
               {t("auth.terms")}{" "}
               <Link href="/legal/terms" className="text-gold/70 underline underline-offset-2">{t("legal.terms")}</Link>
               {" · "}
               <Link href="/legal/privacy" className="text-gold/70 underline underline-offset-2">{t("legal.privacy")}</Link>
             </p>
+
+            <button
+              onClick={() => setOverride("google")}
+              className="mt-4 w-full text-center text-[11px] text-muted/60 hover:text-gold transition-colors underline underline-offset-2"
+            >
+              {t("auth.notInIndia")}
+            </button>
           </motion.div>
         )}
 

@@ -17,6 +17,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 const LIMIT = 20;
 
 type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise";
+type ContactType = "all" | "phone" | "email";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -157,6 +158,7 @@ function WalletModal({
 export default function AdminUsersPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [contactType, setContactType] = useState<ContactType>("all");
   const [offset, setOffset] = useState(0);
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -188,14 +190,14 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
     adminApi
-      .listUsers({ q: debouncedQuery || undefined, offset, limit: LIMIT, sortBy, sortDir })
+      .listUsers({ q: debouncedQuery || undefined, contactType, offset, limit: LIMIT, sortBy, sortDir })
       .then((res) => {
         setUsers(res.users);
         setTotal(res.total);
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load users"))
       .finally(() => setLoading(false));
-  }, [debouncedQuery, offset, sortBy, sortDir]);
+  }, [debouncedQuery, contactType, offset, sortBy, sortDir]);
 
   useEffect(() => {
     fetchUsers();
@@ -219,13 +221,27 @@ export default function AdminUsersPage() {
     <div>
       <h1 className="text-xl font-semibold text-gold mb-4">Users</h1>
 
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name, phone, email, or user ID…"
-        className="w-full max-w-sm bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground mb-6"
-      />
+      <div className="flex flex-wrap gap-2 mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, phone, email, or user ID…"
+          className="w-full max-w-sm bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground"
+        />
+        <select
+          value={contactType}
+          onChange={(e) => {
+            setContactType(e.target.value as ContactType);
+            setOffset(0);
+          }}
+          className="bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground"
+        >
+          <option value="all">All users</option>
+          <option value="phone">Has phone</option>
+          <option value="email">Has email</option>
+        </select>
+      </div>
 
       {loading && !users && <p className="text-sm text-muted text-center py-10">Loading…</p>}
       {error && <ErrorRetry message={error} onRetry={fetchUsers} />}

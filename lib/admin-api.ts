@@ -241,6 +241,7 @@ export const adminApi = {
   listUsers: (
     params: {
       q?: string;
+      contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
       sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise";
@@ -249,6 +250,7 @@ export const adminApi = {
   ) => {
     const qs = new URLSearchParams();
     if (params.q) qs.set("q", params.q);
+    if (params.contactType && params.contactType !== "all") qs.set("contactType", params.contactType);
     qs.set("offset", String(params.offset ?? 0));
     qs.set("limit", String(params.limit ?? 20));
     if (params.sortBy) qs.set("sortBy", params.sortBy);

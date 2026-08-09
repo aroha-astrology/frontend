@@ -15,6 +15,20 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.ts", "**/*.test.tsx"],
-    exclude: ["node_modules", ".next", ".worktrees", "e2e"],
+    // Bare names only match at the top level, so the old list let the glob walk
+    // into the nested repos and their worktrees. Mirror .gitignore's subproject
+    // folders here — they are separate repos with their own test setup, and
+    // running them from this config loads the wrong aliases and no setup files.
+    exclude: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/.worktrees/**",
+      ".claude/**",
+      "backend/**",
+      "frontend/**",
+      "landing/**",
+      "mobile/**",
+      "e2e/**",
+    ],
   },
 });

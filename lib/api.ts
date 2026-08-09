@@ -68,6 +68,13 @@ export interface User {
   unlockedHouses: number[];
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
+  /**
+   * True once this user has rated us through our own feedback sheet, on any
+   * device. FeedbackPrompt reads it so a reinstall or a second phone doesn't
+   * re-ask someone who already answered. Nothing to do with the Play Store
+   * card, which reports no outcome back and can never set it.
+   */
+  feedbackGiven: boolean;
   /** Referral code for this user */
   referralCode: string | null;
   /** Source of the referral (who referred this user) */

@@ -25,6 +25,9 @@ export default function FeedbackPrompt() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!permissionsResolved || !user?.profileCompletedAt) return;
+    // Server-side truth first: localStorage forgets on reinstall or a new phone,
+    // this doesn't.
+    if (user.feedbackGiven) return;
     try {
       if (window.localStorage.getItem(SEEN_KEY)) return;
       const opens = Number(window.localStorage.getItem(OPENS_KEY) ?? 0) + 1;
@@ -38,7 +41,7 @@ export default function FeedbackPrompt() {
     } catch {
       // localStorage unavailable — skip rather than nag every open.
     }
-  }, [permissionsResolved, user?.profileCompletedAt]);
+  }, [permissionsResolved, user?.profileCompletedAt, user?.feedbackGiven]);
 
   if (!open) return null;
   return <FeedbackSheet onClose={() => setOpen(false)} />;

@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
-import FeedbackSheet from "@/components/FeedbackSheet";
+import FeedbackSheet, { FEEDBACK_SEEN_KEY as SEEN_KEY } from "@/components/FeedbackSheet";
 
 const OPENS_KEY = "aroha:appOpens";
-const SEEN_KEY = "aroha:feedbackSeen:v1";
 const OPENS_BEFORE_ASKING = 3;
 
 /**
@@ -14,6 +13,9 @@ const OPENS_BEFORE_ASKING = 3;
  * different moment from the Play review card (lib/app-review.ts), which fires
  * on purchases/reports/long chats, so the two overlays never stack. Gated on
  * the permissions prompt resolving for the same reason ShareAppPrompt is.
+ *
+ * Never fires for someone who already rated: FeedbackSheet stamps SEEN_KEY on a
+ * successful submit, including the Settings entry point.
  */
 export default function FeedbackPrompt() {
   const { user } = useAuth();

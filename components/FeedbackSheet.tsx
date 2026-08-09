@@ -9,6 +9,10 @@ import { api } from "@/lib/api";
 /** One face per star, so the picker reacts as the user moves across the row. */
 const FACES = [Angry, Frown, Meh, Smile, Laugh] as const;
 
+/** Shared with FeedbackPrompt: once a rating lands from anywhere — including
+ * Settings — the automatic prompt must never ask for one again. */
+export const FEEDBACK_SEEN_KEY = "aroha:feedbackSeen:v1";
+
 /**
  * Our own rating + comment, stored in our DB — deliberately NOT wired to the
  * Play Store review card in lib/app-review.ts. Google forbids asking a rating
@@ -29,6 +33,11 @@ export default function FeedbackSheet({ onClose }: { onClose: () => void }) {
     setSubmitting(true);
     try {
       await api.submitFeedback({ rating, ...(comment.trim() ? { comment: comment.trim() } : {}) });
+      try {
+        window.localStorage.setItem(FEEDBACK_SEEN_KEY, "1");
+      } catch {
+        // localStorage blocked — the prompt is skipped entirely in that case anyway.
+      }
       setDone(true);
     } catch {
       // Nothing actionable for the user, and losing one rating isn't worth an

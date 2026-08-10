@@ -20,6 +20,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import ListRow from "@/components/ui/ListRow";
+import BirthTimeRectifyCard from "@/components/ui/BirthTimeRectifyCard";
 import FeedbackSheet from "@/components/FeedbackSheet";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { isNativeAndroid } from "@/lib/play-billing";
@@ -193,6 +194,11 @@ export default function SettingsPage() {
             </div>
           </>
         )}
+
+        {/* Birth-time rectification. Lives in settings rather than a reading
+            surface because it is a correction to the user's own data, and it
+            deliberately only SUGGESTS — nothing is applied automatically. */}
+        <BirthTimeRectifyCard className="mb-6" />
 
         {/* Legal */}
         <SectionLabel>{t("settings.legal")}</SectionLabel>

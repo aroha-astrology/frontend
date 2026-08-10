@@ -4,6 +4,7 @@
 export const resources = {
   en: {
     translation: {
+      rectify: { title: "Check your birth time", intro: "Your birth time decides your rising sign and all your timing. Add at least three dated events and we can check whether your stated time fits them.", addEvent: "+ Add another event", submit: "Check my birth time", checking: "Checking…", needMore: "Add at least {{count}} dated events.", error: "We couldn't check that right now. Please try again.", noSuggestion: "These events do not point to any one time more than another, so your stated time stands. Adding more dated events would sharpen this.", suggested: "Suggested time: {{time}}", confidence: "Confidence: {{level}}", notApplied: "This is only a suggestion — nothing has been changed. Update your birth details yourself if you want to use it.", level: { low: "low", medium: "medium", high: "high" }, domain: { career: "Career", marriage: "Marriage", childbirth: "Child born", health: "Health", property: "Property", education: "Education", loss: "Loss" } },
       predictionRating: { title: "How did that period go?", yes: "Yes, that happened", unclear: "Hard to say", no: "No, it didn't", thanks: "Thank you — that helps us get better.", why: "Your answer is only used to check how accurate our timing is. It is never shared." },
       common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list", somethingWentWrong: "Something went wrong", tryAgain: "Try Again", connectionSlow: "Taking longer than expected" },
       legal: {
@@ -1804,6 +1805,7 @@ export const resources = {
 
   hi: {
     translation: {
+      rectify: { title: "अपना जन्म समय जाँचें", intro: "आपका जन्म समय आपकी लग्न और सारा समय-निर्धारण तय करता है। कम से कम तीन तिथि-सहित घटनाएँ जोड़ें, हम जाँच सकते हैं कि आपका बताया समय उनसे मेल खाता है या नहीं।", addEvent: "+ एक और घटना जोड़ें", submit: "मेरा जन्म समय जाँचें", checking: "जाँच हो रही है…", needMore: "कम से कम {{count}} तिथि-सहित घटनाएँ जोड़ें।", error: "अभी जाँच नहीं हो सकी। कृपया फिर प्रयास करें।", noSuggestion: "ये घटनाएँ किसी एक समय की ओर विशेष संकेत नहीं करतीं, इसलिए आपका बताया समय यथावत रहेगा। और घटनाएँ जोड़ने से यह अधिक स्पष्ट होगा।", suggested: "सुझाया गया समय: {{time}}", confidence: "विश्वास: {{level}}", notApplied: "यह केवल एक सुझाव है — कुछ भी बदला नहीं गया। उपयोग करना हो तो अपनी जन्म जानकारी स्वयं अपडेट करें।", level: { low: "कम", medium: "मध्यम", high: "उच्च" }, domain: { career: "करियर", marriage: "विवाह", childbirth: "संतान जन्म", health: "स्वास्थ्य", property: "संपत्ति", education: "शिक्षा", loss: "हानि" } },
       predictionRating: { title: "वह समय कैसा रहा?", yes: "हाँ, ऐसा हुआ", unclear: "कह नहीं सकते", no: "नहीं, ऐसा नहीं हुआ", thanks: "धन्यवाद — इससे हमें बेहतर होने में मदद मिलती है।", why: "आपका उत्तर केवल यह जाँचने के लिए उपयोग होता है कि हमारा समय-आकलन कितना सटीक है। इसे कभी साझा नहीं किया जाता।" },
       payment: {
         title: "क्रेडिट खरीदें",
@@ -3545,6 +3547,7 @@ export const resources = {
 
   bn: {
     translation: {
+      rectify: { title: "আপনার জন্মসময় যাচাই করুন", intro: "আপনার জন্মসময় আপনার লগ্ন ও সমস্ত সময়-নির্ধারণ ঠিক করে। অন্তত তিনটি তারিখসহ ঘটনা যোগ করুন, আমরা দেখব আপনার বলা সময় সেগুলির সঙ্গে মেলে কিনা।", addEvent: "+ আরেকটি ঘটনা যোগ করুন", submit: "আমার জন্মসময় যাচাই করুন", checking: "যাচাই চলছে…", needMore: "অন্তত {{count}}টি তারিখসহ ঘটনা যোগ করুন।", error: "এখন যাচাই করা গেল না। আবার চেষ্টা করুন।", noSuggestion: "এই ঘটনাগুলি কোনও একটি সময়ের দিকে বিশেষভাবে ইঙ্গিত করে না, তাই আপনার বলা সময়ই থাকবে। আরও ঘটনা যোগ করলে এটি স্পষ্ট হবে।", suggested: "প্রস্তাবিত সময়: {{time}}", confidence: "আস্থা: {{level}}", notApplied: "এটি কেবল একটি প্রস্তাব — কিছুই বদলানো হয়নি। ব্যবহার করতে চাইলে নিজের জন্মতথ্য নিজে আপডেট করুন।", level: { low: "কম", medium: "মাঝারি", high: "উচ্চ" }, domain: { career: "কর্মজীবন", marriage: "বিবাহ", childbirth: "সন্তান জন্ম", health: "স্বাস্থ্য", property: "সম্পত্তি", education: "শিক্ষা", loss: "ক্ষতি" } },
       predictionRating: { title: "সেই সময়টা কেমন কেটেছে?", yes: "হ্যাঁ, তা ঘটেছে", unclear: "বলা কঠিন", no: "না, ঘটেনি", thanks: "ধন্যবাদ — এতে আমরা আরও ভালো হতে পারি।", why: "আপনার উত্তর কেবল আমাদের সময়-নির্ধারণ কতটা সঠিক তা যাচাই করতে ব্যবহৃত হয়। এটি কখনও ভাগ করা হয় না।" },
       payment: {
         title: "ক্রেডিট কিনুন",
@@ -5284,6 +5287,7 @@ export const resources = {
 
   mr: {
     translation: {
+      rectify: { title: "तुमची जन्मवेळ तपासा", intro: "तुमची जन्मवेळ तुमचे लग्न आणि सर्व काळनिर्णय ठरवते. किमान तीन दिनांकासह घटना जोडा, आम्ही तपासू की तुमची सांगितलेली वेळ त्यांच्याशी जुळते का.", addEvent: "+ आणखी एक घटना जोडा", submit: "माझी जन्मवेळ तपासा", checking: "तपासत आहे…", needMore: "किमान {{count}} दिनांकासह घटना जोडा.", error: "आत्ता तपासता आले नाही. कृपया पुन्हा प्रयत्न करा.", noSuggestion: "या घटना कोणत्याही एका वेळेकडे विशेष निर्देश करत नाहीत, त्यामुळे तुमची सांगितलेली वेळ कायम राहील. आणखी घटना जोडल्यास हे स्पष्ट होईल.", suggested: "सुचवलेली वेळ: {{time}}", confidence: "विश्वास: {{level}}", notApplied: "हा फक्त एक सल्ला आहे — काहीही बदललेले नाही. वापरायचे असल्यास तुमची जन्म माहिती स्वतः अद्ययावत करा.", level: { low: "कमी", medium: "मध्यम", high: "उच्च" }, domain: { career: "करिअर", marriage: "विवाह", childbirth: "अपत्यजन्म", health: "आरोग्य", property: "मालमत्ता", education: "शिक्षण", loss: "हानी" } },
       predictionRating: { title: "तो काळ कसा गेला?", yes: "होय, तसेच घडले", unclear: "सांगणे कठीण", no: "नाही, तसे झाले नाही", thanks: "धन्यवाद — यामुळे आम्हाला सुधारण्यास मदत होते.", why: "तुमचे उत्तर फक्त आमचे वेळेचे अंदाज किती अचूक आहेत हे तपासण्यासाठी वापरले जाते. ते कधीही सामायिक केले जात नाही." },
       payment: {
         title: "क्रेडिट्स खरेदी करा",
@@ -7023,6 +7027,7 @@ export const resources = {
 
   te: {
     translation: {
+      rectify: { title: "మీ జన్మ సమయాన్ని తనిఖీ చేయండి", intro: "మీ జన్మ సమయం మీ లగ్నాన్ని మరియు అన్ని కాల నిర్ణయాలను నిర్ధారిస్తుంది. కనీసం మూడు తేదీలతో కూడిన సంఘటనలు జోడించండి, మీరు చెప్పిన సమయం వాటికి సరిపోతుందా అని తనిఖీ చేస్తాం.", addEvent: "+ మరో సంఘటన జోడించండి", submit: "నా జన్మ సమయాన్ని తనిఖీ చేయండి", checking: "తనిఖీ చేస్తోంది…", needMore: "కనీసం {{count}} తేదీలతో కూడిన సంఘటనలు జోడించండి.", error: "ఇప్పుడు తనిఖీ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.", noSuggestion: "ఈ సంఘటనలు ఏ ఒక్క సమయాన్నీ ప్రత్యేకంగా సూచించడం లేదు, కాబట్టి మీరు చెప్పిన సమయమే ఉంటుంది. మరిన్ని సంఘటనలు జోడిస్తే ఇది స్పష్టమవుతుంది.", suggested: "సూచించిన సమయం: {{time}}", confidence: "విశ్వాసం: {{level}}", notApplied: "ఇది కేవలం ఒక సూచన — ఏదీ మార్చబడలేదు. ఉపయోగించాలంటే మీ జన్మ వివరాలను మీరే నవీకరించండి.", level: { low: "తక్కువ", medium: "మధ్యస్థం", high: "అధికం" }, domain: { career: "వృత్తి", marriage: "వివాహం", childbirth: "సంతాన జననం", health: "ఆరోగ్యం", property: "ఆస్తి", education: "విద్య", loss: "నష్టం" } },
       predictionRating: { title: "ఆ కాలం ఎలా గడిచింది?", yes: "అవును, అది జరిగింది", unclear: "చెప్పడం కష్టం", no: "లేదు, జరగలేదు", thanks: "ధన్యవాదాలు — ఇది మమ్మల్ని మెరుగుపరచడానికి సహాయపడుతుంది.", why: "మా సమయ అంచనాలు ఎంత ఖచ్చితమో తనిఖీ చేయడానికి మాత్రమే మీ సమాధానం ఉపయోగించబడుతుంది. ఇది ఎప్పుడూ పంచుకోబడదు." },
       payment: {
         title: "క్రెడిట్‌లు కొనండి",
@@ -8758,6 +8763,7 @@ export const resources = {
 
   ta: {
     translation: {
+      rectify: { title: "உங்கள் பிறந்த நேரத்தைச் சரிபார்க்கவும்", intro: "உங்கள் பிறந்த நேரம் உங்கள் லக்னத்தையும் அனைத்து கால கணிப்பையும் தீர்மானிக்கிறது. குறைந்தது மூன்று தேதியிட்ட நிகழ்வுகளைச் சேர்க்கவும், நீங்கள் கூறிய நேரம் அவற்றுடன் பொருந்துகிறதா என்பதைச் சரிபார்ப்போம்.", addEvent: "+ மற்றொரு நிகழ்வைச் சேர்க்கவும்", submit: "என் பிறந்த நேரத்தைச் சரிபார்க்கவும்", checking: "சரிபார்க்கிறது…", needMore: "குறைந்தது {{count}} தேதியிட்ட நிகழ்வுகளைச் சேர்க்கவும்.", error: "இப்போது சரிபார்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.", noSuggestion: "இந்த நிகழ்வுகள் எந்த ஒரு நேரத்தையும் தனிப்படுத்திக் காட்டவில்லை, எனவே நீங்கள் கூறிய நேரமே நிற்கும். மேலும் நிகழ்வுகளைச் சேர்த்தால் இது தெளிவாகும்.", suggested: "பரிந்துரைக்கப்பட்ட நேரம்: {{time}}", confidence: "நம்பகத்தன்மை: {{level}}", notApplied: "இது ஒரு பரிந்துரை மட்டுமே — எதுவும் மாற்றப்படவில்லை. பயன்படுத்த விரும்பினால் உங்கள் பிறப்பு விவரங்களை நீங்களே புதுப்பிக்கவும்.", level: { low: "குறைவு", medium: "நடுத்தரம்", high: "அதிகம்" }, domain: { career: "தொழில்", marriage: "திருமணம்", childbirth: "குழந்தை பிறப்பு", health: "உடல்நலம்", property: "சொத்து", education: "கல்வி", loss: "இழப்பு" } },
       predictionRating: { title: "அந்தக் காலம் எப்படி இருந்தது?", yes: "ஆம், அது நடந்தது", unclear: "சொல்வது கடினம்", no: "இல்லை, நடக்கவில்லை", thanks: "நன்றி — இது நாங்கள் மேம்பட உதவுகிறது.", why: "எங்கள் கால கணிப்பு எவ்வளவு துல்லியமானது என்பதைச் சரிபார்க்க மட்டுமே உங்கள் பதில் பயன்படுகிறது. இது ஒருபோதும் பகிரப்படாது." },
       payment: {
         title: "கிரெடிட்கள் வாங்கவும்",
@@ -10497,6 +10503,7 @@ export const resources = {
 
   gu: {
     translation: {
+      rectify: { title: "તમારો જન્મ સમય તપાસો", intro: "તમારો જન્મ સમય તમારું લગ્ન અને બધું સમય-નિર્ધારણ નક્કી કરે છે. ઓછામાં ઓછી ત્રણ તારીખવાળી ઘટનાઓ ઉમેરો, અમે તપાસીશું કે તમારો જણાવેલ સમય તેમની સાથે બંધબેસે છે કે નહીં.", addEvent: "+ બીજી ઘટના ઉમેરો", submit: "મારો જન્મ સમય તપાસો", checking: "તપાસી રહ્યા છીએ…", needMore: "ઓછામાં ઓછી {{count}} તારીખવાળી ઘટનાઓ ઉમેરો.", error: "અત્યારે તપાસી શકાયું નહીં. કૃપા કરી ફરી પ્રયાસ કરો.", noSuggestion: "આ ઘટનાઓ કોઈ એક સમય તરફ ખાસ ઈશારો કરતી નથી, તેથી તમારો જણાવેલ સમય જ રહેશે. વધુ ઘટનાઓ ઉમેરવાથી આ સ્પષ્ટ થશે.", suggested: "સૂચવેલ સમય: {{time}}", confidence: "વિશ્વાસ: {{level}}", notApplied: "આ માત્ર એક સૂચન છે — કશું બદલાયું નથી. વાપરવું હોય તો તમારી જન્મ વિગતો જાતે અપડેટ કરો.", level: { low: "ઓછો", medium: "મધ્યમ", high: "ઊંચો" }, domain: { career: "કારકિર્દી", marriage: "લગ્ન", childbirth: "સંતાન જન્મ", health: "આરોગ્ય", property: "મિલકત", education: "શિક્ષણ", loss: "નુકસાન" } },
       predictionRating: { title: "એ સમય કેવો રહ્યો?", yes: "હા, એવું થયું", unclear: "કહેવું મુશ્કેલ", no: "ના, એવું ન થયું", thanks: "આભાર — આનાથી અમને સુધરવામાં મદદ મળે છે.", why: "તમારો જવાબ ફક્ત અમારું સમય-અનુમાન કેટલું સચોટ છે તે તપાસવા વપરાય છે. તે ક્યારેય શેર થતું નથી." },
       payment: {
         title: "ક્રેડિટ ખરીદો",

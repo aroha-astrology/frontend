@@ -27,6 +27,32 @@ export function initPostHogIfConsented(): void {
       autocapture: false,
       disable_session_recording: true,
     });
+    void registerNativeAppVersion();
+  }
+}
+
+/**
+ * Tags every subsequent event with the native shell's version. No-op on web,
+ * where the App plugin isn't implemented. Uses PostHog's standard $app_*
+ * names so they land as first-class properties rather than custom ones.
+ *
+ * Fire-and-forget: the very first pageview of a fresh install can miss these,
+ * but register() persists them, so every later event is tagged.
+ */
+async function registerNativeAppVersion(): Promise<void> {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (!Capacitor.isNativePlatform()) return;
+    const { App } = await import("@capacitor/app");
+    const { version, build, name, id } = await App.getInfo();
+    posthog.register({
+      $app_version: version,
+      $app_build: build,
+      $app_name: name,
+      $app_namespace: id,
+    });
+  } catch {
+    // Analytics metadata is never worth breaking the app over.
   }
 }
 

@@ -4,6 +4,7 @@
 export const resources = {
   en: {
     translation: {
+      predictionRating: { title: "How did that period go?", yes: "Yes, that happened", unclear: "Hard to say", no: "No, it didn't", thanks: "Thank you — that helps us get better.", why: "Your answer is only used to check how accurate our timing is. It is never shared." },
       common: { seeAll: "See All", viewAll: "View All", chatNow: "Chat Now", close: "Close", yes: "Yes", no: "No", back: "Back", checkAgain: "Check Again", selectPlaceFromList: "Please select a place from the list", somethingWentWrong: "Something went wrong", tryAgain: "Try Again", connectionSlow: "Taking longer than expected" },
       legal: {
         terms: "Terms of Service",
@@ -1803,6 +1804,7 @@ export const resources = {
 
   hi: {
     translation: {
+      predictionRating: { title: "वह समय कैसा रहा?", yes: "हाँ, ऐसा हुआ", unclear: "कह नहीं सकते", no: "नहीं, ऐसा नहीं हुआ", thanks: "धन्यवाद — इससे हमें बेहतर होने में मदद मिलती है।", why: "आपका उत्तर केवल यह जाँचने के लिए उपयोग होता है कि हमारा समय-आकलन कितना सटीक है। इसे कभी साझा नहीं किया जाता।" },
       payment: {
         title: "क्रेडिट खरीदें",
         subtitle: "अधिक जानकारियां अनलॉक करने के लिए बैलेंस टॉप-अप करें",
@@ -3543,6 +3545,7 @@ export const resources = {
 
   bn: {
     translation: {
+      predictionRating: { title: "সেই সময়টা কেমন কেটেছে?", yes: "হ্যাঁ, তা ঘটেছে", unclear: "বলা কঠিন", no: "না, ঘটেনি", thanks: "ধন্যবাদ — এতে আমরা আরও ভালো হতে পারি।", why: "আপনার উত্তর কেবল আমাদের সময়-নির্ধারণ কতটা সঠিক তা যাচাই করতে ব্যবহৃত হয়। এটি কখনও ভাগ করা হয় না।" },
       payment: {
         title: "ক্রেডিট কিনুন",
         subtitle: "আরও তথ্য আনলক করতে ব্যালেন্স টপ-আপ করুন",
@@ -5281,6 +5284,7 @@ export const resources = {
 
   mr: {
     translation: {
+      predictionRating: { title: "तो काळ कसा गेला?", yes: "होय, तसेच घडले", unclear: "सांगणे कठीण", no: "नाही, तसे झाले नाही", thanks: "धन्यवाद — यामुळे आम्हाला सुधारण्यास मदत होते.", why: "तुमचे उत्तर फक्त आमचे वेळेचे अंदाज किती अचूक आहेत हे तपासण्यासाठी वापरले जाते. ते कधीही सामायिक केले जात नाही." },
       payment: {
         title: "क्रेडिट्स खरेदी करा",
         subtitle: "अधिक माहिती अनलॉक करण्यासाठी बॅलन्स टॉप-अप करा",
@@ -7019,6 +7023,7 @@ export const resources = {
 
   te: {
     translation: {
+      predictionRating: { title: "ఆ కాలం ఎలా గడిచింది?", yes: "అవును, అది జరిగింది", unclear: "చెప్పడం కష్టం", no: "లేదు, జరగలేదు", thanks: "ధన్యవాదాలు — ఇది మమ్మల్ని మెరుగుపరచడానికి సహాయపడుతుంది.", why: "మా సమయ అంచనాలు ఎంత ఖచ్చితమో తనిఖీ చేయడానికి మాత్రమే మీ సమాధానం ఉపయోగించబడుతుంది. ఇది ఎప్పుడూ పంచుకోబడదు." },
       payment: {
         title: "క్రెడిట్‌లు కొనండి",
         subtitle: "మరిన్ని అంతర్దృష్టులను అన్‌లాక్ చేయడానికి బ్యాలెన్స్ టాప్-అప్ చేయండి",
@@ -8753,6 +8758,7 @@ export const resources = {
 
   ta: {
     translation: {
+      predictionRating: { title: "அந்தக் காலம் எப்படி இருந்தது?", yes: "ஆம், அது நடந்தது", unclear: "சொல்வது கடினம்", no: "இல்லை, நடக்கவில்லை", thanks: "நன்றி — இது நாங்கள் மேம்பட உதவுகிறது.", why: "எங்கள் கால கணிப்பு எவ்வளவு துல்லியமானது என்பதைச் சரிபார்க்க மட்டுமே உங்கள் பதில் பயன்படுகிறது. இது ஒருபோதும் பகிரப்படாது." },
       payment: {
         title: "கிரெடிட்கள் வாங்கவும்",
         subtitle: "மேலும் நுண்ணறிவுகளைத் திறக்க உங்கள் இருப்பை நிரப்பவும்",
@@ -10491,6 +10497,7 @@ export const resources = {
 
   gu: {
     translation: {
+      predictionRating: { title: "એ સમય કેવો રહ્યો?", yes: "હા, એવું થયું", unclear: "કહેવું મુશ્કેલ", no: "ના, એવું ન થયું", thanks: "આભાર — આનાથી અમને સુધરવામાં મદદ મળે છે.", why: "તમારો જવાબ ફક્ત અમારું સમય-અનુમાન કેટલું સચોટ છે તે તપાસવા વપરાય છે. તે ક્યારેય શેર થતું નથી." },
       payment: {
         title: "ક્રેડિટ ખરીદો",
         subtitle: "વધુ માહિતી અનલોક કરવા માટે બેલેન્સ ટોપ-અપ કરો",

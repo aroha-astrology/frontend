@@ -9,6 +9,7 @@ import { useMoonSignForecasts } from "@/hooks/useMoonSignForecasts";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import { useFeature } from "@/hooks/useFeature";
 import FeatureGuard from "@/components/FeatureGuard";
+import PredictionRatingCard from "@/components/ui/PredictionRatingCard";
 import ForecastDetailModal from "@/components/horoscope/ForecastDetailModal";
 import MonthlyBreakdownModal from "@/components/horoscope/MonthlyBreakdownModal";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
@@ -155,6 +156,12 @@ export default function HoroscopePage() {
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4">
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
+
+        {/* Closes the accuracy loop: asks whether a past dated window actually
+            played out. Renders nothing when there is nothing to ask, so it
+            costs the page nothing on the common path. Placed here because this
+            screen is already about timing. */}
+        <PredictionRatingCard className="mt-4" />
 
         {/* Timescale tabs */}
         <div className="mt-6 grid grid-cols-4 gap-2 items-stretch">

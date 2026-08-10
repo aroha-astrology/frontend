@@ -1325,3 +1325,90 @@ async function pollHouseInsight(
     await new Promise((res) => setTimeout(res, delay));
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Prediction accuracy                                                        */
+/*                                                                            */
+/* The app records every dated claim it makes (prediction_outcomes on the      */
+/* backend). These two calls are the half that only the user can supply:       */
+/* whether the thing actually happened. Without them the accuracy table fills  */
+/* with predictions and never gets a single verdict.                          */
+/* -------------------------------------------------------------------------- */
+
+export interface DuePrediction {
+  id: string;
+  surface: string;
+  domain: string | null;
+  claim: string;
+  windowStart: string | null;
+  windowEnd: string | null;
+  confidence: string | null;
+}
+
+/** Predictions whose window has CLOSED and which this user has not yet rated. */
+export async function getDuePredictions(): Promise<DuePrediction[]> {
+  const res = await request<{ predictions: DuePrediction[] }>("/v1/astro/predictions/due", {
+    auth: true,
+  });
+  return res.predictions ?? [];
+}
+
+/** -1 = did not happen, 0 = unclear, 1 = happened. */
+export async function ratePrediction(
+  id: string,
+  rating: -1 | 0 | 1,
+): Promise<void> {
+  await request<{ ok: boolean }>(`/v1/astro/predictions/${id}/rate`, {
+    method: "POST",
+    body: { rating, happened: rating === 1 },
+    auth: true,
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Birth-time rectification                                                   */
+/* -------------------------------------------------------------------------- */
+
+export type RectifyDomain =
+  | "career"
+  | "marriage"
+  | "childbirth"
+  | "health"
+  | "property"
+  | "education"
+  | "loss";
+
+export interface RectifyEvent {
+  /** 'YYYY-MM-DD'. */
+  date: string;
+  domain: RectifyDomain;
+}
+
+export interface RectifySuggestion {
+  time: string;
+  offsetMinutes: number;
+  ascendantSign: string;
+  matched: number;
+  confidence: "low" | "medium" | "high";
+  reasoning: string;
+}
+
+/**
+ * Asks the server to suggest a corrected birth time from dated life events.
+ *
+ * Returns null when the events cannot single out a time. The server NEVER
+ * applies the suggestion by itself — changing a stored birth time would rewrite
+ * every chart and report already generated, so accepting it stays an explicit
+ * user action.
+ */
+export async function rectifyBirthTime(
+  events: RectifyEvent[],
+  windowMinutes?: number,
+): Promise<RectifySuggestion | null> {
+  const res = await request<{ suggestion: RectifySuggestion | null }>("/v1/astro/rectify", {
+    method: "POST",
+    body: windowMinutes ? { events, windowMinutes } : { events },
+    auth: true,
+  });
+  return res.suggestion;
+}

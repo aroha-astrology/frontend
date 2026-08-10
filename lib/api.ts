@@ -1370,13 +1370,25 @@ export async function ratePrediction(
 /* -------------------------------------------------------------------------- */
 
 export type RectifyDomain =
-  | "career"
+  | "job_started"
+  | "promotion"
+  | "job_loss"
+  | "business_started"
+  | "retirement"
+  | "engagement"
   | "marriage"
+  | "divorce"
   | "childbirth"
-  | "health"
-  | "property"
-  | "education"
-  | "loss";
+  | "bereavement"
+  | "property_bought"
+  | "vehicle_bought"
+  | "big_financial_gain"
+  | "relocation"
+  | "health_crisis"
+  | "accident_injury"
+  | "legal_case"
+  | "foreign_travel"
+  | "education_milestone";
 
 export interface RectifyEvent {
   /** 'YYYY-MM-DD'. */

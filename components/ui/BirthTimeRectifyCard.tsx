@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFeature } from '@/hooks/useFeature';
 import {
   rectifyBirthTime,
   type RectifyDomain,
@@ -22,14 +23,21 @@ import {
  * This card is explicit about that rather than implying the fix is automatic.
  */
 
-const DOMAINS: RectifyDomain[] = [
-  'career',
-  'marriage',
-  'childbirth',
-  'health',
-  'property',
-  'education',
-  'loss',
+// Grouped for the dropdown so 19 options stay scannable rather than one flat
+// list. Group labels are translated as a unit; option labels individually.
+const DOMAIN_GROUPS: { group: string; options: RectifyDomain[] }[] = [
+  {
+    group: 'career',
+    options: ['job_started', 'promotion', 'job_loss', 'business_started', 'retirement'],
+  },
+  { group: 'relationships', options: ['engagement', 'marriage', 'divorce'] },
+  { group: 'family', options: ['childbirth', 'bereavement'] },
+  {
+    group: 'homeMoney',
+    options: ['property_bought', 'vehicle_bought', 'big_financial_gain', 'relocation'],
+  },
+  { group: 'healthLegal', options: ['health_crisis', 'accident_injury', 'legal_case'] },
+  { group: 'travelStudy', options: ['foreign_travel', 'education_milestone'] },
 ];
 
 /** The server refuses to suggest a time below this many dated events. */
@@ -37,7 +45,13 @@ const MIN_EVENTS = 3;
 
 export default function BirthTimeRectifyCard({ className = '' }: { className?: string }) {
   const { t } = useTranslation();
-  const [events, setEvents] = useState<RectifyEvent[]>([{ date: '', domain: 'career' }]);
+  // New card: OFF by default (see config/features.ts's `home.birthTimeRectify`
+  // — standing rule, every new card ships dark until an admin turns it on).
+  // useFeature fails OPEN for keys it does not recognise, so an explicit
+  // `enabled === false` from the backend is what actually hides this, not a
+  // missing/unknown key.
+  const { enabled } = useFeature('home.birthTimeRectify');
+  const [events, setEvents] = useState<RectifyEvent[]>([{ date: '', domain: 'job_started' }]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RectifySuggestion | null>(null);
   const [ran, setRan] = useState(false);
@@ -64,6 +78,8 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
     }
   }
 
+  if (!enabled) return null;
+
   return (
     <div className={`rounded-2xl border border-gold/10 bg-white/5 p-5 ${className}`}>
       <h3 className="text-sm font-semibold text-gold">
@@ -72,7 +88,13 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
       <p className="mt-1 text-xs leading-snug text-white/60">
         {t(
           'rectify.intro',
-          'Your birth time decides your rising sign and all your timing. Add at least three dated events and we can check whether your stated time fits them.',
+          "Not sure your birth time is exact? It decides your rising sign and all your timing. Add 3 or more major life events with their dates — a wedding, a new job, a child's birth — and we'll try to work out your real birth time.",
+        )}
+      </p>
+      <p className="mt-1.5 text-[11px] leading-snug text-white/40">
+        {t(
+          'rectify.hint',
+          'The more events you add, the sharper the result. We check within an hour either side of the time you gave us, and nothing is changed without you.',
         )}
       </p>
 
@@ -90,10 +112,18 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
               onChange={(ev) => update(i, { domain: ev.target.value as RectifyDomain })}
               className="rounded-xl border border-gold/10 bg-transparent px-2 py-2 text-sm text-white"
             >
-              {DOMAINS.map((d) => (
-                <option key={d} value={d} className="bg-neutral-900">
-                  {t(`rectify.domain.${d}`, d)}
-                </option>
+              {DOMAIN_GROUPS.map(({ group, options }) => (
+                <optgroup
+                  key={group}
+                  label={t(`rectify.group.${group}`, group)}
+                  className="bg-neutral-900"
+                >
+                  {options.map((d) => (
+                    <option key={d} value={d} className="bg-neutral-900">
+                      {t(`rectify.domain.${d}`, d)}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
@@ -102,7 +132,7 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
 
       <button
         type="button"
-        onClick={() => setEvents((p) => [...p, { date: '', domain: 'career' }])}
+        onClick={() => setEvents((p) => [...p, { date: '', domain: 'job_started' }])}
         className="mt-2 text-xs text-gold/80"
       >
         {t('rectify.addEvent', '+ Add another event')}

@@ -16,7 +16,7 @@ import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
 import { formatPeriodMonth } from "@/lib/reports-logic";
-import { maybeRequestReview } from "@/lib/app-review";
+import { maybeRequestReview, markReportGeneratedForReview } from "@/lib/app-review";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
  * type except match_report, whose ids (life-area names like "wealth"/"health") are ambiguous
@@ -55,11 +55,14 @@ export default function ReportDetailPage() {
     if (state === "ready" && data) window.scrollTo(0, 0);
   }, [state, data]);
 
-  // A finished report is a milestone worth offering Google's review card on.
-  // Plain useEffect, not layout: this must never sit between the state flip and
-  // paint.
+  // A finished report is a milestone worth offering Google's review card on, and
+  // the trigger for our own rating sheet — the latter deliberately delayed so it
+  // asks after they've read this, not over it. Plain useEffect, not layout: this
+  // must never sit between the state flip and paint.
   useEffect(() => {
-    if (state === "ready" && data) void maybeRequestReview();
+    if (state !== "ready" || !data) return;
+    void maybeRequestReview();
+    markReportGeneratedForReview();
   }, [state, data]);
 
   const title =

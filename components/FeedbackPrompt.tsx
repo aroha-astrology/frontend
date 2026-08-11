@@ -1,24 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import FeedbackSheet, { FEEDBACK_SEEN_KEY as SEEN_KEY } from "@/components/FeedbackSheet";
-
-const OPENS_KEY = "aroha:appOpens";
-const OPENS_BEFORE_ASKING = 3;
+import { feedbackAskDue } from "@/lib/app-review";
 
 /**
- * Opens the rating sheet once, on the user's 3rd app open — deliberately a
- * different moment from the Play review card (lib/app-review.ts), which fires
- * on purchases/reports/long chats, so the two overlays never stack. Gated on
- * the permissions prompt resolving for the same reason ShareAppPrompt is.
+ * Opens the rating sheet exactly once, after the user has actually got value out
+ * of the app: 3 real AI chat answers, or a generated report plus enough time to
+ * read it (see feedbackAskDue). Re-checked on navigation, not on a timer, so the
+ * ask lands when the user leaves what they were doing rather than on top of it.
+ * Gated on the permissions prompt resolving for the same reason ShareAppPrompt is.
  *
  * Never fires for someone who already rated: FeedbackSheet stamps SEEN_KEY on a
  * successful submit, including the Settings entry point.
  */
 export default function FeedbackPrompt() {
   const { user } = useAuth();
+  const pathname = usePathname();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const [open, setOpen] = useState(false);
 
@@ -28,20 +29,20 @@ export default function FeedbackPrompt() {
     // Server-side truth first: localStorage forgets on reinstall or a new phone,
     // this doesn't.
     if (user.feedbackGiven) return;
+    // Never interrupt a report they're reading — that's the whole point of the
+    // delay. They'll get asked on the way out.
+    if (pathname?.startsWith("/reports/")) return;
     try {
       if (window.localStorage.getItem(SEEN_KEY)) return;
-      const opens = Number(window.localStorage.getItem(OPENS_KEY) ?? 0) + 1;
-      window.localStorage.setItem(OPENS_KEY, String(opens));
-      if (opens >= OPENS_BEFORE_ASKING) {
-        // Marked as seen on show, not on submit: a dismissed sheet must not
-        // come back on every subsequent open.
-        window.localStorage.setItem(SEEN_KEY, "1");
-        setOpen(true);
-      }
+      if (!feedbackAskDue()) return;
+      // Marked as seen on show, not on submit: a dismissed sheet must not come
+      // back on every subsequent navigation.
+      window.localStorage.setItem(SEEN_KEY, "1");
+      setOpen(true);
     } catch {
       // localStorage unavailable — skip rather than nag every open.
     }
-  }, [permissionsResolved, user?.profileCompletedAt, user?.feedbackGiven]);
+  }, [pathname, permissionsResolved, user?.profileCompletedAt, user?.feedbackGiven]);
 
   if (!open) return null;
   return <FeedbackSheet onClose={() => setOpen(false)} />;

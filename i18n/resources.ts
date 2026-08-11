@@ -63,7 +63,7 @@ export const resources = {
         unnamed: "Unnamed",
         createProfile: "Create Profile",
         createProfileCost: "Charges {{cost}}",
-        changeProfile: "Change",
+        changeProfile: "Add/Change Profile",
         switchError: "Couldn't switch profiles. Try again.",
         viewingLabel: "Profile: {{name}}",
         relationship: {
@@ -1900,7 +1900,7 @@ export const resources = {
         unnamed: "अनाम",
         createProfile: "प्रोफ़ाइल बनाएं",
         createProfileCost: "{{cost}} शुल्क लगेगा",
-        changeProfile: "बदलें",
+        changeProfile: "प्रोफ़ाइल जोड़ें/बदलें",
         switchError: "प्रोफ़ाइल बदल नहीं सके। पुनः प्रयास करें।",
         viewingLabel: "प्रोफ़ाइल: {{name}}",
         relationship: {
@@ -3639,7 +3639,7 @@ export const resources = {
         unnamed: "নামহীন",
         createProfile: "প্রোফাইল তৈরি করুন",
         createProfileCost: "{{cost}} চার্জ করা হবে",
-        changeProfile: "পরিবর্তন",
+        changeProfile: "প্রোফাইল যোগ/পরিবর্তন",
         switchError: "প্রোফাইল পরিবর্তন করা যায়নি। আবার চেষ্টা করুন।",
         viewingLabel: "প্রোফাইল: {{name}}",
         relationship: {
@@ -5381,7 +5381,7 @@ export const resources = {
         unnamed: "अनामिक",
         createProfile: "प्रोफाइल तयार करा",
         createProfileCost: "{{cost}} आकारले जातील",
-        changeProfile: "बदला",
+        changeProfile: "प्रोफाइल जोडा/बदला",
         switchError: "प्रोफाइल बदलता आली नाही. पुन्हा प्रयत्न करा.",
         viewingLabel: "प्रोफाइल: {{name}}",
         relationship: {
@@ -7123,7 +7123,7 @@ export const resources = {
         unnamed: "పేరు లేదు",
         createProfile: "ప్రొఫైల్ సృష్టించండి",
         createProfileCost: "{{cost}} ఛార్జ్ చేయబడుతుంది",
-        changeProfile: "మార్చు",
+        changeProfile: "ప్రొఫైల్ జోడించు/మార్చు",
         switchError: "ప్రొఫైల్ మార్చలేకపోయాము. మళ్ళీ ప్రయత్నించండి.",
         viewingLabel: "ప్రొఫైల్: {{name}}",
         relationship: {
@@ -8861,7 +8861,7 @@ export const resources = {
         unnamed: "பெயர் இல்லை",
         createProfile: "சுயவிவரம் உருவாக்கு",
         createProfileCost: "{{cost}} கட்டணம் விதிக்கப்படும்",
-        changeProfile: "மாற்று",
+        changeProfile: "சுயவிவரம் சேர்/மாற்று",
         switchError: "சுயவிவரத்தை மாற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         viewingLabel: "சுயவிவரம்: {{name}}",
         relationship: {
@@ -10603,7 +10603,7 @@ export const resources = {
         unnamed: "અનામ",
         createProfile: "પ્રોફાઇલ બનાવો",
         createProfileCost: "{{cost}} ચાર્જ થશે",
-        changeProfile: "બદલો",
+        changeProfile: "પ્રોફાઇલ ઉમેરો/બદલો",
         switchError: "પ્રોફાઇલ બદલી શકાયું નહીં. ફરી પ્રયાસ કરો.",
         viewingLabel: "પ્રોફાઇલ: {{name}}",
         relationship: {

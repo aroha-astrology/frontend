@@ -53,17 +53,17 @@ export default function GreetingHeader() {
           {firstName
             ? t(`home.${greetingPrefix}`, { name: firstName })
             : t(`home.${greetingPrefix}Guest`)}
+          {/* Visible cue that the whole row is tappable — the switcher sheet itself already
+              existed and opened on tap, but with no icon/label it read as a static greeting. */}
+          {profiles !== null && (
+            <span className="ml-1.5 inline-flex items-baseline gap-0.5 text-muted text-xs font-normal">
+              ({t("profileSwitcher.changeProfile")}
+              <ChevronDown size={12} className="relative top-0.5" />)
+            </span>
+          )}
         </p>
         <p className="text-muted text-xs">{t(`home.greeting.${greetingKey}`)}</p>
       </div>
-      {/* Visible cue that the whole row is tappable — the switcher sheet itself already
-          existed and opened on tap, but with no icon/label it read as a static greeting. */}
-      {profiles !== null && (
-        <span className="ml-auto flex items-center gap-0.5 text-muted text-xs shrink-0">
-          {t("profileSwitcher.changeProfile")}
-          <ChevronDown size={13} />
-        </span>
-      )}
     </motion.div>
   );
 

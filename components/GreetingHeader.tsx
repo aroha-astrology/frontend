@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 import Avatar from "@/components/ui/Avatar";
@@ -55,6 +56,14 @@ export default function GreetingHeader() {
         </p>
         <p className="text-muted text-xs">{t(`home.greeting.${greetingKey}`)}</p>
       </div>
+      {/* Visible cue that the whole row is tappable — the switcher sheet itself already
+          existed and opened on tap, but with no icon/label it read as a static greeting. */}
+      {profiles !== null && (
+        <span className="ml-auto flex items-center gap-0.5 text-muted text-xs shrink-0">
+          {t("profileSwitcher.changeProfile")}
+          <ChevronDown size={13} />
+        </span>
+      )}
     </motion.div>
   );
 

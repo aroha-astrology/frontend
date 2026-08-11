@@ -7,9 +7,16 @@ import { useTranslation } from "react-i18next";
 import { Check, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
+import { useFeature } from "@/hooks/useFeature";
+import { formatRupees } from "@/lib/format";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import Avatar from "@/components/ui/Avatar";
 import type { Profile, ProfileRelationship } from "@/lib/api";
+
+/** Same fallback createProfile() itself charges when there's no admin price override —
+ * see profiles.service.ts's PROFILE_CREATION_FALLBACK_PAISE, kept in sync manually since
+ * it's a constant on each side, same precedent as onboarding/page.tsx's own copy of it. */
+const PROFILE_CREATION_FALLBACK_PAISE = 20000;
 
 /** Maps each relationship enum value to its i18n key under profileSwitcher.relationship. */
 export const RELATIONSHIP_KEYS: Record<ProfileRelationship, string> = {
@@ -35,6 +42,7 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
   const { profiles, switchProfile } = useAuth();
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const creationPricePaise = useFeature("paid.profileCreation").pricePaise ?? PROFILE_CREATION_FALLBACK_PAISE;
 
   // Close on hardware back press instead of exiting the app/navigating away.
   useDismissOnBackPress(open, onClose);
@@ -111,7 +119,12 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
               <div className="w-10 h-10 rounded-full bg-gold/5 border border-gold/20 flex items-center justify-center shrink-0">
                 <UserPlus size={18} />
               </div>
-              <span className="text-sm font-medium">{t("profileSwitcher.createProfile")}</span>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block text-sm font-medium">{t("profileSwitcher.createProfile")}</span>
+                <span className="block text-[11px] text-muted font-normal">
+                  {t("profileSwitcher.createProfileCost", { cost: formatRupees(creationPricePaise) })}
+                </span>
+              </span>
             </button>
           </div>
         </BottomSheetModal>

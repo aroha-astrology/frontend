@@ -191,7 +191,13 @@ export default function HelpPage() {
                     </span>
                   </div>
                   <p className="text-sm text-foreground/90 mb-2">{truncate(ticket.message, 140)}</p>
-                  <p className="text-[11px] text-muted">
+                  {ticket.adminNote && (
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <p className="text-[11px] text-gold/80 mb-1">{t("help.replyLabel")}</p>
+                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">{ticket.adminNote}</p>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-muted mt-2">
                     {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
                   </p>
                 </Card>

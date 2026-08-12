@@ -814,7 +814,7 @@ export interface VastuPlan {
 
 // ─── Support tickets ────────────────────────────────────────────────────────
 
-/** Caller-facing shape — no `userId` (implicit: always the caller's own) and no `adminNote` (admin-only). */
+/** Caller-facing shape — no `userId` (implicit: always the caller's own). `adminNote` is the support team's reply, shown to the user. */
 export interface SupportTicket {
   id: string;
   category: string;
@@ -822,6 +822,7 @@ export interface SupportTicket {
   locale: string | null;
   appVersion: string | null;
   status: string;
+  adminNote: string | null;
   createdAt: string;
   resolvedAt: string | null;
 }

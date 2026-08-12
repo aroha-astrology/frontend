@@ -143,13 +143,13 @@ function TicketModal({
         </div>
 
         <div>
-          <label className="text-xs text-muted block mb-1">Admin note</label>
+          <label className="text-xs text-muted block mb-1">Reply to user</label>
           <textarea
             value={adminNote}
             onChange={(e) => setAdminNote(e.target.value)}
             rows={4}
             maxLength={2000}
-            placeholder="Internal note (not visible to the user)"
+            placeholder="Shown to the user on their ticket"
             className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground resize-none"
           />
         </div>

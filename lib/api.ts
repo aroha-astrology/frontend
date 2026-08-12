@@ -777,13 +777,69 @@ function safeJson(text: string): unknown {
 // ─── Remedies ───────────────────────────────────────────────────────────────
 
 export interface RemedyItem {
-  id: string;
+  /** Planet name, or "General" for the chartless fallback entries. */
+  planet: string;
   title: string;
-  description: string;
   remedy: string;
-  category: string;
   icon: string;
-  planet?: string;
+  /** Slugs for the shared image-per-remedy asset library. */
+  actions?: string[];
+
+  /* Detailed Lal Kitab fields — sent for the nine per-planet entries, absent
+   * on general/fallback ones. See RemedyItem in the backend's
+   * modules/astro/astro.service.ts for the authoritative definitions. */
+  remedies?: string[];
+  totke?: string[];
+  natalHouse?: number;
+  /** Lal Kitab's fixed-house number (Aries = 1st house), which legitimately
+   * differs from the ascendant-based natalHouse — both are shown. */
+  lalKitabHouse?: number;
+  pakkaGhar?: number;
+  isInPakkaGhar?: boolean;
+  displacement?: string;
+  blindness?: "blind" | "half-blind";
+  blindReason?: string;
+
+  /* Local-only fields on REMEDIES_FALLBACK entries; the API never sends these. */
+  id?: string;
+  description?: string;
+  category?: string;
+}
+
+/** An ancestral/karmic debt (Rin) detected in the chart. Only debts actually
+ * present are returned — never the full set of eight. */
+export interface LalKitabDebt {
+  /** e.g. "Pitra Rin". A proper noun; left untranslated. */
+  type: string;
+  /** The chart placements that flagged this debt. */
+  indicators: string[];
+  remedies: string[];
+}
+
+/** Lal Kitab's arithmetic year chart: every planet advances one house per
+ * year of age, so this refreshes on the reader's birthday. */
+export interface AnnualRotation {
+  age: number;
+  /** The year's point of focus, counted from the natal Ascendant. */
+  muntha: number;
+  planets: {
+    planet: string;
+    natalHouse: number;
+    annualHouse: number;
+    dignityDelta: number;
+    remedies: string[];
+    totke: string[];
+  }[];
+  /** The year's benefactor. */
+  kismatKaGrah: string | null;
+  /** Where the year's turbulence comes from — prioritise this one's remedy. */
+  dhokheKaGrah: string | null;
+}
+
+export interface RemediesResponse {
+  remedies: RemedyItem[];
+  debts: LalKitabDebt[];
+  annual: AnnualRotation | null;
 }
 
 // ─── Vastu ────────────────────────────────────────────────────────────────────
@@ -950,8 +1006,9 @@ export const api = {
   revokeDeviceToken: (id: string) =>
     request<void>(`/v1/device-tokens/${id}`, { method: "DELETE", auth: true }),
 
-  /** Remedies for the user based on chart. */
-  remedies: () => request<{ remedies: RemedyItem[] }>("/v1/remedies", { auth: true }),
+  /** Full Lal Kitab remedy reading for the active profile: every classical
+   * planet in its natal house, plus the karmic debts present in the chart. */
+  remedies: () => request<RemediesResponse>("/v1/remedies", { auth: true }),
 
   /**
    * Moon-sign forecast for a zodiac sign (0-11). `period` defaults to daily;

@@ -7,6 +7,7 @@ import { REMEDIES_FALLBACK } from "@/data/remedies-fallback";
 import SectionTitle from "@/components/SectionTitle";
 import { useAuth } from "@/providers/auth-provider";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
+import FeatureGuard from "@/components/FeatureGuard";
 
 /** Remedies only change on chart regeneration — explicitly purged then (see lib/cache.ts's purgeUserCache and its call site in app/profile/page.tsx / app/onboarding/page.tsx). 7 days is a generous-but-bounded SWR TTL, not a correctness mechanism. */
 const SWR_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -52,7 +53,7 @@ function SkeletonCard() {
   );
 }
 
-export default function RemediesPage() {
+function RemediesContent() {
   const { t } = useTranslation();
   const { user, activeProfile } = useAuth();
   const [remedies, setRemedies] = useState<RemedyItem[]>([]);
@@ -140,5 +141,13 @@ export default function RemediesPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function RemediesPage() {
+  return (
+    <FeatureGuard featureKey="nav.remedies">
+      <RemediesContent />
+    </FeatureGuard>
   );
 }

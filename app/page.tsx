@@ -13,6 +13,7 @@ import MatchMakingCard from "@/components/MatchMakingCard";
 import VastuCard from "@/components/VastuCard";
 import PalmReadingCard from "@/components/PalmReadingCard";
 import ShlokasCard from "@/components/ShlokasCard";
+import RemediesCard from "@/components/RemediesCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -113,6 +114,14 @@ function ShlokasSection() {
   );
 }
 
+function RemediesSection() {
+  return (
+    <div className="px-5 mt-8 mb-6">
+      <RemediesCard />
+    </div>
+  );
+}
+
 interface HomeSection {
   id: string;
   featureKey: string;
@@ -129,6 +138,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
   { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
   { id: "shlokas", featureKey: "home.shlokas", Component: ShlokasSection },
+  { id: "remedies", featureKey: "home.remedies", Component: RemediesSection },
 ];
 
 export default function HomePage() {

@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Play, Pause, Heart } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, ChevronDown, List } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
-import SegmentedToggle from "@/components/ui/SegmentedToggle";
 import LanguagePicker from "@/components/LanguagePicker";
 import FeatureGuard from "@/components/FeatureGuard";
 import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
@@ -212,11 +211,14 @@ function ShlokasLibrary() {
                   <button
                     type="button"
                     onClick={() => setChipFilter("all")}
-                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      chipFilter === "all" ? "border-gold bg-gold/10 text-gold" : "border-gold/20 text-muted hover:border-gold/40"
+                    className={`shrink-0 w-16 flex flex-col items-center justify-center gap-1 py-2.5 rounded-2xl border transition-colors ${
+                      chipFilter === "all" ? "border-gold bg-gold/10" : "border-gold/15 bg-card"
                     }`}
                   >
-                    {t("shlokas.allTags")}
+                    <Flame size={18} className={chipFilter === "all" ? "text-gold" : "text-muted"} />
+                    <span className={`text-[10px] font-medium ${chipFilter === "all" ? "text-gold" : "text-muted"}`}>
+                      {t("shlokas.allTags")}
+                    </span>
                   </button>
                   {tagsPresent.map((tag) => {
                     const meta = tagMeta(tag);
@@ -227,39 +229,43 @@ function ShlokasLibrary() {
                         key={tag}
                         type="button"
                         onClick={() => setChipFilter(tag)}
-                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                          active ? meta.pill : "border-gold/20 text-muted hover:border-gold/40"
+                        className={`shrink-0 w-16 flex flex-col items-center justify-center gap-1 py-2.5 rounded-2xl transition-colors ${meta.pill} ${
+                          active ? "border-2" : "border"
                         }`}
                       >
-                        <Icon size={12} />
-                        {t(`shlokas.tags.${tag}`)}
+                        <Icon size={18} />
+                        <span className="text-[10px] font-medium">{t(`shlokas.tags.${tag}`)}</span>
                       </button>
                     );
                   })}
                   <button
                     type="button"
                     onClick={() => setChipFilter("favorites")}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      chipFilter === "favorites" ? "border-rose-500/30 bg-rose-500/10 text-rose-500" : "border-gold/20 text-muted hover:border-gold/40"
+                    className={`shrink-0 w-16 flex flex-col items-center justify-center gap-1 py-2.5 rounded-2xl border-rose-500/30 bg-rose-500/10 text-rose-500 transition-colors ${
+                      chipFilter === "favorites" ? "border-2" : "border"
                     }`}
                   >
-                    <Heart size={12} className={chipFilter === "favorites" ? "fill-rose-500" : ""} />
-                    {t("shlokas.favorites")}
+                    <Heart size={18} className={chipFilter === "favorites" ? "fill-rose-500" : ""} />
+                    <span className="text-[10px] font-medium">{t("shlokas.favorites")}</span>
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 text-xs">
-                  <SegmentedToggle
-                    value={sortMode}
-                    onChange={setSortMode}
-                    options={[
-                      { value: "default", label: t("shlokas.sortDefault") },
-                      { value: "az", label: t("shlokas.sortAz") },
-                    ]}
-                  />
-                  <div className="flex items-center gap-2 text-muted shrink-0">
-                    <LanguagePicker align="right" />
-                    <span className="tabular-nums">{t("shlokas.count", { n: visible.length })}</span>
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setSortMode((m) => (m === "default" ? "az" : "default"))}
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-full border border-gold/20 text-muted font-medium"
+                  >
+                    <ArrowUpDown size={14} className="text-gold" />
+                    <span>{sortMode === "default" ? t("shlokas.sortDefault") : t("shlokas.sortAz")}</span>
+                    <ChevronDown size={12} />
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <LanguagePicker align="right" showLabel />
+                    <span className="flex items-center gap-1 text-gold font-semibold tabular-nums">
+                      <List size={14} />
+                      {t("shlokas.count", { n: visible.length })}
+                    </span>
                   </div>
                 </div>
               </>

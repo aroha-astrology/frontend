@@ -28,17 +28,26 @@ export interface RudrakshaBeadRef {
   pulse: () => void;
 }
 
+/** Real bead photo, tried before the hand-drawn fallback below. Drop a file here and every bead upgrades with no code change. */
+const BEAD_PHOTO_SRC = "/shlokas/assets/rudraksha-bead.webp";
+
 /**
- * Photoreal Rudraksha bead (SVG only), ported unmodified from the dormant
- * `apps/api` mantra-jaap feature (backend/apps/api/src/components/mantra/
- * RudrakshaBead.tsx) — that build already solved layered radial gradients,
- * carved mukhi grooves, specular highlight and cast shadow, so this is a
- * copy, not a rewrite. mukhi=0 renders a smooth deity bead with an Om glyph
- * (used for the guru bead).
+ * Photoreal Rudraksha bead, ported unmodified (SVG-drawing part) from the
+ * dormant `apps/api` mantra-jaap feature (backend/apps/api/src/components/
+ * mantra/RudrakshaBead.tsx) — that build already solved layered radial
+ * gradients, carved mukhi grooves, specular highlight and cast shadow, so
+ * the fallback below is a copy, not a rewrite. mukhi=0 renders a smooth
+ * deity bead with an Om glyph.
  *
- * The one change from the source: the halo/glow, which was a hardcoded gold
- * rgba, now reads `var(--gold)` via `color-mix()` so it recolors with the
- * app's dark/light theme (`--gold` already differs per theme in
+ * Tries a real photo (BEAD_PHOTO_SRC) first for mukhi>0 beads, falling back
+ * to the hand-drawn SVG on error — same either/or pattern as
+ * MalaBackdrop.tsx's MandalaDisc and components/reports/ReportThemeCard.tsx's
+ * ReportVisual. The deity/Om variant (mukhi=0) stays SVG-only; nothing in
+ * the current ring uses it.
+ *
+ * The one change from the source SVG: the halo/glow, which was a hardcoded
+ * gold rgba, now reads `var(--gold)` via `color-mix()` so it recolors with
+ * the app's dark/light theme (`--gold` already differs per theme in
  * globals.css). The bead body itself keeps its original hardcoded browns —
  * a rudraksha seed is brown in reality regardless of app theme, so that
  * part of the asset is representational, not brand chrome.
@@ -50,8 +59,10 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
   const [scale, setScale] = useState(1);
   const [glow, setGlow] = useState(0.0);
   const [breathePhase, setBreathePhase] = useState(0);
+  const [photoError, setPhotoError] = useState(false);
   const pulseTimerRef = useRef<number | null>(null);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const useSvg = mukhi === 0 || photoError;
 
   useEffect(() => {
     if (hideHalo) return;
@@ -202,6 +213,18 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
           transition: "transform 220ms ease-out, opacity 180ms ease-out",
         }}
       >
+        {!useSvg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={BEAD_PHOTO_SRC}
+            alt=""
+            width={size}
+            height={size}
+            draggable={false}
+            className="object-contain"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
         <svg width={size} height={size}>
           <defs>
             {/* Outer silhouette — deep cherry brown radial */}
@@ -328,6 +351,7 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
             transform={`rotate(-32 ${cx - beadR * 0.32} ${cy - beadR * 0.42})`}
           />
         </svg>
+        )}
       </button>
     </div>
   );

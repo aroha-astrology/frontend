@@ -2,16 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Globe, Check } from "lucide-react";
+import { Globe, Check, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LANGUAGES, useLanguage } from "@/providers/language-provider";
 import IconButton from "@/components/ui/IconButton";
+import { useTranslation } from "react-i18next";
 
 type DropdownPos =
   | { top: number; left: number; maxHeight: number; bottom?: undefined }
   | { bottom: number; left: number; maxHeight: number; top?: undefined };
 
-export default function LanguagePicker({ align = "right" }: { align?: "left" | "right" }) {
+export default function LanguagePicker({
+  align = "right",
+  showLabel = false,
+}: {
+  align?: "left" | "right";
+  /** Renders a bordered "Language ⌄" pill instead of the default icon-only circular trigger. */
+  showLabel?: boolean;
+}) {
+  const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<DropdownPos | null>(null);
@@ -73,18 +82,33 @@ export default function LanguagePicker({ align = "right" }: { align?: "left" | "
 
   return (
     <>
-      <IconButton
-        ref={buttonRef}
-        onClick={() => setOpen((o) => !o)}
-        className="relative"
-        aria-label="Select language"
-        aria-expanded={open}
-      >
-        <Globe size={18} />
-        <span className="absolute -bottom-1 -right-1 text-[8px] font-bold uppercase bg-gold text-background rounded-full px-1 leading-tight">
-          {current.code}
-        </span>
-      </IconButton>
+      {showLabel ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Select language"
+          aria-expanded={open}
+          className="flex items-center gap-1.5 h-9 px-3 rounded-full border border-gold/20 text-muted text-xs font-medium"
+        >
+          <Globe size={14} className="text-gold" />
+          <span>{t("settings.language")}</span>
+          <ChevronDown size={12} />
+        </button>
+      ) : (
+        <IconButton
+          ref={buttonRef}
+          onClick={() => setOpen((o) => !o)}
+          className="relative"
+          aria-label="Select language"
+          aria-expanded={open}
+        >
+          <Globe size={18} />
+          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold uppercase bg-gold text-background rounded-full px-1 leading-tight">
+            {current.code}
+          </span>
+        </IconButton>
+      )}
 
       {typeof document !== "undefined" &&
         createPortal(

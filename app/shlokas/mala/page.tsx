@@ -50,7 +50,9 @@ function MalaScreen() {
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [fav, setFav] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  // True while the current mantra's audio is playing. Doubles as the ring
+  // bead's tap-lock (see advanceAndPlay below) and the card's play/pause icon.
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
     loadShlokas().then(setShlokas).catch(() => setFailed(true));
@@ -78,7 +80,6 @@ function MalaScreen() {
     setMalaPosition(index);
     pushHistory(current.slug);
     setFav(isFav(current.slug));
-    setPlaying(false);
   }, [ready, index, current]);
 
   const total = shlokas?.length ?? 0;
@@ -89,22 +90,44 @@ function MalaScreen() {
   const prevIndex = (index - 1 + total) % total;
   const nextIndex = (index + 1) % total;
 
+  // Prev/next strip and Start Again are free browsing, not the guided
+  // tap-through-and-listen flow below — they always stop whatever's playing
+  // rather than fighting over the lock.
   function goTo(next: number) {
+    pauseShlokaAudio();
+    setLocked(false);
     setIndex(((next % total) + total) % total);
   }
-  function advance() {
-    setIndex((i) => Math.min(i + 1, total - 1));
+
+  // The bead's own tap handler: advance and pronounce are one bundled
+  // action, and the bead can't be tapped again until this mantra's audio
+  // finishes. Reads the next shloka directly rather than waiting for
+  // `current` to update, so the right audio starts in the same tap.
+  function advanceAndPlay() {
+    if (locked || !shlokas || total === 0) return;
+    const nextIndex = Math.min(index + 1, total - 1);
+    if (nextIndex === index) return; // already at the last mantra
+    const nextShloka = shlokas[nextIndex];
+    navigator.vibrate?.(20);
+    setIndex(nextIndex);
+    if (nextShloka.audio) {
+      setLocked(true);
+      playShlokaAudio(AUDIO_BASE + nextShloka.audio, () => setLocked(false));
+    }
   }
 
-  function handlePlay() {
+  // The card's own play button — replays whatever's currently shown, on
+  // demand, independent of advancing. Shares the same lock so the ring bead
+  // correctly shows as un-tappable while this is playing too.
+  function playCurrent() {
     if (!current?.audio) return;
     if (isShlokaAudioPlaying(AUDIO_BASE + current.audio)) {
       pauseShlokaAudio();
-      setPlaying(false);
+      setLocked(false);
       return;
     }
-    playShlokaAudio(AUDIO_BASE + current.audio, () => setPlaying(false));
-    setPlaying(true);
+    setLocked(true);
+    playShlokaAudio(AUDIO_BASE + current.audio, () => setLocked(false));
   }
 
   function handleTabSelect(tab: ShlokaTab) {
@@ -144,7 +167,7 @@ function MalaScreen() {
             <div className="relative rounded-3xl overflow-hidden border border-gold/15 py-8">
               <MalaBackdrop />
               <div className="relative">
-                <RudrakshaMala total={total} currentIndex={index} onTap={advance} />
+                <RudrakshaMala total={total} currentIndex={index} onTap={advanceAndPlay} locked={locked} />
               </div>
             </div>
 
@@ -180,11 +203,11 @@ function MalaScreen() {
                     <AudioLines size={18} className="text-gold/60" aria-hidden="true" />
                     <button
                       type="button"
-                      onClick={handlePlay}
-                      aria-label={t(playing ? "shlokas.pauseAria" : "shlokas.playAria")}
+                      onClick={playCurrent}
+                      aria-label={t(locked ? "shlokas.pauseAria" : "shlokas.playAria")}
                       className="w-11 h-11 rounded-full bg-gold text-background flex items-center justify-center"
                     >
-                      {playing ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+                      {locked ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
                     </button>
                   </>
                 )}

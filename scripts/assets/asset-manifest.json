@@ -26,6 +26,10 @@
     "              icon) - the app ships 7 languages, so labels stay t() keys."
   ],
   "sheet": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 08_54_48 PM.png",
+  "sheets": {
+    "_doc": "Default `sheet` above is the Marriage sheet (1024x1536). A section may override it with its own `sheet`; coordinates are always absolute pixels in THAT sheet.",
+    "allReports": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 10_44_02 PM.png"
+  },
   "outDir": "public",
   "sections": [
     {
@@ -69,6 +73,14 @@
       "alpha": [12, 48],
       "outputs": ["marriage/ring"]
     },
-    { "name": "lotus", "rect": [77, 1131, 109, 1164], "alpha": [10, 42], "outputs": ["marriage/lotus"] }
+    { "name": "lotus", "rect": [77, 1131, 109, 1164], "alpha": [10, 42], "outputs": ["marriage/lotus"] },
+    {
+      "_note": "Kundli Milan hero: two North-Indian charts joined by a heart, the one piece of art on the all-reports sheet with no equivalent already in the repo. Cropped INSIDE the panel's gold frame (the app draws its own Card border, and a second baked-in frame reads as a box). public/reports/kundli_milan.png is untouched - it is the 44px list thumbnail, a different asset. The 6 icons below this panel are deliberately skipped: two near-identical ring variants, a gift box and a scroll, none of which map to the 8 kootas or the 8 life areas the screen actually renders.",
+      "name": "kundli-milan-charts",
+      "sheet": "allReports",
+      "rect": [895, 88, 996, 199],
+      "alpha": [12, 48],
+      "outputs": ["kundli-milan/charts"]
+    }
   ]
 }

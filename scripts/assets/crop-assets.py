@@ -90,14 +90,34 @@ def main():
         print(f"all {sum(len(s['outputs']) for s in manifest['sections'])} assets present")
         return
 
-    sheet_path = pathlib.Path(manifest["sheet"])
-    if not sheet_path.exists():
-        sys.exit(f"source sheet not found: {sheet_path}\n"
-                 "Assets are committed, so this only matters when re-slicing a new sheet.")
-    sheet = Image.open(sheet_path).convert("RGB")
+    # Sections may name their own `sheet` (there is more than one design sheet now, each
+    # with its own coordinate space). Loaded lazily and cached, so re-slicing one report
+    # only requires that report's sheet to still be on disk.
+    sheets = {}
+
+    def load_sheet(path_str):
+        if path_str not in sheets:
+            path = pathlib.Path(path_str)
+            if not path.exists():
+                sys.exit(f"source sheet not found: {path}\n"
+                         "Assets are committed, so this only matters when re-slicing a new sheet.")
+            sheets[path_str] = Image.open(path).convert("RGB")
+        return sheets[path_str]
+
+    def section_sheet(section):
+        """A section's `sheet` is a name in the manifest's `sheets` map; absent means the
+        default top-level `sheet` (the Marriage sheet, whose sections predate the map)."""
+        name = section.get("sheet")
+        if name is None:
+            return load_sheet(manifest["sheet"])
+        if name not in manifest["sheets"]:
+            sys.exit(f"[{section['name']}] unknown sheet {name!r}; "
+                     f"known: {', '.join(k for k in manifest['sheets'] if not k.startswith('_'))}")
+        return load_sheet(manifest["sheets"][name])
 
     for section in manifest["sections"]:
         outputs, alpha = section["outputs"], section["alpha"]
+        sheet = section_sheet(section)
 
         if "rect" in section:
             boxes = [tuple(section["rect"])]

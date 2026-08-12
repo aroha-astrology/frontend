@@ -10,18 +10,19 @@ import {
   isReportHeader,
   isReportVerdict,
 } from "@/lib/report-score-facts";
+import { SECTION_ICON } from "@/lib/marriage-report-view";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
 import ReportGemstonesCard from "../ReportGemstonesCard";
 import ArchetypeCard from "../ArchetypeCard";
 import DecadeArcCard from "../DecadeArcCard";
+import AnalysisAccordion from "../AnalysisAccordion";
+import StrengthsCautions from "../StrengthsCautions";
 import OutlookCard from "./OutlookCard";
 import HighlightTiles from "./HighlightTiles";
 import TimingCard from "./TimingCard";
 import PlanetImpactStrip from "./PlanetImpactStrip";
-import AnalysisAccordion from "./AnalysisAccordion";
 import SeventhHouseCard from "./SeventhHouseCard";
-import StrengthsCautions from "./StrengthsCautions";
 import type { ReportReady } from "@/hooks/useReport";
 
 /**
@@ -65,11 +66,21 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
 
       <PlanetImpactStrip planets={view.planets} />
 
-      <AnalysisAccordion sections={data.sections} />
+      <AnalysisAccordion
+        sections={data.sections}
+        sectionIcon={SECTION_ICON}
+        titleKey="marriageReport.analysis.title"
+      />
 
       <SeventhHouseCard facts={view.seventhHouse} />
 
-      {isDoshaYogaSummary(scores.doshaYoga) && <StrengthsCautions summary={scores.doshaYoga} />}
+      {isDoshaYogaSummary(scores.doshaYoga) && (
+        <StrengthsCautions
+          summary={scores.doshaYoga}
+          strengthsKey="marriageReport.strengths"
+          cautionsKey="marriageReport.cautions"
+        />
+      )}
 
       {view.archetype && (
         <section>

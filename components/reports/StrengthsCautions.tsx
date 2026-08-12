@@ -42,16 +42,29 @@ function Column({
   );
 }
 
+export interface StrengthsCautionsProps {
+  summary: DoshaYogaSummary;
+  /** i18n keys for the two column headings — passed in rather than hardcoded, since each
+   * bespoke report screen names these in its own namespace (same reason AnalysisAccordion
+   * takes a `titleKey`). */
+  strengthsKey: string;
+  cautionsKey: string;
+}
+
 /**
  * The mock's paired Strengths / Cautions panels, mapped straight onto the report's
- * own `doshaYoga` summary — `positives` are the detected yogas, `cautions` the
+ * own dosha/yoga summary — `positives` are the detected yogas, `cautions` the
  * detected doshas, each already carrying a label and a one-line detail.
  *
  * A column with no entries is dropped rather than rendered empty, and the remaining
  * one spans the full width; a chart with no cautions should read as good news, not
  * as a broken panel.
  */
-export default function StrengthsCautions({ summary }: { summary: DoshaYogaSummary }) {
+export default function StrengthsCautions({
+  summary,
+  strengthsKey,
+  cautionsKey,
+}: StrengthsCautionsProps) {
   const { t } = useTranslation();
   const hasPositives = summary.positives.length > 0;
   const hasCautions = summary.cautions.length > 0;
@@ -60,10 +73,10 @@ export default function StrengthsCautions({ summary }: { summary: DoshaYogaSumma
   return (
     <section className={cn("grid gap-2", hasPositives && hasCautions ? "grid-cols-2" : "grid-cols-1")}>
       {hasPositives && (
-        <Column kind="positives" title={t("marriageReport.strengths")} entries={summary.positives} />
+        <Column kind="positives" title={t(strengthsKey)} entries={summary.positives} />
       )}
       {hasCautions && (
-        <Column kind="cautions" title={t("marriageReport.cautions")} entries={summary.cautions} />
+        <Column kind="cautions" title={t(cautionsKey)} entries={summary.cautions} />
       )}
     </section>
   );

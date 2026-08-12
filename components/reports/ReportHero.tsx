@@ -5,16 +5,25 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 
+export interface ReportHeroProps {
+  title: string;
+  onBack: () => void;
+  /** Artwork cropped from a design sheet (see scripts/assets/asset-manifest.json). */
+  artSrc: string;
+  /** i18n key for the one-line subtitle under the report's name. */
+  subtitleKey: string;
+}
+
 /**
- * The mock's illustrated header. The couple artwork is a dark, glow-lit silhouette
- * cropped from the design sheet, so it is faded out toward the left with a mask
- * rather than sat in a hard-edged box — its own near-black background would
+ * The mock's illustrated header, shared by the bespoke report screens. The artwork is a
+ * dark, glow-lit crop from the design sheet, so it is faded out toward the left with a
+ * mask rather than sat in a hard-edged box — its own near-black background would
  * otherwise read as a visible rectangle against the card surface.
  *
  * Falls back to no artwork at all (just the title block) if the asset fails to
  * load; nothing here carries meaning, so there is no icon substitute to draw.
  */
-export default function MarriageHero({ title, onBack }: { title: string; onBack: () => void }) {
+export default function ReportHero({ title, onBack, artSrc, subtitleKey }: ReportHeroProps) {
   const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
 
@@ -23,7 +32,7 @@ export default function MarriageHero({ title, onBack }: { title: string; onBack:
       {!imgError && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src="/marriage/couple.png"
+          src={artSrc}
           alt=""
           aria-hidden
           onError={() => setImgError(true)}
@@ -38,7 +47,7 @@ export default function MarriageHero({ title, onBack }: { title: string; onBack:
         </IconButton>
         <div className="min-w-0">
           <h1 className="font-display text-lg text-foreground truncate">{title}</h1>
-          <p className="text-[11px] text-muted mt-0.5">{t("marriageReport.subtitle")}</p>
+          <p className="text-[11px] text-muted mt-0.5">{t(subtitleKey)}</p>
         </div>
       </div>
     </div>

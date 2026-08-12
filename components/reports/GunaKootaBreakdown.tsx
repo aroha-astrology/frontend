@@ -36,7 +36,27 @@ const KOOTA_INFO: Record<string, { labelKey: string; meaningKey: string }> = {
  * porutham names) gracefully fall back to the raw `name`/`description` instead of a translated
  * label/meaning.
  */
-export default function GunaKootaBreakdown({ entries }: { entries: KootaEntry[] }) {
+export interface GunaKootaBreakdownProps {
+  entries: KootaEntry[];
+  /**
+   * Show the total/verdict/progress header above the koota list. Default true.
+   *
+   * Set false by a caller that already displays the same total from the backend's own
+   * `compatibilityBand` — this header derives its verdict from a PERCENTAGE (>=75%
+   * excellent, >=50% good) while the backend bands the classical 36-point scale (<18 poor,
+   * 18-24 average, 25-32 good, 33-36 excellent). The two disagree in the overlap: 27/36 is
+   * 75% and reads "Excellent" here but "Good" classically, so rendering both on one screen
+   * shows the reader two verdicts for one score. The percentage rule is kept as the default
+   * because it is the only one that works for the 10-point Dashakoota, which has no
+   * classical banding of its own.
+   *
+   * The Nadi/Bhakoot red-flag banners are NOT part of this and always render — they are the
+   * warning the report exists to surface, not a summary.
+   */
+  showSummary?: boolean;
+}
+
+export default function GunaKootaBreakdown({ entries, showSummary = true }: GunaKootaBreakdownProps) {
   const { t } = useTranslation();
 
   const totalScore = entries.reduce((sum, k) => sum + k.score, 0);
@@ -59,28 +79,30 @@ export default function GunaKootaBreakdown({ entries }: { entries: KootaEntry[] 
         </div>
       ))}
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gold font-display">
-              {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
-            </h2>
-            <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
-              {verdictLabel} {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
-            </p>
+      {showSummary && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gold font-display">
+                {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
+              </h2>
+              <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
+                {verdictLabel} {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
+              </p>
+            </div>
+            <div className="text-4xl">💍</div>
           </div>
-          <div className="text-4xl">💍</div>
-        </div>
 
-        <div className="h-3 rounded-full" style={{ background: "var(--secondary)" }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="h-3 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
-          />
+          <div className="h-3 rounded-full" style={{ background: "var(--secondary)" }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="h-3 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="space-y-3">
         {entries.map((koota) => {

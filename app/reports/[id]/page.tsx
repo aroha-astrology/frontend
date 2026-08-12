@@ -13,7 +13,8 @@ import ReportVerdictCard from "@/components/reports/ReportVerdictCard";
 import Callout from "@/components/reports/blocks/Callout";
 import Checklist from "@/components/reports/blocks/Checklist";
 import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
-import MarriageHero from "@/components/reports/marriage/MarriageHero";
+import ReportHero from "@/components/reports/ReportHero";
+import KundliMilanReportView from "@/components/reports/kundli-milan/KundliMilanReportView";
 import MarriageReportView from "@/components/reports/marriage/MarriageReportView";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
@@ -114,15 +115,24 @@ export default function ReportDetailPage() {
     );
   };
 
-  // The Marriage Report has a bespoke, fully designed screen (see MarriageReportView's
-  // doc comment); every other report type renders through the generic path below.
+  // Two report types have bespoke, fully designed screens (see each View's doc comment);
+  // every other type renders through the generic path below. Kept as two explicit flags
+  // rather than a reportKey -> screen registry: at two entries a table would be indirection
+  // for its own sake, and the third one can introduce it if it ever earns its keep.
   const isMarriage = state === "ready" && data?.reportKey === "marriage";
+  const isKundliMilan = state === "ready" && data?.reportKey === "kundli_milan";
+  const isDesigned = isMarriage || isKundliMilan;
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
-        {isMarriage ? (
-          <MarriageHero title={title} onBack={() => router.back()} />
+        {isDesigned ? (
+          <ReportHero
+            title={title}
+            onBack={() => router.back()}
+            artSrc={isMarriage ? "/marriage/couple.png" : "/kundli-milan/charts.png"}
+            subtitleKey={isMarriage ? "marriageReport.subtitle" : "kundliMilanReport.subtitle"}
+          />
         ) : (
           <div className="flex items-center gap-3">
             <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
@@ -163,7 +173,9 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && isMarriage && <MarriageReportView data={data} />}
 
-        {state === "ready" && data && !isMarriage && (
+        {state === "ready" && data && isKundliMilan && <KundliMilanReportView data={data} />}
+
+        {state === "ready" && data && !isDesigned && (
           <>
             {data.periodMonth && <p className="text-sm text-muted -mt-1">{formatPeriodMonth(data.periodMonth)}</p>}
 

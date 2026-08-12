@@ -13,6 +13,8 @@ import ReportVerdictCard from "@/components/reports/ReportVerdictCard";
 import Callout from "@/components/reports/blocks/Callout";
 import Checklist from "@/components/reports/blocks/Checklist";
 import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
+import MarriageHero from "@/components/reports/marriage/MarriageHero";
+import MarriageReportView from "@/components/reports/marriage/MarriageReportView";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
 import { formatPeriodMonth } from "@/lib/reports-logic";
@@ -112,15 +114,23 @@ export default function ReportDetailPage() {
     );
   };
 
+  // The Marriage Report has a bespoke, fully designed screen (see MarriageReportView's
+  // doc comment); every other report type renders through the generic path below.
+  const isMarriage = state === "ready" && data?.reportKey === "marriage";
+
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
-            <ArrowLeft size={18} />
-          </IconButton>
-          <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
-        </div>
+        {isMarriage ? (
+          <MarriageHero title={title} onBack={() => router.back()} />
+        ) : (
+          <div className="flex items-center gap-3">
+            <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
+              <ArrowLeft size={18} />
+            </IconButton>
+            <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
+          </div>
+        )}
 
         {(state === "idle" || state === "loading" || state === "generating" || (state === "ready" && !data)) && (
           <ReportGeneratingSheet onClose={() => router.push("/reports")} />
@@ -151,7 +161,9 @@ export default function ReportDetailPage() {
           </div>
         )}
 
-        {state === "ready" && data && (
+        {state === "ready" && data && isMarriage && <MarriageReportView data={data} />}
+
+        {state === "ready" && data && !isMarriage && (
           <>
             {data.periodMonth && <p className="text-sm text-muted -mt-1">{formatPeriodMonth(data.periodMonth)}</p>}
 

@@ -1,0 +1,74 @@
+{
+  "_doc": [
+    "Crop rectangles for slicing the Marriage Report asset sheet into individual PNGs.",
+    "Source sheet is 1024x1536; all coordinates are absolute pixels in that sheet.",
+    "",
+    "Two section shapes:",
+    "  band + outputs[] -> auto-detect N icon bounding boxes across the band (icons are",
+    "                      unevenly spaced, so an even grid split does not work). The",
+    "                      detected count MUST equal outputs.length or the run fails.",
+    "  rect             -> one explicit crop, for art that touches its neighbour and",
+    "                      cannot be split by a dark gutter.",
+    "",
+    "luma:  pixel brightness at/above which a pixel counts as content during detection.",
+    "       Icons sitting on a lighter panel (highlights) need a higher value than icons",
+    "       on flat black (planets).",
+    "alpha: [lo, hi] luminance ramp for background keying - at/below lo is fully",
+    "       transparent, at/above hi is fully opaque, linear between. Feathered rather",
+    "       than a hard cutoff so the glow around each icon does not get a jagged edge.",
+    "",
+    "DELIBERATELY NOT EXTRACTED:",
+    "  gemstones - public/gemstones/*.png already ships at 256x256, far better than the",
+    "              ~45px crops available here. Overwriting them would be a downgrade.",
+    "  zodiac    - data/zodiac.ts already carries all 12 signs as Unicode glyphs, which",
+    "              is what the sheet draws anyway; crisper at any size and theme-reactive.",
+    "  anything with baked-in text (score badges, status pills, the label under every",
+    "              icon) - the app ships 7 languages, so labels stay t() keys."
+  ],
+  "sheet": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 08_54_48 PM.png",
+  "outDir": "public",
+  "sections": [
+    {
+      "name": "planets-row1",
+      "band": [0, 295, 350, 352],
+      "luma": 34,
+      "alpha": [10, 42],
+      "outputs": ["planets/sun", "planets/moon", "planets/mars", "planets/mercury", "planets/jupiter"]
+    },
+    {
+      "name": "planets-row2",
+      "band": [0, 372, 350, 432],
+      "luma": 34,
+      "alpha": [10, 42],
+      "outputs": ["planets/venus", "planets/saturn", "planets/rahu", "planets/ketu"]
+    },
+    {
+      "name": "highlights",
+      "band": [368, 196, 720, 231],
+      "luma": 60,
+      "alpha": [40, 85],
+      "outputs": [
+        "highlights/potential",
+        "highlights/compatibility",
+        "highlights/timing",
+        "highlights/spouse",
+        "highlights/stability"
+      ]
+    },
+    {
+      "_note": "Dark purple silhouette with gold line art - a steep alpha ramp keys the body away, so only true black is dropped and the silhouette stays fully opaque. Bottom edge stops above the decorative divider.",
+      "name": "couple",
+      "rect": [178, 20, 282, 146],
+      "alpha": [2, 14],
+      "outputs": ["marriage/couple"]
+    },
+    {
+      "_note": "Bright gold on flat black, so unlike the couple it takes a steep ramp that drops the background entirely - at [2,14] the near-black plate stayed opaque and read as a dark box sitting on the card.",
+      "name": "ring",
+      "rect": [290, 56, 352, 152],
+      "alpha": [12, 48],
+      "outputs": ["marriage/ring"]
+    },
+    { "name": "lotus", "rect": [77, 1131, 109, 1164], "alpha": [10, 42], "outputs": ["marriage/lotus"] }
+  ]
+}

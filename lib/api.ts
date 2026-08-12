@@ -836,10 +836,24 @@ export interface AnnualRotation {
   dhokheKaGrah: string | null;
 }
 
+/** The plain-language layer, generated once per profile and cached server-side.
+ * Keys are planet names and debt types, matching RemedyItem.planet and
+ * LalKitabDebt.type — those stay English even in a translated payload, because
+ * they are lookup identifiers rather than display text. */
+export interface RemedySimpleText {
+  intro: string;
+  planets: Record<string, string>;
+  debts: Record<string, string>;
+}
+
 export interface RemediesResponse {
   remedies: RemedyItem[];
   debts: LalKitabDebt[];
   annual: AnnualRotation | null;
+  /** Null until generation finishes; the rest of the page renders without it. */
+  simple: RemedySimpleText | null;
+  /** 'generating' means it is worth polling again shortly. */
+  simpleStatus: "ready" | "generating" | "unavailable";
 }
 
 // ─── Vastu ────────────────────────────────────────────────────────────────────
@@ -1007,8 +1021,14 @@ export const api = {
     request<void>(`/v1/device-tokens/${id}`, { method: "DELETE", auth: true }),
 
   /** Full Lal Kitab remedy reading for the active profile: every classical
-   * planet in its natal house, plus the karmic debts present in the chart. */
-  remedies: () => request<RemediesResponse>("/v1/remedies", { auth: true }),
+   * planet in its natal house, plus the karmic debts present in the chart.
+   * `language` selects the language of the plain-language layer only — the
+   * deterministic remedy text is served as-is. */
+  remedies: (language?: string) =>
+    request<RemediesResponse>(
+      `/v1/remedies${language ? `?language=${encodeURIComponent(language)}` : ""}`,
+      { auth: true },
+    ),
 
   /**
    * Moon-sign forecast for a zodiac sign (0-11). `period` defaults to daily;

@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { api, type AnnualRotation, type LalKitabDebt, type RemedyItem } from "@/lib/api";
+import {
+  api,
+  type AnnualRotation,
+  type LalKitabDebt,
+  type RemedyItem,
+  type RemedySimpleText,
+} from "@/lib/api";
 import { REMEDIES_FALLBACK } from "@/data/remedies-fallback";
 import SectionTitle from "@/components/SectionTitle";
 import ChapterCard from "@/components/reports/blocks/ChapterCard";
@@ -18,7 +24,16 @@ interface RemediesData {
   remedies: RemedyItem[];
   debts: LalKitabDebt[];
   annual: AnnualRotation | null;
+  simple: RemedySimpleText | null;
+  simpleStatus: "ready" | "generating" | "unavailable";
 }
+
+/** How often to re-check while the plain-language layer is still generating,
+ * and how many times before giving up. The page is fully readable throughout —
+ * this only fills in the explanations — so it backs off rather than retrying
+ * forever on a profile whose generation keeps failing. */
+const POLL_INTERVAL_MS = 4000;
+const MAX_POLLS = 6;
 
 /** Map icon names from the backend to emoji for display. */
 const iconMap: Record<string, string> = {
@@ -94,7 +109,7 @@ function TechnicalNote({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PlanetCard({ item }: { item: RemedyItem }) {
+function PlanetCard({ item, simple }: { item: RemedyItem; simple?: string }) {
   const { t } = useTranslation();
 
   // The Lal Kitab house genuinely differs from the ascendant-based natal
@@ -108,6 +123,8 @@ function PlanetCard({ item }: { item: RemedyItem }) {
       eyebrow={`${getEmoji(item.icon)} ${item.planet} · ${t("remediesPage.natalHouse")} ${item.natalHouse}`}
       title={item.remedies?.[0] ?? item.remedy}
     >
+      {simple && <p className="mt-1 leading-relaxed">{simple}</p>}
+
       <LabelledList label={t("remediesPage.doThis")} items={item.remedies ?? []} />
       <LabelledList label={t("remediesPage.alsoTry")} items={item.totke ?? []} />
 
@@ -208,18 +225,33 @@ function ThisYearSection({ annual }: { annual: AnnualRotation }) {
 }
 
 function RemediesContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, activeProfile } = useAuth();
-  const [data, setData] = useState<RemediesData>({ remedies: [], debts: [], annual: null });
+  const [data, setData] = useState<RemediesData>({
+    remedies: [],
+    debts: [],
+    annual: null,
+    simple: null,
+    simpleStatus: "unavailable",
+  });
   const [loading, setLoading] = useState(true);
+
+  const language = i18n.language || "en";
 
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     // Stale-while-revalidate (see lib/cache.ts): a cache hit renders
     // instantly (skips the skeleton) while a background refetch below still
     // runs and reconciles state + cache once it resolves.
-    const cacheKey = user ? buildKey("remedies", user.id, activeProfile?.id ?? "primary") : null;
+    //
+    // Language is part of the key because `simple` comes back translated —
+    // without it, switching language would serve the previous language's
+    // explanations from cache.
+    const cacheKey = user
+      ? buildKey("remedies", user.id, `${activeProfile?.id ?? "primary"}:${language}`)
+      : null;
     const cached = cacheKey ? cacheGet<RemediesData>(cacheKey) : null;
     if (cached) {
       setData(cached);
@@ -228,34 +260,50 @@ function RemediesContent() {
       setLoading(true);
     }
 
-    async function fetchRemedies() {
+    async function fetchRemedies(attempt: number) {
       try {
-        const res = await api.remedies();
-        const next = {
+        const res = await api.remedies(language);
+        const next: RemediesData = {
           remedies: res.remedies,
           debts: res.debts ?? [],
           annual: res.annual ?? null,
+          simple: res.simple ?? null,
+          simpleStatus: res.simpleStatus ?? "unavailable",
         };
-        if (!cancelled) {
-          setData(next);
-          if (cacheKey) cacheSet(cacheKey, next, Date.now() + SWR_TTL_MS);
+        if (cancelled) return;
+        setData(next);
+        // Only cache a settled result. Caching a 'generating' payload would
+        // pin the explanation-less version for the whole 7-day TTL.
+        if (cacheKey && next.simpleStatus !== "generating") {
+          cacheSet(cacheKey, next, Date.now() + SWR_TTL_MS);
+        }
+        if (next.simpleStatus === "generating" && attempt < MAX_POLLS) {
+          timer = setTimeout(() => fetchRemedies(attempt + 1), POLL_INTERVAL_MS);
         }
       } catch {
         // Endpoint unreachable (network failure) — fall back to a static
         // list so the page always renders content, unless we already have a
         // cached (stale-but-real) list to keep showing instead.
-        if (!cancelled && !cached)
-          setData({ remedies: REMEDIES_FALLBACK, debts: [], annual: null });
+        if (!cancelled && !cached) {
+          setData({
+            remedies: REMEDIES_FALLBACK,
+            debts: [],
+            annual: null,
+            simple: null,
+            simpleStatus: "unavailable",
+          });
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    fetchRemedies();
+    fetchRemedies(0);
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, [activeProfile?.id, user?.id]);
+  }, [activeProfile?.id, user?.id, language]);
 
   // Per-planet entries carry a natal house; the general/fallback ones (no
   // chart behind them) do not, and render as the old flat list.
@@ -278,6 +326,20 @@ function RemediesContent() {
             </p>
           ) : (
             <>
+              {data.simple?.intro && (
+                <p
+                  className="px-1 text-[13px] leading-relaxed"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {data.simple.intro}
+                </p>
+              )}
+              {data.simpleStatus === "generating" && (
+                <p className="px-1 text-[11px] italic" style={{ color: "var(--text-muted)" }}>
+                  {t("remediesPage.explanationsComing")}
+                </p>
+              )}
+
               {planets.length > 0 && (
                 <>
                   <ChapterCard
@@ -290,6 +352,9 @@ function RemediesContent() {
                     ) : (
                       data.debts.map((debt) => (
                         <FactCard key={debt.type} eyebrow="RIN" title={debt.type}>
+                          {data.simple?.debts?.[debt.type] && (
+                            <p className="leading-relaxed">{data.simple.debts[debt.type]}</p>
+                          )}
                           <LabelledList
                             label={t("remediesPage.debtIndicators")}
                             items={debt.indicators}
@@ -309,7 +374,11 @@ function RemediesContent() {
                     accent="gold"
                   >
                     {planets.map((item) => (
-                      <PlanetCard key={item.planet} item={item} />
+                      <PlanetCard
+                        key={item.planet}
+                        item={item}
+                        simple={data.simple?.planets?.[item.planet]}
+                      />
                     ))}
                   </ChapterCard>
 

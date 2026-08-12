@@ -1061,6 +1061,8 @@ export const resources = {
         attentionNone: "No planet in your chart is obstructed. Each one can express itself freely.",
         blind: "Blind",
         halfBlind: "Half-blind",
+        explanationsComing:
+          "Your personalised explanations are being prepared — they will appear here shortly.",
         thisYearHeading: "This Year",
         thisYearDek: "Age {{age}} — every planet has moved one house since your last birthday",
         thisYearNone: "Nothing shifted sharply this year. Your natal remedies above still apply.",
@@ -3409,6 +3411,8 @@ export const resources = {
           "आपकी कुंडली में कोई ग्रह बाधित नहीं है। प्रत्येक स्वतंत्र रूप से फल दे सकता है।",
         blind: "अंधा",
         halfBlind: "अर्ध-अंधा",
+        explanationsComing:
+          "आपकी व्यक्तिगत व्याख्याएँ तैयार की जा रही हैं — वे शीघ्र ही यहाँ दिखाई देंगी।",
         thisYearHeading: "इस वर्ष",
         thisYearDek: "आयु {{age}} — पिछले जन्मदिन से हर ग्रह एक भाव आगे बढ़ चुका है",
         thisYearNone: "इस वर्ष कोई बड़ा बदलाव नहीं हुआ। ऊपर दिए जन्म-आधारित उपाय ही लागू रहेंगे।",
@@ -5235,6 +5239,8 @@ export const resources = {
         attentionNone: "আপনার কুণ্ডলীতে কোনও গ্রহ বাধাপ্রাপ্ত নয়। প্রতিটি অবাধে ফল দিতে পারে।",
         blind: "অন্ধ",
         halfBlind: "অর্ধ-অন্ধ",
+        explanationsComing:
+          "আপনার ব্যক্তিগত ব্যাখ্যা তৈরি হচ্ছে — শীঘ্রই এখানে দেখা যাবে।",
         thisYearHeading: "এই বছর",
         thisYearDek: "বয়স {{age}} — গত জন্মদিনের পর থেকে প্রতিটি গ্রহ এক ভাব এগিয়েছে",
         thisYearNone: "এই বছর বড় কোনও পরিবর্তন হয়নি। উপরের জন্মভিত্তিক প্রতিকারগুলিই প্রযোজ্য।",
@@ -7062,6 +7068,8 @@ export const resources = {
           "तुमच्या कुंडलीत कोणताही ग्रह अडथळ्यात नाही. प्रत्येक मुक्तपणे फळ देऊ शकतो.",
         blind: "अंध",
         halfBlind: "अर्ध-अंध",
+        explanationsComing:
+          "तुमची वैयक्तिक स्पष्टीकरणे तयार होत आहेत — ती लवकरच येथे दिसतील.",
         thisYearHeading: "या वर्षी",
         thisYearDek: "वय {{age}} — मागील वाढदिवसापासून प्रत्येक ग्रह एक स्थान पुढे सरकला आहे",
         thisYearNone: "या वर्षी मोठा बदल झालेला नाही. वरील जन्मआधारित उपायच लागू राहतील.",
@@ -8884,6 +8892,8 @@ export const resources = {
         attentionNone: "మీ జాతకంలో ఏ గ్రహానికీ ఆటంకం లేదు. ప్రతి ఒక్కటీ స్వేచ్ఛగా ఫలితమివ్వగలదు.",
         blind: "అంధ",
         halfBlind: "అర్ధ-అంధ",
+        explanationsComing:
+          "మీ వ్యక్తిగత వివరణలు సిద్ధమవుతున్నాయి — త్వరలో ఇక్కడ కనిపిస్తాయి.",
         thisYearHeading: "ఈ సంవత్సరం",
         thisYearDek: "వయస్సు {{age}} — గత పుట్టినరోజు నుండి ప్రతి గ్రహం ఒక స్థానం ముందుకు కదిలింది",
         thisYearNone: "ఈ సంవత్సరం పెద్ద మార్పేమీ లేదు. పైన ఉన్న జన్మ ఆధారిత పరిహారాలే వర్తిస్తాయి.",
@@ -10712,6 +10722,8 @@ export const resources = {
           "உங்கள் ஜாதகத்தில் எந்தக் கிரகமும் தடைபடவில்லை. ஒவ்வொன்றும் தடையின்றி பலன் தர முடியும்.",
         blind: "குருடு",
         halfBlind: "அரை-குருடு",
+        explanationsComing:
+          "உங்கள் தனிப்பட்ட விளக்கங்கள் தயாராகி வருகின்றன — விரைவில் இங்கே தோன்றும்.",
         thisYearHeading: "இந்த ஆண்டு",
         thisYearDek: "வயது {{age}} — கடந்த பிறந்தநாளிலிருந்து ஒவ்வொரு கிரகமும் ஒரு வீடு நகர்ந்துள்ளது",
         thisYearNone:
@@ -12535,6 +12547,8 @@ export const resources = {
         attentionNone: "તમારી કુંડળીમાં કોઈ ગ્રહ અવરોધિત નથી. દરેક મુક્તપણે ફળ આપી શકે છે.",
         blind: "અંધ",
         halfBlind: "અર્ધ-અંધ",
+        explanationsComing:
+          "તમારી વ્યક્તિગત સમજૂતીઓ તૈયાર થઈ રહી છે — તે ટૂંક સમયમાં અહીં દેખાશે.",
         thisYearHeading: "આ વર્ષે",
         thisYearDek: "ઉંમર {{age}} — ગયા જન્મદિવસથી દરેક ગ્રહ એક સ્થાન આગળ વધ્યો છે",
         thisYearNone: "આ વર્ષે મોટો ફેરફાર થયો નથી. ઉપરના જન્માધારિત ઉપાય જ લાગુ રહેશે.",

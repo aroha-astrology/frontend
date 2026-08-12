@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LANGUAGES } from "@/providers/language-provider";
 import type { Localized, Shloka } from "@/lib/shlokas";
+import { TAG_ORDER } from "@/components/shlokas/tag-meta";
 
 /**
  * The Shlokas library is 300KB of static content with no server behind it and
@@ -69,6 +70,23 @@ describe("shlokas.json", () => {
     for (const s of shlokas) {
       const bytes = readFileSync(join(PUBLIC, "audio", s.audio!)).byteLength;
       expect(bytes, `${s.audio} is only ${bytes} bytes`).toBeGreaterThan(8 * 1024);
+    }
+  });
+
+  it("has at least one tag on every entry, and only tags tag-meta.ts knows about", () => {
+    // An untagged shloka doesn't error anywhere — it just silently vanishes
+    // from every filtered list on the /shlokas page while still showing up
+    // in "All". A tag slug with a typo does the same in the other direction:
+    // TAG_META falls back to a generic pill (tagMeta()'s default), so a
+    // mistyped tag renders fine and just never matches its intended chip.
+    // Neither failure mode throws, which is exactly why this needs to be an
+    // assertion rather than something you'd notice in the app.
+    const known = new Set<string>(TAG_ORDER);
+    for (const s of shlokas) {
+      expect(s.tags?.length, `${s.slug} has no tags`).toBeGreaterThan(0);
+      for (const tag of s.tags ?? []) {
+        expect(known.has(tag), `${s.slug} has unknown tag "${tag}"`).toBe(true);
+      }
     }
   });
 

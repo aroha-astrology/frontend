@@ -34,6 +34,7 @@ const config: Config = {
         "tab-safe": "calc(var(--tab-bar-h) + 2rem)",
       },
       fontFamily: {
+        devanagari: ["var(--font-devanagari)", "serif"],
         display: ["var(--font-display)", "serif"],
         "display-decorative": ["var(--font-display-decorative)", "serif"],
         serif: ["var(--font-serif-alt)", "serif"],

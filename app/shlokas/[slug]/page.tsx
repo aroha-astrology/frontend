@@ -4,23 +4,34 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Heart } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import FeatureGuard from "@/components/FeatureGuard";
-import JapCounter from "@/components/shlokas/JapCounter";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, IMG_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
+import { isFav, toggleFav } from "@/lib/shlokas-prefs";
 
 /**
  * One shloka: artwork, the Devanagari verse, its IAST romanization, what it
- * means, when it is traditionally chanted, the chant audio, and a jap counter.
+ * means, when it is traditionally chanted, and the chant audio. The ring
+ * counter that used to live here (JapCounter, counting repetitions toward
+ * shloka.japCount) is gone — the mala screen (app/shlokas/mala) now tracks
+ * position in the 50-verse library instead, not repetitions of one verse.
  *
  * The audio is a pre-rendered static MP3 — NOT lib/tts.ts. That module is the
  * device text-to-speech path for chat (native Android plugin / speechSynthesis)
  * and would read Sanskrit flat, in a Hindi voice, with no metre. These files
  * come from a one-off offline vāgdhenu render; a plain <audio> element plays
  * them. Entries without an `audio` field simply render no player.
+ *
+ * Deliberately kept as the native <audio controls> element rather than
+ * routed through lib/shlokas-prefs.ts's shared-audio singleton: that
+ * singleton exists to stop two rows playing at once on the list screen,
+ * which has up to 50 potential players on one page. This page only ever has
+ * one, and Next.js unmounts it on navigation anyway, so there's no
+ * conflict to prevent — and the native element gives free scrub/seek that a
+ * custom play button would have to rebuild.
  */
 
 function ShlokaDetail({ slug }: { slug: string }) {
@@ -29,13 +40,16 @@ function ShlokaDetail({ slug }: { slug: string }) {
   const router = useRouter();
   const [shloka, setShloka] = useState<Shloka | null>(null);
   const [failed, setFailed] = useState(false);
+  const [fav, setFav] = useState(false);
 
   useEffect(() => {
     loadShlokas()
       .then((all) => {
         const found = all.find((s) => s.slug === slug);
-        if (found) setShloka(found);
-        else setFailed(true);
+        if (found) {
+          setShloka(found);
+          setFav(isFav(found.slug));
+        } else setFailed(true);
       })
       .catch(() => setFailed(true));
   }, [slug]);
@@ -61,6 +75,14 @@ function ShlokaDetail({ slug }: { slug: string }) {
           <h1 className="text-lg font-display text-foreground flex-1 truncate">
             {shloka ? pick(shloka.title, lang) : t("shlokas.title")}
           </h1>
+          {shloka && (
+            <IconButton
+              onClick={() => setFav(toggleFav(shloka.slug))}
+              aria-label={t(fav ? "shlokas.removeFavoriteAria" : "shlokas.addFavoriteAria")}
+            >
+              <Heart size={17} className={fav ? "fill-gold" : ""} />
+            </IconButton>
+          )}
         </div>
 
         {!shloka && <p className="text-sm text-muted text-center py-16">{t("shlokas.loading")}</p>}
@@ -118,11 +140,6 @@ function ShlokaDetail({ slug }: { slug: string }) {
                 <h2 className="text-sm font-display text-gold mb-1">{t("shlokas.whenToChant")}</h2>
                 <p className="text-sm text-foreground/90 leading-relaxed">{pick(shloka.whenToChant, lang)}</p>
               </div>
-            </Card>
-
-            <Card className="p-5">
-              <h2 className="text-sm font-display text-gold mb-4 text-center">{t("shlokas.japCounter")}</h2>
-              <JapCounter slug={shloka.slug} target={shloka.japCount} />
             </Card>
 
             <p className="text-[9px] text-muted/70 text-center leading-relaxed">

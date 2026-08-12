@@ -21,6 +21,18 @@
 
   --text-muted: #a1a1aa;
 
+  /* ── Shlokas mala backdrop (components/shlokas/MalaBackdrop.tsx) ──
+     Dark theme reads as a night scene — moon glow, indigo sky — rather than
+     literally recoloring the mockup's sunrise, which only makes sense in
+     light. --mala-silhouette is one shared tone for mountains/temple/
+     foliage/birds; depth between layers comes from opacity, not separate
+     per-layer colors (same trick components/LotusSilhouette.tsx uses). */
+  --mala-sky-1: #1a1530;
+  --mala-sky-2: #3a2a4a;
+  --mala-glow: #dfb564;
+  --mala-thread: rgba(223, 181, 100, 0.4);
+  --mala-silhouette: #2a2440;
+
   /* Themes the native date/time picker popups + their field text. */
   color-scheme: dark;
 
@@ -58,6 +70,13 @@
   --secondary: #F3EEE3;
 
   --text-muted: #6E6358;
+
+  /* ── Shlokas mala backdrop — the reference mockup's sunrise, direct ── */
+  --mala-sky-1: #FDE8C8;
+  --mala-sky-2: #F6C89A;
+  --mala-glow: #F2A65A;
+  --mala-thread: rgba(184, 137, 45, 0.35);
+  --mala-silhouette: #8B6F47;
 }
 
 @layer base {
@@ -144,4 +163,16 @@
   background: linear-gradient(to right, var(--gold-light), var(--gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ── Cloud drift (MalaBackdrop) — gated in CSS, not just the JS reduced-motion
+   hook, so the animation never even starts for a user who prefers none. ── */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes mala-cloud-drift {
+    from { transform: translateX(-4%); }
+    to { transform: translateX(4%); }
+  }
+  .animate-mala-cloud-drift {
+    animation: mala-cloud-drift 26s ease-in-out infinite alternate;
+  }
 }

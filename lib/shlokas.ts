@@ -31,6 +31,8 @@ export interface Shloka {
   audio?: string;
   /** Traditional repetition count — the jap counter's mala size for this verse. */
   japCount: number;
+  /** Stable category slugs, e.g. "peace" | "protection". Labels come from tag-meta.ts + t(). */
+  tags: string[];
   title: Localized;
   deity: Localized;
   meaning: Localized;

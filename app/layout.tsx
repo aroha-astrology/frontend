@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -53,6 +53,15 @@ const inter = Inter({
   display: "swap",
 });
 
+// Sanskrit/Devanagari text (shlokas, ॐ glyphs) previously had no loaded font
+// and fell through to whatever the OS provides. Separate from the latin
+// fonts above since none of them cover this subset.
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  variable: "--font-devanagari",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Aroha Astrology",
   description: "Vedic Astrology & AI Astrologer",
@@ -78,7 +87,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
+      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>

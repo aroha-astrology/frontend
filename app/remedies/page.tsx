@@ -76,15 +76,33 @@ function SkeletonCard() {
   );
 }
 
-/** A labelled bullet list — the "Do this" / "Also try" / debt sub-lists. */
-function LabelledList({ label, items }: { label: string; items: string[] }) {
+/**
+ * A labelled list — the "Do this" / "Also try" / debt sub-lists. Each row is
+ * led by a symbol rather than a plain disc so the two kinds of instruction are
+ * distinguishable at a glance while scrolling: actions to perform vs optional
+ * extras vs the evidence behind a debt.
+ */
+function LabelledList({
+  label,
+  items,
+  marker = "•",
+}: {
+  label: string;
+  items: string[];
+  marker?: string;
+}) {
   if (items.length === 0) return null;
   return (
-    <div className="mt-2">
+    <div className="mt-2.5">
       <span className="text-[10px] uppercase tracking-wider text-gold/70">{label}</span>
-      <ul className="mt-1 list-disc space-y-1 pl-4 marker:text-gold/40">
+      <ul className="mt-1.5 space-y-1.5">
         {items.map((line) => (
-          <li key={line}>{line}</li>
+          <li key={line} className="flex gap-2">
+            <span aria-hidden="true" className="shrink-0 text-gold/50">
+              {marker}
+            </span>
+            <span>{line}</span>
+          </li>
         ))}
       </ul>
     </div>
@@ -120,13 +138,15 @@ function PlanetCard({ item, simple }: { item: RemedyItem; simple?: string }) {
 
   return (
     <FactCard
-      eyebrow={`${getEmoji(item.icon)} ${item.planet} · ${t("remediesPage.natalHouse")} ${item.natalHouse}`}
-      title={item.remedies?.[0] ?? item.remedy}
+      eyebrow={`${getEmoji(item.icon)} ${item.planet}`}
+      // Not remedies[0] — that sentence repeats verbatim as the first "Do this"
+      // bullet immediately below, which read as a duplicate on every card.
+      title={t("remediesPage.houseLabel", { house: item.natalHouse })}
     >
-      {simple && <p className="mt-1 leading-relaxed">{simple}</p>}
+      {simple && <p className="leading-relaxed">{simple}</p>}
 
-      <LabelledList label={t("remediesPage.doThis")} items={item.remedies ?? []} />
-      <LabelledList label={t("remediesPage.alsoTry")} items={item.totke ?? []} />
+      <LabelledList label={t("remediesPage.doThis")} items={item.remedies ?? []} marker="✓" />
+      <LabelledList label={t("remediesPage.alsoTry")} items={item.totke ?? []} marker="✦" />
 
       <TechnicalNote>
         <p>
@@ -140,7 +160,7 @@ function PlanetCard({ item, simple }: { item: RemedyItem; simple?: string }) {
           {item.pakkaGhar !== undefined && (
             <>
               {" · "}
-              Pakka Ghar: {item.pakkaGhar}
+              {t("remediesPage.pakkaGharLabel")}: {item.pakkaGhar}
               {item.isInPakkaGhar ? " ✓" : ""}
             </>
           )}
@@ -186,16 +206,16 @@ function ThisYearSection({ annual }: { annual: AnnualRotation }) {
 
   return (
     <ChapterCard
-      heading={t("remediesPage.thisYearHeading")}
+      heading={`📅 ${t("remediesPage.thisYearHeading")}`}
       dek={t("remediesPage.thisYearDek", { age: annual.age })}
       accent="sky"
     >
-      <FactCard eyebrow="MUNTHA" title={t("remediesPage.munthaTitle", { house: annual.muntha })}>
+      <FactCard eyebrow={`🧭 ${t("remediesPage.munthaEyebrow")}`} title={t("remediesPage.munthaTitle", { house: annual.muntha })}>
         {t("remediesPage.munthaBody")}
       </FactCard>
 
       {kismat && (
-        <FactCard eyebrow={t("remediesPage.kismat")} title={kismat.planet}>
+        <FactCard eyebrow={`🌟 ${t("remediesPage.kismat")}`} title={kismat.planet}>
           <p>
             {t("remediesPage.movedTo", {
               from: kismat.natalHouse,
@@ -207,7 +227,7 @@ function ThisYearSection({ annual }: { annual: AnnualRotation }) {
       )}
 
       {dhokhe && (
-        <FactCard eyebrow={t("remediesPage.dhokhe")} title={dhokhe.planet}>
+        <FactCard eyebrow={`⚠️ ${t("remediesPage.dhokhe")}`} title={dhokhe.planet}>
           <p>
             {t("remediesPage.movedTo", {
               from: dhokhe.natalHouse,
@@ -215,7 +235,7 @@ function ThisYearSection({ annual }: { annual: AnnualRotation }) {
             })}
           </p>
           <p className="mt-1">{t("remediesPage.dhokheBody")}</p>
-          <LabelledList label={t("remediesPage.priorityRemedy")} items={dhokhe.remedies} />
+          <LabelledList label={t("remediesPage.priorityRemedy")} items={dhokhe.remedies} marker="✓" />
         </FactCard>
       )}
 
@@ -343,7 +363,7 @@ function RemediesContent() {
               {planets.length > 0 && (
                 <>
                   <ChapterCard
-                    heading={t("remediesPage.debtsHeading")}
+                    heading={`⚖️ ${t("remediesPage.debtsHeading")}`}
                     dek={t("remediesPage.debtsDek")}
                     accent="red"
                   >
@@ -351,17 +371,19 @@ function RemediesContent() {
                       <EmptyNote text={t("remediesPage.debtsNone")} />
                     ) : (
                       data.debts.map((debt) => (
-                        <FactCard key={debt.type} eyebrow="RIN" title={debt.type}>
+                        <FactCard key={debt.type} eyebrow={`⚖️ ${t("remediesPage.debtEyebrow")}`} title={debt.type}>
                           {data.simple?.debts?.[debt.type] && (
                             <p className="leading-relaxed">{data.simple.debts[debt.type]}</p>
                           )}
                           <LabelledList
                             label={t("remediesPage.debtIndicators")}
                             items={debt.indicators}
+                            marker="◆"
                           />
                           <LabelledList
                             label={t("remediesPage.debtRemedies")}
                             items={debt.remedies}
+                            marker="✓"
                           />
                         </FactCard>
                       ))
@@ -369,7 +391,7 @@ function RemediesContent() {
                   </ChapterCard>
 
                   <ChapterCard
-                    heading={t("remediesPage.planetsHeading")}
+                    heading={`🪐 ${t("remediesPage.planetsHeading")}`}
                     dek={t("remediesPage.planetsDek")}
                     accent="gold"
                   >
@@ -383,7 +405,7 @@ function RemediesContent() {
                   </ChapterCard>
 
                   <ChapterCard
-                    heading={t("remediesPage.strengthsHeading")}
+                    heading={`✨ ${t("remediesPage.strengthsHeading")}`}
                     dek={t("remediesPage.strengthsDek")}
                     accent="emerald"
                   >
@@ -394,7 +416,7 @@ function RemediesContent() {
                         <FactCard
                           key={item.planet}
                           eyebrow={`${getEmoji(item.icon)} ${item.planet}`}
-                          title={`Pakka Ghar · ${item.pakkaGhar}`}
+                          title={`⭐ ${t("remediesPage.pakkaGharLabel")} · ${item.pakkaGhar}`}
                         >
                           {item.displacement}
                         </FactCard>
@@ -403,7 +425,7 @@ function RemediesContent() {
                   </ChapterCard>
 
                   <ChapterCard
-                    heading={t("remediesPage.attentionHeading")}
+                    heading={`⚠️ ${t("remediesPage.attentionHeading")}`}
                     dek={t("remediesPage.attentionDek")}
                     accent="amber"
                   >
@@ -448,7 +470,7 @@ function RemediesContent() {
                 </ChapterCard>
               )}
 
-              <ChapterCard heading={t("remediesPage.howToHeading")} accent="violet">
+              <ChapterCard heading={`🧭 ${t("remediesPage.howToHeading")}`} accent="violet">
                 <p className="text-[13px] leading-relaxed text-foreground/80">
                   {t("remediesPage.howToBody1")}
                 </p>

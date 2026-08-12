@@ -388,6 +388,45 @@ export interface ForecastRow {
   [key: string]: string | number;
 }
 
+/** A classical planet's natal Lal Kitab remedy — `scores.planetRemedies` on the remedies report
+ * (jyotish-backend's astro-engine/reports/remedies.ts's RemediesPlanetEntry). Without a bespoke
+ * detector this fell into the generic object-array path: every remedy/totka sentence run through
+ * `humanizeValue`'s naive per-word titleCase (capitalizing "a"/"or"/"in" along with real words) and
+ * right-aligned as one giant joined "Planet: X · House: Y · Remedies: ... · Totke: ..." string. */
+export interface RemedyPlacementValue {
+  planet: string;
+  house: number;
+  remedies: string[];
+  totke: string[];
+}
+
+/** An ancestral karmic debt (Rin) — `scores.presentDebts` on the remedies report (jyotish-backend's
+ * LalKitabDebt, always pre-filtered to `present: true` entries only). */
+export interface KarmicDebtValue {
+  type: string;
+  indicators: string[];
+  remedies: string[];
+}
+
+/** A planet sitting in its own permanent house — `scores.pakkaGharPlacements` on the remedies
+ * report (jyotish-backend's PakkaGharResult, pre-filtered to `isInPakkaGhar: true`). */
+export interface PakkaGharValue {
+  planet: string;
+  pakkaGhar: number;
+  currentHouse: number;
+  effect: string;
+}
+
+/** An obstructed (blind/half-blind) planet — `scores.blindPlanets` on the remedies report
+ * (jyotish-backend's BlindPlanet, pre-filtered to isBlind || isHalfBlind). */
+export interface BlindPlanetValue {
+  planet: string;
+  house: number;
+  isBlind: boolean;
+  isHalfBlind: boolean;
+  reason: string;
+}
+
 export interface TimingWindowsFact {
   key: string;
   label: string;
@@ -471,6 +510,30 @@ export interface YearlyForecastFact {
   label: string;
   type: "yearlyForecast";
   rows: ForecastRow[];
+}
+export interface RemedyPlacementsFact {
+  key: string;
+  label: string;
+  type: "remedyPlacements";
+  placements: RemedyPlacementValue[];
+}
+export interface KarmicDebtsFact {
+  key: string;
+  label: string;
+  type: "karmicDebts";
+  debts: KarmicDebtValue[];
+}
+export interface PakkaGharFact {
+  key: string;
+  label: string;
+  type: "pakkaGhar";
+  placements: PakkaGharValue[];
+}
+export interface BlindPlanetsFact {
+  key: string;
+  label: string;
+  type: "blindPlanets";
+  planets: BlindPlanetValue[];
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -612,6 +675,62 @@ export function isDecadeBandArray(v: unknown): v is DecadeBand[] {
   );
 }
 
+/** Distinguished from KarmicDebtValue (also has a `remedies` array) by requiring `house` (a
+ * number) AND `totke` (an array) — no other shape here carries either field. */
+export function isRemedyPlacementArray(v: unknown): v is RemedyPlacementValue[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.planet === "string" &&
+      typeof item.house === "number" &&
+      Array.isArray(item.remedies) &&
+      Array.isArray(item.totke),
+  );
+}
+
+/** Distinguished from RemedyPlacementValue by requiring `type` (a string) AND `indicators` (an
+ * array) instead of `house`/`totke` — no overlap between the two required-field sets. */
+export function isKarmicDebtArray(v: unknown): v is KarmicDebtValue[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.type === "string" &&
+      Array.isArray(item.indicators) &&
+      Array.isArray(item.remedies),
+  );
+}
+
+/** Distinguished from every other array shape by requiring `pakkaGhar` AND `currentHouse` AND
+ * `effect` together — unique to this Lal Kitab placement fact. */
+export function isPakkaGharArray(v: unknown): v is PakkaGharValue[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.planet === "string" &&
+      typeof item.pakkaGhar === "number" &&
+      typeof item.currentHouse === "number" &&
+      typeof item.effect === "string",
+  );
+}
+
+/** Distinguished from every other array shape by requiring `isBlind` AND `isHalfBlind` (both
+ * booleans) — unique to this Lal Kitab obstruction fact. */
+export function isBlindPlanetArray(v: unknown): v is BlindPlanetValue[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.planet === "string" &&
+      typeof item.house === "number" &&
+      typeof item.isBlind === "boolean" &&
+      typeof item.isHalfBlind === "boolean" &&
+      typeof item.reason === "string",
+  );
+}
+
 /** An object (not array) with `label`/`description`/`traits` (array of `{label, score}`). */
 export function isArchetype(v: unknown): v is Archetype {
   if (!isRecord(v)) return false;
@@ -702,7 +821,11 @@ export type ScoreFact =
   | NamePlanesFact
   | NumberChipsFact
   | MonthlyForecastFact
-  | YearlyForecastFact;
+  | YearlyForecastFact
+  | RemedyPlacementsFact
+  | KarmicDebtsFact
+  | PakkaGharFact
+  | BlindPlanetsFact;
 
 /**
  * Classifies one `scores` entry. Returns `null` for a value that shouldn't
@@ -737,6 +860,18 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   }
   if (isKootaBreakdownArray(value)) {
     return { key, label, type: "kootaBreakdown", entries: value };
+  }
+  if (isRemedyPlacementArray(value)) {
+    return { key, label, type: "remedyPlacements", placements: value };
+  }
+  if (isKarmicDebtArray(value)) {
+    return { key, label, type: "karmicDebts", debts: value };
+  }
+  if (isPakkaGharArray(value)) {
+    return { key, label, type: "pakkaGhar", placements: value };
+  }
+  if (isBlindPlanetArray(value)) {
+    return { key, label, type: "blindPlanets", planets: value };
   }
   if (isGemstoneArray(value)) {
     return { key, label, type: "gemstones", gemstones: value };

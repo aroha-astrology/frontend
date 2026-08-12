@@ -10,6 +10,10 @@ import {
   isArchetype,
   isDoshaYogaSummary,
   isKootaBreakdownArray,
+  isRemedyPlacementArray,
+  isKarmicDebtArray,
+  isPakkaGharArray,
+  isBlindPlanetArray,
   isGemstoneArray,
   isLifeContext,
   isReportHeader,
@@ -20,6 +24,10 @@ import {
   type Archetype,
   type DoshaYogaSummary,
   type KootaEntry,
+  type RemedyPlacementValue,
+  type KarmicDebtValue,
+  type PakkaGharValue,
+  type BlindPlanetValue,
   type ReportGemstone,
   type LifeContextValue,
   type ReportHeaderValue,
@@ -402,6 +410,86 @@ describe("no regression on pre-existing generic classification", () => {
   it("a boolean still classifies as 'boolean'", () => {
     const facts = buildScoreFacts({ isManglik: true });
     expect(facts[0].type).toBe("boolean");
+  });
+});
+
+describe("Lal Kitab remedies-report array shapes", () => {
+  // These 4 shapes previously had no bespoke detector and fell into the
+  // generic object-array path, which ran every remedy/totka sentence through
+  // humanizeValue's naive per-word titleCase and right-aligned the whole
+  // joined "Planet: X · House: Y · Remedies: ... · Totke: ..." string.
+
+  const samplePlacements: RemedyPlacementValue[] = [
+    {
+      planet: "Mars",
+      house: 9,
+      remedies: ["Feed sweet chapatis to dogs", "Keep honey in a brass or copper vessel at home"],
+      totke: ["Offer red flowers at a Hanuman temple on Tuesdays"],
+    },
+  ];
+  const sampleDebts: KarmicDebtValue[] = [
+    {
+      type: "Pitra Rin",
+      indicators: ["Sun afflicted in the 9th house"],
+      remedies: ["Feed 100 cows with green fodder"],
+    },
+  ];
+  const samplePakkaGhar: PakkaGharValue[] = [
+    {
+      planet: "Saturn",
+      pakkaGhar: 8,
+      currentHouse: 8,
+      effect: "Saturn is in its Pakka Ghar (house 8). It gives its full natural results.",
+    },
+  ];
+  const sampleBlindPlanets: BlindPlanetValue[] = [
+    {
+      planet: "Mercury",
+      house: 3,
+      isBlind: true,
+      isHalfBlind: false,
+      reason: "Mercury in house 3 is blind: both adjacent houses are empty.",
+    },
+  ];
+
+  it("classifies each shape correctly and produces the matching fact type", () => {
+    expect(isRemedyPlacementArray(samplePlacements)).toBe(true);
+    expect(buildScoreFacts({ planetRemedies: samplePlacements })[0].type).toBe("remedyPlacements");
+
+    expect(isKarmicDebtArray(sampleDebts)).toBe(true);
+    expect(buildScoreFacts({ presentDebts: sampleDebts })[0].type).toBe("karmicDebts");
+
+    expect(isPakkaGharArray(samplePakkaGhar)).toBe(true);
+    expect(buildScoreFacts({ pakkaGharPlacements: samplePakkaGhar })[0].type).toBe("pakkaGhar");
+
+    expect(isBlindPlanetArray(sampleBlindPlanets)).toBe(true);
+    expect(buildScoreFacts({ blindPlanets: sampleBlindPlanets })[0].type).toBe("blindPlanets");
+  });
+
+  it("does not cross-classify between remedy placements and karmic debts, despite both carrying a `remedies` array", () => {
+    expect(isKarmicDebtArray(samplePlacements)).toBe(false);
+    expect(isRemedyPlacementArray(sampleDebts)).toBe(false);
+  });
+
+  it("does not cross-classify against any of the other array shapes", () => {
+    for (const sample of [samplePlacements, sampleDebts, samplePakkaGhar, sampleBlindPlanets]) {
+      expect(isRankedWindowArray(sample)).toBe(false);
+      expect(isKootaBreakdownArray(sample)).toBe(false);
+      expect(isGemstoneArray(sample)).toBe(false);
+    }
+  });
+
+  it("rejects an empty array for every one of the 4 detectors", () => {
+    expect(isRemedyPlacementArray([])).toBe(false);
+    expect(isKarmicDebtArray([])).toBe(false);
+    expect(isPakkaGharArray([])).toBe(false);
+    expect(isBlindPlanetArray([])).toBe(false);
+  });
+
+  it("preserves the original sentence case in the fact payload (no titleCase mangling)", () => {
+    const fact = buildScoreFacts({ planetRemedies: samplePlacements })[0];
+    if (fact.type !== "remedyPlacements") throw new Error("expected remedyPlacements");
+    expect(fact.placements[0].remedies[0]).toBe("Feed sweet chapatis to dogs");
   });
 });
 

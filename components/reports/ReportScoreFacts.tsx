@@ -15,6 +15,12 @@ import ForecastTable from "./ForecastTable";
 import LoShuGridCard from "./LoShuGridCard";
 import ChallengeNumbersCard from "./ChallengeNumbersCard";
 import NamePlanesCard from "./NamePlanesCard";
+import {
+  RemedyPlacementsCards,
+  KarmicDebtsCards,
+  PakkaGharCards,
+  BlindPlanetsCards,
+} from "./LalKitabFactsCards";
 
 /** The 5 fact types the original 2-column tile grid renders — unchanged since before the bespoke shapes were added. */
 type SimpleFact = Extract<ScoreFact, { type: "ring" | "badge" | "boolean" | "nested" | "raw" }>;
@@ -36,7 +42,11 @@ type RichFact = Extract<
       | "namePlanes"
       | "numberChips"
       | "monthlyForecast"
-      | "yearlyForecast";
+      | "yearlyForecast"
+      | "remedyPlacements"
+      | "karmicDebts"
+      | "pakkaGhar"
+      | "blindPlanets";
   }
 >;
 type NestedFact = Extract<ScoreFact, { type: "nested" }>;
@@ -216,6 +226,10 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
               ]}
             />
           )}
+          {f.type === "remedyPlacements" && <RemedyPlacementsCards placements={f.placements} />}
+          {f.type === "karmicDebts" && <KarmicDebtsCards debts={f.debts} />}
+          {f.type === "pakkaGhar" && <PakkaGharCards placements={f.placements} />}
+          {f.type === "blindPlanets" && <BlindPlanetsCards planets={f.planets} />}
           {f.type === "yearlyForecast" && (
             <ForecastTable
               rows={f.rows}

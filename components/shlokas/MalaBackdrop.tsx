@@ -7,21 +7,13 @@ import { useState } from "react";
  * mountains, drifting clouds, birds, sun/moon glow, mandala disc — per the
  * reference mockup and the user's explicit call-out of that scenery.
  *
- * No photographic art exists for this (nothing in public/ resembles it), so
- * every layer below is a coded silhouette rather than a placeholder image —
- * this is the same decorative-SVG idiom components/LotusSilhouette.tsx and
- * components/ZodiacSilhouette.tsx already use (currentColor + opacity), not
- * a new pattern. It also re-themes for free: a baked sunrise photo would
- * need a second night version, but these silhouettes just read
- * `var(--mala-*)` tokens (added to app/globals.css) and repaint per theme —
- * light renders the mockup's sunrise directly, dark renders a night scene.
- *
- * Split into one function per layer (not one giant background image) so a
- * real asset can replace any single layer later — e.g. swap TempleRight's
- * body for an `<img>` — without touching this file's structure or its
- * caller. `public/mandala.png` is the one layer with a real asset already
- * in the repo, so it alone follows the try-image-then-fallback pattern
- * (matching components/reports/ReportThemeCard.tsx's ReportVisual).
+ * Mountains/Temple/Foliage now render the user-supplied photographic crops
+ * (public/shlokas/backdrop/*.webp) and fall back to the original coded SVG
+ * silhouette on error — same try-image-then-fallback idiom already used by
+ * MandalaDisc (public/mandala.png) and RudrakshaBead (the bead photo). Sky,
+ * Glow, Clouds and Birds stay coded: they're simple gradients/dashes that
+ * already read `var(--mala-*)` tokens and repaint per theme for free, which
+ * a baked photo can't do — no photo replaces them.
  *
  * Layered back-to-front, absolutely positioned, `pointer-events-none`, so it
  * sits behind the ring exactly like ParticleBackground + MoonBackground sit
@@ -32,12 +24,12 @@ export default function MalaBackdrop() {
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
       <Sky />
       <Glow />
-      <FarMountains />
+      <Mountains />
       <Clouds />
-      <NearMountains />
-      <TempleRight />
-      <FoliageLeft />
+      <TempleImage />
+      <FoliageImage />
       <Birds />
+      <DiyaAccent />
       <MandalaDisc />
     </div>
   );
@@ -61,22 +53,34 @@ function Glow() {
   );
 }
 
-function FarMountains() {
+function MountainsFallback() {
   return (
-    <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[18%] w-full h-[42%] text-[color:var(--mala-silhouette)]" opacity={0.28}>
-      <path
-        fill="currentColor"
-        d="M0,150 L45,95 L80,125 L130,70 L175,115 L215,85 L255,130 L300,90 L345,120 L400,100 L400,200 L0,200 Z"
-      />
-    </svg>
+    <>
+      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[18%] w-full h-[42%] text-[color:var(--mala-silhouette)]" opacity={0.28}>
+        <path
+          fill="currentColor"
+          d="M0,150 L45,95 L80,125 L130,70 L175,115 L215,85 L255,130 L300,90 L345,120 L400,100 L400,200 L0,200 Z"
+        />
+      </svg>
+      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[30%] w-full h-[38%] text-[color:var(--mala-silhouette)]" opacity={0.4}>
+        <path fill="currentColor" d="M0,170 L60,110 L110,145 L160,100 L220,150 L280,115 L340,155 L400,130 L400,200 L0,200 Z" />
+      </svg>
+    </>
   );
 }
 
-function NearMountains() {
+/** Real hazy-mountain photo, tried before the coded silhouette pair above. */
+function Mountains() {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <MountainsFallback />;
   return (
-    <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[30%] w-full h-[38%] text-[color:var(--mala-silhouette)]" opacity={0.4}>
-      <path fill="currentColor" d="M0,170 L60,110 L110,145 L160,100 L220,150 L280,115 L340,155 L400,130 L400,200 L0,200 Z" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/shlokas/backdrop/mountains.webp"
+      alt=""
+      className="absolute inset-x-0 top-[18%] w-full h-[52%] object-cover opacity-80"
+      onError={() => setImgError(true)}
+    />
   );
 }
 
@@ -107,7 +111,7 @@ function Clouds() {
   );
 }
 
-function TempleRight() {
+function TempleFallback() {
   return (
     <svg
       viewBox="0 0 120 160"
@@ -131,7 +135,22 @@ function TempleRight() {
   );
 }
 
-function FoliageLeft() {
+/** Real temple-on-the-hill photo, tried before TempleFallback's coded silhouette. */
+function TempleImage() {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <TempleFallback />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/shlokas/backdrop/temple.webp"
+      alt=""
+      className="absolute right-[2%] bottom-[24%] w-[38%] max-w-[160px] h-[40%] object-contain object-bottom opacity-90"
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
+function FoliageFallback() {
   return (
     <svg
       viewBox="0 0 140 160"
@@ -144,6 +163,36 @@ function FoliageLeft() {
       <path fill="currentColor" opacity={0.85} d="M0,160 C0,120 20,85 65,60 C40,90 32,125 35,160 Z" />
       <path fill="currentColor" d="M-10,160 C-10,125 5,95 45,72 C25,98 20,128 22,160 Z" />
     </svg>
+  );
+}
+
+/** Real hanging-branch photo, tried before FoliageFallback's coded silhouette. */
+function FoliageImage() {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <FoliageFallback />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/shlokas/backdrop/foliage.webp"
+      alt=""
+      className="absolute left-[-4%] top-[-3%] w-[42%] max-w-[190px] object-contain object-left-top opacity-90"
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
+/** Small lit-diya accent, bottom-left — no coded fallback (purely decorative, skip silently on 404). */
+function DiyaAccent() {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/shlokas/backdrop/diya.webp"
+      alt=""
+      className="absolute left-[2%] bottom-[20%] w-[16%] max-w-[70px] object-contain opacity-85"
+      onError={() => setImgError(true)}
+    />
   );
 }
 

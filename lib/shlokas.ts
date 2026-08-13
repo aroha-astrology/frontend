@@ -76,3 +76,13 @@ export function pick(field: Localized, lang: LangCode): string {
 
 export const IMG_BASE = "/shlokas/img/";
 export const AUDIO_BASE = "/shlokas/audio/";
+
+/**
+ * The mala screen's counter target — the traditional 108-bead count. The
+ * library only has 50 distinct verses, so positions past 50 cycle back
+ * through the same list (position % library length) rather than needing 108
+ * distinct pieces of content. Still not the old per-verse JapCounter this
+ * screen replaced (see mala/page.tsx) — that repeated ONE verse 108 times;
+ * this walks through all 50 distinct verses, looping the list ~2.16x.
+ */
+export const MALA_COUNT = 108;

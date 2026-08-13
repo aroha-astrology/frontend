@@ -13,7 +13,7 @@ import RudrakshaMala from "@/components/shlokas/RudrakshaMala";
 import MalaBackdrop from "@/components/shlokas/MalaBackdrop";
 import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
 import { useLanguage } from "@/providers/language-provider";
-import { AUDIO_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
+import { AUDIO_BASE, MALA_COUNT, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
 import {
   getMalaPosition,
   setMalaPosition,
@@ -27,9 +27,11 @@ import {
 
 /**
  * The rudraksha mala screen — reproduces the reference mockup's mala screen
- * exactly (see the shlokas redesign plan's "middle part" scope). Ring
- * position = position in the 50-verse library, not repetitions of one verse
- * — replaces the old per-verse JapCounter entirely.
+ * exactly (see the shlokas redesign plan's "middle part" scope). Counts up
+ * to the traditional MALA_COUNT (108), cycling through the 50-verse library
+ * (`libIndex = index % libLen`) rather than stopping at 50 or repeating one
+ * verse — the latter is what the old per-verse JapCounter did, and it's
+ * still gone; this walks all 50 distinct verses, looping the list ~2.16x.
  */
 
 function MantraSnippet({ shloka, lang }: { shloka: Shloka; lang: Parameters<typeof pick>[1] }) {
@@ -61,19 +63,26 @@ function MalaScreen() {
   // Restore the saved reading position once the library is loaded — after
   // mount only, same reasoning JapCounter documented for its own localStorage
   // read (SSR has no localStorage; seeding useState from it directly would
-  // hydrate-mismatch).
+  // hydrate-mismatch). Position is a spot in the MALA_COUNT (108) cycle, not
+  // a direct library index — see libIndex below.
   useEffect(() => {
     if (!shlokas) return;
     const saved = getMalaPosition();
-    setIndex(Number.isFinite(saved) ? Math.min(Math.max(saved, 0), shlokas.length - 1) : 0);
+    setIndex(Number.isFinite(saved) ? Math.min(Math.max(saved, 0), MALA_COUNT - 1) : 0);
     setReady(true);
   }, [shlokas]);
+
+  const libLen = shlokas?.length ?? 0;
+  // The library only has 50 distinct verses; positions past 50 cycle back
+  // through the same list rather than needing 108 distinct pieces of
+  // content — see MALA_COUNT's doc comment in lib/shlokas.ts.
+  const libIndex = libLen > 0 ? index % libLen : 0;
 
   // Gated on `ready`, not just `shlokas` — otherwise this is truthy the
   // instant the library loads, one render before the position-restore effect
   // below corrects `index` away from its initial 0, and a returning user
   // sees mantra 1 flash before snapping to wherever they actually left off.
-  const current = ready ? shlokas?.[index] : undefined;
+  const current = ready ? shlokas?.[libIndex] : undefined;
 
   useEffect(() => {
     if (!ready || !current) return;
@@ -82,13 +91,13 @@ function MalaScreen() {
     setFav(isFav(current.slug));
   }, [ready, index, current]);
 
-  const total = shlokas?.length ?? 0;
+  const total = libLen > 0 ? MALA_COUNT : 0;
   const isComplete = ready && total > 0 && index === total - 1;
   const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
   // Wrapped, not clamped — prev of the first mantra is the last, and vice
   // versa, so the strip never has to show a dead/disabled side.
-  const prevIndex = (index - 1 + total) % total;
-  const nextIndex = (index + 1) % total;
+  const prevIndex = total > 0 ? (index - 1 + total) % total : 0;
+  const nextIndex = total > 0 ? (index + 1) % total : 0;
 
   // Prev/next strip and Start Again are free browsing, not the guided
   // tap-through-and-listen flow below — they always stop whatever's playing
@@ -107,7 +116,7 @@ function MalaScreen() {
     if (locked || !shlokas || total === 0) return;
     const nextIndex = Math.min(index + 1, total - 1);
     if (nextIndex === index) return; // already at the last mantra
-    const nextShloka = shlokas[nextIndex];
+    const nextShloka = shlokas[nextIndex % libLen];
     navigator.vibrate?.(20);
     setIndex(nextIndex);
     if (nextShloka.audio) {
@@ -226,7 +235,7 @@ function MalaScreen() {
                   <p className="text-[10px] text-muted tabular-nums">
                     {prevIndex + 1} / {total}
                   </p>
-                  <MantraSnippet shloka={shlokas![prevIndex]} lang={lang} />
+                  <MantraSnippet shloka={shlokas![prevIndex % libLen]} lang={lang} />
                 </div>
               </button>
 
@@ -248,7 +257,7 @@ function MalaScreen() {
                   <p className="text-[10px] text-muted tabular-nums">
                     {nextIndex + 1} / {total}
                   </p>
-                  <MantraSnippet shloka={shlokas![nextIndex]} lang={lang} />
+                  <MantraSnippet shloka={shlokas![nextIndex % libLen]} lang={lang} />
                 </div>
                 <ChevronRight size={18} className="text-gold shrink-0" />
               </button>

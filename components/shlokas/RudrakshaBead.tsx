@@ -88,9 +88,15 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
   const cy = size / 2;
   const beadR = size * 0.34;
   const haloR = size * 0.46;
-  const outerR = size * 0.5;
+  const haloBloomR = size * 0.85;
   const shadowRy = size * 0.045;
   const shadowCy = cy + beadR + size * 0.04;
+  const sparkles = [
+    { angle: 20, r: 0.85, offset: 0 },
+    { angle: 130, r: 0.95, offset: 90 },
+    { angle: 210, r: 0.8, offset: 180 },
+    { angle: 300, r: 0.9, offset: 270 },
+  ];
 
   // Mukhi grooves: curved paths from top to bottom; offset N-fold around the centerline.
   const mukhiPaths: string[] = [];
@@ -109,8 +115,8 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
     }
   }
 
-  const breatheScale = hideHalo ? 1 : 1 + 0.06 * Math.sin((breathePhase * Math.PI) / 180);
-  const breatheOpacity = locked || hideHalo ? 0 : 0.16 + 0.22 * Math.sin((breathePhase * Math.PI) / 180);
+  const breatheScale = hideHalo ? 1 : 1 + 0.08 * Math.sin((breathePhase * Math.PI) / 180);
+  const breatheOpacity = locked || hideHalo ? 0 : 0.55 + 0.25 * Math.sin((breathePhase * Math.PI) / 180);
 
   return (
     <div
@@ -145,7 +151,9 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
         </svg>
       )}
 
-      {/* Breathing halo — theme-aware gold via color-mix() */}
+      {/* Breathing halo — bright warm bloom + a few twinkling sparkle points, sized to bleed
+          well past the bead itself (reference mockup's active-bead glow). Theme-aware gold via
+          color-mix(); overflow:visible since the bloom radius exceeds this svg's own box. */}
       {!hideHalo && (
         <svg
           width={size}
@@ -153,6 +161,7 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
           style={{
             position: "absolute",
             inset: 0,
+            overflow: "visible",
             pointerEvents: "none",
             transform: `scale(${breatheScale})`,
             opacity: breatheOpacity,
@@ -161,12 +170,30 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
         >
           <defs>
             <radialGradient id={`halo${uid}`} cx="50%" cy="50%" r="50%">
-              <stop offset="55%" stopColor="color-mix(in srgb, var(--gold) 0%, transparent)" />
-              <stop offset="80%" stopColor="color-mix(in srgb, var(--gold) 65%, transparent)" />
+              <stop offset="0%" stopColor="color-mix(in srgb, var(--gold) 0%, transparent)" />
+              <stop offset="40%" stopColor="color-mix(in srgb, var(--gold) 0%, transparent)" />
+              <stop offset="58%" stopColor="color-mix(in srgb, var(--gold) 95%, white)" />
+              <stop offset="78%" stopColor="color-mix(in srgb, var(--gold) 70%, transparent)" />
               <stop offset="100%" stopColor="color-mix(in srgb, var(--gold) 0%, transparent)" />
             </radialGradient>
           </defs>
-          <circle cx={cx} cy={cy} r={outerR} fill={`url(#halo${uid})`} />
+          <circle cx={cx} cy={cy} r={haloBloomR} fill={`url(#halo${uid})`} />
+          {sparkles.map((s, i) => {
+            const rad = (s.angle * Math.PI) / 180;
+            const sx = cx + haloBloomR * s.r * Math.sin(rad);
+            const sy = cy - haloBloomR * s.r * Math.cos(rad);
+            const twinkle = Math.max(0, Math.sin(((breathePhase + s.offset) * Math.PI) / 180));
+            return (
+              <circle
+                key={i}
+                cx={sx}
+                cy={sy}
+                r={size * 0.02}
+                fill="color-mix(in srgb, var(--gold) 90%, white)"
+                opacity={twinkle}
+              />
+            );
+          })}
         </svg>
       )}
 

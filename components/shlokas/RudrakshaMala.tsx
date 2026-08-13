@@ -16,10 +16,11 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
  * everything else in the same viewBox transform.
  *
  * Every bead is a normal, equally-styled, counted position — there is no
- * separate decorative guru bead. Ring position = position in the 50-verse
- * library, not repetitions of one verse (that's what JapCounter used to do,
- * and it's gone — see the shlokas redesign plan for why). The highlight
- * walks the ring twice over 50 mantras.
+ * separate decorative guru bead. `total` is the traditional 108-count (see
+ * MALA_COUNT in lib/shlokas.ts), not the 50-verse library size — the caller
+ * cycles through the library's distinct verses to fill it, not repetitions
+ * of one verse (that's what the old JapCounter did, and it's still gone).
+ * The highlight walks the ring ~3.9 times over a full 108-count round.
  */
 
 const RING_BEADS = 28;

@@ -13,6 +13,7 @@ import MatchMakingCard from "@/components/MatchMakingCard";
 import VastuCard from "@/components/VastuCard";
 import PalmReadingCard from "@/components/PalmReadingCard";
 import ShlokasCard from "@/components/ShlokasCard";
+import GitaCard from "@/components/GitaCard";
 import RemediesCard from "@/components/RemediesCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -114,6 +115,14 @@ function ShlokasSection() {
   );
 }
 
+function GitaSection() {
+  return (
+    <div className="px-5 mt-8 mb-6">
+      <GitaCard />
+    </div>
+  );
+}
+
 function RemediesSection() {
   return (
     <div className="px-5 mt-8 mb-6">
@@ -138,6 +147,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
   { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
   { id: "shlokas", featureKey: "home.shlokas", Component: ShlokasSection },
+  { id: "gita", featureKey: "home.gita", Component: GitaSection },
   { id: "remedies", featureKey: "home.remedies", Component: RemediesSection },
 ];
 

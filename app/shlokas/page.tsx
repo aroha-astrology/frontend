@@ -8,11 +8,13 @@ import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, Chevr
 import IconButton from "@/components/ui/IconButton";
 import LanguagePicker from "@/components/LanguagePicker";
 import FeatureGuard from "@/components/FeatureGuard";
+import { useFeature } from "@/hooks/useFeature";
 import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
 import { tagMeta } from "@/components/shlokas/tag-meta";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
 import { getFavs, toggleFav, getHistory, playShlokaAudio, pauseShlokaAudio, isShlokaAudioPlaying } from "@/lib/shlokas-prefs";
+import { CATEGORY_GLOSS, CATEGORY_ORDER, TAG_GLOSS, gitaAudioUrl, loadGitaVerses, type GitaVerse } from "@/lib/gita";
 
 /**
  * The Shlokas & Japs library — reproduces the reference mockup's list screen
@@ -96,11 +98,55 @@ function ShlokaRow({
   );
 }
 
+/** Mirrors ShlokaRow's shell exactly (numbered badge, first line, tag pills,
+ * play button) so the Gita tab reads as the same list, not a bolted-on
+ * second UI. No favorite heart — favorites weren't asked for on Gita, and
+ * lib/shlokas-prefs.ts's favorites store is keyed by shloka slug, a
+ * different id space than "ch2-v47". */
+function GitaRow({ v, playing, onTogglePlay }: { v: GitaVerse; playing: boolean; onTogglePlay: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-2xl border border-gold/15 bg-card p-4 flex gap-3">
+      <div className="min-w-9 px-1 h-7 rounded-full border border-gold/30 flex items-center justify-center text-[10px] text-gold font-medium shrink-0 mt-0.5">
+        {v.chapter}.{v.verse}
+      </div>
+
+      <Link href={`/gita/${v.id}`} className="min-w-0 flex-1">
+        <p className="font-devanagari text-base text-foreground truncate">{v.sanskrit.split("\n")[0]}</p>
+        {v.tags.length > 0 && (
+          <div className="flex gap-1.5 mt-2">
+            {v.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-gold/20 text-muted"
+              >
+                {TAG_GLOSS[tag] ?? tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </Link>
+
+      <div className="flex flex-col items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={onTogglePlay}
+          aria-label={t(playing ? "shlokas.pauseAria" : "shlokas.playAria")}
+          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
+        >
+          {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ShlokasLibrary() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { enabled: gitaEnabled } = useFeature("nav.gita");
 
   const [shlokas, setShlokas] = useState<Shloka[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -110,6 +156,15 @@ function ShlokasLibrary() {
   const [favs, setFavs] = useState<Set<string>>(new Set());
   const [playingSlug, setPlayingSlug] = useState<string | null>(null);
 
+  // Gita: separate state, separate load. Fetched lazily on first switch to
+  // the tab rather than eagerly on mount — it's ~300KB from the backend
+  // (vs. the 50-mantra set's small static JSON), and most visits to this
+  // page never touch the Gita tab at all.
+  const [gitaVerses, setGitaVerses] = useState<GitaVerse[] | null>(null);
+  const [gitaFailed, setGitaFailed] = useState(false);
+  const [gitaCategory, setGitaCategory] = useState<string | null>(null);
+  const [gitaPlayingId, setGitaPlayingId] = useState<string | null>(null);
+
   useEffect(() => {
     loadShlokas().then(setShlokas).catch(() => setFailed(true));
     setFavs(new Set(getFavs()));
@@ -118,6 +173,13 @@ function ShlokasLibrary() {
     // Seed once from the entry URL only — not a two-way binding after that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "gita" || gitaVerses !== null || gitaFailed) return;
+    loadGitaVerses()
+      .then(setGitaVerses)
+      .catch(() => setGitaFailed(true));
+  }, [activeTab, gitaVerses, gitaFailed]);
 
   const tagsPresent = useMemo(() => {
     if (!shlokas) return [];
@@ -145,6 +207,11 @@ function ShlokasLibrary() {
     return list;
   }, [shlokas, activeTab, chipFilter, favs, sortMode, lang]);
 
+  const gitaVisible = useMemo(() => {
+    if (!gitaVerses) return [];
+    return gitaCategory ? gitaVerses.filter((v) => v.mainCategory === gitaCategory) : gitaVerses;
+  }, [gitaVerses, gitaCategory]);
+
   function handleToggleFav(slug: string) {
     toggleFav(slug);
     setFavs(new Set(getFavs()));
@@ -160,6 +227,17 @@ function ShlokasLibrary() {
     }
     playShlokaAudio(src, () => setPlayingSlug(null));
     setPlayingSlug(shloka.slug);
+  }
+
+  function handleGitaTogglePlay(v: GitaVerse) {
+    const src = gitaAudioUrl(v.id);
+    if (isShlokaAudioPlaying(src)) {
+      pauseShlokaAudio();
+      setGitaPlayingId(null);
+      return;
+    }
+    playShlokaAudio(src, () => setGitaPlayingId(null));
+    setGitaPlayingId(v.id);
   }
 
   function handleTabSelect(tab: ShlokaTab) {
@@ -187,7 +265,7 @@ function ShlokasLibrary() {
           <h1 className="text-lg font-display text-foreground flex-1 truncate">{t("shlokas.title")}</h1>
         </div>
 
-        <ShlokaTabs active={activeTab} onSelect={handleTabSelect} />
+        <ShlokaTabs active={activeTab} onSelect={handleTabSelect} hidden={gitaEnabled ? undefined : ["gita"]} />
 
         {failed && (
           <div className="flex flex-col items-center text-center gap-3 py-16">
@@ -196,9 +274,11 @@ function ShlokasLibrary() {
           </div>
         )}
 
-        {!shlokas && !failed && <p className="text-sm text-muted text-center py-16">{t("shlokas.loading")}</p>}
+        {activeTab !== "gita" && !shlokas && !failed && (
+          <p className="text-sm text-muted text-center py-16">{t("shlokas.loading")}</p>
+        )}
 
-        {shlokas && (
+        {shlokas && activeTab !== "gita" && (
           <>
             <div>
               <h2 className="text-xl font-display text-foreground">{t("shlokas.listTitle")}</h2>
@@ -285,6 +365,61 @@ function ShlokasLibrary() {
                 />
               ))}
             </div>
+          </>
+        )}
+
+        {activeTab === "gita" && (
+          <>
+            {gitaFailed && (
+              <div className="flex flex-col items-center text-center gap-3 py-16">
+                <AlertTriangle size={28} className="text-red-400" />
+                <p className="text-sm text-muted max-w-xs">{t("gita.loadError")}</p>
+              </div>
+            )}
+
+            {!gitaVerses && !gitaFailed && (
+              <p className="text-sm text-muted text-center py-16">{t("gita.loading")}</p>
+            )}
+
+            {gitaVerses && (
+              <>
+                <div>
+                  <h2 className="text-xl font-display text-foreground">{t("gita.title")}</h2>
+                  <p className="text-xs text-muted mt-1">{t("gita.desc")}</p>
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 scrollbar-hide">
+                  {[null, ...CATEGORY_ORDER].map((c) => (
+                    <button
+                      key={c ?? "__all"}
+                      type="button"
+                      onClick={() => setGitaCategory(c)}
+                      className={`shrink-0 px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                        gitaCategory === c
+                          ? "border-gold bg-gold/10 text-gold"
+                          : "border-gold/20 text-muted hover:border-gold/40"
+                      }`}
+                    >
+                      {c ?? t("gita.allCategories")}
+                      {c && CATEGORY_GLOSS[c] && <span className="opacity-70"> · {CATEGORY_GLOSS[c]}</span>}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-muted">{t("gita.verseCount", { n: gitaVisible.length })}</p>
+
+                <div className="space-y-3">
+                  {gitaVisible.map((v) => (
+                    <GitaRow
+                      key={v.id}
+                      v={v}
+                      playing={gitaPlayingId === v.id}
+                      onTogglePlay={() => handleGitaTogglePlay(v)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

@@ -4,9 +4,9 @@ import { Heart, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
-export type ShlokaTab = "mantras" | "mala" | "favorites" | "history";
+export type ShlokaTab = "mantras" | "gita" | "mala" | "favorites" | "history";
 
-const TABS: ShlokaTab[] = ["mantras", "mala", "favorites", "history"];
+const TABS: ShlokaTab[] = ["mantras", "gita", "mala", "favorites", "history"];
 
 /** Small dot-ring glyph standing in for a mala — lucide has no rosary/mala icon, and the project's own rule is no emoji for this kind of asset (see ShlokasCard.tsx's Om-in-a-circle for the same "draw the glyph" precedent). */
 function MalaGlyph({ active }: { active: boolean }) {
@@ -36,6 +36,20 @@ function OmGlyph({ active }: { active: boolean }) {
   );
 }
 
+/** Same "draw the Devanagari glyph, no emoji" convention as OmGlyph above — गी (short for गीता) rather than a generic book icon, so this tab reads as specifically the Gita rather than reading material in general. */
+function GitaGlyph({ active }: { active: boolean }) {
+  return (
+    <span
+      className={cn(
+        "font-devanagari text-[13px] leading-none w-[22px] h-[22px] flex items-center justify-center",
+        active ? "text-gold" : "text-muted",
+      )}
+    >
+      गी
+    </span>
+  );
+}
+
 /**
  * The reference mockup's 4-way switcher (Mantras / Mala / Favorites /
  * History), reproduced as its own screen-local bar rather than folded into
@@ -45,11 +59,23 @@ function OmGlyph({ active }: { active: boolean }) {
  * the caller decides what selecting each tab actually does (navigate vs.
  * set local state) — see app/shlokas/page.tsx and app/shlokas/mala/page.tsx.
  */
-export default function ShlokaTabs({ active, onSelect }: { active: ShlokaTab; onSelect: (tab: ShlokaTab) => void }) {
+export default function ShlokaTabs({
+  active,
+  onSelect,
+  hidden,
+}: {
+  active: ShlokaTab;
+  onSelect: (tab: ShlokaTab) => void;
+  /** Tabs to omit entirely — the Gita tab uses this to stay behind `nav.gita`
+   * (default off) even for groups that already have `nav.shlokas` on, per
+   * the standing "new features ship dark" rule. */
+  hidden?: ShlokaTab[];
+}) {
   const { t } = useTranslation();
+  const visibleTabs = hidden?.length ? TABS.filter((tab) => !hidden.includes(tab)) : TABS;
   return (
     <div className="flex items-stretch rounded-2xl border border-gold/20 bg-card overflow-hidden">
-      {TABS.map((tab, i) => {
+      {visibleTabs.map((tab, i) => {
         const isActive = tab === active;
         return (
           <button
@@ -63,6 +89,7 @@ export default function ShlokaTabs({ active, onSelect }: { active: ShlokaTab; on
             )}
           >
             {tab === "mantras" && <OmGlyph active={isActive} />}
+            {tab === "gita" && <GitaGlyph active={isActive} />}
             {tab === "mala" && <MalaGlyph active={isActive} />}
             {tab === "favorites" && <Heart size={20} className={isActive ? "fill-gold text-gold" : "text-muted"} />}
             {tab === "history" && <History size={20} className={isActive ? "text-gold" : "text-muted"} />}

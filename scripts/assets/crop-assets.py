@@ -74,7 +74,11 @@ def crop(sheet, box, alpha, out_path):
     piece = sheet.crop((max(x0 - PAD, 0), max(y0 - PAD, 0),
                         min(x1 + PAD, sheet.width), min(y1 + PAD, sheet.height)))
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    key_background(piece, alpha[0], alpha[1]).save(out_path)
+    # alpha null = keep every pixel. For art whose SUBJECT is the darkest thing in the crop
+    # (a silhouette on a lit background), any luminance ramp keys the subject away and leaves
+    # the glow behind it - the exact inverse of what keying is for.
+    out = piece.convert("RGBA") if alpha is None else key_background(piece, alpha[0], alpha[1])
+    out.save(out_path)
     return piece.size
 
 

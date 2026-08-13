@@ -81,6 +81,14 @@
       "rect": [895, 88, 996, 199],
       "alpha": [12, 48],
       "outputs": ["kundli-milan/charts"]
+    },
+    {
+      "_note": "True Love hero: dark silhouetted couple on a warm glow. alpha null - NOT keyed. Unlike marriage/couple (dark subject on near-black, where a shallow [2,14] ramp works), here the couple is the darkest thing in the crop and the background is a full warm wash, so any ramp turns the silhouettes transparent and keeps the glow. Crops to a rectangle by design; ReportHero's gradient mask is what feathers it. public/reports/true_love.png stays as the 44px list thumbnail.",
+      "name": "true-love-couple",
+      "sheet": "allReports",
+      "rect": [1027, 87, 1138, 202],
+      "alpha": null,
+      "outputs": ["true-love/couple"]
     }
   ]
 }

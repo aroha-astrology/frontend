@@ -3,8 +3,8 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import StatusPill from "@/components/ui/StatusPill";
-import TimingWindowsGantt from "../TimingWindowsGantt";
-import { formatWindowDate, filterInformativeReasoning } from "../TimingWindowsCard";
+import TimingWindowsGantt from "./TimingWindowsGantt";
+import { formatWindowDate, filterInformativeReasoning } from "./TimingWindowsCard";
 import type { RankedWindow } from "@/lib/report-score-facts";
 import type { PillTone } from "@/components/ui/StatusPill";
 
@@ -17,7 +17,7 @@ const LEVEL_TONE: Record<RankedWindow["level"], PillTone> = {
 };
 
 /**
- * The headline marriage window: exact dates, confidence, the backend's plain-English
+ * The headline window for a report: exact dates, confidence, the backend's plain-English
  * one-liner, and the shared-axis Gantt of every ranked window beneath it.
  *
  * `windows` arrives pre-sorted from the backend, so `top` is simply the first — the
@@ -27,7 +27,15 @@ const LEVEL_TONE: Record<RankedWindow["level"], PillTone> = {
  * Falls back to the filtered `reasoning` bullets when `summary` is absent, exactly as
  * TimingWindowsCard does (an older report, or a failed summary call).
  */
-export default function TimingCard({ windows }: { windows: RankedWindow[] }) {
+export interface TopWindowCardProps {
+  windows: RankedWindow[];
+  /** i18n key for the section heading — each report names its timing section itself. */
+  titleKey: string;
+  /** i18n key for the caption above the dates ("Strong period for marriage"). */
+  labelKey: string;
+}
+
+export default function TopWindowCard({ windows, titleKey, labelKey }: TopWindowCardProps) {
   const { t } = useTranslation();
   const top = windows[0];
   if (!top) return null;
@@ -36,11 +44,11 @@ export default function TimingCard({ windows }: { windows: RankedWindow[] }) {
 
   return (
     <section>
-      <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.timing.title")}</h2>
+      <h2 className="font-display text-base text-gold mb-2">{t(titleKey)}</h2>
       <Card className="p-4 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[11px] text-muted">{t("marriageReport.timing.strongPeriod")}</p>
+            <p className="text-[11px] text-muted">{t(labelKey)}</p>
             <p className="text-base font-display text-gold mt-0.5">
               {formatWindowDate(top.startDate)} – {formatWindowDate(top.endDate)}
             </p>

@@ -17,10 +17,10 @@ import ReportGemstonesCard from "../ReportGemstonesCard";
 import ArchetypeCard from "../ArchetypeCard";
 import DecadeArcCard from "../DecadeArcCard";
 import AnalysisAccordion from "../AnalysisAccordion";
+import TopWindowCard from "../TopWindowCard";
 import StrengthsCautions from "../StrengthsCautions";
 import OutlookCard from "./OutlookCard";
 import HighlightTiles from "./HighlightTiles";
-import TimingCard from "./TimingCard";
 import PlanetImpactStrip from "./PlanetImpactStrip";
 import SeventhHouseCard from "./SeventhHouseCard";
 import type { ReportReady } from "@/hooks/useReport";
@@ -62,7 +62,13 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         cautionCount={view.cautionCount}
       />
 
-      {isRankedWindowArray(scores.windows) && <TimingCard windows={scores.windows} />}
+      {isRankedWindowArray(scores.windows) && (
+        <TopWindowCard
+          windows={scores.windows}
+          titleKey="marriageReport.timing.title"
+          labelKey="marriageReport.timing.strongPeriod"
+        />
+      )}
 
       <PlanetImpactStrip planets={view.planets} />
 

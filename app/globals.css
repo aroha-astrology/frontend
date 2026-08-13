@@ -175,4 +175,15 @@
   .animate-mala-cloud-drift {
     animation: mala-cloud-drift 26s ease-in-out infinite alternate;
   }
+
+  /* ── Growing ring (RudrakshaBead) — expands outward from the active bead and
+     fades, looping. Two rings run this staggered by animation-delay for a
+     continuous "sonar ping" read rather than one ring blinking on and off. ── */
+  @keyframes rudraksha-grow-ring {
+    from { transform: scale(1); opacity: 0.55; }
+    to { transform: scale(1.9); opacity: 0; }
+  }
+  .animate-rudraksha-grow-ring {
+    animation: rudraksha-grow-ring 2.2s ease-out infinite;
+  }
 }

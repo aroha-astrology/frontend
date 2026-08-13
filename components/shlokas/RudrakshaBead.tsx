@@ -197,6 +197,35 @@ export const RudrakshaBead = forwardRef<RudrakshaBeadRef, Props>(function Rudrak
         </svg>
       )}
 
+      {/* Growing ring — a ring expands outward from the bead and fades, looping (CSS
+          animation, defined in app/globals.css and gated there on prefers-reduced-motion,
+          same as MalaBackdrop's cloud drift). Two rings staggered by animation-delay read as
+          a continuous "sonar ping" around the selected bead rather than one ring blinking. */}
+      {!hideHalo && (
+        <svg width={size} height={size} style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}>
+          <circle
+            className="animate-rudraksha-grow-ring"
+            style={{ transformOrigin: `${cx}px ${cy}px` }}
+            cx={cx}
+            cy={cy}
+            r={size * 0.42}
+            stroke="color-mix(in srgb, var(--gold) 85%, transparent)"
+            strokeWidth={1.5}
+            fill="none"
+          />
+          <circle
+            className="animate-rudraksha-grow-ring"
+            style={{ transformOrigin: `${cx}px ${cy}px`, animationDelay: "1.1s" }}
+            cx={cx}
+            cy={cy}
+            r={size * 0.42}
+            stroke="color-mix(in srgb, var(--gold) 85%, transparent)"
+            strokeWidth={1.5}
+            fill="none"
+          />
+        </svg>
+      )}
+
       {/* Tap glow ring */}
       <svg
         width={size}

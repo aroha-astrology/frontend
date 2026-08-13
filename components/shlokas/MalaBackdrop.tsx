@@ -219,14 +219,28 @@ function Birds() {
   );
 }
 
-/** The one layer with a real asset already in the repo — falls back to a plain coded disc if it 404s, same either/or pattern as ReportThemeCard's ReportVisual. */
+/**
+ * public/shlokas/backdrop/mandala-line.webp is a real-alpha version of
+ * public/mandala.png — the original has no alpha channel at all (opaque
+ * white square), which at 12% opacity barely showed against the old plain
+ * gradient but reads as a foggy rectangular wash now that a photo backdrop
+ * sits under it. This derived asset keeps only the linework (alpha =
+ * darkness), so it blends as a soft pattern instead of a box. Falls back to
+ * a plain coded disc if it 404s, same either/or pattern as
+ * ReportThemeCard's ReportVisual.
+ */
 function MandalaDisc() {
   const [imgError, setImgError] = useState(false);
   return (
-    <div className="absolute left-1/2 top-[46%] w-[80%] max-w-[380px] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-[0.12]">
+    <div className="absolute left-1/2 top-[46%] w-[80%] max-w-[380px] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-[0.22]">
       {!imgError ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/mandala.png" alt="" className="w-full h-full object-contain" onError={() => setImgError(true)} />
+        <img
+          src="/shlokas/backdrop/mandala-line.webp"
+          alt=""
+          className="w-full h-full object-contain"
+          onError={() => setImgError(true)}
+        />
       ) : (
         <svg viewBox="0 0 100 100" className="w-full h-full text-[color:var(--mala-silhouette)]">
           <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.5" />

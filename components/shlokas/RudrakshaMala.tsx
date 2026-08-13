@@ -49,9 +49,11 @@ interface Props {
   onTap: () => void;
   /** True while the active bead's mantra audio is playing — the bead can't be tapped again until it finishes. */
   locked: boolean;
+  /** Current mantra's first line — shown as a subtitle in place of the tap hint while `locked` (audio playing). */
+  mantraSnippet: string;
 }
 
-export default function RudrakshaMala({ total, currentIndex, onTap, locked }: Props) {
+export default function RudrakshaMala({ total, currentIndex, onTap, locked, mantraSnippet }: Props) {
   const { t } = useTranslation();
   const reducedMotion = usePrefersReducedMotion();
   const activeBeadRef = useRef<RudrakshaBeadRef>(null);
@@ -112,7 +114,13 @@ export default function RudrakshaMala({ total, currentIndex, onTap, locked }: Pr
         <foreignObject x={CX - 100} y={CY - 68} width={200} height={136}>
           <div className="w-full h-full flex flex-col items-center justify-center text-center gap-1.5 select-none">
             <span className="font-devanagari text-3xl text-foreground/90 leading-none">ॐ</span>
-            <p className="text-[11px] text-muted leading-tight px-3">{t("shlokas.tapRudraksha")}</p>
+            {locked ? (
+              <p className="font-devanagari text-sm text-foreground/90 leading-tight px-3 max-w-full truncate">
+                {mantraSnippet}
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted leading-tight px-3">{t("shlokas.tapRudraksha")}</p>
+            )}
             <div className="mt-0.5 px-3 py-1 rounded-full border border-gold/30 bg-card/85 text-xs font-semibold text-gold tabular-nums">
               {currentIndex + 1} / {total}
             </div>

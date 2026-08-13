@@ -176,7 +176,13 @@ function MalaScreen() {
             <div className="relative rounded-3xl overflow-hidden border border-gold/15 py-8">
               <MalaBackdrop />
               <div className="relative">
-                <RudrakshaMala total={total} currentIndex={index} onTap={advanceAndPlay} locked={locked} />
+                <RudrakshaMala
+                  total={total}
+                  currentIndex={index}
+                  onTap={advanceAndPlay}
+                  locked={locked}
+                  mantraSnippet={current.sanskrit.split("\n")[0]}
+                />
               </div>
             </div>
 

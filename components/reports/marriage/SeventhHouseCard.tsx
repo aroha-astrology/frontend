@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import StatusPill, { strengthPillTone } from "@/components/ui/StatusPill";
-import PlanetIcon from "./PlanetIcon";
+import PlanetIcon from "../PlanetIcon";
 import { zodiacSignLabel } from "@/data/zodiac";
 import type { SeventhHouseFacts } from "@/lib/marriage-report-view";
 

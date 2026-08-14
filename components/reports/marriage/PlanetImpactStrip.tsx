@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import StatusPill, { strengthPillTone } from "@/components/ui/StatusPill";
-import PlanetIcon from "./PlanetIcon";
+import PlanetIcon from "../PlanetIcon";
 import type { PlanetImpact } from "@/lib/marriage-report-view";
 
 /**

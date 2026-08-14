@@ -97,6 +97,14 @@
       "rect": [310, 89, 432, 200],
       "alpha": null,
       "outputs": ["wealth/kalash"]
+    },
+    {
+      "_note": "Career hero: silhouetted figure climbing steps toward a target. Dark subject on a lit warm background, same case as true-love/couple - alpha null, never a ramp, or the figure keys away and only the glow survives.",
+      "name": "career-climb",
+      "sheet": "allReports",
+      "rect": [1426, 90, 1516, 200],
+      "alpha": null,
+      "outputs": ["career/climb"]
     }
   ]
 }

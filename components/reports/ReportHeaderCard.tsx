@@ -21,8 +21,14 @@ export default function ReportHeaderCard({ header }: { header: ReportHeaderValue
       value: header.moonNakshatra ? `${header.moonSign} · ${header.moonNakshatra}` : header.moonSign,
     });
   }
-  if (header.currentMahadasha) facts.push({ label: t("kundliPage.mahadasha"), value: header.currentMahadasha });
-  if (header.currentAntardasha) facts.push({ label: t("kundliPage.antardasha"), value: header.currentAntardasha });
+  // Dasha lords are planet names the backend emits in English; translate them via the shared
+  // planetNames table, falling back to the raw name for anything not in it. Sign/nakshatra
+  // names above remain English - a known app-wide gap, not one this card can close alone.
+  const planetName = (p: string) => t(`planetNames.${p.toLowerCase()}`, { defaultValue: p });
+  if (header.currentMahadasha)
+    facts.push({ label: t("kundliPage.mahadasha"), value: planetName(header.currentMahadasha) });
+  if (header.currentAntardasha)
+    facts.push({ label: t("kundliPage.antardasha"), value: planetName(header.currentAntardasha) });
 
   if (facts.length === 0 && !header.name) return null;
 

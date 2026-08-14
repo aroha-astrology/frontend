@@ -121,6 +121,30 @@
       "rect": [169, 89, 279, 200],
       "alpha": null,
       "outputs": ["finance/rupee"]
+    },
+    {
+      "_note": "Past Life hero: figure silhouetted before a lit doorway. alpha null - the figure and arch are the dark part, exactly the true-love/couple case. NOTE the x range: panel 6 sits at 749-870, NOT 604-723, which is the Name Change panel; an earlier pass grabbed that by mistake and shipped a quill-and-scroll as the Past Life hero until a screenshot caught it.",
+      "name": "past-life-doorway",
+      "sheet": "allReports",
+      "rect": [753, 90, 866, 203],
+      "alpha": null,
+      "outputs": ["past-life/doorway"]
+    },
+    {
+      "_note": "Numerology hero: numeral wheel on a dark violet wash. alpha null, same reasoning as the rest of this sheet's panels.",
+      "name": "numerology-wheel",
+      "sheet": "allReports",
+      "rect": [468, 85, 568, 201],
+      "alpha": null,
+      "outputs": ["numerology/wheel"]
+    },
+    {
+      "_note": "Baby Name hero: sleeping baby on a crescent. alpha null.",
+      "name": "baby-name-moon",
+      "sheet": "allReports",
+      "rect": [18, 88, 142, 200],
+      "alpha": null,
+      "outputs": ["baby-name/moon"]
     }
   ]
 }

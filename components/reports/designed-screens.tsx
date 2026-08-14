@@ -7,6 +7,9 @@ import WealthReportView from "./wealth/WealthReportView";
 import CareerReportView from "./career/CareerReportView";
 import HealthReportView from "./health/HealthReportView";
 import FinanceReportView from "./finance/FinanceReportView";
+import PastLifeReportView from "./past-life/PastLifeReportView";
+import NumerologyReportView from "./numerology/NumerologyReportView";
+import BabyNameReportView from "./baby-name/BabyNameReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
@@ -63,5 +66,20 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: FinanceReportView,
     artSrc: "/finance/rupee.png",
     subtitleKey: "financeReport.subtitle",
+  },
+  past_life: {
+    View: PastLifeReportView,
+    artSrc: "/past-life/doorway.png",
+    subtitleKey: "pastLifeReport.subtitle",
+  },
+  numerology: {
+    View: NumerologyReportView,
+    artSrc: "/numerology/wheel.png",
+    subtitleKey: "numerologyReport.subtitle",
+  },
+  baby_name: {
+    View: BabyNameReportView,
+    artSrc: "/baby-name/moon.png",
+    subtitleKey: "babyNameReport.subtitle",
   },
 };

@@ -5,6 +5,8 @@ import KundliMilanReportView from "./kundli-milan/KundliMilanReportView";
 import TrueLoveReportView from "./true-love/TrueLoveReportView";
 import WealthReportView from "./wealth/WealthReportView";
 import CareerReportView from "./career/CareerReportView";
+import HealthReportView from "./health/HealthReportView";
+import FinanceReportView from "./finance/FinanceReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
@@ -51,5 +53,15 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: CareerReportView,
     artSrc: "/career/climb.png",
     subtitleKey: "careerReport.subtitle",
+  },
+  health_monthly: {
+    View: HealthReportView,
+    artSrc: "/health/body.png",
+    subtitleKey: "healthReport.subtitle",
+  },
+  finance_monthly: {
+    View: FinanceReportView,
+    artSrc: "/finance/rupee.png",
+    subtitleKey: "financeReport.subtitle",
   },
 };

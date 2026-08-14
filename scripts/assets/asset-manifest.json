@@ -105,6 +105,22 @@
       "rect": [1426, 90, 1516, 200],
       "alpha": null,
       "outputs": ["career/climb"]
+    },
+    {
+      "_note": "Health hero: cyan anatomical figure with ECG traces on a dark blue technical background. Bright subject, but the background is a textured wash rather than flat black - alpha null like the other heroes.",
+      "name": "health-body",
+      "sheet": "allReports",
+      "rect": [1310, 87, 1400, 200],
+      "alpha": null,
+      "outputs": ["health/body"]
+    },
+    {
+      "_note": "Finance hero: rupee coin, calculator and pie chart on a warm dark wash. alpha null for the same reason as the rest.",
+      "name": "finance-rupee",
+      "sheet": "allReports",
+      "rect": [169, 89, 279, 200],
+      "alpha": null,
+      "outputs": ["finance/rupee"]
     }
   ]
 }

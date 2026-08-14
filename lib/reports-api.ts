@@ -101,6 +101,10 @@ export interface ReportSection {
    * section-count mismatch. The page falls back to `heading` in that case. */
   id?: string;
   heading: string;
+  /** One short, striking sentence, rendered as a pull-quote between the heading and the
+   * paragraphs. Optional and additive: a report type whose prompt doesn't ask for one, and
+   * every report generated before hooks shipped, simply omits it and renders as before. */
+  hook?: string;
   paragraphs: string[];
   /** Section-level bullet list, rendered under `paragraphs`. */
   bullets?: string[];

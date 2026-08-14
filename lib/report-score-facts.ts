@@ -123,6 +123,8 @@ export const SCORE_FACT_LABEL_KEYS: Record<string, string> = {
   luckyDayColor: "reportScores.label.luckyDayColor",
   challengeNumbers: "reportScores.label.challengeNumbers",
   loShuGrid: "reportScores.label.loShuGrid",
+  // shared by all 14 report types (attached by computeScoresWithCondition)
+  planetStrength: "reportScores.label.planetStrength",
 };
 
 /** "steady" -> "Steady", "veryGood" -> "Very Good". */
@@ -417,6 +419,24 @@ export interface PakkaGharValue {
   effect: string;
 }
 
+/**
+ * One planet's condition — `scores.planetStrength`, attached to EVERY report type by
+ * jyotish-backend's `computeScoresWithCondition` (see its `PlanetStrengthRow`).
+ *
+ * `pct` is Shadbala's total as a percentage of that planet's own REQUIRED virupas, so
+ * 100 is the classical pass mark, NOT the maximum — values above 100 are normal and
+ * correct. Anything rendering this must make that explicit; a bare 0-100 bar would turn
+ * "69% of the minimum Mercury needs" into "Mercury: 69/100", a different and much
+ * bleaker claim than the engine is actually making.
+ */
+export interface PlanetStrengthValue {
+  planet: string;
+  pct: number;
+  isStrong: boolean;
+  isRetrograde: boolean;
+  isCombust: boolean;
+}
+
 /** An obstructed (blind/half-blind) planet — `scores.blindPlanets` on the remedies report
  * (jyotish-backend's BlindPlanet, pre-filtered to isBlind || isHalfBlind). */
 export interface BlindPlanetValue {
@@ -534,6 +554,12 @@ export interface BlindPlanetsFact {
   label: string;
   type: "blindPlanets";
   planets: BlindPlanetValue[];
+}
+export interface PlanetStrengthFact {
+  key: string;
+  label: string;
+  type: "planetStrength";
+  planets: PlanetStrengthValue[];
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -731,6 +757,20 @@ export function isBlindPlanetArray(v: unknown): v is BlindPlanetValue[] {
   );
 }
 
+/** Distinguished from the three other `planet`-keyed array shapes by requiring `pct` (a number)
+ * AND `isStrong` (a boolean) — gemstones carry `conditionalCautionApplies`, pakkaGhar carries
+ * `pakkaGhar`/`currentHouse`, blindPlanets carries `isBlind`/`isHalfBlind`; none carry `pct`. */
+export function isPlanetStrengthArray(v: unknown): v is PlanetStrengthValue[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.planet === "string" &&
+      typeof item.pct === "number" &&
+      typeof item.isStrong === "boolean",
+  );
+}
+
 /** An object (not array) with `label`/`description`/`traits` (array of `{label, score}`). */
 export function isArchetype(v: unknown): v is Archetype {
   if (!isRecord(v)) return false;
@@ -825,7 +865,8 @@ export type ScoreFact =
   | RemedyPlacementsFact
   | KarmicDebtsFact
   | PakkaGharFact
-  | BlindPlanetsFact;
+  | BlindPlanetsFact
+  | PlanetStrengthFact;
 
 /**
  * Classifies one `scores` entry. Returns `null` for a value that shouldn't
@@ -872,6 +913,9 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   }
   if (isBlindPlanetArray(value)) {
     return { key, label, type: "blindPlanets", planets: value };
+  }
+  if (isPlanetStrengthArray(value)) {
+    return { key, label, type: "planetStrength", planets: value };
   }
   if (isGemstoneArray(value)) {
     return { key, label, type: "gemstones", gemstones: value };
@@ -976,7 +1020,17 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
  * prompt so the prose can cite them, NOT standalone facts. Rendering them here would dump a raw
  * `1: {key: D9, lagna: Leo, planets: {…}}` block and a pre-formatted English bindu sentence into
  * the facts grid — the latter also bypassing translation, since scores prose is only translated
- * for the explicit SCORES_PROSE_ALLOWLIST dot-paths (backend lib/llm/report-scores.ts). */
+ * for the explicit SCORES_PROSE_ALLOWLIST dot-paths (backend lib/llm/report-scores.ts).
+ * `planetCondition` is the worst case of that same category and the reason this note now exists:
+ * it is the raw Shadbala/retrogression/combustion grounding block (backend chat-grounding.ts's
+ * `chartConditionFacts`), and its lines are written AT THE MODEL, not at the reader — the closing
+ * STRENGTH RULE line literally ends `Do NOT quote these percentages or the word "Shadbala" to the
+ * user`. Attached to `scores` for all 14 report types by reports.service.ts's
+ * `computeScoresWithCondition`, it fell through to the generic array branch below and rendered
+ * verbatim as a full-width "Planet Condition" card on every paid report — i.e. every reader was
+ * being shown the prompt's own instructions about them. The reader-facing view of this same data
+ * is `planetStrength` (structured, rendered by PlanetStrengthCard); this prose block is grounding
+ * only and must never reach the page. */
 const SEPARATELY_RENDERED_KEYS = new Set([
   "header",
   "verdict",
@@ -986,6 +1040,7 @@ const SEPARATELY_RENDERED_KEYS = new Set([
   "vargas",
   "partnerVargas",
   "ashtakavargaSummary",
+  "planetCondition",
 ]);
 
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */

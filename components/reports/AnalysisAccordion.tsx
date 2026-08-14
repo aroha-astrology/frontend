@@ -92,9 +92,18 @@ export default function AnalysisAccordion({
               key={section.id ?? i}
               defaultOpen={isDefaultOpen(section, i)}
               header={
-                <span className="flex items-center gap-2.5">
-                  <Icon size={17} className="shrink-0 text-gold" aria-hidden />
-                  <span className="text-[13px] font-semibold text-foreground">{heading}</span>
+                // The hook sits in the HEADER, not the body: every section but the first is
+                // collapsed by default (see isDefaultOpen), and a line whose whole job is to
+                // make the reader want to open the section cannot be behind the chevron it
+                // is meant to earn a tap on.
+                <span className="flex items-start gap-2.5">
+                  <Icon size={17} className="mt-0.5 shrink-0 text-gold" aria-hidden />
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold text-foreground">{heading}</span>
+                    {section.hook && (
+                      <span className="text-[11px] leading-snug text-gold/80">{section.hook}</span>
+                    )}
+                  </span>
                 </span>
               }
             >

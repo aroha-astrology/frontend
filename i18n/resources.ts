@@ -158,6 +158,14 @@ export const resources = {
           emptyStatePositives: "No single standout classical yoga was flagged here — that doesn't mean nothing good is happening, just that no one pattern stood out strongly enough to call out.",
           emptyStateCautions: "No significant classical caution was flagged in this chart — a genuinely reassuring sign.",
           emptyStateDecadeArc: "There wasn't enough chart data to build a decade-by-decade forecast here.",
+          planetStrength: {
+            caption: "100% is the minimum strength a planet needs to fully deliver what it promises in your chart.",
+            strong: "Strong",
+            belowPar: "Below par",
+            retrograde: "Retrograde",
+            combust: "Combust",
+            footnote: "A planet below the minimum still gives its results — usually partially, later, or only with effort.",
+          },
           confidenceLegend: {
             caption: "How confident is this?",
             title: "What do High / Medium / Low mean?",
@@ -252,6 +260,7 @@ export const resources = {
           karmic_pattern: "Your Karmic Pattern",
           karmic_axis_theme: "Your Karmic Axis Theme",
           unfinished_business_soul_lesson: "Your Unfinished Business & Soul Lesson",
+          life_so_far: "Your Life So Far",
           match_report: {
             wealth: "Wealth Compatibility",
             health: "Health Compatibility",
@@ -593,6 +602,7 @@ export const resources = {
         amplifiers: "Karmic amplifiers",
         strength: { strong: "Strong", average: "Average", weak: "Weak" },
         analysis: { title: "Detailed Analysis" },
+        lifeSoFar: { title: "Your Life So Far" },
         strengths: "Strengths",
         cautions: "Cautions",
       },
@@ -769,6 +779,7 @@ export const resources = {
           luckyDayColor: "Luckiest Day & Colors",
           challengeNumbers: "Challenge Numbers",
           loShuGrid: "Lo Shu Grid",
+          planetStrength: "Planet Strength",
         },
       },
       kundliPage: {
@@ -2230,6 +2241,14 @@ export const resources = {
           emptyStatePositives: "यहां कोई एक विशेष शास्त्रीय योग सामने नहीं आया — इसका मतलब यह नहीं कि कुछ अच्छा नहीं हो रहा, बस कोई एक पैटर्न इतना मजबूत नहीं था कि उसे अलग से बताया जाए।",
           emptyStateCautions: "इस कुंडली में कोई उल्लेखनीय शास्त्रीय सतर्कता नहीं पाई गई — यह वास्तव में एक राहत की बात है।",
           emptyStateDecadeArc: "यहां दशक-दर-दशक पूर्वानुमान बनाने के लिए पर्याप्त कुंडली डेटा उपलब्ध नहीं था।",
+          planetStrength: {
+            caption: "100% वह न्यूनतम बल है जो किसी ग्रह को आपकी कुंडली में अपना वादा पूरी तरह निभाने के लिए चाहिए।",
+            strong: "बलवान",
+            belowPar: "बल में कम",
+            retrograde: "वक्री",
+            combust: "अस्त",
+            footnote: "न्यूनतम से कम बल वाला ग्रह भी अपना फल देता है — पर अक्सर आंशिक रूप से, देर से, या प्रयास के बाद ही।",
+          },
           confidenceLegend: {
             caption: "यह कितना विश्वसनीय है?",
             title: "उच्च / मध्यम / निम्न का क्या मतलब है?",
@@ -2324,6 +2343,7 @@ export const resources = {
           karmic_pattern: "आपका कर्म पैटर्न",
           karmic_axis_theme: "आपकी कर्म धुरी का विषय",
           unfinished_business_soul_lesson: "आपका अधूरा कार्य और आत्मा का पाठ",
+          life_so_far: "अब तक का आपका जीवन",
           match_report: {
             wealth: "धन अनुकूलता",
             health: "स्वास्थ्य अनुकूलता",
@@ -2957,6 +2977,7 @@ export const resources = {
         amplifiers: "कार्मिक प्रवर्धक",
         strength: { strong: "मजबूत", average: "सामान्य", weak: "कमजोर" },
         analysis: { title: "विस्तृत विश्लेषण" },
+        lifeSoFar: { title: "अब तक का आपका जीवन" },
         strengths: "शक्तियाँ",
         cautions: "सावधानियाँ",
       },
@@ -3133,6 +3154,7 @@ export const resources = {
           luckyDayColor: "भाग्यशाली दिन और रंग",
           challengeNumbers: "चुनौती अंक",
           loShuGrid: "लो शू ग्रिड",
+          planetStrength: "ग्रह बल",
         },
       },
       kundliPage: {
@@ -4203,6 +4225,14 @@ export const resources = {
           emptyStatePositives: "এখানে কোনো একক উল্লেখযোগ্য শাস্ত্রীয় যোগ চিহ্নিত হয়নি — এর মানে এই নয় যে ভালো কিছু ঘটছে না, শুধু কোনো একটি নিদর্শন যথেষ্ট শক্তিশালীভাবে প্রকাশ পায়নি।",
           emptyStateCautions: "এই কুণ্ডলীতে কোনো উল্লেখযোগ্য শাস্ত্রীয় সতর্কতা চিহ্নিত হয়নি — এটি সত্যিই স্বস্তির বিষয়।",
           emptyStateDecadeArc: "এখানে দশক-ভিত্তিক পূর্বাভাস তৈরি করার জন্য পর্যাপ্ত কুণ্ডলী তথ্য ছিল না।",
+          planetStrength: {
+            caption: "১০০% হল সেই ন্যূনতম শক্তি যা একটি গ্রহের আপনার কুণ্ডলীতে তার প্রতিশ্রুতি সম্পূর্ণ পূরণ করতে প্রয়োজন।",
+            strong: "শক্তিশালী",
+            belowPar: "শক্তি কম",
+            retrograde: "বক্রী",
+            combust: "অস্ত",
+            footnote: "ন্যূনতমের নিচে থাকা গ্রহও ফল দেয় — তবে সাধারণত আংশিকভাবে, দেরিতে, বা কেবল চেষ্টার পরে।",
+          },
           confidenceLegend: {
             caption: "এটি কতটা নির্ভরযোগ্য?",
             title: "উচ্চ / মাঝারি / নিম্ন এর অর্থ কী?",
@@ -4297,6 +4327,7 @@ export const resources = {
           karmic_pattern: "আপনার কর্মপ্যাটার্ন",
           karmic_axis_theme: "আপনার কর্ম অক্ষের থিম",
           unfinished_business_soul_lesson: "আপনার অসমাপ্ত কাজ ও আত্মার শিক্ষা",
+          life_so_far: "এখন পর্যন্ত আপনার জীবন",
           match_report: {
             wealth: "অর্থ সামঞ্জস্য",
             health: "স্বাস্থ্য সামঞ্জস্য",
@@ -4928,6 +4959,7 @@ export const resources = {
         amplifiers: "কর্মিক বর্ধক",
         strength: { strong: "শক্তিশালী", average: "সাধারণ", weak: "দুর্বল" },
         analysis: { title: "বিস্তারিত বিশ্লেষণ" },
+        lifeSoFar: { title: "এখন পর্যন্ত আপনার জীবন" },
         strengths: "শক্তি",
         cautions: "সতর্কতা",
       },
@@ -5104,6 +5136,7 @@ export const resources = {
           luckyDayColor: "ভাগ্যবান দিন ও রং",
           challengeNumbers: "চ্যালেঞ্জ সংখ্যা",
           loShuGrid: "লো শু গ্রিড",
+          planetStrength: "গ্রহের শক্তি",
         },
       },
       kundliPage: {
@@ -6178,6 +6211,14 @@ export const resources = {
           emptyStatePositives: "इथे कोणताही एक ठळक शास्त्रीय योग आढळला नाही — याचा अर्थ काहीही चांगले घडत नाही असे नाही, फक्त कोणताही एक नमुना इतका ठळक नव्हता की तो वेगळा नमूद करावा.",
           emptyStateCautions: "या कुंडलीत कोणतीही उल्लेखनीय शास्त्रीय सावधानता आढळली नाही — ही खरोखर दिलासादायक बाब आहे.",
           emptyStateDecadeArc: "इथे दशकानुसार अंदाज तयार करण्यासाठी पुरेशी कुंडली माहिती उपलब्ध नव्हती.",
+          planetStrength: {
+            caption: "100% हे ते किमान बल आहे जे एखाद्या ग्रहाला तुमच्या कुंडलीत आपले वचन पूर्णपणे पूर्ण करण्यासाठी आवश्यक असते.",
+            strong: "बलवान",
+            belowPar: "बलात कमी",
+            retrograde: "वक्री",
+            combust: "अस्त",
+            footnote: "किमानपेक्षा कमी बल असलेला ग्रहही आपले फळ देतो — पण बहुतेकदा अंशतः, उशिरा, किंवा प्रयत्नानंतरच.",
+          },
           confidenceLegend: {
             caption: "हे किती विश्वासार्ह आहे?",
             title: "उच्च / मध्यम / कमी म्हणजे काय?",
@@ -6272,6 +6313,7 @@ export const resources = {
           karmic_pattern: "तुमचा कर्म नमुना",
           karmic_axis_theme: "तुमच्या कर्म अक्षाची संकल्पना",
           unfinished_business_soul_lesson: "तुमचे अपूर्ण कार्य आणि आत्म्याचा धडा",
+          life_so_far: "आतापर्यंतचे तुमचे जीवन",
           match_report: {
             wealth: "आर्थिक सुसंगतता",
             health: "आरोग्य सुसंगतता",
@@ -6903,6 +6945,7 @@ export const resources = {
         amplifiers: "कार्मिक वर्धक",
         strength: { strong: "मजबूत", average: "सामान्य", weak: "कमकुवत" },
         analysis: { title: "सविस्तर विश्लेषण" },
+        lifeSoFar: { title: "आतापर्यंतचे तुमचे जीवन" },
         strengths: "बलस्थाने",
         cautions: "सावधगिरी",
       },
@@ -7079,6 +7122,7 @@ export const resources = {
           luckyDayColor: "भाग्यवान दिवस आणि रंग",
           challengeNumbers: "आव्हान अंक",
           loShuGrid: "लो शू ग्रिड",
+          planetStrength: "ग्रह बल",
         },
       },
       kundliPage: {
@@ -8154,6 +8198,14 @@ export const resources = {
           emptyStatePositives: "ఇక్కడ ఏ ఒక్క ప్రత్యేకమైన శాస్త్రీయ యోగం గుర్తించబడలేదు — దీని అర్థం మంచిది ఏమీ జరగడం లేదని కాదు, కేవలం ఏ ఒక్క సరళి కూడా ప్రత్యేకంగా చెప్పేంత బలంగా కనిపించలేదని మాత్రమే.",
           emptyStateCautions: "ఈ జాతకంలో ఎలాంటి ముఖ్యమైన శాస్త్రీయ జాగ్రత్త గుర్తించబడలేదు — ఇది నిజంగా ఊరటనిచ్చే విషయం.",
           emptyStateDecadeArc: "ఇక్కడ దశాబ్దాల వారీ అంచనా రూపొందించడానికి తగినంత జాతక సమాచారం లేదు.",
+          planetStrength: {
+            caption: "మీ జాతకంలో ఒక గ్రహం తన వాగ్దానాన్ని పూర్తిగా నెరవేర్చడానికి కావలసిన కనీస బలం 100%.",
+            strong: "బలమైన",
+            belowPar: "బలం తక్కువ",
+            retrograde: "వక్ర",
+            combust: "అస్తంగత",
+            footnote: "కనీస బలం లేని గ్రహం కూడా ఫలితాన్ని ఇస్తుంది — కానీ సాధారణంగా పాక్షికంగా, ఆలస్యంగా, లేదా ప్రయత్నం తర్వాతే.",
+          },
           confidenceLegend: {
             caption: "ఇది ఎంత నమ్మదగినది?",
             title: "అధిక / మధ్యస్థ / తక్కువ అంటే ఏమిటి?",
@@ -8248,6 +8300,7 @@ export const resources = {
           karmic_pattern: "మీ కర్మ సరళి",
           karmic_axis_theme: "మీ కర్మ అక్షం ఇతివృత్తం",
           unfinished_business_soul_lesson: "మీ అసంపూర్ణ పని మరియు ఆత్మ పాఠం",
+          life_so_far: "ఇప్పటివరకు మీ జీవితం",
           match_report: {
             wealth: "ధన అనుకూలత",
             health: "ఆరోగ్య అనుకూలత",
@@ -8875,6 +8928,7 @@ export const resources = {
         amplifiers: "కర్మ వర్ధకాలు",
         strength: { strong: "బలంగా", average: "సాధారణం", weak: "బలహీనం" },
         analysis: { title: "వివరణాత్మక విశ్లేషణ" },
+        lifeSoFar: { title: "ఇప్పటివరకు మీ జీవితం" },
         strengths: "బలాలు",
         cautions: "జాగ్రత్తలు",
       },
@@ -9051,6 +9105,7 @@ export const resources = {
           luckyDayColor: "అదృష్ట రోజు మరియు రంగులు",
           challengeNumbers: "ఛాలెంజ్ సంఖ్యలు",
           loShuGrid: "లో షూ గ్రిడ్",
+          planetStrength: "గ్రహ బలం",
         },
       },
       kundliPage: {
@@ -10126,6 +10181,14 @@ export const resources = {
           emptyStatePositives: "இங்கே குறிப்பிடத்தக்க ஒரு சாஸ்திரீக யோகமும் கண்டறியப்படவில்லை — நல்லது எதுவும் நடக்கவில்லை என்று இதற்கு அர்த்தமல்ல, ஒரு தனிப் பாணி மட்டும் தனியாகக் குறிப்பிடும் அளவுக்கு வலுவாக இல்லை என்பதே பொருள்.",
           emptyStateCautions: "இந்த ஜாதகத்தில் குறிப்பிடத்தக்க சாஸ்திரீக எச்சரிக்கை எதுவும் இல்லை — இது உண்மையிலேயே ஆறுதலான விஷயம்.",
           emptyStateDecadeArc: "இங்கே பத்தாண்டு வாரியான முன்னறிவிப்பை உருவாக்க போதுமான ஜாதக தரவு இல்லை.",
+          planetStrength: {
+            caption: "உங்கள் ஜாதகத்தில் ஒரு கிரகம் தன் வாக்குறுதியை முழுமையாக நிறைவேற்ற தேவையான குறைந்தபட்ச பலம் 100% ஆகும்.",
+            strong: "வலிமையான",
+            belowPar: "பலம் குறைவு",
+            retrograde: "வக்ரம்",
+            combust: "அஸ்தங்கதம்",
+            footnote: "குறைந்தபட்சத்திற்குக் கீழே உள்ள கிரகமும் பலன் தரும் — ஆனால் பொதுவாக பகுதியாக, தாமதமாக, அல்லது முயற்சிக்குப் பிறகே.",
+          },
           confidenceLegend: {
             caption: "இது எவ்வளவு நம்பகமானது?",
             title: "அதிக / நடுத்தர / குறைவு என்றால் என்ன?",
@@ -10220,6 +10283,7 @@ export const resources = {
           karmic_pattern: "உங்கள் கர்ம முறை",
           karmic_axis_theme: "உங்கள் கர்ம அச்சின் கருப்பொருள்",
           unfinished_business_soul_lesson: "உங்கள் முடிக்கப்படாத பணி மற்றும் ஆன்மீக பாடம்",
+          life_so_far: "இதுவரை உங்கள் வாழ்க்கை",
           match_report: {
             wealth: "செல்வ பொருத்தம்",
             health: "ஆரோக்கிய பொருத்தம்",
@@ -10851,6 +10915,7 @@ export const resources = {
         amplifiers: "கர்ம பெருக்கிகள்",
         strength: { strong: "வலிமை", average: "சராசரி", weak: "பலவீனம்" },
         analysis: { title: "விரிவான பகுப்பாய்வு" },
+        lifeSoFar: { title: "இதுவரை உங்கள் வாழ்க்கை" },
         strengths: "பலங்கள்",
         cautions: "எச்சரிக்கைகள்",
       },
@@ -11027,6 +11092,7 @@ export const resources = {
           luckyDayColor: "அதிர்ஷ்ட நாள் மற்றும் வண்ணங்கள்",
           challengeNumbers: "சவால் எண்கள்",
           loShuGrid: "லோ ஷூ கிரிட்",
+          planetStrength: "கிரக பலம்",
         },
       },
       kundliPage: {
@@ -12103,6 +12169,14 @@ export const resources = {
           emptyStatePositives: "અહીં કોઈ એક ખાસ શાસ્ત્રીય યોગ જોવા મળ્યો નથી — તેનો અર્થ એ નથી કે કંઈ સારું નથી થઈ રહ્યું, ફક્ત કોઈ એક પેટર્ન એટલી મજબૂત નહોતી કે તેને અલગથી દર્શાવી શકાય.",
           emptyStateCautions: "આ કુંડળીમાં કોઈ નોંધપાત્ર શાસ્ત્રીય સાવચેતી જોવા મળી નથી — આ ખરેખર રાહતની વાત છે.",
           emptyStateDecadeArc: "અહીં દાયકા-દર-દાયકા આગાહી બનાવવા માટે પૂરતો કુંડળી ડેટા ન હતો.",
+          planetStrength: {
+            caption: "100% એ લઘુત્તમ બળ છે જે ગ્રહને તમારી કુંડળીમાં પોતાનું વચન સંપૂર્ણપણે પૂરું કરવા માટે જોઈએ.",
+            strong: "બળવાન",
+            belowPar: "બળમાં ઓછું",
+            retrograde: "વક્રી",
+            combust: "અસ્ત",
+            footnote: "લઘુત્તમથી ઓછા બળવાળો ગ્રહ પણ ફળ આપે છે — પણ ઘણીવાર આંશિક રીતે, મોડું, અથવા પ્રયત્ન પછી જ.",
+          },
           confidenceLegend: {
             caption: "આ કેટલું વિશ્વસનીય છે?",
             title: "ઉચ્ચ / મધ્યમ / નીચું એટલે શું?",
@@ -12197,6 +12271,7 @@ export const resources = {
           karmic_pattern: "તમારી કર્મ પેટર્ન",
           karmic_axis_theme: "તમારી કર્મ ધરીની થીમ",
           unfinished_business_soul_lesson: "તમારું અધૂરું કાર્ય અને આત્માનો પાઠ",
+          life_so_far: "અત્યાર સુધીનું તમારું જીવન",
           match_report: {
             wealth: "ધન અનુકૂળતા",
             health: "આરોગ્ય અનુકૂળતા",
@@ -12824,6 +12899,7 @@ export const resources = {
         amplifiers: "કાર્મિક વર્ધકો",
         strength: { strong: "મજબૂત", average: "સામાન્ય", weak: "નબળું" },
         analysis: { title: "વિગતવાર વિશ્લેષણ" },
+        lifeSoFar: { title: "અત્યાર સુધીનું તમારું જીવન" },
         strengths: "શક્તિઓ",
         cautions: "સાવધાની",
       },
@@ -13000,6 +13076,7 @@ export const resources = {
           luckyDayColor: "ભાગ્યશાળી દિવસ અને રંગો",
           challengeNumbers: "ચેલેન્જ અંકો",
           loShuGrid: "લો શૂ ગ્રિડ",
+          planetStrength: "ગ્રહ બળ",
         },
       },
       kundliPage: {

@@ -622,3 +622,76 @@ describe("a plain YYYY-MM-DD date string (e.g. name_change's dob) is date-format
     expect((fact as { value: string }).value).toBe("Very Good Match");
   });
 });
+
+describe("planetCondition is grounding prose and must never reach the page", () => {
+  // The regression this guards: `planetCondition` is the raw Shadbala/retrogression block
+  // the backend attaches to EVERY report's `scores` for the narrative prompt. Its lines are
+  // addressed to the MODEL — the closing one literally ends `Do NOT quote these percentages
+  // or the word "Shadbala" to the user` — and for a while it rendered verbatim as a
+  // full-width "Planet Condition" card on every generic-path report.
+  const REAL_LEAKED_LINE =
+    'STRENGTH RULE: A yoga, house promise, or dasha result only delivers in proportion to the ' +
+    'strength of the planet that rules it. These planets are below the classical minimum: Mars, ' +
+    'Sun, Mercury. Do NOT quote these percentages or the word "Shadbala" to the user; let them ' +
+    "shape how confidently you phrase the result.";
+
+  it("drops planetCondition entirely from the rendered facts", () => {
+    const facts = buildScoreFacts({
+      marriageScore: 64,
+      planetCondition: ["Retrograde at birth: Jupiter, Venus.", REAL_LEAKED_LINE],
+    });
+    expect(facts.map((f) => f.key)).toEqual(["marriageScore"]);
+  });
+
+  it("never renders the model-directed instruction text anywhere in the fact list", () => {
+    const facts = buildScoreFacts({ planetCondition: [REAL_LEAKED_LINE] });
+    expect(JSON.stringify(facts)).not.toContain("Shadbala");
+    expect(JSON.stringify(facts)).not.toContain("Do NOT quote");
+  });
+});
+
+describe("isPlanetStrengthArray / planetStrength classification", () => {
+  const rows = [
+    { planet: "Saturn", pct: 122, isStrong: true, isRetrograde: false, isCombust: false },
+    { planet: "Mercury", pct: 69, isStrong: false, isRetrograde: true, isCombust: true },
+  ];
+
+  it("classifies the backend's planetStrength rows as their own rich fact type", () => {
+    const fact = buildScoreFact("planetStrength", rows);
+    expect(fact?.type).toBe("planetStrength");
+    expect((fact as { planets: typeof rows }).planets).toEqual(rows);
+  });
+
+  it("preserves a pct above 100 rather than clamping it — 100 is the pass mark, not the max", () => {
+    const fact = buildScoreFact("planetStrength", rows);
+    expect((fact as { planets: typeof rows }).planets[0]!.pct).toBe(122);
+  });
+
+  it("does not swallow the other planet-keyed shapes", () => {
+    // gemstones, pakkaGhar and blindPlanets are all arrays of objects with a `planet` key;
+    // only planetStrength carries `pct`.
+    const gemstones = [
+      {
+        planet: "Venus",
+        role: "Yogakaraka",
+        benefit: "Harmony",
+        strength: "strong",
+        reason: "r",
+        preference: 1,
+        color: "white",
+        conditionalCautionApplies: false,
+      },
+    ];
+    const blind = [
+      { planet: "Mars", house: 6, isBlind: true, isHalfBlind: false, reason: "r" },
+    ];
+    expect(buildScoreFact("gemstones", gemstones)?.type).toBe("gemstones");
+    expect(buildScoreFact("blindPlanets", blind)?.type).toBe("blindPlanets");
+  });
+
+  it("rejects a row missing pct or isStrong", () => {
+    expect(buildScoreFact("planetStrength", [{ planet: "Sun", pct: 80 }])?.type).not.toBe(
+      "planetStrength",
+    );
+  });
+});

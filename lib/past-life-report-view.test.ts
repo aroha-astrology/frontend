@@ -65,11 +65,15 @@ describe("buildPastLifeView", () => {
     });
   });
 
-  it("names a lucide icon for every one of the backend's 3 section ids", () => {
+  it("names a lucide icon for every one of the backend's 4 section ids", () => {
+    // Order matters: it mirrors REPORT_SECTION_IDS.past_life, which assignSectionIds zips on
+    // by position. `life_so_far` is last because that list is append-only — see the backend's
+    // config/report-sections.ts for why an id can never be inserted mid-sequence.
     expect(Object.keys(SECTION_ICON)).toEqual([
       "karmic_pattern",
       "karmic_axis_theme",
       "unfinished_business_soul_lesson",
+      "life_so_far",
     ]);
   });
 });

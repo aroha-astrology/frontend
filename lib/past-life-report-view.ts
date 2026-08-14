@@ -81,9 +81,10 @@ export function buildPastLifeView(scores: Record<string, unknown>): PastLifeView
   };
 }
 
-/** past_life has only 3 sections. */
+/** 4 sections; `life_so_far` is absent on reports generated before it was added. */
 export const SECTION_ICON: Record<string, string> = {
   karmic_pattern: "Sparkles",
   karmic_axis_theme: "Scale",
   unfinished_business_soul_lesson: "Flame",
+  life_so_far: "Layers",
 };

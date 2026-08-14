@@ -14,9 +14,15 @@ import Callout from "@/components/reports/blocks/Callout";
 import Checklist from "@/components/reports/blocks/Checklist";
 import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
 import ReportHero from "@/components/reports/ReportHero";
+import PlanetStrengthCard from "@/components/reports/PlanetStrengthCard";
 import { DESIGNED_SCREENS } from "@/components/reports/designed-screens";
 import { useReport, type ReportReady } from "@/hooks/useReport";
-import { humanizeKey, isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
+import {
+  humanizeKey,
+  isPlanetStrengthArray,
+  isReportHeader,
+  isReportVerdict,
+} from "@/lib/report-score-facts";
 import { formatPeriodMonth } from "@/lib/reports-logic";
 import { maybeRequestReview, markReportGeneratedForReview } from "@/lib/app-review";
 
@@ -90,6 +96,11 @@ export default function ReportDetailPage() {
     return (
       <section key={i}>
         <h2 className="font-display text-base text-gold mb-2">{resolveHeading(s)}</h2>
+        {s.hook && (
+          <p className="mb-3 border-l-2 border-gold/40 pl-3 font-display text-[15px] leading-snug text-gold/90">
+            {s.hook}
+          </p>
+        )}
         <div className="space-y-2.5">
           {s.paragraphs.map((p, j) => (
             <p key={j} className="text-sm text-foreground/85 leading-relaxed">
@@ -166,7 +177,24 @@ export default function ReportDetailPage() {
           </div>
         )}
 
-        {state === "ready" && data && designed && <designed.View data={data} />}
+        {state === "ready" && data && designed && (
+          <>
+            <designed.View data={data} />
+            {/* The 10 designed screens compose their own cards and never call
+                ReportScoreFacts, so the strength card is appended once here rather than
+                pasted into each View. It sits last deliberately — it is supporting chart
+                detail, not a headline. Generic-path reports get it through
+                ReportScoreFacts below, from the same `scores.planetStrength`. */}
+            {isPlanetStrengthArray(data.scores.planetStrength) && (
+              <section>
+                <h2 className="mb-2 font-display text-base text-gold">
+                  {t("reportScores.label.planetStrength")}
+                </h2>
+                <PlanetStrengthCard planets={data.scores.planetStrength} />
+              </section>
+            )}
+          </>
+        )}
 
         {state === "ready" && data && !designed && (
           <>

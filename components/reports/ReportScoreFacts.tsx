@@ -15,6 +15,7 @@ import ForecastTable from "./ForecastTable";
 import LoShuGridCard from "./LoShuGridCard";
 import ChallengeNumbersCard from "./ChallengeNumbersCard";
 import NamePlanesCard from "./NamePlanesCard";
+import PlanetStrengthCard from "./PlanetStrengthCard";
 import {
   RemedyPlacementsCards,
   KarmicDebtsCards,
@@ -46,7 +47,8 @@ type RichFact = Extract<
       | "remedyPlacements"
       | "karmicDebts"
       | "pakkaGhar"
-      | "blindPlanets";
+      | "blindPlanets"
+      | "planetStrength";
   }
 >;
 type NestedFact = Extract<ScoreFact, { type: "nested" }>;
@@ -230,6 +232,7 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           {f.type === "karmicDebts" && <KarmicDebtsCards debts={f.debts} />}
           {f.type === "pakkaGhar" && <PakkaGharCards placements={f.placements} />}
           {f.type === "blindPlanets" && <BlindPlanetsCards planets={f.planets} />}
+          {f.type === "planetStrength" && <PlanetStrengthCard planets={f.planets} />}
           {f.type === "yearlyForecast" && (
             <ForecastTable
               rows={f.rows}

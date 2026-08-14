@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { Heart, Users } from "lucide-react";
 import { buildTrueLoveView, SECTION_ICON } from "@/lib/true-love-report-view";
 import {
   isAgeBandArray,
@@ -21,8 +22,9 @@ import AgeBandHeatStrip from "../AgeBandHeatStrip";
 import AnalysisAccordion from "../AnalysisAccordion";
 import StrengthsCautions from "../StrengthsCautions";
 import TopWindowCard from "../TopWindowCard";
+import TiltGauge from "../TiltGauge";
 import LoveDialsCard from "./LoveDialsCard";
-import TiltGauge from "./TiltGauge";
+
 import type { ReportReady } from "@/hooks/useReport";
 
 /**
@@ -61,7 +63,18 @@ export default function TrueLoveReportView({ data }: { data: ReportReady }) {
         headline={verdict?.headline ?? null}
       />
 
-      {view.tilt && <TiltGauge tilt={view.tilt} />}
+      {view.tilt && (
+        <TiltGauge
+          tilt={view.tilt}
+          titleKey="trueLoveReport.tilt.title"
+          leanKeyPrefix="trueLoveReport.tilt.lean"
+          lowKey="trueLoveReport.tilt.arranged"
+          highKey="trueLoveReport.tilt.love"
+          LowIcon={Users}
+          HighIcon={Heart}
+          trackClass="from-sky-500/30 via-border to-rose-500/30"
+        />
+      )}
 
       {isRankedWindowArray(scores.windows) && (
         <TopWindowCard

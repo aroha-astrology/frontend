@@ -3,6 +3,7 @@
 import MarriageReportView from "./marriage/MarriageReportView";
 import KundliMilanReportView from "./kundli-milan/KundliMilanReportView";
 import TrueLoveReportView from "./true-love/TrueLoveReportView";
+import WealthReportView from "./wealth/WealthReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
@@ -39,5 +40,10 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: TrueLoveReportView,
     artSrc: "/true-love/couple.png",
     subtitleKey: "trueLoveReport.subtitle",
+  },
+  wealth: {
+    View: WealthReportView,
+    artSrc: "/wealth/kalash.png",
+    subtitleKey: "wealthReport.subtitle",
   },
 };

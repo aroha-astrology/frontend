@@ -28,25 +28,25 @@ describe("buildTrueLoveView", () => {
   });
 
   it("maps the 0-10 tilt onto a percentage and a direction", () => {
-    expect(buildTrueLoveView(scores()).tilt).toEqual({ pct: 72, lean: "love" });
+    expect(buildTrueLoveView(scores()).tilt).toEqual({ pct: 72, lean: "high" });
     expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 2 })).tilt).toEqual({
       pct: 20,
-      lean: "arranged",
+      lean: "low",
     });
   });
 
   it("keeps the neutral band wide rather than splitting hairs at the midpoint", () => {
     for (const raw of [4, 5, 6]) {
-      expect(buildTrueLoveView(scores({ loveVsArrangedTilt: raw })).tilt?.lean).toBe("balanced");
+      expect(buildTrueLoveView(scores({ loveVsArrangedTilt: raw })).tilt?.lean).toBe("mid");
     }
-    expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 6.1 })).tilt?.lean).toBe("love");
-    expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 3.9 })).tilt?.lean).toBe("arranged");
+    expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 6.1 })).tilt?.lean).toBe("high");
+    expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 3.9 })).tilt?.lean).toBe("low");
   });
 
   it("clamps out-of-range values instead of drawing a bar past its track", () => {
     expect(buildTrueLoveView(scores({ loveVsArrangedTilt: 99 })).tilt).toEqual({
       pct: 100,
-      lean: "love",
+      lean: "high",
     });
     expect(buildTrueLoveView(scores({ romanceScore: 140 })).romance?.score).toBe(100);
     expect(buildTrueLoveView(scores({ romanceScore: -5 })).romance?.score).toBe(0);

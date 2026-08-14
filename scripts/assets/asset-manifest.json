@@ -89,6 +89,14 @@
       "rect": [1027, 87, 1138, 202],
       "alpha": null,
       "outputs": ["true-love/couple"]
+    },
+    {
+      "_note": "Wealth hero: kalash, gold coins, treasure chest and lotus. Bright subject, which would normally suit a steep ramp - but its background is a textured dark-warm wash rather than flat black, so keying leaves a dirty semi-opaque box AND eats the artwork's own shadowed areas. alpha null, feathered by ReportHero's gradient mask like the other two heroes. public/reports/wealth.png stays as the 44px list thumbnail (427x209, far better than this crop).",
+      "name": "wealth-kalash",
+      "sheet": "allReports",
+      "rect": [310, 89, 432, 200],
+      "alpha": null,
+      "outputs": ["wealth/kalash"]
     }
   ]
 }

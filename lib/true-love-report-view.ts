@@ -10,6 +10,8 @@
  * end to end and the backend recomputes it on every read, so a report generated before a
  * given field shipped simply omits it and each mapper degrades to null instead of throwing.
  */
+import type { TiltLean } from "@/components/reports/TiltGauge";
+
 
 /** Shared with marriage's OutlookBand thresholds (90-100 / 70-89 / 50-69 in the mock), but
  * declared here rather than imported so the two screens can diverge without one silently
@@ -34,7 +36,9 @@ export interface Dial {
  */
 export interface Tilt {
   pct: number;
-  lean: "love" | "balanced" | "arranged";
+  /** Positional, not domain-named: `high` is the love-marriage end of the track, `low` the
+   * arranged end. Shares the vocabulary of the generic TiltGauge, which several reports use. */
+  lean: TiltLean;
 }
 
 export interface TrueLoveView {
@@ -70,7 +74,7 @@ function readTilt(v: unknown): Tilt | null {
   const clamped = Math.min(Math.max(raw, 0), 10);
   return {
     pct: Math.round(clamped * 10),
-    lean: clamped > 6 ? "love" : clamped < 4 ? "arranged" : "balanced",
+    lean: clamped > 6 ? "high" : clamped < 4 ? "low" : "mid",
   };
 }
 

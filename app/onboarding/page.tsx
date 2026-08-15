@@ -337,8 +337,10 @@ function OnboardingPageInner() {
 
   const handleRelationship = async (key: string, label: string) => {
     // Rejoins the normal flow at step 3 (DOB) — Q[2] is the same DOB question
-    // asked right after the name step in the primary flow.
-    await advance({ relationship: key }, label, Q[2], 3);
+    // asked right after the name step in the primary flow, so it needs the
+    // same {name} interpolation the primary flow applies at line ~294.
+    const dobQ = Q[2].replace("{name}", answers.name ?? "").replace("{{name}}", answers.name ?? "");
+    await advance({ relationship: key }, label, dobQ, 3);
   };
 
   // ── Time source (step 5)

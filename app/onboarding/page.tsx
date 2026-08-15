@@ -609,7 +609,7 @@ function OnboardingPageInner() {
                   // the browser's own dd/mm/yyyy hint. The bot's question above
                   // the field carries the instruction.
                   placeholder={step === 2 ? t("onboarding.step2hint") : undefined}
-                  className="flex-1 bg-transparent py-3 text-[15px] text-foreground placeholder:text-muted/40 outline-none"
+                  className="flex-1 bg-transparent py-3 text-[16px] text-foreground placeholder:text-muted/40 outline-none"
                   autoFocus={step === 2}
                 />
                 <button
@@ -642,7 +642,7 @@ function OnboardingPageInner() {
           {step === 7 && (
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
-              inputClassName="w-full bg-transparent py-3 px-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
+              inputClassName="w-full bg-transparent py-3 px-4 text-[16px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
               worldwide={!user?.phoneE164}
               onSelect={(place) => {
                 if (!place) {

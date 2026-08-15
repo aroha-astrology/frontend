@@ -164,7 +164,7 @@ export default function AuthMethodPanel({ variant, onIdleChange }: AuthMethodPan
                 onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 10)); phoneAuth.setErrorKey(null); }}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder={t("auth.phonePlaceholder")}
-                className="flex-1 bg-transparent py-4 pr-4 text-[15px] text-foreground placeholder:text-muted/40 outline-none"
+                className="flex-1 bg-transparent py-4 pr-4 text-[16px] text-foreground placeholder:text-muted/40 outline-none"
               />
             </div>
             {errorText && <p className="mt-2 text-[12px] text-red-400">{errorText}</p>}

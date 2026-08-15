@@ -955,7 +955,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 }}
                 placeholder={t("aiChatPage.inputPlaceholder")}
                 rows={1}
-                className="flex-1 resize-none outline-none text-sm py-2.5 bg-transparent max-h-[120px] disabled:opacity-50"
+                className="flex-1 resize-none outline-none text-base py-2.5 bg-transparent max-h-[120px] disabled:opacity-50"
                 style={{ color: "var(--foreground)" }}
               />
               {SpeechRecognitionCtor && (

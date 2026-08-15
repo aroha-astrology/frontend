@@ -305,7 +305,7 @@ export default function PaymentPage() {
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder={t("payment.couponPlaceholder")}
-                        className="flex-1 min-w-0 h-11 rounded-xl px-3.5 outline-none border text-sm focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase placeholder:normal-case"
+                        className="flex-1 min-w-0 h-11 rounded-xl px-3.5 outline-none border text-base focus:border-gold/60 transition-colors bg-surface border-border text-foreground uppercase placeholder:normal-case"
                       />
                       <button
                         onClick={handleApplyCoupon}

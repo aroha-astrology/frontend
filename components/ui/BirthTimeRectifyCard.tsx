@@ -105,12 +105,12 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
               type="date"
               value={e.date}
               onChange={(ev) => update(i, { date: ev.target.value })}
-              className="min-w-0 flex-1 rounded-xl border border-gold/10 bg-transparent px-3 py-2 text-sm text-white"
+              className="min-w-0 flex-1 rounded-xl border border-gold/10 bg-transparent px-3 py-2 text-base text-white"
             />
             <select
               value={e.domain}
               onChange={(ev) => update(i, { domain: ev.target.value as RectifyDomain })}
-              className="rounded-xl border border-gold/10 bg-transparent px-2 py-2 text-sm text-white"
+              className="rounded-xl border border-gold/10 bg-transparent px-2 py-2 text-base text-white"
             >
               {DOMAIN_GROUPS.map(({ group, options }) => (
                 <optgroup

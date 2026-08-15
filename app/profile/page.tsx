@@ -40,7 +40,7 @@ function ReadRow({ label, value }: { label: string; value: string }) {
 }
 
 const inputClass =
-  "w-full h-12 rounded-xl px-3.5 outline-none border text-sm focus:border-gold/60 transition-colors bg-surface border-border text-foreground";
+  "w-full h-12 rounded-xl px-3.5 outline-none border text-base focus:border-gold/60 transition-colors bg-surface border-border text-foreground";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 

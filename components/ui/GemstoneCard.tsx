@@ -63,7 +63,7 @@ function GemstoneWeightSheet({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={t("kundli.gemstone.weightPlaceholder")}
-          className="flex-1 h-12 rounded-xl border border-gold/20 bg-surface px-4 text-sm text-foreground outline-none focus:border-gold/50"
+          className="flex-1 h-12 rounded-xl border border-gold/20 bg-surface px-4 text-base text-foreground outline-none focus:border-gold/50"
         />
         <span className="text-sm text-muted">{t("kundli.gemstone.weightUnit")}</span>
       </div>

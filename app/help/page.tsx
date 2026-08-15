@@ -44,7 +44,7 @@ function truncate(text: string, max: number): string {
 }
 
 const textareaClass =
-  "w-full rounded-xl px-3.5 py-3 outline-none border text-sm focus:border-gold/60 transition-colors bg-surface border-border text-foreground resize-none";
+  "w-full rounded-xl px-3.5 py-3 outline-none border text-base focus:border-gold/60 transition-colors bg-surface border-border text-foreground resize-none";
 
 export default function HelpPage() {
   const { t, i18n } = useTranslation();

@@ -223,7 +223,7 @@ export default function CompatibilityPage() {
   };
 
   const inputClass =
-    "w-full h-14 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
+    "w-full h-14 rounded-2xl px-4 outline-none border text-base focus:border-yellow-500/60 transition-colors";
   const style = { background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" };
 
   const renderPersonFields = (who: "boy" | "girl", label: string, disabled = false) => (

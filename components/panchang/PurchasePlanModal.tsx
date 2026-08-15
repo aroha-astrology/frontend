@@ -164,12 +164,12 @@ export default function PurchasePlanModal({ isOpen, panchangDate, onClose, onSub
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
               placeholder={t("purchasePlan.describeOther")}
-              className="w-full rounded-xl border border-gold/20 bg-surface/40 px-3 py-2 text-sm text-foreground placeholder:text-muted"
+              className="w-full rounded-xl border border-gold/20 bg-surface/40 px-3 py-2 text-base text-foreground placeholder:text-muted"
             />
             <select
               value={costBracket}
               onChange={(e) => setCostBracket(e.target.value)}
-              className="w-full rounded-xl border border-gold/20 bg-surface/40 px-3 py-2 text-sm text-foreground"
+              className="w-full rounded-xl border border-gold/20 bg-surface/40 px-3 py-2 text-base text-foreground"
             >
               <option value="">{t("purchasePlan.costBracket")}</option>
               {COST_BRACKETS.map((b) => (

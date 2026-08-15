@@ -442,7 +442,7 @@ export default function KundliPage() {
       : form.name || null;
 
   const inputClass =
-    "w-full h-14 rounded-2xl px-4 outline-none border text-sm transition-colors focus:border-gold/60 bg-surface border-border text-foreground";
+    "w-full h-14 rounded-2xl px-4 outline-none border text-base transition-colors focus:border-gold/60 bg-surface border-border text-foreground";
 
   // Only offer the Plain/Technical toggle once a chart actually exists to
   // switch views on — not during the loading/onboarding-form states below.

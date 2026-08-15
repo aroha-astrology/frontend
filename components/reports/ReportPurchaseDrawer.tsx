@@ -126,7 +126,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   };
 
   const inputClass =
-    "w-full h-12 rounded-2xl px-4 outline-none border text-sm focus:border-yellow-500/60 transition-colors";
+    "w-full h-12 rounded-2xl px-4 outline-none border text-base focus:border-yellow-500/60 transition-colors";
   const style = { background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" };
 
   // "What this report covers" — an array per reportKey under i18n/resources.ts's

@@ -341,7 +341,7 @@ function AiResult({ result, canAsk, onAsk, asking, askError }: {
           <div className="flex flex-col gap-2">
             <p className="text-[11px] text-muted">{t("vastu.analysis.askHint")}</p>
             <div className="flex gap-2">
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("vastu.analysis.askPlaceholder")} className="flex-1 rounded-xl border border-gold/20 bg-surface px-3 py-2.5 text-xs text-foreground outline-none focus:border-gold/50" maxLength={500} />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("vastu.analysis.askPlaceholder")} className="flex-1 rounded-xl border border-gold/20 bg-surface px-3 py-2.5 text-base text-foreground outline-none focus:border-gold/50" maxLength={500} />
               <button onClick={() => q.trim().length > 1 && onAsk(q.trim())} disabled={asking || q.trim().length < 2} className="rounded-xl bg-gold/15 border border-gold/30 text-gold px-3.5 flex items-center justify-center disabled:opacity-40">
                 {asking ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
               </button>

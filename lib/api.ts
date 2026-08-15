@@ -75,6 +75,13 @@ export interface User {
    * card, which reports no outcome back and can never set it.
    */
   feedbackGiven: boolean;
+  /**
+   * Keys (e.g. "independence_day_2026") of every one-time claim campaign this
+   * user has already redeemed via POST /v1/me/claim-bonus/{campaignKey} — see
+   * the backend's config/campaigns.ts. Server truth, so a claim modal never
+   * offers a claim a second device already redeemed.
+   */
+  claimedCampaigns: string[];
   /** Referral code for this user */
   referralCode: string | null;
   /** Source of the referral (who referred this user) */
@@ -987,6 +994,20 @@ export const api = {
       body: { houseNumber },
       auth: true,
     }),
+
+  /**
+   * Claim a one-time wallet bonus campaign (e.g. "independence_day_2026" —
+   * see the backend's config/campaigns.ts). `claimed: false` in the response
+   * means this user already claimed it before, not an error. Throws ApiError
+   * with status 409 if the claim window has closed or the offer is disabled.
+   * Caller should re-fetch the user (`refresh()` from useAuth) afterward to
+   * pick up the updated wallet balance/claimedCampaigns.
+   */
+  claimCampaignBonus: (campaignKey: string) =>
+    request<{ claimed: boolean; walletBalancePaise: number }>(
+      `/v1/me/claim-bonus/${campaignKey}`,
+      { method: "POST", auth: true },
+    ),
 
   /**
    * Spend wallet balance to unlock the full gemstone report (whole report, one-time).

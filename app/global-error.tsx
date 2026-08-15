@@ -36,7 +36,10 @@ export default function GlobalError({
           justifyContent: "center",
           gap: "1.5rem",
           fontFamily: "sans-serif",
-          padding: "0 2rem",
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "2rem",
+          paddingRight: "2rem",
           textAlign: "center",
         }}
       >

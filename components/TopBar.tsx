@@ -72,7 +72,7 @@ export default function TopBar() {
   return (
     <>
       <div className="sticky top-0 z-20 w-full bg-background/90 backdrop-blur-xl">
-        <div className="flex justify-between items-center px-5 pt-8 pb-4 relative w-full max-w-lg mx-auto">
+        <div className="flex justify-between items-center px-5 pt-[calc(2rem+var(--sat))] pb-4 relative w-full max-w-lg mx-auto">
           <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
             <Menu size={20} />
           </IconButton>

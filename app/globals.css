@@ -39,15 +39,17 @@
   /* ── Layout metrics (theme-independent — do not duplicate in .light) ── */
   /* 0px where there is no system nav bar, so --tab-bar-h collapses to 5rem. */
   --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
   --tab-bar-h: calc(5rem + var(--sab));
   /* TopBar's (components/TopBar.tsx) own rendered height on a route with no
-     useTopBarRightContent row: pt-8(2rem) + pb-4(1rem) + h-10(2.5rem) icon
-     row = 5.5rem. Only a route using a fixed-viewport layout (h-[100dvh]
-     overflow-hidden, e.g. ai-chat's ChatConversation) needs to subtract this;
-     most pages use normal document-flow scrolling and don't need it at all.
-     If a route adds a right-content row via useTopBarRightContent, TopBar
-     grows taller than this constant accounts for. */
-  --topbar-h: 5.5rem;
+     useTopBarRightContent row: pt-[2rem+sat](notch-aware) + pb-4(1rem) +
+     h-10(2.5rem) icon row = 5.5rem + --sat. Only a route using a
+     fixed-viewport layout (h-[100dvh] overflow-hidden, e.g. ai-chat's
+     ChatConversation) needs to subtract this; most pages use normal
+     document-flow scrolling and don't need it at all. If a route adds a
+     right-content row via useTopBarRightContent, TopBar grows taller than
+     this constant accounts for. */
+  --topbar-h: calc(5.5rem + var(--sat));
 }
 
 /* ── Light theme — luxury editorial, ivory paper ── */

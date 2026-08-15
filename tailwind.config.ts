@@ -30,6 +30,7 @@ const config: Config = {
       },
       spacing: {
         sab: "var(--sab)",
+        sat: "var(--sat)",
         "tab-bar": "var(--tab-bar-h)",
         "tab-safe": "calc(var(--tab-bar-h) + 2rem)",
       },

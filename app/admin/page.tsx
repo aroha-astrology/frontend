@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { adminApi, type AdminOverview, type AdminUserRow } from "@/lib/admin-api";
+import { adminApi, type AdminOverview, type AdminUserRow, type AdminRecurringUsersWeek } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import {
@@ -27,6 +27,13 @@ import CostSplitBar from "@/components/admin/CostSplitBar";
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
+
+const RECURRING_WEEK_LABELS: Record<AdminRecurringUsersWeek["label"], string> = {
+  this_week: "This Week",
+  last_week: "Last Week",
+  last_week_plus_1: "Last Week +1",
+  last_week_plus_2: "Last Week +2",
+};
 
 function defaultCustomRange(): { from: string; to: string } {
   const to = new Date();
@@ -135,6 +142,25 @@ function AdminOverviewContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, fx.rate]);
 
+  // Recurring users: a fixed four-week comparison, independent of the
+  // DateRangePicker/userId above — same "always as of now" convention as
+  // periodBillingPaise. Fetched once on mount, no inputs to depend on.
+  const [recurringWeeks, setRecurringWeeks] = useState<AdminRecurringUsersWeek[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .recurringUsers()
+      .then((res) => {
+        if (!cancelled) setRecurringWeeks(res.weeks);
+      })
+      .catch(() => {
+        if (!cancelled) setRecurringWeeks(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const fetchOverview = useCallback(() => {
     if (!canFetch) return;
     setLoading(true);
@@ -202,6 +228,53 @@ function AdminOverviewContent() {
               <KpiTile label="ARPU" value={formatRupees(data.arpuPaise)} />
               <KpiTile label="New Users" value={String(data.newUsers)} />
               <KpiTile label="Active Users" value={String(data.activeUsers)} />
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-foreground mb-3">Recurring Users</h2>
+              <Card className="p-4 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] text-muted uppercase tracking-wide">
+                      <th className="pb-2 font-medium">Week</th>
+                      <th className="pb-2 font-medium text-right">Active Users</th>
+                      <th className="pb-2 font-medium text-right">Recurring Users</th>
+                      <th className="pb-2 font-medium text-right">Recurring %</th>
+                      <th className="pb-2 font-medium text-right">Time Spent (hrs)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!recurringWeeks ? (
+                      <tr>
+                        <td colSpan={5} className="text-muted text-center py-4">
+                          Loading…
+                        </td>
+                      </tr>
+                    ) : (
+                      recurringWeeks.map((week) => (
+                        <tr key={week.label} className="border-t border-border">
+                          <td className="py-2 text-foreground">{RECURRING_WEEK_LABELS[week.label]}</td>
+                          <td className="py-2 text-right text-foreground">{week.activeUsers.toLocaleString()}</td>
+                          <td className="py-2 text-right text-foreground">{week.recurringUsers.toLocaleString()}</td>
+                          <td className="py-2 text-right text-muted">
+                            {week.activeUsers === 0
+                              ? "—"
+                              : `${Math.round((week.recurringUsers / week.activeUsers) * 100)}%`}
+                          </td>
+                          <td className="py-2 text-right text-muted">{week.timeSpentHours.toFixed(1)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </Card>
+              <p className="text-[11px] text-muted mt-2 max-w-2xl">
+                <strong>Recurring</strong> = active that week AND active at least once in an earlier week (returning,
+                not first-time) — derived from existing chat/voice/report/order/AI-usage history, since per-user
+                activity isn&apos;t logged as a standalone event elsewhere. <strong>Time Spent</strong> approximates
+                engagement from chat session duration plus voice minutes charged — it does not capture time spent
+                just reading reports or browsing.
+              </p>
             </section>
 
             <section className="mb-8">

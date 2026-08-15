@@ -199,6 +199,21 @@ export interface AdminReferralsResponse {
   referrals: AdminReferralRow[];
 }
 
+// ─── Recurring users ───────────────────────────────────────────────────────
+
+export interface AdminRecurringUsersWeek {
+  label: "this_week" | "last_week" | "last_week_plus_1" | "last_week_plus_2";
+  from: string;
+  to: string;
+  activeUsers: number;
+  recurringUsers: number;
+  timeSpentHours: number;
+}
+
+export interface AdminRecurringUsersResponse {
+  weeks: AdminRecurringUsersWeek[];
+}
+
 
 
 // ─── Client ────────────────────────────────────────────────────────────────
@@ -314,5 +329,8 @@ export const adminApi = {
 
   /** All referral relationships — who referred whom, grouped by referrer, sorted by count desc. */
   listReferrals: () => request<AdminReferralsResponse>("/v1/admin/referrals", { auth: true }),
+
+  /** Recurring-user counts + approximate time spent for this week, last week, last week+1, last week+2. */
+  recurringUsers: () => request<AdminRecurringUsersResponse>("/v1/admin/recurring-users", { auth: true }),
 };
 

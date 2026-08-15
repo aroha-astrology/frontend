@@ -246,7 +246,7 @@ export const adminApi = {
       contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedIndependenceDay";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {

@@ -16,7 +16,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
 const LIMIT = 20;
 
-type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise";
+type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedIndependenceDay";
 type ContactType = "all" | "phone" | "email";
 
 function formatDate(iso: string | null): string {
@@ -288,7 +288,16 @@ export default function AdminUsersPage() {
                         {sortBy === "lastActiveAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
-                    <th className="px-4 py-2 font-medium">🇮🇳 Aug 15</th>
+                    <th className="px-4 py-2 font-medium">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("claimedIndependenceDay")}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        🇮🇳 Aug 15
+                        {sortBy === "claimedIndependenceDay" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
                     <th className="px-4 py-2 font-medium" />
                   </tr>
                 </thead>

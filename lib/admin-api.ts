@@ -88,6 +88,8 @@ export interface AdminUserRow {
   walletBalancePaise: number;
   createdAt: string;
   lastActiveAt: string | null;
+  /** Has this user claimed the Independence Day 2026 wallet bonus (independence_day_2026 campaign)? */
+  claimedIndependenceDay: boolean;
 }
 
 export interface AdminUsersResponse {

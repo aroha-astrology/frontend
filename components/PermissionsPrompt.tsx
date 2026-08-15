@@ -11,22 +11,25 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { api } from "@/lib/api";
 import { getDeviceId, markPushRefreshed } from "@/lib/device-id";
 
-// v3: re-asks at most once every RE_ASK_AFTER_DAYS instead of permanently
-// suppressing after the first ask. v2's ASKED_KEY blocked this prompt from
-// ever running again for anyone who tapped "Not now" or had a technical
-// failure — meaning a user who later wanted push had no way back in short of
-// reinstalling. PushNotificationListener.tsx now handles the actual token
-// self-healing (silent re-register on every launch when already granted);
-// this component is only the periodic ASK for users who aren't granted yet.
+// v2's ASKED_KEY permanently suppressed this prompt after the first ask —
+// meaning a user who tapped "Not now" (or hit a technical failure) had no
+// way back in short of reinstalling. v3 changed that to a 30-day re-ask
+// cooldown. v4 dropped the cooldown entirely: now re-asks on every login
+// where the OS still reports not-granted, at the user's explicit request
+// during the Independence Day campaign (push reach was the bottleneck —
+// a dead/never-registered token means broadcasts can't reach that user at
+// all, and only re-prompting in-app can fix it). PushNotificationListener.tsx
+// separately handles silent token self-healing when already granted.
+// ASKED_AT_KEY is still stamped as a "last asked" timestamp but no longer
+// gates anything.
 const ASKED_AT_KEY = "aroha:permissionsAskedAt:v3";
 const DENIED_KEY = "aroha:permissionsDenied:v3";
-const RE_ASK_AFTER_DAYS = 30;
 
 /**
- * One-time-per-cycle "enable location + notifications" prompt, shown after a
- * signed-in, onboarded user's first app launch (and again every
- * RE_ASK_AFTER_DAYS if still not granted). Native-only — gated on
- * Capacitor.isNativePlatform() so it never renders in a plain browser tab.
+ * "Enable location + notifications" prompt, shown on every signed-in,
+ * onboarded user's app launch while the OS still reports the permission as
+ * not granted. Native-only — gated on Capacitor.isNativePlatform() so it
+ * never renders in a plain browser tab.
  */
 export default function PermissionsPrompt() {
   const { t } = useTranslation();
@@ -64,13 +67,6 @@ export default function PermissionsPrompt() {
           return;
         }
 
-        const askedAt = window.localStorage.getItem(ASKED_AT_KEY);
-        const daysSinceAsk = askedAt ? (Date.now() - Number(askedAt)) / 86_400_000 : Infinity;
-        if (askedAt && daysSinceAsk < RE_ASK_AFTER_DAYS) {
-          markResolved();
-          return;
-        }
-
         setDeniedState(window.localStorage.getItem(DENIED_KEY) === "1");
         setVisible(true);
       } catch {
@@ -83,7 +79,7 @@ export default function PermissionsPrompt() {
     };
   }, [user?.profileCompletedAt, markResolved]);
 
-  /** Records a real decision (asked, and whether the OS denial is now known) so the next ask waits the full RE_ASK_AFTER_DAYS. */
+  /** Records a real decision (asked, and whether the OS denial is now known) — the DENIED_KEY flag picks which UI variant shows on the next login; the prompt itself always re-shows while the OS still reports not-granted. */
   const stampAsked = (denied: boolean) => {
     window.localStorage.setItem(ASKED_AT_KEY, String(Date.now()));
     if (denied) window.localStorage.setItem(DENIED_KEY, "1");
@@ -110,10 +106,11 @@ export default function PermissionsPrompt() {
   const enable = async () => {
     setBusy(true);
     // Only a real, permanent decision (an explicit grant or an explicit OS-level
-    // decline) suppresses the prompt for the full RE_ASK_AFTER_DAYS window. A
+    // decline) stamps DENIED_KEY, which only affects which UI variant shows next
+    // time — the prompt reappears on every login regardless while not granted. A
     // technical failure along the way (plugin not resolvable, getToken()
     // erroring, the register-token API call failing) is NOT a user decision —
-    // don't stamp ASKED_AT_KEY for those, so the prompt reappears next launch.
+    // don't stamp it as one, so a fresh attempt runs next launch.
     let permanent = false;
     let deniedNow = false;
     try {
@@ -162,9 +159,10 @@ export default function PermissionsPrompt() {
           // Leave `permanent` false — technical failure, not a user decision, so retry next launch.
         }
       } else if (perm.receive === "denied") {
-        // Explicit OS-level decline — respect it, don't re-request. It still
-        // gets re-surfaced (as the settings-redirect variant) in
-        // RE_ASK_AFTER_DAYS, since a user can change their mind via Settings.
+        // Explicit OS-level decline — respect it, don't re-request via the
+        // native permission dialog. It still gets re-surfaced (as the
+        // settings-redirect variant) on every subsequent login, since a user
+        // can change their mind via Settings.
         permanent = true;
         deniedNow = true;
       }

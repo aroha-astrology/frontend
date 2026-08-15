@@ -288,6 +288,7 @@ export default function AdminUsersPage() {
                         {sortBy === "lastActiveAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
+                    <th className="px-4 py-2 font-medium">🇮🇳 Aug 15</th>
                     <th className="px-4 py-2 font-medium" />
                   </tr>
                 </thead>
@@ -317,6 +318,15 @@ export default function AdminUsersPage() {
                             formatDate(u.lastActiveAt)
                           )}
                         </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        {u.claimedIndependenceDay ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
+                            Claimed
+                          </span>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">

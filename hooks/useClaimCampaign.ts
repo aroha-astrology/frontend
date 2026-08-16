@@ -39,8 +39,10 @@ export function useClaimCampaign(opts: {
   fallbackPaise: number;
   /** Per-device "I dismissed this" localStorage key, e.g. "aroha:independenceDay2026:v1". */
   dismissKey: string;
+  /** Offer it only while the wallet is strictly under this many paise. Server enforces the real check. */
+  maxBalancePaise?: number;
 }) {
-  const { campaignKey, featureKey, istDate, fallbackPaise, dismissKey } = opts;
+  const { campaignKey, featureKey, istDate, fallbackPaise, dismissKey, maxBalancePaise } = opts;
   const { user, refresh } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const feature = useFeature(featureKey);
@@ -59,12 +61,17 @@ export function useClaimCampaign(opts: {
   // this independently (defense-in-depth for a money endpoint); this just keeps the modal
   // from ever offering a claim it would refuse.
   const signedUpToday = user?.createdAt ? istDateOf(new Date(user.createdAt)) === istDate : false;
+  // Balance-gated campaigns only: don't offer a "running low" top-up to a wallet
+  // that isn't. Mirrors the server's own ceiling check, which is the real gate.
+  const balanceEligible =
+    maxBalancePaise === undefined || (user?.walletBalancePaise ?? 0) < maxBalancePaise;
 
   const visible =
     permissionsResolved &&
     !!user?.profileCompletedAt &&
     !alreadyClaimed &&
     !signedUpToday &&
+    balanceEligible &&
     feature.enabled &&
     istToday() === istDate &&
     !dismissed;

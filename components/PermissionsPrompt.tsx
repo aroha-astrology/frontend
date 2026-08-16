@@ -151,7 +151,7 @@ export default function PermissionsPrompt() {
           if (token && (currentPlatform === "android" || currentPlatform === "ios")) {
             await api.registerDeviceToken({ token, platform: currentPlatform, deviceId: getDeviceId() });
             console.log("[PermissionsPrompt] registerDeviceToken -> ok");
-            markPushRefreshed(); // Just registered — don't let the next launch re-fetch the token.
+            markPushRefreshed(user?.id ?? ""); // Just registered — don't let the next launch re-fetch the token.
             permanent = true; // Reached full success — a real, permanent decision.
           }
         } catch (err) {
@@ -212,18 +212,27 @@ export default function PermissionsPrompt() {
                 <div className="flex gap-3">
                   <button
                     onClick={dismiss}
-                    className="flex-1 py-3 rounded-xl border border-gold/20 text-foreground text-sm font-medium transition-opacity"
+                    disabled={busy}
+                    className="flex-1 py-3 rounded-xl border border-gold/20 text-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
                   >
                     {t("permissions.notNow")}
                   </button>
-                  {platform === "ios" && (
-                    <button
-                      onClick={openSettings}
-                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold transition-opacity"
-                    >
-                      {t("permissions.openSettings")}
-                    </button>
-                  )}
+                  {/* Every platform gets a working action here. iOS never re-shows
+                      its permission dialog once declined, so Settings is the only
+                      route back. Android DOES re-show it after a single decline
+                      (only a second one is permanent), so re-requesting is the
+                      route back — and this variant used to render no button at
+                      all on Android, leaving a user who declined once with no way
+                      to ever turn notifications on from inside the app. A
+                      permanently-declined Android user simply gets an instant
+                      "denied" and this same prompt again next login. */}
+                  <button
+                    onClick={platform === "ios" ? openSettings : enable}
+                    disabled={busy}
+                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold disabled:opacity-50 transition-opacity"
+                  >
+                    {platform === "ios" ? t("permissions.openSettings") : t("permissions.enable")}
+                  </button>
                 </div>
               </>
             ) : (

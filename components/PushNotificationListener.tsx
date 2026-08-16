@@ -50,7 +50,7 @@ export default function PushNotificationListener() {
           }
         });
 
-        if (userId && isPushRefreshDue()) {
+        if (userId && isPushRefreshDue(userId)) {
           try {
             const perm = await FirebaseMessaging.checkPermissions();
             if (perm.receive === "granted") {
@@ -58,7 +58,7 @@ export default function PushNotificationListener() {
               const platform = Capacitor.getPlatform();
               if (token && (platform === "android" || platform === "ios")) {
                 await api.registerDeviceToken({ token, platform, deviceId: getDeviceId() });
-                markPushRefreshed();
+                markPushRefreshed(userId);
               }
             }
           } catch (err) {

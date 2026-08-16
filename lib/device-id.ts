@@ -16,11 +16,26 @@ export function getDeviceId(): string {
   return id;
 }
 
-const PUSH_REFRESHED_KEY = "aroha:pushRefreshedAt:v1";
+/**
+ * Bumped to v2 when this became per-user (see isPushRefreshDue). The old
+ * un-suffixed v1 key is simply abandoned: every install reads a missing key
+ * once, registers, and re-throttles — which is the desired heal, not a cost.
+ */
+const PUSH_REFRESHED_KEY = "aroha:pushRefreshedAt:v2";
 const PUSH_REFRESH_EVERY_MS = 24 * 60 * 60 * 1000;
 
+const refreshKeyFor = (userId: string) => `${PUSH_REFRESHED_KEY}:${userId}`;
+
 /**
- * Whether the silent FCM token refresh is due (at most once a day).
+ * Whether the silent FCM token refresh is due for THIS user (at most once a
+ * day, per user, per install).
+ *
+ * Keyed per user because the throttle used to be per install, and a device
+ * token belongs to a (device, user) pair: a phone that had already refreshed
+ * today registered NOTHING when a different account signed in on it, since
+ * PermissionsPrompt skips registration outright when the OS already reports
+ * `granted`. That account then had zero tokens — invisible to every push and
+ * broadcast — until the 24h window happened to lapse.
  *
  * PushNotificationListener used to call FirebaseMessaging.getToken() on every
  * single cold start. That is both pointless — the token is almost always the
@@ -39,9 +54,9 @@ const PUSH_REFRESH_EVERY_MS = 24 * 60 * 60 * 1000;
  * Once a day still heals a token the backend revoked as dead within one day,
  * which is what the self-heal was written for, at ~1/20th the exposure.
  */
-export function isPushRefreshDue(): boolean {
-  if (typeof window === "undefined") return false;
-  const elapsed = Date.now() - Number(window.localStorage.getItem(PUSH_REFRESHED_KEY));
+export function isPushRefreshDue(userId: string): boolean {
+  if (typeof window === "undefined" || !userId) return false;
+  const elapsed = Date.now() - Number(window.localStorage.getItem(refreshKeyFor(userId)));
   // Fails OPEN on anything unusable: NaN (never stored, or corrupt) and a
   // negative elapsed (a clock that jumped backwards left a future timestamp)
   // both fall through to "due". Being due early costs one extra getToken();
@@ -49,8 +64,8 @@ export function isPushRefreshDue(): boolean {
   return !(elapsed >= 0 && elapsed < PUSH_REFRESH_EVERY_MS);
 }
 
-/** Starts the next refresh window. Call after a successful registration. */
-export function markPushRefreshed(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(PUSH_REFRESHED_KEY, String(Date.now()));
+/** Starts the next refresh window for this user. Call after a successful registration. */
+export function markPushRefreshed(userId: string): void {
+  if (typeof window === "undefined" || !userId) return;
+  window.localStorage.setItem(refreshKeyFor(userId), String(Date.now()));
 }

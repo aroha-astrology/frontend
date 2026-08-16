@@ -216,6 +216,25 @@ export interface AdminRecurringUsersResponse {
 
 
 
+// ─── Deletion requests ─────────────────────────────────────────────────────
+
+export interface AdminDeletionRequestRow {
+  id: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  email: string | null;
+  deletionRequestedAt: string;
+}
+
+export interface AdminDeletionRequestsResponse {
+  requests: AdminDeletionRequestRow[];
+}
+
+export interface AdminDeletionActionResponse {
+  id: string;
+  deletionRequestedAt: string | null;
+}
+
 // ─── Client ────────────────────────────────────────────────────────────────
 
 export interface AdminDateRangeParams {
@@ -332,5 +351,27 @@ export const adminApi = {
 
   /** Recurring-user counts + approximate time spent for this week, last week, last week+1, last week+2. */
   recurringUsers: () => request<AdminRecurringUsersResponse>("/v1/admin/recurring-users", { auth: true }),
+
+  /** Pending account-deletion requests, oldest first. No pagination — same precedent as listReferrals. */
+  listDeletionRequests: () =>
+    request<AdminDeletionRequestsResponse>("/v1/admin/deletion-requests", { auth: true }),
+
+  /** Manually flag a user for deletion (e.g. they called in rather than tapping Delete Account). Idempotent. */
+  flagForDeletion: (userId: string) =>
+    request<AdminDeletionActionResponse>(`/v1/admin/deletion-requests/${userId}`, {
+      method: "POST",
+      auth: true,
+    }),
+
+  /** Dismiss a pending request — the account stays exactly as it was. */
+  rejectDeletionRequest: (userId: string) =>
+    request<AdminDeletionActionResponse>(`/v1/admin/deletion-requests/${userId}/reject`, {
+      method: "PATCH",
+      auth: true,
+    }),
+
+  /** Irreversible hard delete — no shell row survives. */
+  hardDeleteUser: (userId: string) =>
+    request<{ id: string }>(`/v1/admin/deletion-requests/${userId}`, { method: "DELETE", auth: true }),
 };
 

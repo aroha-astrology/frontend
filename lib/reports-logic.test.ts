@@ -8,6 +8,7 @@ import {
   formatMonthName,
   filterVisibleReports,
   computeDiscount,
+  sortUnlockedFirst,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -168,6 +169,47 @@ describe("filterVisibleReports", () => {
       return true;
     });
     expect(seen).toEqual(["reports.marriage", "reports.true_love"]);
+  });
+});
+
+describe("sortUnlockedFirst", () => {
+  it("moves purchased (unlocked) entries before never-purchased (locked) ones", () => {
+    const reports = [
+      { key: "locked1", isMonthly: false, purchases: [] },
+      { key: "unlocked1", isMonthly: false, purchases: [purchase("p1", "ready")] },
+      { key: "locked2", isMonthly: false, purchases: [] },
+      { key: "unlocked2", isMonthly: false, purchases: [purchase("p2", "generating")] },
+    ];
+    expect(sortUnlockedFirst(reports).map((r) => r.key)).toEqual([
+      "unlocked1",
+      "unlocked2",
+      "locked1",
+      "locked2",
+    ]);
+  });
+
+  it("preserves relative order within each group (stable sort)", () => {
+    const reports = [
+      { key: "a", isMonthly: false, purchases: [] },
+      { key: "b", isMonthly: false, purchases: [] },
+    ];
+    expect(sortUnlockedFirst(reports).map((r) => r.key)).toEqual(["a", "b"]);
+  });
+
+  it("treats a failed attempt as unlocked (still has a purchase row to retry)", () => {
+    const reports = [
+      { key: "locked", isMonthly: false, purchases: [] },
+      { key: "failed", isMonthly: false, purchases: [purchase("p1", "failed")] },
+    ];
+    expect(sortUnlockedFirst(reports).map((r) => r.key)).toEqual(["failed", "locked"]);
+  });
+
+  it("scopes monthly entries to the current month, ignoring past-month purchases", () => {
+    const reports = [
+      { key: "this_month", isMonthly: true, purchases: [purchase("p1", "ready", currentMonthKey())] },
+      { key: "past_month_only", isMonthly: true, purchases: [purchase("p2", "ready", "2020-01")] },
+    ];
+    expect(sortUnlockedFirst(reports).map((r) => r.key)).toEqual(["this_month", "past_month_only"]);
   });
 });
 

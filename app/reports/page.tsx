@@ -15,7 +15,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { splitReportsByType } from "@/lib/reports-logic";
+import { splitReportsByType, sortUnlockedFirst } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 
 type Tab = "oneTime" | "monthly";
@@ -45,7 +45,8 @@ function ReportsCatalogue() {
   // of being hidden, so users can see the full report lineup.
   const { oneTime, monthly } = useMemo(() => {
     if (!reports) return { oneTime: [] as ReportCatalogueEntry[], monthly: [] as ReportCatalogueEntry[] };
-    return splitReportsByType(reports);
+    const { oneTime, monthly } = splitReportsByType(reports);
+    return { oneTime: sortUnlockedFirst(oneTime), monthly: sortUnlockedFirst(monthly) };
   }, [reports]);
 
   const isAvailable = (entry: ReportCatalogueEntry) =>

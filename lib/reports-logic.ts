@@ -125,6 +125,25 @@ export function computeDiscount(pricePaise: number, originalPricePaise: number |
   return { percentOff: Math.round((1 - pricePaise / originalPricePaise) * 100) };
 }
 
+/** Minimal shape sortUnlockedFirst needs. */
+interface PurchasableReport {
+  isMonthly: boolean;
+  purchases: readonly ReportPurchase[];
+}
+
+/**
+ * Reorders a catalogue list so unlocked entries (a purchase exists — ready,
+ * generating, or failed/retry) sort before locked ones (never purchased,
+ * state "none"), preserving relative order within each group (Array.sort is
+ * stable). Monthly entries use monthlyCardState's current-month scoping, so
+ * the ordering always matches what each card renders right now.
+ */
+export function sortUnlockedFirst<T extends PurchasableReport>(reports: readonly T[]): T[] {
+  const isLocked = (r: T) =>
+    (r.isMonthly ? monthlyCardState(r.purchases) : deriveOneTimeCardState(r.purchases)).state === "none";
+  return [...reports].sort((a, b) => Number(isLocked(a)) - Number(isLocked(b)));
+}
+
 /** Minimal shape filterVisibleReports needs. */
 interface VisibilityReport {
   key: string;

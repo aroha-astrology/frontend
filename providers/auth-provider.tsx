@@ -80,6 +80,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * A fresh app open must always land on the default (primary) profile. `users.activeProfileId`
+   * is a persistent DB column (see profiles.service.ts's `activateProfile`), so a switch made in
+   * a PRIOR session — e.g. checking a partner's/child's chart — is otherwise sticky forever and
+   * silently scopes every kundli/horoscope/report call in the NEW session to that other profile
+   * until the reader notices and switches back manually. Runs once per `establishSession()` call
+   * (i.e. once per cold start / re-login, not on every `refresh()` poll — see the periodic-refresh
+   * effect below, which intentionally does not touch profiles). Non-fatal on failure, same
+   * swallow-and-log discipline as `refreshProfiles`: a transient fetch error here must not break
+   * sign-in over a profile-reset nicety.
+   */
+  const resetToPrimaryOnOpen = async () => {
+    try {
+      const list = await api.listProfiles();
+      const active = list.find((p) => p.isActive);
+      if (active && !active.isPrimary) {
+        await switchProfile("primary");
+      } else {
+        setProfiles(list);
+      }
+    } catch (err) {
+      console.error("Failed to reset to primary profile on open", err);
+    }
+  };
+
   const establishSession = (): Promise<SessionResponse> => {
     if (inFlight.current) return inFlight.current;
     const p = api
@@ -89,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Identify by opaque user ID only — no name or other PII as a
         // PostHog person property (see 2026-07-17 audit).
         posthog.identify(res.user.id);
-        await refreshProfiles();
+        await resetToPrimaryOnOpen();
         return res;
       })
       .finally(() => {

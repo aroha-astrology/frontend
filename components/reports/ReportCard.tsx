@@ -11,8 +11,11 @@ import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import {
   deriveOneTimeCardState,
   monthlyCardState,
+  yearlyCardState,
   currentMonthKey,
   formatMonthName,
+  formatDateKey,
+  type YearlyCardState,
 } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import { HUE_GRADIENT } from "./ReportThemeCard";
@@ -136,7 +139,15 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
     );
   }
 
-  const cardState = deriveOneTimeCardState(entry.purchases);
+  // Yearly reports (marriage/wealth/true_love/numerology — see ReportCatalogueEntry.isYearly's
+  // doc comment) use the rolling-year scoping so an expired purchase correctly falls back to a
+  // renewable "none" state instead of showing "View Report" forever.
+  const cardState: YearlyCardState = entry.isYearly
+    ? yearlyCardState(entry.purchases)
+    : deriveOneTimeCardState(entry.purchases);
+  // A "none" state with prior purchase history means the last one expired — the CTA should
+  // read "Renew", not "Buy", since the reader has bought this report before.
+  const isRenewal = entry.isYearly && cardState.state === "none" && entry.purchases.length > 0;
   // Static per-report marketing copy (not live chart personalization — see
   // i18n/resources.ts's reports.descriptions/taglines doc comment). Falls back to
   // nothing for a catalogue key this client build doesn't have copy for yet, same
@@ -159,6 +170,11 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
             <span className="text-[10px] font-medium text-muted border border-border rounded-full px-2 py-0.5">
               {t("reports.tabOneTime")}
             </span>
+            {cardState.validUntil && (
+              <span className="text-[10px] font-medium text-gold border border-gold/25 rounded-full px-2 py-0.5">
+                {t("reports.validTill", { date: formatDateKey(cardState.validUntil) })}
+              </span>
+            )}
             {hasGeneratedCount && (
               <span className="inline-flex items-center gap-1 text-[10px] text-muted">
                 <ThumbsUp size={10} />
@@ -182,7 +198,7 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
                 onClick={onBuy}
                 className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-xs font-bold"
               >
-                {t("reports.buy")}
+                {t(isRenewal ? "reports.renew" : "reports.buy")}
               </button>
             )}
 

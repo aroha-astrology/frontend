@@ -97,6 +97,8 @@ export const resources = {
         tabOneTime: "One Time",
         tabMonthly: "Monthly",
         buy: "Buy",
+        renew: "Renew",
+        validTill: "Valid till {{date}}",
         viewReport: "View Report",
         generating: "Generating…",
         retry: "Retry",
@@ -198,6 +200,9 @@ export const resources = {
             secondChallenge: "Second Challenge",
             mainChallenge: "Main Challenge",
             fourthChallenge: "Fourth Challenge",
+            challengeNumbersCaption: "The recurring lesson each phase of your life tends to bring — and the age range it covers.",
+            loShuGridCaption: "How often each digit from 1-9 appears in your date of birth. A filled cell is a strength you repeat; a missing digit is a quality worth building deliberately.",
+            namePlanesCaption: "How the letters in your name split across four planes — thinking, doing, feeling, and seeking.",
           },
         },
         sectionHeading: {
@@ -326,6 +331,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "Any specific concern in your relationship right now?",
+          },
+          numerology: {
+            phoneNumber: "Want to check a phone number's numerology too? (optional — we'll use the number on your account if you leave this blank)",
           },
         },
         verdict: {
@@ -616,6 +624,20 @@ export const resources = {
         analysis: { title: "Detailed Analysis" },
         monthly: { title: "12-Month Forecast" },
         yearly: { title: "Year by Year" },
+        phone: {
+          title: "Your Phone Number",
+          numberLabel: "Your Number",
+          vibrationLabel: "Vibration",
+          suggestionsTitle: "Suggested Replacement Patterns",
+          strengths: "Strengths",
+          cautions: "Cautions",
+          verdict: {
+            powerful: "Powerful",
+            supportive: "Supportive",
+            neutral: "Neutral",
+            draining: "Draining",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "The syllable your child's chart points to",
@@ -1038,6 +1060,8 @@ export const resources = {
         computing: "Computing...",
         checkBtn: "Check Compatibility",
         checkError: "Failed to check compatibility. Please try again.",
+        unavailableTitle: "Compatibility checks are temporarily unavailable",
+        unavailableBody: "We've paused this feature for now — please check back soon.",
         excellentMatch: "Excellent Match",
         goodMatch: "Good Match",
         needsAttention: "Needs Attention",
@@ -2194,6 +2218,8 @@ export const resources = {
         tabOneTime: "एक बार",
         tabMonthly: "मासिक",
         buy: "खरीदें",
+        renew: "नवीनीकृत करें",
+        validTill: "{{date}} तक मान्य",
         viewReport: "रिपोर्ट देखें",
         generating: "तैयार हो रही है…",
         retry: "पुनः प्रयास करें",
@@ -2295,6 +2321,9 @@ export const resources = {
             secondChallenge: "दूसरी चुनौती",
             mainChallenge: "मुख्य चुनौती",
             fourthChallenge: "चौथी चुनौती",
+            challengeNumbersCaption: "जीवन के हर चरण में बार-बार मिलने वाला सबक — और वह आयु सीमा जिसे यह कवर करता है।",
+            loShuGridCaption: "आपकी जन्म तिथि में अंक 1-9 में से हर एक कितनी बार आता है। भरा हुआ खाना एक ऐसी शक्ति है जिसे आप दोहराते हैं; अनुपस्थित अंक वह गुण है जिसे सायास विकसित करना चाहिए।",
+            namePlanesCaption: "आपके नाम के अक्षर चार स्तरों में कैसे बंटे हैं — सोच, कर्म, भावना और खोज।",
           },
         },
         sectionHeading: {
@@ -2423,6 +2452,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "क्या इस समय आपके रिश्ते में कोई विशेष चिंता है?",
+          },
+          numerology: {
+            phoneNumber: "क्या आप किसी फोन नंबर की अंकशास्त्र जांच भी करना चाहते हैं? (वैकल्पिक — खाली छोड़ने पर हम आपके खाते वाले नंबर का उपयोग करेंगे)",
           },
         },
         verdict: {
@@ -3005,6 +3037,20 @@ export const resources = {
         analysis: { title: "विस्तृत विश्लेषण" },
         monthly: { title: "12 माह का पूर्वानुमान" },
         yearly: { title: "वर्ष दर वर्ष" },
+        phone: {
+          title: "आपका फ़ोन नंबर",
+          numberLabel: "आपका नंबर",
+          vibrationLabel: "कंपन",
+          suggestionsTitle: "सुझाए गए बदलाव पैटर्न",
+          strengths: "शक्तियाँ",
+          cautions: "सतर्कताएँ",
+          verdict: {
+            powerful: "शक्तिशाली",
+            supportive: "सहायक",
+            neutral: "तटस्थ",
+            draining: "क्षीणकारी",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "आपके शिशु की कुंडली का अक्षर",
@@ -3427,6 +3473,8 @@ export const resources = {
         computing: "गणना हो रही है...",
         checkBtn: "अनुकूलता जांचें",
         checkError: "अनुकूलता जांचने में विफल। कृपया पुनः प्रयास करें।",
+        unavailableTitle: "अनुकूलता जांच अभी अस्थायी रूप से उपलब्ध नहीं है",
+        unavailableBody: "हमने यह सुविधा फ़िलहाल रोक दी है — कृपया जल्द ही दोबारा देखें।",
         excellentMatch: "उत्कृष्ट मिलान",
         goodMatch: "अच्छा मिलान",
         needsAttention: "ध्यान देने की आवश्यकता",
@@ -4192,6 +4240,8 @@ export const resources = {
         tabOneTime: "একবার",
         tabMonthly: "মাসিক",
         buy: "কিনুন",
+        renew: "নবায়ন করুন",
+        validTill: "{{date}} পর্যন্ত বৈধ",
         viewReport: "রিপোর্ট দেখুন",
         generating: "তৈরি হচ্ছে…",
         retry: "আবার চেষ্টা করুন",
@@ -4293,6 +4343,9 @@ export const resources = {
             secondChallenge: "দ্বিতীয় চ্যালেঞ্জ",
             mainChallenge: "প্রধান চ্যালেঞ্জ",
             fourthChallenge: "চতুর্থ চ্যালেঞ্জ",
+            challengeNumbersCaption: "জীবনের প্রতিটি পর্যায়ে বারবার ফিরে আসা শিক্ষা — এবং তা যে বয়সসীমা জুড়ে থাকে।",
+            loShuGridCaption: "আপনার জন্ম তারিখে ১-৯ পর্যন্ত প্রতিটি সংখ্যা কতবার আছে। ভরা ঘর একটি শক্তি যা আপনি বারবার প্রকাশ করেন; অনুপস্থিত সংখ্যা এমন একটি গুণ যা সচেতনভাবে গড়ে তোলা দরকার।",
+            namePlanesCaption: "আপনার নামের অক্ষরগুলো চারটি স্তরে কীভাবে বিভক্ত — চিন্তা, কাজ, অনুভূতি এবং অন্বেষণ।",
           },
         },
         sectionHeading: {
@@ -4421,6 +4474,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "এই মুহূর্তে আপনার সম্পর্কে কোনো নির্দিষ্ট উদ্বেগ আছে কি?",
+          },
+          numerology: {
+            phoneNumber: "একটি ফোন নম্বরের সংখ্যাতত্ত্বও কি যাচাই করতে চান? (ঐচ্ছিক — খালি রাখলে আমরা আপনার অ্যাকাউন্টের নম্বরটি ব্যবহার করব)",
           },
         },
         verdict: {
@@ -5001,6 +5057,20 @@ export const resources = {
         analysis: { title: "বিস্তারিত বিশ্লেষণ" },
         monthly: { title: "১২ মাসের পূর্বাভাস" },
         yearly: { title: "বছরওয়ারি" },
+        phone: {
+          title: "আপনার ফোন নম্বর",
+          numberLabel: "আপনার নম্বর",
+          vibrationLabel: "কম্পন",
+          suggestionsTitle: "প্রস্তাবিত পরিবর্তনের প্যাটার্ন",
+          strengths: "শক্তি",
+          cautions: "সতর্কতা",
+          verdict: {
+            powerful: "শক্তিশালী",
+            supportive: "সহায়ক",
+            neutral: "নিরপেক্ষ",
+            draining: "ক্ষয়কারী",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "আপনার সন্তানের কুণ্ডলীর অক্ষর",
@@ -5423,6 +5493,8 @@ export const resources = {
         computing: "গণনা করা হচ্ছে...",
         checkBtn: "সামঞ্জস্য পরীক্ষা করুন",
         checkError: "সামঞ্জস্য পরীক্ষা করা যায়নি। আবার চেষ্টা করুন।",
+        unavailableTitle: "সামঞ্জস্য পরীক্ষা এই মুহূর্তে সাময়িকভাবে অনুপলব্ধ",
+        unavailableBody: "আমরা এই ফিচারটি আপাতত বন্ধ রেখেছি — অনুগ্রহ করে শীঘ্রই আবার দেখুন।",
         excellentMatch: "চমৎকার মিল",
         goodMatch: "ভালো মিল",
         needsAttention: "মনোযোগ প্রয়োজন",
@@ -6192,6 +6264,8 @@ export const resources = {
         tabOneTime: "एकदा",
         tabMonthly: "मासिक",
         buy: "खरेदी करा",
+        renew: "नूतनीकरण करा",
+        validTill: "{{date}} पर्यंत वैध",
         viewReport: "अहवाल पहा",
         generating: "तयार होत आहे…",
         retry: "पुन्हा प्रयत्न करा",
@@ -6293,6 +6367,9 @@ export const resources = {
             secondChallenge: "दुसरे आव्हान",
             mainChallenge: "मुख्य आव्हान",
             fourthChallenge: "चौथे आव्हान",
+            challengeNumbersCaption: "आयुष्याच्या प्रत्येक टप्प्यात वारंवार येणारा धडा — आणि तो कोणत्या वयोमर्यादेत येतो.",
+            loShuGridCaption: "तुमच्या जन्मतारखेत १-९ पैकी प्रत्येक अंक किती वेळा येतो. भरलेला चौकोन म्हणजे तुम्ही वारंवार दाखवत असलेली ताकद; गहाळ अंक म्हणजे जाणीवपूर्वक जोपासायचा गुण.",
+            namePlanesCaption: "तुमच्या नावातील अक्षरे चार स्तरांमध्ये कशी विभागली आहेत — विचार, कृती, भावना आणि शोध.",
           },
         },
         sectionHeading: {
@@ -6421,6 +6498,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "सध्या तुमच्या नात्यात काही विशिष्ट चिंता आहे का?",
+          },
+          numerology: {
+            phoneNumber: "एखाद्या फोन नंबरचे अंकशास्त्रही तपासायचे आहे का? (ऐच्छिक — रिकामे सोडल्यास आम्ही तुमच्या खात्यावरील नंबर वापरू)",
           },
         },
         verdict: {
@@ -7001,6 +7081,20 @@ export const resources = {
         analysis: { title: "सविस्तर विश्लेषण" },
         monthly: { title: "१२ महिन्यांचा अंदाज" },
         yearly: { title: "वर्षानुवर्ष" },
+        phone: {
+          title: "तुमचा फोन नंबर",
+          numberLabel: "तुमचा नंबर",
+          vibrationLabel: "कंपन",
+          suggestionsTitle: "सुचवलेले बदल नमुने",
+          strengths: "बलस्थाने",
+          cautions: "सावधगिरी",
+          verdict: {
+            powerful: "शक्तिशाली",
+            supportive: "सहाय्यक",
+            neutral: "तटस्थ",
+            draining: "क्षीण करणारे",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "तुमच्या बाळाच्या कुंडलीचे अक्षर",
@@ -7423,6 +7517,8 @@ export const resources = {
         computing: "गणना होत आहे...",
         checkBtn: "सुसंगतता तपासा",
         checkError: "सुसंगतता तपासता आली नाही. कृपया पुन्हा प्रयत्न करा.",
+        unavailableTitle: "सुसंगतता तपासणी सध्या तात्पुरती उपलब्ध नाही",
+        unavailableBody: "आम्ही सध्या हे फीचर थांबवले आहे — कृपया लवकरच पुन्हा तपासा.",
         excellentMatch: "उत्कृष्ट जुळणी",
         goodMatch: "चांगली जुळणी",
         needsAttention: "लक्ष देण्याची गरज",
@@ -8193,6 +8289,8 @@ export const resources = {
         tabOneTime: "ఒకసారి",
         tabMonthly: "నెలవారీ",
         buy: "కొనుగోలు చేయండి",
+        renew: "పునరుద్ధరించండి",
+        validTill: "{{date}} వరకు చెల్లుతుంది",
         viewReport: "నివేదిక చూడండి",
         generating: "తయారవుతోంది…",
         retry: "మళ్ళీ ప్రయత్నించండి",
@@ -8294,6 +8392,9 @@ export const resources = {
             secondChallenge: "రెండవ ఛాలెంజ్",
             mainChallenge: "ప్రధాన ఛాలెంజ్",
             fourthChallenge: "నాలుగవ ఛాలెంజ్",
+            challengeNumbersCaption: "జీవితంలోని ప్రతి దశలో పదేపదే వచ్చే పాఠం — మరియు అది కవర్ చేసే వయస్సు పరిధి.",
+            loShuGridCaption: "మీ పుట్టిన తేదీలో 1-9 అంకెల్లో ప్రతి ఒక్కటి ఎన్నిసార్లు కనిపిస్తుందో చూపిస్తుంది. నిండిన గడి మీరు పదేపదే చూపే బలం; లేని అంకె ఉద్దేశపూర్వకంగా పెంచుకోవాల్సిన గుణం.",
+            namePlanesCaption: "మీ పేరులోని అక్షరాలు నాలుగు స్థాయిలుగా ఎలా విభజించబడ్డాయి — ఆలోచన, చర్య, భావోద్వేగం మరియు అన్వేషణ.",
           },
         },
         sectionHeading: {
@@ -8422,6 +8523,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "ప్రస్తుతం మీ సంబంధంలో ఏదైనా నిర్దిష్ట ఆందోళన ఉందా?",
+          },
+          numerology: {
+            phoneNumber: "ఫోన్ నంబర్ యొక్క సంఖ్యాశాస్త్రాన్ని కూడా తనిఖీ చేయాలనుకుంటున్నారా? (ఐచ్ఛికం — ఖాళీగా ఉంచితే మీ ఖాతాలోని నంబర్‌ను ఉపయోగిస్తాము)",
           },
         },
         verdict: {
@@ -8998,6 +9102,20 @@ export const resources = {
         analysis: { title: "వివరణాత్మక విశ్లేషణ" },
         monthly: { title: "12 నెలల అంచనా" },
         yearly: { title: "సంవత్సరాల వారీగా" },
+        phone: {
+          title: "మీ ఫోన్ నంబర్",
+          numberLabel: "మీ నంబర్",
+          vibrationLabel: "వైబ్రేషన్",
+          suggestionsTitle: "సూచించిన మార్పు నమూనాలు",
+          strengths: "బలాలు",
+          cautions: "జాగ్రత్తలు",
+          verdict: {
+            powerful: "శక్తివంతం",
+            supportive: "సహాయకరం",
+            neutral: "తటస్థం",
+            draining: "క్షీణింపజేసేది",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "మీ బిడ్డ జాతకం సూచించే అక్షరం",
@@ -9420,6 +9538,8 @@ export const resources = {
         computing: "గణన జరుగుతోంది...",
         checkBtn: "అనుకూలతను తనిఖీ చేయండి",
         checkError: "అనుకూలతను తనిఖీ చేయడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+        unavailableTitle: "అనుకూలత తనిఖీలు తాత్కాలికంగా అందుబాటులో లేవు",
+        unavailableBody: "ఈ ఫీచర్‌ను ప్రస్తుతానికి మేము నిలిపివేశాము — దయచేసి త్వరలో మళ్లీ చూడండి.",
         excellentMatch: "అద్భుతమైన జోడీ",
         goodMatch: "మంచి జోడీ",
         needsAttention: "శ్రద్ధ అవసరం",
@@ -10190,6 +10310,8 @@ export const resources = {
         tabOneTime: "ஒருமுறை",
         tabMonthly: "மாதாந்திரம்",
         buy: "வாங்கவும்",
+        renew: "புதுப்பிக்கவும்",
+        validTill: "{{date}} வரை செல்லுபடியாகும்",
         viewReport: "அறிக்கையைப் பார்க்கவும்",
         generating: "தயாராகிறது…",
         retry: "மீண்டும் முயற்சிக்கவும்",
@@ -10291,6 +10413,9 @@ export const resources = {
             secondChallenge: "இரண்டாம் சவால்",
             mainChallenge: "முதன்மை சவால்",
             fourthChallenge: "நான்காம் சவால்",
+            challengeNumbersCaption: "வாழ்க்கையின் ஒவ்வொரு கட்டத்திலும் மீண்டும் வரும் பாடம் — அது உள்ளடக்கும் வயது வரம்பு.",
+            loShuGridCaption: "உங்கள் பிறந்த தேதியில் 1-9 வரையிலான ஒவ்வொரு எண்ணும் எத்தனை முறை வருகிறது என்பதைக் காட்டுகிறது. நிரம்பிய கட்டம் நீங்கள் மீண்டும் மீண்டும் காட்டும் பலம்; இல்லாத இலக்கம் வேண்டுமென்றே வளர்க்க வேண்டிய குணம்.",
+            namePlanesCaption: "உங்கள் பெயரின் எழுத்துகள் நான்கு தளங்களில் எப்படி பிரிக்கப்பட்டுள்ளன — சிந்தனை, செயல், உணர்வு, தேடல்.",
           },
         },
         sectionHeading: {
@@ -10419,6 +10544,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "தற்போது உங்கள் உறவில் ஏதேனும் குறிப்பிட்ட கவலை உள்ளதா?",
+          },
+          numerology: {
+            phoneNumber: "ஒரு தொலைபேசி எண்ணின் எண்கணிதத்தையும் சரிபார்க்க விரும்புகிறீர்களா? (விருப்பத்தேர்வு — காலியாக விட்டால் உங்கள் கணக்கிலுள்ள எண்ணைப் பயன்படுத்துவோம்)",
           },
         },
         verdict: {
@@ -10999,6 +11127,20 @@ export const resources = {
         analysis: { title: "விரிவான பகுப்பாய்வு" },
         monthly: { title: "12 மாத முன்னறிவிப்பு" },
         yearly: { title: "ஆண்டு வாரியாக" },
+        phone: {
+          title: "உங்கள் தொலைபேசி எண்",
+          numberLabel: "உங்கள் எண்",
+          vibrationLabel: "அதிர்வு",
+          suggestionsTitle: "பரிந்துரைக்கப்பட்ட மாற்று வடிவங்கள்",
+          strengths: "பலங்கள்",
+          cautions: "எச்சரிக்கைகள்",
+          verdict: {
+            powerful: "சக்திவாய்ந்தது",
+            supportive: "ஆதரவானது",
+            neutral: "நடுநிலையானது",
+            draining: "வலுவிழக்கச் செய்வது",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "உங்கள் குழந்தையின் ஜாதக எழுத்து",
@@ -11421,6 +11563,8 @@ export const resources = {
         computing: "கணக்கிடப்படுகிறது...",
         checkBtn: "பொருத்தத்தைச் சரிபார்க்கவும்",
         checkError: "பொருத்தத்தைச் சரிபார்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+        unavailableTitle: "பொருத்தச் சரிபார்ப்பு தற்காலிகமாகக் கிடைக்கவில்லை",
+        unavailableBody: "இந்த அம்சத்தை நாங்கள் தற்போதைக்கு நிறுத்தி வைத்துள்ளோம் — விரைவில் மீண்டும் பாருங்கள்.",
         excellentMatch: "சிறந்த பொருத்தம்",
         goodMatch: "நல்ல பொருத்தம்",
         needsAttention: "கவனம் தேவை",
@@ -12193,6 +12337,8 @@ export const resources = {
         tabOneTime: "એક વખત",
         tabMonthly: "માસિક",
         buy: "ખરીદો",
+        renew: "નવીકરણ કરો",
+        validTill: "{{date}} સુધી માન્ય",
         viewReport: "અહેવાલ જુઓ",
         generating: "તૈયાર થઈ રહ્યો છે…",
         retry: "ફરી પ્રયાસ કરો",
@@ -12293,6 +12439,9 @@ export const resources = {
             secondChallenge: "બીજી ચેલેન્જ",
             mainChallenge: "મુખ્ય ચેલેન્જ",
             fourthChallenge: "ચોથી ચેલેન્જ",
+            challengeNumbersCaption: "જીવનના દરેક તબક્કામાં વારંવાર આવતો પાઠ — અને તે આવરી લેતી ઉંમર મર્યાદા.",
+            loShuGridCaption: "તમારી જન્મ તારીખમાં 1-9 માંથી દરેક અંક કેટલી વાર આવે છે. ભરેલો ખાનું એ શક્તિ છે જે તમે વારંવાર દર્શાવો છો; ગુમ થયેલ અંક એ ગુણ છે જે ઇરાદાપૂર્વક કેળવવો જોઈએ.",
+            namePlanesCaption: "તમારા નામના અક્ષરો ચાર સ્તરોમાં કેવી રીતે વહેંચાયેલા છે — વિચાર, ક્રિયા, લાગણી અને શોધ.",
           },
         },
         sectionHeading: {
@@ -12421,6 +12570,9 @@ export const resources = {
           },
           relationship_monthly: {
             concern: "શું અત્યારે તમારા સંબંધમાં કોઈ ચોક્કસ ચિંતા છે?",
+          },
+          numerology: {
+            phoneNumber: "ફોન નંબરની અંકશાસ્ત્રીય તપાસ પણ કરવા માંગો છો? (વૈકલ્પિક — ખાલી રાખશો તો અમે તમારા ખાતાના નંબરનો ઉપયોગ કરીશું)",
           },
         },
         verdict: {
@@ -12997,6 +13149,20 @@ export const resources = {
         analysis: { title: "વિગતવાર વિશ્લેષણ" },
         monthly: { title: "૧૨ મહિનાની આગાહી" },
         yearly: { title: "વર્ષવાર" },
+        phone: {
+          title: "તમારો ફોન નંબર",
+          numberLabel: "તમારો નંબર",
+          vibrationLabel: "કંપન",
+          suggestionsTitle: "સૂચવેલ બદલાવ પેટર્ન",
+          strengths: "શક્તિઓ",
+          cautions: "સાવધાનીઓ",
+          verdict: {
+            powerful: "શક્તિશાળી",
+            supportive: "સહાયક",
+            neutral: "તટસ્થ",
+            draining: "ક્ષીણ કરનારું",
+          },
+        },
       },
       babyNameReport: {
         subtitle: "તમારા બાળકની કુંડળીનો અક્ષર",
@@ -13419,6 +13585,8 @@ export const resources = {
         computing: "ગણતરી થઈ રહી છે...",
         checkBtn: "સુસંગતતા તપાસો",
         checkError: "સુસંગતતા તપાસવામાં નિષ્ફળ. કૃપા કરી ફરી પ્રયાસ કરો.",
+        unavailableTitle: "સુસંગતતા તપાસ હાલ પૂરતી ઉપલબ્ધ નથી",
+        unavailableBody: "અમે આ ફીચર હાલ પૂરતું અટકાવ્યું છે — કૃપા કરી ટૂંક સમયમાં ફરી તપાસો.",
         excellentMatch: "ઉત્તમ મેળાપ",
         goodMatch: "સારો મેળાપ",
         needsAttention: "ધ્યાન આપવાની જરૂર",

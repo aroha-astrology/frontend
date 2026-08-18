@@ -62,6 +62,14 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         cautionCount={view.cautionCount}
       />
 
+      <PlanetImpactStrip planets={view.planets} />
+
+      {/* Bespoke key-fact block, same group as HighlightTiles/PlanetImpactStrip above — moved
+          up from after the accordion (its old spot) so every designed screen's fact blocks sit
+          together before the timing/narrative sections, matching the canonical cross-report
+          order (see designed-screens.tsx). */}
+      <SeventhHouseCard facts={view.seventhHouse} />
+
       {isRankedWindowArray(scores.windows) && (
         <TopWindowCard
           windows={scores.windows}
@@ -70,23 +78,11 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         />
       )}
 
-      <PlanetImpactStrip planets={view.planets} />
-
       <AnalysisAccordion
         sections={data.sections}
         sectionIcon={SECTION_ICON}
         titleKey="marriageReport.analysis.title"
       />
-
-      <SeventhHouseCard facts={view.seventhHouse} />
-
-      {isDoshaYogaSummary(scores.doshaYoga) && (
-        <StrengthsCautions
-          summary={scores.doshaYoga}
-          strengthsKey="marriageReport.strengths"
-          cautionsKey="marriageReport.cautions"
-        />
-      )}
 
       {view.archetype && (
         <section>
@@ -100,6 +96,17 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.decade.title")}</h2>
           <DecadeArcCard bands={scores.marriageQualityArc} />
         </section>
+      )}
+
+      {/* Strengths & Cautions — moved down from just after the accordion (its old spot) so
+          every designed screen shows it in the SAME position: after archetype/decade arc, just
+          before gemstones (see designed-screens.tsx's canonical order). */}
+      {isDoshaYogaSummary(scores.doshaYoga) && (
+        <StrengthsCautions
+          summary={scores.doshaYoga}
+          strengthsKey="marriageReport.strengths"
+          cautionsKey="marriageReport.cautions"
+        />
       )}
 
       {isGemstoneArray(scores.gemstones) && (

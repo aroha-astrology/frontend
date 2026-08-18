@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   isChallengeNumbers,
   isLoShuGrid,
+  isMobileNumberAnalysis,
   isMonthlyForecastArray,
   isNamePlanes,
   isNumberArray,
@@ -13,16 +14,25 @@ import {
 } from "@/lib/report-score-facts";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
+import Callout from "../blocks/Callout";
 import AnalysisAccordion from "../AnalysisAccordion";
+import StrengthsCautions from "../StrengthsCautions";
+import NameSuggestionCard from "../NameSuggestionCard";
 import LoShuGridCard from "../LoShuGridCard";
 import ChallengeNumbersCard from "../ChallengeNumbersCard";
 import NamePlanesCard from "../NamePlanesCard";
 import NumberChips from "../NumberChips";
 import ForecastTable from "../ForecastTable";
 import CoreNumbersCard, { type CoreNumber } from "./CoreNumbersCard";
+import PhoneVibrationCard from "./PhoneVibrationCard";
 import type { ReportReady } from "@/hooks/useReport";
 
-/** numerology has 8 sections. */
+/** numerology has 8 sections, plus a 9th (phone_number_alignment) ONLY for a reader with a
+ * phone number to read — see NumerologyScores.phoneNumber's doc comment on the backend. That
+ * 9th section is pulled OUT of `data.sections` below (see `phoneSection`) and rendered as its
+ * own dedicated block instead of through this accordion, since AnalysisAccordion only renders
+ * `paragraphs`/`bullets` — it has no concept of `items` (the phone suggestion cards need
+ * NameSuggestionCard, same as name_change's own suggested-names section). */
 const SECTION_ICON: Record<string, string> = {
   core_numbers: "Sparkles",
   expression_soul_urge_personality: "UserRound",
@@ -62,13 +72,19 @@ export default function NumerologyReportView({ data }: { data: ReportReady }) {
     return typeof value === "number" && Number.isFinite(value) ? [{ key, value }] : [];
   });
 
+  const phoneSection = data.sections.find((s) => s.id === "phone_number_alignment");
+  const accordionSections = phoneSection
+    ? data.sections.filter((s) => s !== phoneSection)
+    : data.sections;
+
   return (
     <>
       {isReportHeader(scores.header) && <ReportHeaderCard header={scores.header} />}
 
-      {verdict?.headline && (
-        <p className="text-[13px] leading-relaxed text-muted px-0.5">{verdict.headline}</p>
-      )}
+      {/* Same Callout treatment the generic report path uses for verdict.headline (see
+          app/reports/[id]/page.tsx) — was a bare, unstyled <p>, the one designed screen not
+          matching every other report's "at a glance" headline treatment. */}
+      {verdict?.headline && <Callout eyebrow={t("reports.atAGlance.eyebrow")}>{verdict.headline}</Callout>}
 
       <CoreNumbersCard numbers={coreNumbers} />
 
@@ -108,8 +124,17 @@ export default function NumerologyReportView({ data }: { data: ReportReady }) {
         </section>
       )}
 
+      {isMobileNumberAnalysis(scores.phoneNumber) && (
+        <section>
+          <h2 className="font-display text-base text-gold mb-2">
+            {t("numerologyReport.phone.title")}
+          </h2>
+          <PhoneVibrationCard analysis={scores.phoneNumber} />
+        </section>
+      )}
+
       <AnalysisAccordion
-        sections={data.sections}
+        sections={accordionSections}
         sectionIcon={SECTION_ICON}
         titleKey="numerologyReport.analysis.title"
       />
@@ -143,6 +168,37 @@ export default function NumerologyReportView({ data }: { data: ReportReady }) {
               { key: "personalYear", labelKey: "reports.facts.numerology.colPersonalYear" },
             ]}
           />
+        </section>
+      )}
+
+      {isMobileNumberAnalysis(scores.phoneNumber) && (
+        <StrengthsCautions
+          summary={scores.phoneNumber}
+          strengthsKey="numerologyReport.phone.strengths"
+          cautionsKey="numerologyReport.phone.cautions"
+        />
+      )}
+
+      {/* The phone section's own lead-in paragraphs + its suggested-replacement cards — pulled
+          out of `data.sections` above (see `phoneSection`) since AnalysisAccordion can't render
+          `items`. Reuses NameSuggestionCard exactly as name_change's "Suggested Names" section
+          does: same {title, badge, score, highlight, bullets} shape, same ranked/highlighted
+          presentation, so a reader who has seen that report recognizes this one immediately. */}
+      {phoneSection && phoneSection.items && phoneSection.items.length > 0 && (
+        <section>
+          <h2 className="font-display text-base text-gold mb-2">
+            {t("numerologyReport.phone.suggestionsTitle")}
+          </h2>
+          {phoneSection.paragraphs.map((p, i) => (
+            <p key={i} className="text-sm text-foreground/85 leading-relaxed mb-2.5">
+              {p}
+            </p>
+          ))}
+          <div className="flex flex-col gap-3">
+            {phoneSection.items.map((item, i) => (
+              <NameSuggestionCard key={i} item={item} rank={i + 1} />
+            ))}
+          </div>
         </section>
       )}
 

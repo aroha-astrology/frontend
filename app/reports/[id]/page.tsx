@@ -23,7 +23,7 @@ import {
   isReportHeader,
   isReportVerdict,
 } from "@/lib/report-score-facts";
-import { formatPeriodMonth } from "@/lib/reports-logic";
+import { formatPeriodMonth, formatDateKey, addOneYear, YEARLY_REPORT_KEYS } from "@/lib/reports-logic";
 import { maybeRequestReview, markReportGeneratedForReview } from "@/lib/app-review";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
@@ -129,6 +129,15 @@ export default function ReportDetailPage() {
   // through the generic path below. See components/reports/designed-screens.tsx.
   const designed = state === "ready" && data ? DESIGNED_SCREENS[data.reportKey] : undefined;
 
+  // Yearly reports (marriage/wealth/true_love/numerology) store the PURCHASE date in
+  // `periodMonth`, not a plain month key (see ReportCatalogueEntry.isYearly's doc comment) —
+  // undefined for every other report type, including monthly ones (whose periodMonth IS a
+  // real date but isn't a renewal window).
+  const validUntilLabel =
+    state === "ready" && data && data.periodMonth && YEARLY_REPORT_KEYS.has(data.reportKey)
+      ? formatDateKey(addOneYear(data.periodMonth))
+      : undefined;
+
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
@@ -138,6 +147,7 @@ export default function ReportDetailPage() {
             onBack={() => router.back()}
             artSrc={designed.artSrc}
             subtitleKey={designed.subtitleKey}
+            validUntilLabel={validUntilLabel}
           />
         ) : (
           <div className="flex items-center gap-3">
@@ -198,7 +208,12 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && !designed && (
           <>
-            {data.periodMonth && <p className="text-sm text-muted -mt-1">{formatPeriodMonth(data.periodMonth)}</p>}
+            {data.periodMonth &&
+              (validUntilLabel ? (
+                <p className="text-sm text-gold -mt-1">{t("reports.validTill", { date: validUntilLabel })}</p>
+              ) : (
+                <p className="text-sm text-muted -mt-1">{formatPeriodMonth(data.periodMonth)}</p>
+              ))}
 
             {isReportHeader(data.scores.header) && <ReportHeaderCard header={data.scores.header} />}
 

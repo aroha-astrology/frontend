@@ -30,6 +30,28 @@ export interface DesignedScreen {
  * a growing chain of flags threaded through both the hero and the body.
  *
  * Adding a screen is one entry here plus its folder; no edit to the page itself.
+ *
+ * ─── Canonical block order ──────────────────────────────────────────────────
+ * Each screen composes its own blocks (this table gives them no shared layout), but they
+ * should all use the SAME relative order so a reader flipping between two report types
+ * finds the same kind of thing in the same place — see the bug this fixed: Strengths &
+ * Cautions sat right under the hero on Past Life but near the bottom on Marriage. Follow
+ * this order in every new/edited screen:
+ *
+ *   1. ReportHeaderCard
+ *   2. Hero / score card            (bespoke per report — OutlookCard, MilanScoreCard, ...)
+ *   3. Bespoke key-fact blocks      (tiles, dials, grids, 7th-house, karmic axis, ...)
+ *   4. Timing                       (TopWindowCard / TimingWindowsCard, age bands)
+ *   5. AnalysisAccordion            (the narrative)
+ *   6. Archetype
+ *   7. Decade arc
+ *   8. StrengthsCautions            (doshaYoga)
+ *   9. Gemstones
+ *  10. PlanetStrengthCard           (appended once by app/reports/[id]/page.tsx, not here)
+ *  11. ReportVerdictCard
+ *
+ * A block a given screen doesn't have simply isn't there — this is a relative ordering,
+ * not a checklist every screen must fill in.
  */
 export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
   marriage: {

@@ -29,6 +29,12 @@ export interface ReportCatalogueEntry {
   key: string;
   label: string;
   isMonthly: boolean;
+  /** True for the 4 one-time report types that renew once a year (marriage/wealth/true_love/
+   * numerology) — see backend's ReportDef.isYearly doc comment. A purchase's `periodMonth` is
+   * the PURCHASE date for these (not null, unlike every other one-time report) — its 1-year
+   * validity window is `[periodMonth, periodMonth + 1 year)`, computed client-side by
+   * `yearlyCardState` in lib/reports-logic.ts, never stored. */
+  isYearly: boolean;
   requiresPartner: boolean;
   enabled: boolean;
   /** Server-resolved price in paise — NEVER hardcode a report's price client-side. */

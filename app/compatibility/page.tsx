@@ -298,6 +298,13 @@ export default function CompatibilityPage() {
   );
 
   const showForm = reportState === "idle" || reportState === "error";
+  // Once the catalogue has actually loaded, match_report existing-but-disabled means an admin
+  // retired the paid Compatibility Match Report — every REPORT_CATALOGUE key always comes back
+  // from GET /v1/reports regardless of `enabled` (see backend's getReportCatalogueForUser), so
+  // `matchReportEntry` being present-but-disabled is the real signal, not merely absent. Fails
+  // open (shows the form) while the catalogue is still loading or hasn't resolved an entry yet —
+  // same fail-open convention as every other feature check in this app (see resolveFeature).
+  const matchReportUnavailable = catalogue !== null && matchReportEntry !== undefined && !matchReportEntry.enabled;
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
@@ -315,7 +322,15 @@ export default function CompatibilityPage() {
 
         <ProfileSwitchTrigger className="mt-6 mb-2" />
 
-        {showForm && (
+        {showForm && matchReportUnavailable && (
+          <div className="mt-8 flex flex-col items-center text-center gap-2 py-10">
+            <AlertTriangle size={24} className="text-muted" />
+            <p className="text-sm font-semibold text-foreground">{t("compatibilityPage.unavailableTitle")}</p>
+            <p className="text-xs text-muted max-w-xs">{t("compatibilityPage.unavailableBody")}</p>
+          </div>
+        )}
+
+        {showForm && !matchReportUnavailable && (
           <div className="mt-4 space-y-4">
             <label
               className={cn(

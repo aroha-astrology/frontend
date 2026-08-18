@@ -371,6 +371,39 @@ export interface ChallengeNumbersValue {
   phases: { phase: number; ageRange: string; challenge: number }[];
 }
 
+/** One consecutive 2-digit slice of a phone number, classically read as favorable or
+ * unfavorable — `scores.phoneNumber.digitPairs` on numerology. */
+export interface DigitPairFinding {
+  pair: string;
+  favorable: boolean;
+}
+
+/** Phone-number numerology — `scores.phoneNumber` on numerology, absent when the reader has
+ * no phone number to read (see jyotish-backend's NumerologyScores.phoneNumber doc comment).
+ * `maskedNumber` (e.g. "98••••3210") is the ONLY representation of the number this app ever
+ * receives or renders — the backend never sends the raw digits at all. */
+export interface MobileNumberAnalysisValue {
+  maskedNumber: string;
+  total: number;
+  vibration: number;
+  mulank: number;
+  bhagyank: number;
+  lastDigit: number;
+  lastFour: string;
+  harmony: number;
+  verdict: "powerful" | "supportive" | "neutral" | "draining";
+  digitFrequency: Record<number, number>;
+  friendlyDigits: number[];
+  enemyDigits: number[];
+  missingDigits: number[];
+  repeatedDigits: { digit: number; count: number }[];
+  zeroCount: number;
+  endsWithZero: boolean;
+  digitPairs: DigitPairFinding[];
+  positives: { label: string; detail: string }[];
+  cautions: { label: string; detail: string }[];
+}
+
 /** Name Planes — `scores.namePlanes` on numerology. */
 export interface NamePlanesValue {
   knowledge: number;
@@ -601,6 +634,18 @@ export function isNamePlanes(v: unknown): v is NamePlanesValue {
     typeof v.emotional === "number" &&
     typeof v.spiritual === "number" &&
     isRecord(v.letters)
+  );
+}
+
+/** An object with `maskedNumber` (string) plus `vibration`/`harmony` (numbers) and a `verdict`
+ * enum — unique to numerology's phone-number panel, distinct from every other shape here. */
+export function isMobileNumberAnalysis(v: unknown): v is MobileNumberAnalysisValue {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.maskedNumber === "string" &&
+    typeof v.vibration === "number" &&
+    typeof v.harmony === "number" &&
+    typeof v.verdict === "string"
   );
 }
 

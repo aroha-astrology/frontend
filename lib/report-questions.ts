@@ -86,4 +86,9 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   relationship_monthly: [
     { id: "concern", type: "text", labelKey: "reports.questions.relationship_monthly.concern" },
   ],
+  // Entirely skippable, unlike every question above: numerology already reads the account's
+  // own phone number (users.phone_e164) for its phone-numerology section, so this exists only
+  // to let a reader without a phone on file — or who wants to check a different number —
+  // override it. See jyotish-backend's resolvePhone (astro-engine/reports/numerology.ts).
+  numerology: [{ id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber" }],
 };

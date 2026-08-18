@@ -19,6 +19,10 @@ export default function ChallengeNumbersCard({ value }: { value: ChallengeNumber
 
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-[11px] leading-relaxed text-muted">
+        {t("reports.facts.numerology.challengeNumbersCaption")}
+      </p>
+
       <div className="grid grid-cols-4 gap-2">
         {tiles.map((tile) => (
           <div

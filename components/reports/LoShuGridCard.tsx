@@ -23,6 +23,10 @@ export default function LoShuGridCard({ value }: { value: LoShuGridValue }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-[11px] leading-relaxed text-muted">
+        {t("reports.facts.numerology.loShuGridCaption")}
+      </p>
+
       <div className="grid grid-cols-3 gap-1.5 rounded-2xl border border-gold/15 bg-card p-3">
         {GRID_TEMPLATE.map((row, r) =>
           row.map((digit, c) => {

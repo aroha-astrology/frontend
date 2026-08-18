@@ -12,6 +12,9 @@ export interface ReportHeroProps {
   artSrc: string;
   /** i18n key for the one-line subtitle under the report's name. */
   subtitleKey: string;
+  /** Already-formatted "Valid till 18 Aug 2027" string — yearly reports only (see
+   * ReportCatalogueEntry.isYearly's doc comment); omitted for every other report type. */
+  validUntilLabel?: string;
 }
 
 /**
@@ -23,7 +26,7 @@ export interface ReportHeroProps {
  * Falls back to no artwork at all (just the title block) if the asset fails to
  * load; nothing here carries meaning, so there is no icon substitute to draw.
  */
-export default function ReportHero({ title, onBack, artSrc, subtitleKey }: ReportHeroProps) {
+export default function ReportHero({ title, onBack, artSrc, subtitleKey, validUntilLabel }: ReportHeroProps) {
   const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
 
@@ -48,6 +51,11 @@ export default function ReportHero({ title, onBack, artSrc, subtitleKey }: Repor
         <div className="min-w-0">
           <h1 className="font-display text-lg text-foreground truncate">{title}</h1>
           <p className="text-[11px] text-muted mt-0.5">{t(subtitleKey)}</p>
+          {validUntilLabel && (
+            <p className="text-[11px] text-gold mt-0.5">
+              {t("reports.validTill", { date: validUntilLabel })}
+            </p>
+          )}
         </div>
       </div>
     </div>

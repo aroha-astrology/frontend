@@ -3,9 +3,13 @@ import {
   splitReportsByType,
   deriveOneTimeCardState,
   monthlyCardState,
+  yearlyCardState,
   currentMonthKey,
+  currentDateKey,
   formatPeriodMonth,
   formatMonthName,
+  formatDateKey,
+  addOneYear,
   filterVisibleReports,
   computeDiscount,
   sortUnlockedFirst,
@@ -107,6 +111,108 @@ describe("monthlyCardState", () => {
       state: "ready",
       purchaseId: "p1",
     });
+  });
+
+  it("matches the API's actual 'YYYY-MM-DD' periodMonth (a Postgres date), not just bare 'YYYY-MM'", () => {
+    // Regression: the API returns periodMonth as 'YYYY-MM-01', but this function used to
+    // compare with exact equality against the bare 'YYYY-MM' month key, so it never matched
+    // and a freshly purchased monthly report never flipped its card to "Generating".
+    expect(monthlyCardState([purchase("p1", "generating", "2026-08-01")], "2026-08")).toEqual({
+      state: "generating",
+      purchaseId: "p1",
+    });
+    expect(monthlyCardState([purchase("p1", "ready", "2026-08-01")], "2026-08")).toEqual({
+      state: "ready",
+      purchaseId: "p1",
+    });
+  });
+});
+
+describe("yearlyCardState", () => {
+  it("is 'none' with no purchases", () => {
+    expect(yearlyCardState([], "2026-08-18")).toEqual({ state: "none" });
+  });
+
+  it("is 'ready' with a validUntil one year after the purchase date, when purchased 2 months ago", () => {
+    expect(yearlyCardState([purchase("p1", "ready", "2026-06-18")], "2026-08-18")).toEqual({
+      state: "ready",
+      purchaseId: "p1",
+      validUntil: "2027-06-18",
+    });
+  });
+
+  it("rolls over to 'none' (renewable) once the purchase is more than a year old", () => {
+    expect(yearlyCardState([purchase("p1", "ready", "2025-08-17")], "2026-08-18")).toEqual({
+      state: "none",
+    });
+  });
+
+  it("has already expired on the exact boundary day (end is EXCLUSIVE — 1 year is up, not still valid)", () => {
+    expect(yearlyCardState([purchase("p1", "ready", "2025-08-18")], "2026-08-18")).toEqual({ state: "none" });
+  });
+
+  it("is still active the day before the boundary", () => {
+    expect(yearlyCardState([purchase("p1", "ready", "2025-08-18")], "2026-08-17")).toEqual({
+      state: "ready",
+      purchaseId: "p1",
+      validUntil: "2026-08-18",
+    });
+  });
+
+  it("is 'generating' while this year's purchase is still being written", () => {
+    expect(yearlyCardState([purchase("p1", "generating", "2026-08-01")], "2026-08-18")).toEqual({
+      state: "generating",
+      purchaseId: "p1",
+      validUntil: "2027-08-01",
+    });
+  });
+
+  it("prefers a newer active purchase over an older expired one", () => {
+    const purchases = [purchase("p1", "ready", "2024-01-01"), purchase("p2", "ready", "2026-07-01")];
+    expect(yearlyCardState(purchases, "2026-08-18")).toEqual({
+      state: "ready",
+      purchaseId: "p2",
+      validUntil: "2027-07-01",
+    });
+  });
+
+  it("ignores a null-periodMonth (one-time) row", () => {
+    expect(yearlyCardState([purchase("p1", "ready", null)], "2026-08-18")).toEqual({ state: "none" });
+  });
+
+  it("defaults to the real current date", () => {
+    expect(yearlyCardState([purchase("p1", "ready", currentDateKey())]).state).toBe("ready");
+  });
+});
+
+describe("currentDateKey", () => {
+  it("formats the reference date as 'YYYY-MM-DD'", () => {
+    expect(currentDateKey(new Date(Date.UTC(2026, 7, 18)))).toBe("2026-08-18");
+  });
+
+  it("pads single-digit month and day", () => {
+    expect(currentDateKey(new Date(Date.UTC(2026, 0, 5)))).toBe("2026-01-05");
+  });
+});
+
+describe("addOneYear", () => {
+  it("adds exactly one calendar year", () => {
+    expect(addOneYear("2026-08-18")).toBe("2027-08-18");
+  });
+
+  it("rolls Feb 29 forward to Mar 1 on a non-leap target year", () => {
+    expect(addOneYear("2024-02-29")).toBe("2025-03-01");
+  });
+});
+
+describe("formatDateKey", () => {
+  it("formats a full date as day + short month + year", () => {
+    expect(formatDateKey("2027-08-18")).toBe("18 Aug 2027");
+  });
+
+  it("is stable regardless of the host machine's local timezone (uses UTC)", () => {
+    expect(formatDateKey("2026-01-01")).toBe("1 Jan 2026");
+    expect(formatDateKey("2026-12-31")).toBe("31 Dec 2026");
   });
 });
 

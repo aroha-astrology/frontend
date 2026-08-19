@@ -58,6 +58,15 @@ interface NormalizedKundli {
 //
 // We normalize both into one flat shape that the page consumes.
 
+// A backend house-assignment cache bug (fixed server-side) could persist a
+// chart with each planet listed 2+ times in houses[i].planets — dedupe here
+// so already-stored charts render correctly without needing a backfill.
+function dedupeHousePlanets(houses: any[]): any[] {
+  return houses.map((h) =>
+    Array.isArray(h?.planets) ? { ...h, planets: [...new Set(h.planets)] } : h,
+  );
+}
+
 function normalizeKundli(
   source: KundliReady | OnboardingResponse,
 ): NormalizedKundli {
@@ -68,7 +77,7 @@ function normalizeKundli(
     const k = source as KundliReady;
     const chart = k.chart as Record<string, any> ?? {};
     const planets: any[] = (chart.planets as any[]) ?? [];
-    const houses: any[] = (chart.houses as any[]) ?? [];
+    const houses: any[] = dedupeHousePlanets((chart.houses as any[]) ?? []);
     const ascendant =
       (chart.ascendant as Record<string, any> | null) ??
       (chart.chart as any)?.ascendant ??
@@ -102,7 +111,7 @@ function normalizeKundli(
     const o = source as OnboardingResponse;
     const ch: OnboardingCharts = o.charts ?? {};
     const planets: any[] = (ch.planets as any[]) ?? [];
-    const houses: any[] = (ch.houses as any[]) ?? [];
+    const houses: any[] = dedupeHousePlanets((ch.houses as any[]) ?? []);
     const ascendant = (ch.chart?.ascendant as Record<string, any> | null) ?? null;
 
     // Swarm dasha uses mahadashaSequence instead of mahadashas

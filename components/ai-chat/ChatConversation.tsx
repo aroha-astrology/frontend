@@ -522,7 +522,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             if (last && last.role === "assistant") {
               next[next.length - 1] = {
                 ...last,
-                content: t("aiChatPage.errorPrefix", { error: event.data.message }),
+                // Never render provider/backend error text verbatim — always the
+                // generic fallback, regardless of what the stream sends.
+                content: t("aiChatPage.connectError"),
                 isError: true,
               };
             }
@@ -593,7 +595,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         return;
       }
 
-      const errorMsg = err instanceof Error ? err.message : t("aiChatPage.connectError");
+      // Never render raw err.message — it can be an infra error page's body
+      // text (e.g. a non-JSON 502/504) rather than a curated API message.
+      const errorMsg = t("aiChatPage.connectError");
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];

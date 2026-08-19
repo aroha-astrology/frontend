@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowLeft, Loader2, LifeBuoy } from "lucide-react";
+import { ArrowLeft, Loader2, LifeBuoy, ChevronDown, MessageSquare } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -177,29 +177,63 @@ export default function HelpPage() {
           ) : (
             <div className="flex flex-col gap-3 pb-6">
               {tickets.map((ticket) => (
-                <Card key={ticket.id} className="p-4">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span className="text-xs font-semibold text-gold">
-                      {categoryLabel(t, ticket.category)}
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border shrink-0 ${statusTone(
-                        ticket.status
-                      )}`}
-                    >
-                      {statusLabel(t, ticket.status)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground/90 mb-2">{truncate(ticket.message, 140)}</p>
-                  {ticket.adminNote && (
-                    <div className="mt-2 pt-2 border-t border-border">
-                      <p className="text-[11px] text-gold/80 mb-1">{t("help.replyLabel")}</p>
-                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">{ticket.adminNote}</p>
+                <Card key={ticket.id} className="p-0 overflow-hidden">
+                  {/* Native <details> rather than a useState toggle or a detail
+                      route: it is keyboard-accessible and screen-reader-correct
+                      for free, and there is nothing to fetch on open — the list
+                      response already carries the full message and reply. */}
+                  <details className="group">
+                    <summary className="p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-xs font-semibold text-gold">
+                          {categoryLabel(t, ticket.category)}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border shrink-0 ${statusTone(
+                            ticket.status
+                          )}`}
+                        >
+                          {statusLabel(t, ticket.status)}
+                        </span>
+                      </div>
+
+                      {/* Preview only while collapsed — the full text lives in
+                          the panel below, so it is never rendered twice. */}
+                      <p className="text-sm text-foreground/90 mb-2 group-open:hidden">
+                        {truncate(ticket.message, 140)}
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <p className="text-[11px] text-muted">
+                          {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
+                        </p>
+                        {ticket.adminNote && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-gold/40 bg-gold/10 text-gold">
+                            <MessageSquare size={10} />
+                            {t("help.replyLabel")}
+                          </span>
+                        )}
+                        <ChevronDown
+                          size={16}
+                          className="ml-auto text-muted transition-transform group-open:rotate-180"
+                        />
+                      </div>
+                    </summary>
+
+                    <div className="px-4 pb-4">
+                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">
+                        {ticket.message}
+                      </p>
+                      {ticket.adminNote && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <p className="text-[11px] text-gold/80 mb-1">{t("help.replyLabel")}</p>
+                          <p className="text-sm text-foreground/90 whitespace-pre-wrap">
+                            {ticket.adminNote}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <p className="text-[11px] text-muted mt-2">
-                    {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
-                  </p>
+                  </details>
                 </Card>
               ))}
             </div>

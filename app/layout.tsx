@@ -16,7 +16,7 @@ import PermissionsPrompt from "@/components/PermissionsPrompt";
 import ShareAppPrompt from "@/components/ShareAppPrompt";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
-import TopUpBonusPrompt from "@/components/TopUpBonusPrompt";
+import FestivalGiftModal from "@/components/FestivalGiftModal";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -104,7 +104,7 @@ export default function RootLayout({
                         <UpdatePrompt />
                         <ShareAppPrompt />
                         <FeedbackPrompt />
-                        <TopUpBonusPrompt />
+                        <FestivalGiftModal />
                       </AuthGuard>
                     </TopBarProvider>
                     <BackButtonListener />

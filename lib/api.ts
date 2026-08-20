@@ -82,6 +82,17 @@ export interface User {
    * offers a claim a second device already redeemed.
    */
   claimedCampaigns: string[];
+  /**
+   * Whichever self-claim gift campaign (festival or custom) is currently
+   * live and eligible for this user, or null. Server-computed — see
+   * resolveActiveClaimableCampaign in the backend's users.service.ts.
+   */
+  activeClaimableCampaign: {
+    key: string;
+    title: string;
+    amountPaise: number;
+    validUntil: string;
+  } | null;
   /** Referral code for this user */
   referralCode: string | null;
   /** Source of the referral (who referred this user) */

@@ -9,7 +9,6 @@ import DecadeArcCard from "./DecadeArcCard";
 import DoshaYogaPanel from "./DoshaYogaPanel";
 import GunaKootaBreakdown from "./GunaKootaBreakdown";
 import LifeContextCard from "./LifeContextCard";
-import ReportGemstonesCard from "./ReportGemstonesCard";
 import NumberChips from "./NumberChips";
 import ForecastTable from "./ForecastTable";
 import LoShuGridCard from "./LoShuGridCard";
@@ -37,7 +36,6 @@ type RichFact = Extract<
       | "doshaYoga"
       | "kootaBreakdown"
       | "lifeContext"
-      | "gemstones"
       | "loShuGrid"
       | "challengeNumbers"
       | "namePlanes"
@@ -212,7 +210,6 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           {f.type === "doshaYoga" && <DoshaYogaPanel summary={f.summary} />}
           {f.type === "kootaBreakdown" && <GunaKootaBreakdown entries={f.entries} />}
           {f.type === "lifeContext" && <LifeContextCard lifeContext={f.value} />}
-          {f.type === "gemstones" && <ReportGemstonesCard gemstones={f.gemstones} />}
           {f.type === "loShuGrid" && <LoShuGridCard value={f.value} />}
           {f.type === "challengeNumbers" && <ChallengeNumbersCard value={f.value} />}
           {f.type === "namePlanes" && <NamePlanesCard value={f.value} />}

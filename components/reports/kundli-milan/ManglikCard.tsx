@@ -8,7 +8,7 @@ import type { ManglikState } from "@/lib/kundli-milan-report-view";
 
 /**
  * Mangal Dosha, per person — the only genuinely two-sided fact this report computes
- * (header, gemstones and the dosha/yoga summary are all scoped to the purchasing user's
+ * (header, planetRemedies and the dosha/yoga summary are all scoped to the purchasing user's
  * chart by backend design, so nothing else on this screen gets a You/Partner treatment).
  *
  * The verdict deliberately keys off `matched`, not off either person's flag: Mangal Dosha

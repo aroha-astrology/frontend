@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 import { buildKundliMilanView, SECTION_ICON } from "@/lib/kundli-milan-report-view";
 import {
   isDoshaYogaSummary,
-  isGemstoneArray,
+  isRemedyPlacementArray,
   isReportHeader,
   isReportVerdict,
 } from "@/lib/report-score-facts";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
-import ReportGemstonesCard from "../ReportGemstonesCard";
+import { RemedyPlacementsCards } from "../LalKitabFactsCards";
 import GunaKootaBreakdown from "../GunaKootaBreakdown";
 import AnalysisAccordion from "../AnalysisAccordion";
 import StrengthsCautions from "../StrengthsCautions";
@@ -36,7 +36,7 @@ import type { ReportReady } from "@/hooks/useReport";
  *
  * Two things the design sheet offers that are NOT rendered, each for a checked reason:
  *   - a symmetric You/Partner panel beyond Mangal Dosha. `primaryDoshaYoga`, `header`,
- *     `lifeContext` and `gemstones` are all scoped to the PURCHASING user's chart by
+ *     `lifeContext` and `planetRemedies` are all scoped to the PURCHASING user's chart by
  *     explicit backend design (the partner chart is never run through the dosha/yoga
  *     analysis, and kundli-milan.ts's own doc comment says fabricating it would be worse
  *     than omitting it). Mangal Dosha is the one two-sided fact, and it gets its own card.
@@ -111,12 +111,12 @@ export default function KundliMilanReportView({ data }: { data: ReportReady }) {
         </section>
       )}
 
-      {isGemstoneArray(scores.gemstones) && (
+      {isRemedyPlacementArray(scores.planetRemedies) && (
         <section>
           <h2 className="font-display text-base text-gold mb-2">
             {t("kundliMilanReport.remedies.title")}
           </h2>
-          <ReportGemstonesCard gemstones={scores.gemstones} />
+          <RemedyPlacementsCards placements={scores.planetRemedies} />
         </section>
       )}
 

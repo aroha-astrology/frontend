@@ -24,7 +24,7 @@ import type { ReportReady } from "@/hooks/useReport";
  * computes no numeric rating at all, and inventing one (say, from the 12th lord's strength)
  * would present a number the backend never stood behind.
  *
- * No gemstones — extends ReportSharedFacts, not the WithGemstones variant.
+ * No remedies — extends ReportSharedFacts, not the WithRemedies variant.
  */
 export default function PastLifeReportView({ data }: { data: ReportReady }) {
   const { t } = useTranslation();

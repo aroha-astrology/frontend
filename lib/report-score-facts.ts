@@ -101,7 +101,6 @@ export const SCORE_FACT_LABEL_KEYS: Record<string, string> = {
   tone: "reportScores.label.tone",
   header: "reportScores.label.header",
   lifeContext: "reportScores.label.lifeContext",
-  gemstones: "reportScores.label.gemstones",
   verdict: "reportScores.label.verdict",
   // numerology
   name: "reportScores.label.name",
@@ -311,18 +310,6 @@ export interface LifeContextValue {
   domains: LifeContextDomain[];
 }
 
-/** Gemstone recommendation list — `scores.gemstones`, only on the 5 flagship report types
- * that carry one (see jyotish-backend's report-gemstones.ts). */
-export interface ReportGemstone {
-  planet: string;
-  role: string;
-  benefit: string;
-  strength: "weak" | "average" | "strong";
-  reason: string;
-  preference: number;
-  color: string;
-  conditionalCautionApplies: boolean;
-}
 
 /** Report identity header — `scores.header`, rendered separately at the top of the page
  * (ReportHeaderCard), never through the generic facts grid below. */
@@ -521,12 +508,6 @@ export interface LifeContextFact {
   label: string;
   type: "lifeContext";
   value: LifeContextValue;
-}
-export interface GemstonesFact {
-  key: string;
-  label: string;
-  type: "gemstones";
-  gemstones: ReportGemstone[];
 }
 export interface LoShuGridFact {
   key: string;
@@ -844,19 +825,6 @@ export function isKootaBreakdownArray(v: unknown): v is KootaEntry[] {
   );
 }
 
-/** Distinguished from every other array shape by requiring `planet` AND `conditionalCautionApplies`
- * (a boolean) on every item — no other shape here carries either field. */
-export function isGemstoneArray(v: unknown): v is ReportGemstone[] {
-  if (!Array.isArray(v) || v.length === 0) return false;
-  return v.every(
-    (item) =>
-      isRecord(item) &&
-      typeof item.planet === "string" &&
-      typeof item.role === "string" &&
-      typeof item.benefit === "string" &&
-      typeof item.conditionalCautionApplies === "boolean"
-  );
-}
 
 /** An object (not array) with a `domains` array plus the two dasha-lord fields — distinguished
  * from Archetype (`traits`) and DoshaYogaSummary (`positives`/`cautions`) by requiring `domains`. */
@@ -900,7 +868,6 @@ export type ScoreFact =
   | DoshaYogaFact
   | KootaBreakdownFact
   | LifeContextFact
-  | GemstonesFact
   | LoShuGridFact
   | ChallengeNumbersFact
   | NamePlanesFact
@@ -961,9 +928,6 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
   }
   if (isPlanetStrengthArray(value)) {
     return { key, label, type: "planetStrength", planets: value };
-  }
-  if (isGemstoneArray(value)) {
-    return { key, label, type: "gemstones", gemstones: value };
   }
   if (isLifeContext(value)) {
     return { key, label, type: "lifeContext", value };

@@ -39,8 +39,8 @@ const SECTION_ICON: Record<string, string> = {
  *
  * Two things the other report screens have that this one does NOT, both checked rather than
  * assumed:
- *   - no gemstones. `CareerMonthlyScores` extends `ReportSharedFacts`, not the
- *     `...WithGemstones` variant, so this report never computes them.
+ *   - no remedies. `CareerMonthlyScores` extends `ReportSharedFacts`, not the
+ *     `...WithRemedies` variant, so this report never computes them.
  *   - no timing windows or age bands. Those are lifetime constructs; a monthly report's
  *     equivalent is the within-month sub-period strip.
  */

@@ -27,7 +27,7 @@ const SECTION_ICON: Record<string, string> = {
  * meaning lives in the narrative, and a bare "6, 8, 12" chip row would read as jargon rather
  * than information.
  *
- * No gemstones (extends ReportSharedFacts, not the WithGemstones variant), and no timing
+ * No remedies (extends ReportSharedFacts, not the WithRemedies variant), and no timing
  * windows or age bands — those are lifetime constructs; the sub-period strip is the monthly
  * equivalent.
  */

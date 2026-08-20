@@ -37,7 +37,7 @@ function readString(v: unknown): string | null {
  * backend deliberately frames it gently for a new parent — so it renders as-is, under a
  * heading that says whose chart it is.
  *
- * No gemstones — extends ReportSharedFacts, not the WithGemstones variant.
+ * No remedies — extends ReportSharedFacts, not the WithRemedies variant.
  */
 export default function BabyNameReportView({ data }: { data: ReportReady }) {
   const { t } = useTranslation();

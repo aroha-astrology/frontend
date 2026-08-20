@@ -46,7 +46,7 @@ export interface DesignedScreen {
  *   6. Archetype
  *   7. Decade arc
  *   8. StrengthsCautions            (doshaYoga)
- *   9. Gemstones
+ *   9. Remedies (Lal Kitab)
  *  10. PlanetStrengthCard           (appended once by app/reports/[id]/page.tsx, not here)
  *  11. ReportVerdictCard
  *

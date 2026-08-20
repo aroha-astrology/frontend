@@ -5,7 +5,7 @@ import { buildMarriageView } from "@/lib/marriage-report-view";
 import {
   isDecadeBandArray,
   isDoshaYogaSummary,
-  isGemstoneArray,
+  isRemedyPlacementArray,
   isRankedWindowArray,
   isReportHeader,
   isReportVerdict,
@@ -13,7 +13,7 @@ import {
 import { SECTION_ICON } from "@/lib/marriage-report-view";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
-import ReportGemstonesCard from "../ReportGemstonesCard";
+import { RemedyPlacementsCards } from "../LalKitabFactsCards";
 import ArchetypeCard from "../ArchetypeCard";
 import DecadeArcCard from "../DecadeArcCard";
 import AnalysisAccordion from "../AnalysisAccordion";
@@ -37,9 +37,12 @@ import type { ReportReady } from "@/hooks/useReport";
  * deliberately not rendered:
  *   - the You/Partner compatibility rings — `marriage` is a single-person report;
  *     partner scoring only exists on kundli_milan / match_report.
- *   - fasting/donation/mantra remedies — the marriage generator is explicitly
- *     prompted not to recommend those, so the Remedies slot shows the gemstones
- *     it does produce.
+ *   - a "when will I marry" timing card for a user whose onboarding relationship
+ *     status is already "married" — see the `scores.relationshipStatus` check below.
+ *
+ * The Remedies section shows real Lal Kitab remedies (report-remedy-slots.ts on the
+ * backend) — never a gemstone recommendation; those are sold exclusively through the
+ * dedicated paid Gemstone feature.
  *
  * Every other report type still renders through the generic path in
  * app/reports/[id]/page.tsx; this component is reached only for reportKey "marriage".
@@ -70,7 +73,7 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
           order (see designed-screens.tsx). */}
       <SeventhHouseCard facts={view.seventhHouse} />
 
-      {isRankedWindowArray(scores.windows) && (
+      {isRankedWindowArray(scores.windows) && scores.relationshipStatus !== "married" && (
         <TopWindowCard
           windows={scores.windows}
           titleKey="marriageReport.timing.title"
@@ -100,7 +103,7 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
 
       {/* Strengths & Cautions — moved down from just after the accordion (its old spot) so
           every designed screen shows it in the SAME position: after archetype/decade arc, just
-          before gemstones (see designed-screens.tsx's canonical order). */}
+          before remedies (see designed-screens.tsx's canonical order). */}
       {isDoshaYogaSummary(scores.doshaYoga) && (
         <StrengthsCautions
           summary={scores.doshaYoga}
@@ -109,10 +112,10 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         />
       )}
 
-      {isGemstoneArray(scores.gemstones) && (
+      {isRemedyPlacementArray(scores.planetRemedies) && (
         <section>
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.remedies.title")}</h2>
-          <ReportGemstonesCard gemstones={scores.gemstones} />
+          <RemedyPlacementsCards placements={scores.planetRemedies} />
         </section>
       )}
 

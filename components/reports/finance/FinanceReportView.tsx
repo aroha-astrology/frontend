@@ -29,7 +29,7 @@ const SECTION_ICON: Record<string, string> = {
  * would repeat the same caution every month it is bought. StrengthsCautions already drops an
  * empty column and widens the other, so that renders correctly without special-casing here.
  *
- * No gemstones (extends ReportSharedFacts, not the WithGemstones variant), and no timing
+ * No remedies (extends ReportSharedFacts, not the WithRemedies variant), and no timing
  * windows or age bands — those are lifetime constructs; the sub-period strip is the monthly
  * equivalent.
  */

@@ -8,14 +8,14 @@ import {
   isArchetype,
   isDecadeBandArray,
   isDoshaYogaSummary,
-  isGemstoneArray,
+  isRemedyPlacementArray,
   isRankedWindowArray,
   isReportHeader,
   isReportVerdict,
 } from "@/lib/report-score-facts";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
-import ReportGemstonesCard from "../ReportGemstonesCard";
+import { RemedyPlacementsCards } from "../LalKitabFactsCards";
 import ArchetypeCard from "../ArchetypeCard";
 import DecadeArcCard from "../DecadeArcCard";
 import AgeBandHeatStrip from "../AgeBandHeatStrip";
@@ -134,12 +134,12 @@ export default function TrueLoveReportView({ data }: { data: ReportReady }) {
         />
       )}
 
-      {isGemstoneArray(scores.gemstones) && (
+      {isRemedyPlacementArray(scores.planetRemedies) && (
         <section>
           <h2 className="font-display text-base text-gold mb-2">
             {t("trueLoveReport.remedies.title")}
           </h2>
-          <ReportGemstonesCard gemstones={scores.gemstones} />
+          <RemedyPlacementsCards placements={scores.planetRemedies} />
         </section>
       )}
 

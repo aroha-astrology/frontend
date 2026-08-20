@@ -14,7 +14,6 @@ import {
   isKarmicDebtArray,
   isPakkaGharArray,
   isBlindPlanetArray,
-  isGemstoneArray,
   isLifeContext,
   isReportHeader,
   isReportVerdict,
@@ -28,7 +27,6 @@ import {
   type KarmicDebtValue,
   type PakkaGharValue,
   type BlindPlanetValue,
-  type ReportGemstone,
   type LifeContextValue,
   type ReportHeaderValue,
   type ReportVerdictValue,
@@ -475,7 +473,6 @@ describe("Lal Kitab remedies-report array shapes", () => {
     for (const sample of [samplePlacements, sampleDebts, samplePakkaGhar, sampleBlindPlanets]) {
       expect(isRankedWindowArray(sample)).toBe(false);
       expect(isKootaBreakdownArray(sample)).toBe(false);
-      expect(isGemstoneArray(sample)).toBe(false);
     }
   });
 
@@ -490,40 +487,6 @@ describe("Lal Kitab remedies-report array shapes", () => {
     const fact = buildScoreFacts({ planetRemedies: samplePlacements })[0];
     if (fact.type !== "remedyPlacements") throw new Error("expected remedyPlacements");
     expect(fact.placements[0].remedies[0]).toBe("Feed sweet chapatis to dogs");
-  });
-});
-
-describe("isGemstoneArray / gemstones classification", () => {
-  const sampleGemstones: ReportGemstone[] = [
-    {
-      planet: "Venus",
-      role: "Venus classically governs romantic harmony.",
-      benefit: "Supports a warmer marriage bond.",
-      strength: "strong",
-      reason: "Exalted in Pisces",
-      preference: 20,
-      color: "#a78bfa",
-      conditionalCautionApplies: false,
-    },
-  ];
-
-  it("classifies a ReportGemstone[] as a gemstones fact", () => {
-    expect(isGemstoneArray(sampleGemstones)).toBe(true);
-    const facts = buildScoreFacts({ gemstones: sampleGemstones });
-    expect(facts).toHaveLength(1);
-    expect(facts[0].type).toBe("gemstones");
-  });
-
-  it("is not misclassified by, and does not misclassify, the other array shapes", () => {
-    expect(isRankedWindowArray(sampleGemstones)).toBe(false);
-    expect(isKootaBreakdownArray(sampleGemstones)).toBe(false);
-    expect(isGemstoneArray([{ name: "Varna", score: 1, maxScore: 1, description: "Matched" }])).toBe(
-      false,
-    );
-  });
-
-  it("rejects an empty array (falls through to the generic empty-array handling)", () => {
-    expect(isGemstoneArray([])).toBe(false);
   });
 });
 
@@ -668,24 +631,13 @@ describe("isPlanetStrengthArray / planetStrength classification", () => {
   });
 
   it("does not swallow the other planet-keyed shapes", () => {
-    // gemstones, pakkaGhar and blindPlanets are all arrays of objects with a `planet` key;
+    // planetRemedies, pakkaGhar and blindPlanets are all arrays of objects with a `planet` key;
     // only planetStrength carries `pct`.
-    const gemstones = [
-      {
-        planet: "Venus",
-        role: "Yogakaraka",
-        benefit: "Harmony",
-        strength: "strong",
-        reason: "r",
-        preference: 1,
-        color: "white",
-        conditionalCautionApplies: false,
-      },
-    ];
+    const remedies = [{ planet: "Venus", house: 7, remedies: ["Feed cows"], totke: ["Donate sugar"] }];
     const blind = [
       { planet: "Mars", house: 6, isBlind: true, isHalfBlind: false, reason: "r" },
     ];
-    expect(buildScoreFact("gemstones", gemstones)?.type).toBe("gemstones");
+    expect(buildScoreFact("planetRemedies", remedies)?.type).toBe("remedyPlacements");
     expect(buildScoreFact("blindPlanets", blind)?.type).toBe("blindPlanets");
   });
 

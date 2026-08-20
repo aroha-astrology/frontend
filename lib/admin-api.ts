@@ -235,6 +235,41 @@ export interface AdminDeletionActionResponse {
   deletionRequestedAt: string | null;
 }
 
+// ─── Gift Campaigns ────────────────────────────────────────────────────────
+
+export interface AdminGiftCampaignRow {
+  id: string;
+  key: string;
+  title: string;
+  amountPaise: number;
+  audienceMaxBalancePaise: number | null;
+  deliveryMode: "self_claim" | "auto_credit";
+  claimWindowDays: number | null;
+  creditExpiryDays: number | null;
+  scheduledSendAt: string | null;
+  status: "draft" | "scheduled" | "sent" | "canceled";
+  validFrom: string | null;
+  validUntil: string | null;
+  sentAt: string | null;
+  createdAt: string;
+}
+
+export interface CreateGiftCampaignBody {
+  title: string;
+  amountPaise: number;
+  audienceMaxBalancePaise: number | null;
+  deliveryMode: "self_claim" | "auto_credit";
+  claimWindowDays: number | null;
+  creditExpiryDays: number | null;
+  scheduledSendAt: string | null;
+}
+
+export interface AudiencePreview {
+  eligibleCount: number;
+  pushableCount: number;
+  totalCostPaise: number;
+}
+
 // ─── Client ────────────────────────────────────────────────────────────────
 
 export interface AdminDateRangeParams {
@@ -373,5 +408,29 @@ export const adminApi = {
   /** Irreversible hard delete — no shell row survives. */
   hardDeleteUser: (userId: string) =>
     request<{ id: string }>(`/v1/admin/deletion-requests/${userId}`, { method: "DELETE", auth: true }),
+
+  /** All gift campaigns, newest first. */
+  listGiftCampaigns: () =>
+    request<{ campaigns: AdminGiftCampaignRow[] }>("/v1/admin/gift-campaigns", { auth: true }),
+
+  /** Create a campaign (draft, or scheduled if scheduledSendAt is given). */
+  createGiftCampaign: (body: CreateGiftCampaignBody) =>
+    request<AdminGiftCampaignRow>("/v1/admin/gift-campaigns", { method: "POST", body, auth: true }),
+
+  /** Dry-run: eligible/pushable audience size and total cost, before creating a campaign. */
+  previewGiftCampaignAudience: (amountPaise: number, audienceMaxBalancePaise: number | null) =>
+    request<AudiencePreview>("/v1/admin/gift-campaigns/preview", {
+      method: "POST",
+      body: { amountPaise, audienceMaxBalancePaise },
+      auth: true,
+    }),
+
+  /** Send a draft or scheduled campaign immediately. */
+  sendGiftCampaignNow: (id: string) =>
+    request<AdminGiftCampaignRow>(`/v1/admin/gift-campaigns/${id}/send`, { method: "POST", auth: true }),
+
+  /** Cancel a draft or scheduled campaign. */
+  cancelGiftCampaign: (id: string) =>
+    request<void>(`/v1/admin/gift-campaigns/${id}`, { method: "DELETE", auth: true }),
 };
 

@@ -1273,10 +1273,10 @@ export const resources = {
         cta: "Share Now",
         notNow: "Not Now",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "On the house",
         title: "{{amount}} for you",
-        body: "Your wallet is running low, so here's {{amount}} from us — no strings. Claim it today and ask Aroha AI whatever is on your mind.",
+        body: "To celebrate {{title}}, here's {{amount}} from us — no strings. Claim it today and ask Aroha AI whatever is on your mind.",
         dismiss: "Maybe later",
         cta: "Claim {{amount}}",
         claiming: "Claiming…",
@@ -3819,10 +3819,10 @@ export const resources = {
         cta: "अभी शेयर करें",
         notNow: "अभी नहीं",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "हमारी ओर से",
         title: "आपके लिए {{amount}}",
-        body: "आपका बैलेंस कम है, इसलिए हमारी ओर से {{amount}} — बिना किसी शर्त के। आज ही पाएं और Aroha AI से जो मन में है वो पूछें।",
+        body: "{{title}} के अवसर पर, हमारी ओर से {{amount}} — बिना किसी शर्त के। आज ही पाएं और Aroha AI से जो मन में है वो पूछें।",
         dismiss: "बाद में",
         cta: "{{amount}} पाएं",
         claiming: "जोड़ा जा रहा है…",
@@ -5843,10 +5843,10 @@ export const resources = {
         cta: "এখনই শেয়ার করুন",
         notNow: "এখন নয়",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "আমাদের পক্ষ থেকে",
         title: "আপনার জন্য {{amount}}",
-        body: "আপনার ব্যালেন্স কমে এসেছে, তাই আমাদের পক্ষ থেকে {{amount}} — কোনো শর্ত ছাড়াই। আজই নিন এবং Aroha AI-কে মনের যে কোনো প্রশ্ন করুন।",
+        body: "{{title}} উপলক্ষে, আমাদের পক্ষ থেকে {{amount}} — কোনো শর্ত ছাড়াই। আজই নিন এবং Aroha AI-কে মনের যে কোনো প্রশ্ন করুন।",
         dismiss: "পরে",
         cta: "{{amount}} নিন",
         claiming: "যোগ করা হচ্ছে…",
@@ -7868,10 +7868,10 @@ export const resources = {
         cta: "आता शेअर करा",
         notNow: "आता नाही",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "आमच्याकडून",
         title: "तुमच्यासाठी {{amount}}",
-        body: "तुमची शिल्लक कमी आहे, म्हणून आमच्याकडून {{amount}} — कोणत्याही अटीशिवाय. आजच मिळवा आणि Aroha AI ला मनातलं काहीही विचारा.",
+        body: "{{title}} निमित्ताने, आमच्याकडून {{amount}} — कोणत्याही अटीशिवाय. आजच मिळवा आणि Aroha AI ला मनातलं काहीही विचारा.",
         dismiss: "नंतर",
         cta: "{{amount}} मिळवा",
         claiming: "जोडले जात आहे…",
@@ -9889,10 +9889,10 @@ export const resources = {
         cta: "ఇప్పుడే షేర్ చేయండి",
         notNow: "ఇప్పుడు వద్దు",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "మా తరపు నుండి",
         title: "మీ కోసం {{amount}}",
-        body: "మీ బ్యాలెన్స్ తగ్గిపోయింది, అందుకే మా తరపు నుండి {{amount}} — ఎలాంటి షరతులు లేవు. ఈ రోజే పొందండి, మీ మనసులోని ఏ ప్రశ్ననైనా Aroha AI ని అడగండి.",
+        body: "{{title}} సందర్భంగా, మా తరపు నుండి {{amount}} — ఎలాంటి షరతులు లేవు. ఈ రోజే పొందండి, మీ మనసులోని ఏ ప్రశ్ననైనా Aroha AI ని అడగండి.",
         dismiss: "తర్వాత",
         cta: "{{amount}} పొందండి",
         claiming: "జోడిస్తోంది…",
@@ -11916,10 +11916,10 @@ export const resources = {
         cta: "இப்போது பகிரவும்",
         notNow: "இப்போது வேண்டாம்",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "எங்கள் சார்பாக",
         title: "உங்களுக்கு {{amount}}",
-        body: "உங்கள் இருப்பு குறைந்துவிட்டது, எனவே எங்கள் சார்பாக {{amount}} — எந்த நிபந்தனையும் இல்லை. இன்றே பெற்று, மனதில் உள்ள எதையும் Aroha AI-டம் கேளுங்கள்.",
+        body: "{{title}} முன்னிட்டு, எங்கள் சார்பாக {{amount}} — எந்த நிபந்தனையும் இல்லை. இன்றே பெற்று, மனதில் உள்ள எதையும் Aroha AI-டம் கேளுங்கள்.",
         dismiss: "பின்னர்",
         cta: "{{amount}} பெறுங்கள்",
         claiming: "சேர்க்கப்படுகிறது…",
@@ -13935,10 +13935,10 @@ export const resources = {
         cta: "હમણાં શેર કરો",
         notNow: "હમણાં નહીં",
       },
-      topUpBonus: {
+      festivalGift: {
         eyebrow: "અમારા તરફથી",
         title: "તમારા માટે {{amount}}",
-        body: "તમારું બેલેન્સ ઓછું છે, તેથી અમારા તરફથી {{amount}} — કોઈ શરત વગર. આજે જ મેળવો અને Aroha AI ને મનમાં જે હોય તે પૂછો.",
+        body: "{{title}} નિમિત્તે, અમારા તરફથી {{amount}} — કોઈ શરત વગર. આજે જ મેળવો અને Aroha AI ને મનમાં જે હોય તે પૂછો.",
         dismiss: "પછી",
         cta: "{{amount}} મેળવો",
         claiming: "ઉમેરાઈ રહ્યું છે…",

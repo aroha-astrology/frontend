@@ -1,51 +1,91 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Gift, Sparkles } from "lucide-react";
-import { useClaimCampaign } from "@/hooks/useClaimCampaign";
+import { useAuth } from "@/providers/auth-provider";
+import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
-import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
+import { api } from "@/lib/api";
 import { CHAT_PENDING_CONTEXT_KEY, type ChatPendingPayload } from "@/lib/chat-handoff";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 
-const CAMPAIGN_KEY = "top_up_bonus_2026_08_16";
-const FEATURE_KEY = "referral.topUpBonus";
-const IST_DATE = "2026-08-16";
-const FALLBACK_PAISE = 10000;
-/** Offered only to wallets under ₹100 — same ceiling the server re-checks at claim time. */
-const MAX_BALANCE_PAISE = 10000;
-const DISMISS_KEY = "aroha:topUpBonus20260816:v1";
+type Status = "offer" | "claiming" | "claimed" | "error";
 
-/** One-time ₹100 "wallet running low" claim modal — shown once per device, on IST_DATE only. */
-export default function TopUpBonusPrompt() {
+/**
+ * Generic replacement for the old per-campaign hardcoded modal
+ * (TopUpBonusPrompt.tsx + useClaimCampaign.ts) — driven entirely by
+ * `user.activeClaimableCampaign`, which the backend computes from either the
+ * static CLAIM_CAMPAIGNS array or an admin-created gift_campaigns row. A new
+ * festival needs zero frontend changes: it's a form submission in
+ * /admin/gift-campaigns, not a new component + layout.tsx mount + deploy.
+ */
+export default function FestivalGiftModal() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
+  const { resolved: permissionsResolved } = usePermissionsPrompt();
   const chatFeature = useFeature("nav.askAI");
   const referralAmounts = useReferralAmounts();
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const { visible, status, amountPaise, newBalancePaise, dismiss, claim } = useClaimCampaign({
-    campaignKey: CAMPAIGN_KEY,
-    featureKey: FEATURE_KEY,
-    istDate: IST_DATE,
-    fallbackPaise: FALLBACK_PAISE,
-    dismissKey: DISMISS_KEY,
-    maxBalancePaise: MAX_BALANCE_PAISE,
-  });
 
-  const amount = formatRupees(amountPaise);
+  const [dismissed, setDismissed] = useState(false);
+  const [status, setStatus] = useState<Status>("offer");
+  const [newBalancePaise, setNewBalancePaise] = useState<number | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const campaign = user?.activeClaimableCampaign ?? null;
+  const dismissKey = campaign ? `aroha:festivalGift:${campaign.key}:v1` : null;
+
+  useEffect(() => {
+    setDismissed(false);
+    if (typeof window === "undefined" || !dismissKey) return;
+    if (window.localStorage.getItem(dismissKey)) setDismissed(true);
+  }, [dismissKey]);
+
+  const visible = !!campaign && permissionsResolved && !!user?.profileCompletedAt && !dismissed;
+
+  const dismiss = () => {
+    if (dismissKey) {
+      try {
+        window.localStorage.setItem(dismissKey, "1");
+      } catch {
+        // localStorage unavailable — the modal just reappears next open, same as ShareAppPrompt's fallback.
+      }
+    }
+    setDismissed(true);
+  };
+
+  useDismissOnBackPress(visible && status !== "claiming", dismiss);
+
+  const claim = async () => {
+    if (!campaign) return;
+    setStatus("claiming");
+    try {
+      const result = await api.claimCampaignBonus(campaign.key);
+      await refresh();
+      // `claimed: false` means another device won the race — still a success from this
+      // screen's POV (the money landed), so it gets the same "claimed" state, not an error.
+      setNewBalancePaise(result.walletBalancePaise);
+      setStatus("claimed");
+    } catch {
+      setStatus("error");
+    }
+  };
 
   const goToChat = () => {
-    const payload: ChatPendingPayload = { message: t("topUpBonus.chatPrompt") };
+    const payload: ChatPendingPayload = { message: t("festivalGift.chatPrompt") };
     sessionStorage.setItem(CHAT_PENDING_CONTEXT_KEY, JSON.stringify(payload));
     dismiss();
     router.push("/ai-chat");
   };
+
+  if (!campaign) return null;
+  const amount = formatRupees(campaign.amountPaise);
 
   return (
     <>
@@ -74,13 +114,13 @@ export default function TopUpBonusPrompt() {
                 {status === "offer" || status === "claiming" ? (
                   <>
                     <p className="text-xs uppercase tracking-wide text-muted mb-1">
-                      {t("topUpBonus.eyebrow")}
+                      {t("festivalGift.eyebrow")}
                     </p>
                     <h2 className="text-xl font-display text-foreground mb-2">
-                      {t("topUpBonus.title", { amount })}
+                      {t("festivalGift.title", { amount })}
                     </h2>
                     <p className="text-sm text-muted leading-relaxed mb-5">
-                      {t("topUpBonus.body", { amount })}
+                      {t("festivalGift.body", { amount, title: campaign.title })}
                     </p>
 
                     <div className="flex gap-3 w-full">
@@ -89,7 +129,7 @@ export default function TopUpBonusPrompt() {
                         disabled={status === "claiming"}
                         className="flex-1 py-3 rounded-xl border border-gold/20 text-foreground text-sm font-medium transition-opacity disabled:opacity-50"
                       >
-                        {t("topUpBonus.dismiss")}
+                        {t("festivalGift.dismiss")}
                       </button>
                       <button
                         onClick={claim}
@@ -97,18 +137,18 @@ export default function TopUpBonusPrompt() {
                         className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold transition-opacity disabled:opacity-70"
                       >
                         {status === "claiming"
-                          ? t("topUpBonus.claiming")
-                          : t("topUpBonus.cta", { amount })}
+                          ? t("festivalGift.claiming")
+                          : t("festivalGift.cta", { amount })}
                       </button>
                     </div>
                   </>
                 ) : status === "claimed" ? (
                   <>
                     <h2 className="text-xl font-display text-foreground mb-2">
-                      {t("topUpBonus.claimedTitle", { amount })}
+                      {t("festivalGift.claimedTitle", { amount })}
                     </h2>
                     <p className="text-sm text-muted leading-relaxed mb-5">
-                      {t("topUpBonus.claimedBody", { balance: formatRupees(newBalancePaise) })}
+                      {t("festivalGift.claimedBody", { balance: formatRupees(newBalancePaise) })}
                     </p>
                     <div className="flex flex-col gap-2 w-full">
                       {chatFeature.enabled && (
@@ -117,7 +157,7 @@ export default function TopUpBonusPrompt() {
                           className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold transition-opacity"
                         >
                           <Sparkles size={16} />
-                          {t("topUpBonus.chatCta")}
+                          {t("festivalGift.chatCta")}
                         </button>
                       )}
                       {/* "Want more? Share it" — the referral bonus is the only other way to top up for free. */}
@@ -137,13 +177,13 @@ export default function TopUpBonusPrompt() {
                 ) : (
                   <>
                     <p className="text-sm text-muted leading-relaxed mb-5">
-                      {t("topUpBonus.error")}
+                      {t("festivalGift.error")}
                     </p>
                     <button
                       onClick={claim}
                       className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold transition-opacity"
                     >
-                      {t("topUpBonus.retry")}
+                      {t("festivalGift.retry")}
                     </button>
                   </>
                 )}
@@ -153,11 +193,7 @@ export default function TopUpBonusPrompt() {
         )}
       </AnimatePresence>
       {user?.referralCode && (
-        <ShareOptionsSheet
-          open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          code={user.referralCode}
-        />
+        <ShareOptionsSheet open={sheetOpen} onClose={() => setSheetOpen(false)} code={user.referralCode} />
       )}
     </>
   );

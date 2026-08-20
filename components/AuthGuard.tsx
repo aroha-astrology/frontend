@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import ConsentGate from "@/components/ConsentGate";
@@ -24,6 +24,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAdmin = !!user?.isAdmin;
   const isAdminRoute = pathname.startsWith("/admin");
 
+  // Read via ref, not as an effect dependency (see below) — the onboarding
+  // check must see the current user without re-running every time `user`
+  // itself changes.
+  const userRef = useRef(user);
+  userRef.current = user;
+
   useEffect(() => {
     if (loading) return;
 
@@ -40,10 +46,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (firebaseUser && user && !isAdmin && !user.profileCompletedAt && !isOnboarding && !isPublic) {
+    const currentUser = userRef.current;
+    if (firebaseUser && currentUser && !isAdmin && !currentUser.profileCompletedAt && !isOnboarding && !isPublic) {
       router.replace("/onboarding");
     }
-  }, [firebaseUser, user, loading, isPublic, isOnboarding, isAdmin, isAdminRoute, router]);
+    // Deliberately not reactive on `user`: this gate only needs to run once
+    // per session bootstrap (`loading` resolving) or on a route change —
+    // never on a later background refresh() (periodic poll, tab focus, app
+    // resume). Those exist to pick up admin/feature/wallet changes, not to
+    // re-litigate onboarding status — otherwise a transient/stale
+    // profileCompletedAt read on any of those ticks would yank an
+    // already-active session back into the onboarding wizard mid-use.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebaseUser, loading, isPublic, isOnboarding, isAdmin, isAdminRoute, router]);
 
   if (loading) return <AuthLoadingScreen />;
   if (!firebaseUser && !isPublic) return null;

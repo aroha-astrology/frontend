@@ -5,6 +5,7 @@
 // The swarm backend is co-located behind the same NEXT_PUBLIC_API_BASE_URL.
 
 import { getFirebaseAuth } from "./firebase";
+import type { TranscriptTurn } from "./voice/transcript";
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
@@ -494,7 +495,11 @@ export interface VoiceGrant {
   pricePerMinutePaise: number;
 }
 
-async function voicePost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+async function voicePost<T>(
+  path: string,
+  body: Record<string, unknown>,
+  opts?: { keepalive?: boolean },
+): Promise<T> {
   const auth = getFirebaseAuth();
   const idToken = await auth.currentUser?.getIdToken();
   if (!idToken) throw new Error("Not authenticated");
@@ -506,6 +511,11 @@ async function voicePost<T>(path: string, body: Record<string, unknown>): Promis
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    // Only end() sets this (see below) — it's the one call fired from an
+    // unload handler, where a plain fetch gets cancelled the instant the page
+    // goes away. The transcript riding along on that call is a few KB, well
+    // under the browser's ~64KB keepalive body cap.
+    ...(opts?.keepalive ? { keepalive: true } : {}),
   });
 
   if (!res.ok) {
@@ -557,14 +567,26 @@ export function extendVoiceSession(
  * working call (socket refused, mic denied, immediate hangup) — the server
  * refunds it if this arrives within a short grace window of the grant. Omit
  * it, or pass `true`, for an ordinary hangup: nothing charged or refunded.
+ *
+ * `transcript` is the whole call's turns (see GeminiLiveSession.getTranscript)
+ * — the server saves it as a chat-history session and mines it for durable
+ * facts, same as text chat. Omitted (or empty) when the call never connected;
+ * there's nothing to save. `keepalive: true` because this is the one call
+ * that also fires from a page-unload handler.
  */
 export function endVoiceSession(
   voiceSessionId: string,
   connected?: boolean,
+  transcript?: TranscriptTurn[],
 ): Promise<{ ok: true }> {
-  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/end`, {
-    ...(connected === undefined ? {} : { connected }),
-  });
+  return voicePost<{ ok: true }>(
+    `sessions/${voiceSessionId}/end`,
+    {
+      ...(connected === undefined ? {} : { connected }),
+      ...(transcript && transcript.length > 0 ? { transcript } : {}),
+    },
+    { keepalive: true },
+  );
 }
 
 /**

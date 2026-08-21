@@ -75,6 +75,10 @@ export function useVoiceCall(locale: string): VoiceCall {
   const teardown = useCallback(async () => {
     const session = sessionRef.current;
     sessionRef.current = null;
+    // Grabbed before stop() flushes nothing session-related — the buffer holds
+    // no socket reference — but reading it while we still have `session` in
+    // hand avoids any dependency on stop()'s internals staying inert.
+    const transcript = session?.getTranscript();
     await session?.stop();
 
     const grant = grantRef.current;
@@ -84,7 +88,9 @@ export function useVoiceCall(locale: string): VoiceCall {
       // failure here costs nothing but a stale `active` row. `connected`
       // tells the server whether that charge ever bought a working call —
       // see CONNECT_GRACE_MS in voice.service.ts for what happens with false.
-      await endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
+      // `transcript` rides along so the server can save the call to chat
+      // history and mine it for facts, same as text chat.
+      await endVoiceSession(grant.voiceSessionId, hasConnectedRef.current, transcript).catch(() => {});
     }
 
     setState("idle");
@@ -134,9 +140,12 @@ export function useVoiceCall(locale: string): VoiceCall {
   // the mic open and the minute loop buying time nobody is listening to.
   useEffect(() => {
     return () => {
+      const transcript = sessionRef.current?.getTranscript();
       void sessionRef.current?.stop();
       const grant = grantRef.current;
-      if (grant) void endVoiceSession(grant.voiceSessionId, hasConnectedRef.current).catch(() => {});
+      if (grant) {
+        void endVoiceSession(grant.voiceSessionId, hasConnectedRef.current, transcript).catch(() => {});
+      }
     };
   }, []);
 

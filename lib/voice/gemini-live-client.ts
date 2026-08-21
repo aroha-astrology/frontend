@@ -19,6 +19,9 @@
  * base64 in JSON frames.
  */
 
+import { TranscriptBuffer, type TranscriptTurn } from "./transcript";
+export type { TranscriptTurn };
+
 /**
  * `BidiGenerateContentConstrained`, NOT `BidiGenerateContent`.
  *
@@ -176,6 +179,8 @@ export class GeminiLiveSession {
    * there would make the model re-greet the user every minute.
    */
   private greetingSent = false;
+  /** Assembles inputTranscription/outputTranscription fragments into whole turns. */
+  private transcript = new TranscriptBuffer();
 
   constructor(opts: GeminiLiveSessionOptions) {
     this.opts = opts;
@@ -384,14 +389,19 @@ export class GeminiLiveSession {
     }
 
     if (content.inputTranscription?.text) {
+      this.transcript.append(content.inputTranscription.text, "user");
       this.opts.onTranscript?.(content.inputTranscription.text, "user");
     }
     if (content.outputTranscription?.text) {
+      this.transcript.append(content.outputTranscription.text, "model");
       this.opts.onTranscript?.(content.outputTranscription.text, "model");
     }
 
     for (const part of content.modelTurn?.parts ?? []) {
-      if (part.text) this.opts.onTranscript?.(part.text, "model");
+      if (part.text) {
+        this.transcript.append(part.text, "model");
+        this.opts.onTranscript?.(part.text, "model");
+      }
       if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/")) {
         this.enqueueAudio(part.inlineData.data);
         this.setState("speaking");
@@ -551,6 +561,17 @@ export class GeminiLiveSession {
 
   get currentGrant(): VoiceGrantLike | null {
     return this.grant;
+  }
+
+  /**
+   * The whole call's transcript so far, flushing whatever turn is still in
+   * progress. Safe to call after `stop()` — the buffer holds no socket
+   * reference, only accumulated text — which is what lets `useVoiceCall`'s
+   * teardown read it after `await session.stop()` has already torn the
+   * connection down.
+   */
+  getTranscript(): TranscriptTurn[] {
+    return this.transcript.getTurns();
   }
 }
 

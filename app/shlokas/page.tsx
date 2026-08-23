@@ -12,7 +12,7 @@ import { useFeature } from "@/hooks/useFeature";
 import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
 import { tagMeta } from "@/components/shlokas/tag-meta";
 import { useLanguage } from "@/providers/language-provider";
-import { AUDIO_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
+import { AUDIO_BASE, IMG_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
 import { getFavs, toggleFav, getHistory, playShlokaAudio, pauseShlokaAudio, isShlokaAudioPlaying } from "@/lib/shlokas-prefs";
 import { CATEGORY_GLOSS, CATEGORY_ORDER, TAG_GLOSS, gitaAudioUrl, loadGitaVerses, type GitaVerse } from "@/lib/gita";
 
@@ -323,7 +323,16 @@ function ShlokasLibrary() {
                           active ? "border-2" : "border"
                         }`}
                       >
-                        <Icon size={18} />
+                        {meta.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={`${IMG_BASE}${meta.image}`}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover border border-current/40"
+                          />
+                        ) : (
+                          <Icon size={18} />
+                        )}
                         <span className="text-[10px] font-medium">{t(`shlokas.tags.${tag}`)}</span>
                       </button>
                     );

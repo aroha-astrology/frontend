@@ -53,23 +53,29 @@ interface TagMeta {
   icon: LucideIcon;
   /** border + translucent bg + icon/text color, e.g. for a filter chip or row pill. */
   pill: string;
+  /** Filename under public/shlokas/img/ — a real deity/mantra photo standing
+   * in for the vector icon on the bigger filter-chip row, since the library
+   * already ships 34 of these and a photo reads richer there than a generic
+   * glyph. The icon above stays as the fallback for the small inline tag
+   * pills (too small to read a photo) and for any tag without a fitting one. */
+  image?: string;
 }
 
 export const TAG_META: Record<ShlokaTag, TagMeta> = {
-  peace: { icon: Flower2, pill: "border-sky-500/30 bg-sky-500/10 text-sky-500" },
-  strength: { icon: Flame, pill: "border-red-500/30 bg-red-500/10 text-red-500" },
-  prosperity: { icon: Leaf, pill: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" },
-  protection: { icon: ShieldCheck, pill: "border-violet-500/30 bg-violet-500/10 text-violet-500" },
-  love: { icon: Heart, pill: "border-rose-500/30 bg-rose-500/10 text-rose-500" },
-  "daily-chant": { icon: Sunrise, pill: "border-amber-500/30 bg-amber-500/10 text-amber-500" },
-  healing: { icon: HeartPulse, pill: "border-teal-500/30 bg-teal-500/10 text-teal-500" },
-  abundance: { icon: Gem, pill: "border-gold/30 bg-gold/10 text-gold" },
-  success: { icon: Star, pill: "border-orange-500/30 bg-orange-500/10 text-orange-500" },
-  "new-beginnings": { icon: Sparkles, pill: "border-cyan-500/30 bg-cyan-500/10 text-cyan-500" },
-  knowledge: { icon: BookOpen, pill: "border-blue-500/30 bg-blue-500/10 text-blue-500" },
-  wisdom: { icon: Lightbulb, pill: "border-indigo-500/30 bg-indigo-500/10 text-indigo-500" },
-  health: { icon: Activity, pill: "border-lime-500/30 bg-lime-500/10 text-lime-500" },
-  energy: { icon: Zap, pill: "border-yellow-500/30 bg-yellow-500/10 text-yellow-500" },
+  peace: { icon: Flower2, pill: "border-sky-500/30 bg-sky-500/10 text-sky-500", image: "shanti.webp" },
+  strength: { icon: Flame, pill: "border-red-500/30 bg-red-500/10 text-red-500", image: "hanuman.webp" },
+  prosperity: { icon: Leaf, pill: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500", image: "lakshmi.webp" },
+  protection: { icon: ShieldCheck, pill: "border-violet-500/30 bg-violet-500/10 text-violet-500", image: "durga.webp" },
+  love: { icon: Heart, pill: "border-rose-500/30 bg-rose-500/10 text-rose-500", image: "tulsi-vishnu.webp" },
+  "daily-chant": { icon: Sunrise, pill: "border-amber-500/30 bg-amber-500/10 text-amber-500", image: "gayatri.webp" },
+  healing: { icon: HeartPulse, pill: "border-teal-500/30 bg-teal-500/10 text-teal-500", image: "shiva-mrityunjaya.webp" },
+  abundance: { icon: Gem, pill: "border-gold/30 bg-gold/10 text-gold", image: "annapurna.webp" },
+  success: { icon: Star, pill: "border-orange-500/30 bg-orange-500/10 text-orange-500", image: "ganesha.webp" },
+  "new-beginnings": { icon: Sparkles, pill: "border-cyan-500/30 bg-cyan-500/10 text-cyan-500", image: "diya.webp" },
+  knowledge: { icon: BookOpen, pill: "border-blue-500/30 bg-blue-500/10 text-blue-500", image: "saraswati.webp" },
+  wisdom: { icon: Lightbulb, pill: "border-indigo-500/30 bg-indigo-500/10 text-indigo-500", image: "guru.webp" },
+  health: { icon: Activity, pill: "border-lime-500/30 bg-lime-500/10 text-lime-500", image: "shiva-mrityunjaya.webp" },
+  energy: { icon: Zap, pill: "border-yellow-500/30 bg-yellow-500/10 text-yellow-500", image: "sun.webp" },
 };
 
 /** Falls back to a neutral gold pill for a tag slug not in TAG_META, so a data/code drift renders muted instead of throwing. */

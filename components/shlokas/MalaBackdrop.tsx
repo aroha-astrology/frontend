@@ -200,8 +200,12 @@ function Birds() {
  */
 function MandalaDisc() {
   const [imgError, setImgError] = useState(false);
+  // Sized and centred on the bead ring, not the card: the ring spans
+  // (RX + BEAD_SIZE / 2) / VB = 77% of the mala box's width (itself capped at
+  // 360px by RudrakshaMala), and its centre sits (pt-8 + CY) / (mala + pt-8 +
+  // pb-4) = 51% down the card. Keep these in step with RudrakshaMala's RX/CY.
   return (
-    <div className="absolute left-1/2 top-[46%] w-[80%] max-w-[380px] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-[0.22]">
+    <div className="absolute left-1/2 top-[51%] w-[77%] max-w-[278px] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-[0.22]">
       {!imgError ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

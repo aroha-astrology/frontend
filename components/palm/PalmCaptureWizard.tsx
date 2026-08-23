@@ -9,7 +9,11 @@ import { useCamera } from "@/hooks/useCamera";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { sampleFrameBrightness, isLowLight, captureFrameToJpeg } from "@/lib/palm/capture";
 import { computeMountRelief } from "@/lib/palm/computeMountRelief";
-import PalmBlueprintOverlay from "./PalmBlueprintOverlay";
+import {
+  checkFrameForHand,
+  HAND_CHECK_INTERVAL_MS,
+  type HandFraming,
+} from "@/lib/palm/liveHandCheck";
 import { palmApi, PALM_CAPTURE_SLOTS, type PalmCaptureSlot } from "@/lib/palm-api";
 import { ApiError } from "@/lib/api";
 
@@ -32,6 +36,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const brightnessCanvasRef = useRef<HTMLCanvasElement>(null);
+  const handCanvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const camera = useCamera(videoRef);
 
@@ -45,6 +50,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [brightness, setBrightness] = useState<number | null>(null);
+  const [framing, setFraming] = useState<HandFraming>("none");
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
@@ -97,6 +103,36 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [camera.status]);
+
+  // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
+  // Paused while reviewing a shot (nothing to guide) and torn down with the camera.
+  useEffect(() => {
+    if (camera.status !== "granted" || reviewing) {
+      setFraming("none");
+      return;
+    }
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    // Self-scheduling rather than setInterval: detection latency varies with the device, and
+    // an interval shorter than one inference would queue checks up behind each other.
+    const tick = async () => {
+      const video = videoRef.current;
+      const canvas = handCanvasRef.current;
+      if (video && canvas) {
+        const result = await checkFrameForHand(video, canvas);
+        if (cancelled) return;
+        setFraming(result);
+      }
+      if (!cancelled) timer = setTimeout(() => void tick(), HAND_CHECK_INTERVAL_MS);
+    };
+    void tick();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [camera.status, reviewing]);
 
   const handleManualCapture = useCallback(async () => {
     const video = videoRef.current;
@@ -164,7 +200,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       if (slot === "primaryFront" || slot === "secondaryFront") {
         const hand = slot === "primaryFront" ? "primary" : "secondary";
         void computeMountRelief(reviewing.blob)
-          .then((scores) => scores && palmApi.saveMountRelief(readingId, hand, scores))
+          .then(
+            (result) =>
+              result && palmApi.saveMountRelief(readingId, hand, result.scores, result.regions),
+          )
           .catch(() => {});
       }
 
@@ -232,7 +271,6 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           muted
           className={`w-full h-full object-cover ${!reviewing && camera.status === "granted" ? "" : "hidden"}`}
         />
-        {!reviewing && camera.status === "granted" && <PalmBlueprintOverlay slot={slot} />}
         {reviewing ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={reviewing.previewUrl} alt="" className="w-full h-full object-contain" />
@@ -253,6 +291,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           </div>
         ) : null}
         <canvas ref={brightnessCanvasRef} className="hidden" />
+        <canvas ref={handCanvasRef} className="hidden" />
       </div>
 
       {/* Low-light warning */}
@@ -260,6 +299,20 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
         <div className="absolute bottom-40 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/70 backdrop-blur-md px-4 py-2 text-xs text-amber-300 flex items-center gap-1.5">
           <AlertTriangle size={13} />
           {camera.torchSupported ? t("palm.capture.lowLightTorch") : t("palm.capture.lowLight")}
+        </div>
+      )}
+
+      {/* Live framing hint — replaces the old fixed hand-silhouette overlay. Sits above the
+          low-light pill so both can show at once without overlapping. */}
+      {!reviewing && camera.status === "granted" && (
+        <div className="absolute bottom-52 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/70 backdrop-blur-md px-4 py-2 text-xs flex items-center gap-1.5">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: framing === "good" ? "#8FBF9F" : "#D4AF37" }}
+          />
+          <span className={framing === "good" ? "text-[#8FBF9F]" : "text-white/80"}>
+            {t(`palm.framing.${framing}`)}
+          </span>
         </div>
       )}
 
@@ -303,11 +356,16 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             >
               <Upload size={16} />
             </button>
+            {/* Dimmed, never disabled, while no hand is framed: detection can be unavailable
+                entirely (CDN blocked, unsupported browser), and a hint must not be able to lock
+                the user out of their own capture. */}
             <button
               type="button"
               onClick={handleManualCapture}
               aria-label={t("palm.capture.shutter")}
-              className="h-16 w-16 rounded-full border-4 border-white bg-white/20 active:scale-95 transition-transform"
+              className={`h-16 w-16 rounded-full border-4 border-white bg-white/20 active:scale-95 transition-all ${
+                framing === "good" ? "" : "opacity-60"
+              }`}
             />
             <div className="h-11 w-11" />
           </div>

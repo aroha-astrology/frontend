@@ -28,29 +28,65 @@
   "sheet": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 08_54_48 PM.png",
   "sheets": {
     "_doc": "Default `sheet` above is the Marriage sheet (1024x1536). A section may override it with its own `sheet`; coordinates are always absolute pixels in THAT sheet.",
-    "allReports": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 10_44_02 PM.png"
+    "allReports": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 10_44_02 PM.png",
+    "spiritual": "C:/Users/subir/Downloads/ChatGPT Image Aug 23, 2026, 06_44_36 PM.png"
   },
   "outDir": "public",
   "sections": [
     {
       "name": "planets-row1",
-      "band": [0, 295, 350, 352],
+      "band": [
+        0,
+        295,
+        350,
+        352
+      ],
       "luma": 34,
-      "alpha": [10, 42],
-      "outputs": ["planets/sun", "planets/moon", "planets/mars", "planets/mercury", "planets/jupiter"]
+      "alpha": [
+        10,
+        42
+      ],
+      "outputs": [
+        "planets/sun",
+        "planets/moon",
+        "planets/mars",
+        "planets/mercury",
+        "planets/jupiter"
+      ]
     },
     {
       "name": "planets-row2",
-      "band": [0, 372, 350, 432],
+      "band": [
+        0,
+        372,
+        350,
+        432
+      ],
       "luma": 34,
-      "alpha": [10, 42],
-      "outputs": ["planets/venus", "planets/saturn", "planets/rahu", "planets/ketu"]
+      "alpha": [
+        10,
+        42
+      ],
+      "outputs": [
+        "planets/venus",
+        "planets/saturn",
+        "planets/rahu",
+        "planets/ketu"
+      ]
     },
     {
       "name": "highlights",
-      "band": [368, 196, 720, 231],
+      "band": [
+        368,
+        196,
+        720,
+        231
+      ],
       "luma": 60,
-      "alpha": [40, 85],
+      "alpha": [
+        40,
+        85
+      ],
       "outputs": [
         "highlights/potential",
         "highlights/compatibility",
@@ -62,89 +98,280 @@
     {
       "_note": "Dark purple silhouette with gold line art - a steep alpha ramp keys the body away, so only true black is dropped and the silhouette stays fully opaque. Bottom edge stops above the decorative divider.",
       "name": "couple",
-      "rect": [178, 20, 282, 146],
-      "alpha": [2, 14],
-      "outputs": ["marriage/couple"]
+      "rect": [
+        178,
+        20,
+        282,
+        146
+      ],
+      "alpha": [
+        2,
+        14
+      ],
+      "outputs": [
+        "marriage/couple"
+      ]
     },
     {
       "_note": "Bright gold on flat black, so unlike the couple it takes a steep ramp that drops the background entirely - at [2,14] the near-black plate stayed opaque and read as a dark box sitting on the card.",
       "name": "ring",
-      "rect": [290, 56, 352, 152],
-      "alpha": [12, 48],
-      "outputs": ["marriage/ring"]
+      "rect": [
+        290,
+        56,
+        352,
+        152
+      ],
+      "alpha": [
+        12,
+        48
+      ],
+      "outputs": [
+        "marriage/ring"
+      ]
     },
-    { "name": "lotus", "rect": [77, 1131, 109, 1164], "alpha": [10, 42], "outputs": ["marriage/lotus"] },
+    {
+      "name": "lotus",
+      "rect": [
+        77,
+        1131,
+        109,
+        1164
+      ],
+      "alpha": [
+        10,
+        42
+      ],
+      "outputs": [
+        "marriage/lotus"
+      ]
+    },
     {
       "_note": "Kundli Milan hero: two North-Indian charts joined by a heart, the one piece of art on the all-reports sheet with no equivalent already in the repo. Cropped INSIDE the panel's gold frame (the app draws its own Card border, and a second baked-in frame reads as a box). public/reports/kundli_milan.png is untouched - it is the 44px list thumbnail, a different asset. The 6 icons below this panel are deliberately skipped: two near-identical ring variants, a gift box and a scroll, none of which map to the 8 kootas or the 8 life areas the screen actually renders.",
       "name": "kundli-milan-charts",
       "sheet": "allReports",
-      "rect": [895, 88, 996, 199],
-      "alpha": [12, 48],
-      "outputs": ["kundli-milan/charts"]
+      "rect": [
+        895,
+        88,
+        996,
+        199
+      ],
+      "alpha": [
+        12,
+        48
+      ],
+      "outputs": [
+        "kundli-milan/charts"
+      ]
     },
     {
       "_note": "True Love hero: dark silhouetted couple on a warm glow. alpha null - NOT keyed. Unlike marriage/couple (dark subject on near-black, where a shallow [2,14] ramp works), here the couple is the darkest thing in the crop and the background is a full warm wash, so any ramp turns the silhouettes transparent and keeps the glow. Crops to a rectangle by design; ReportHero's gradient mask is what feathers it. public/reports/true_love.png stays as the 44px list thumbnail.",
       "name": "true-love-couple",
       "sheet": "allReports",
-      "rect": [1027, 87, 1138, 202],
+      "rect": [
+        1027,
+        87,
+        1138,
+        202
+      ],
       "alpha": null,
-      "outputs": ["true-love/couple"]
+      "outputs": [
+        "true-love/couple"
+      ]
     },
     {
       "_note": "Wealth hero: kalash, gold coins, treasure chest and lotus. Bright subject, which would normally suit a steep ramp - but its background is a textured dark-warm wash rather than flat black, so keying leaves a dirty semi-opaque box AND eats the artwork's own shadowed areas. alpha null, feathered by ReportHero's gradient mask like the other two heroes. public/reports/wealth.png stays as the 44px list thumbnail (427x209, far better than this crop).",
       "name": "wealth-kalash",
       "sheet": "allReports",
-      "rect": [310, 89, 432, 200],
+      "rect": [
+        310,
+        89,
+        432,
+        200
+      ],
       "alpha": null,
-      "outputs": ["wealth/kalash"]
+      "outputs": [
+        "wealth/kalash"
+      ]
     },
     {
       "_note": "Career hero: silhouetted figure climbing steps toward a target. Dark subject on a lit warm background, same case as true-love/couple - alpha null, never a ramp, or the figure keys away and only the glow survives.",
       "name": "career-climb",
       "sheet": "allReports",
-      "rect": [1426, 90, 1516, 200],
+      "rect": [
+        1426,
+        90,
+        1516,
+        200
+      ],
       "alpha": null,
-      "outputs": ["career/climb"]
+      "outputs": [
+        "career/climb"
+      ]
     },
     {
       "_note": "Health hero: cyan anatomical figure with ECG traces on a dark blue technical background. Bright subject, but the background is a textured wash rather than flat black - alpha null like the other heroes.",
       "name": "health-body",
       "sheet": "allReports",
-      "rect": [1310, 87, 1400, 200],
+      "rect": [
+        1310,
+        87,
+        1400,
+        200
+      ],
       "alpha": null,
-      "outputs": ["health/body"]
+      "outputs": [
+        "health/body"
+      ]
     },
     {
       "_note": "Finance hero: rupee coin, calculator and pie chart on a warm dark wash. alpha null for the same reason as the rest.",
       "name": "finance-rupee",
       "sheet": "allReports",
-      "rect": [169, 89, 279, 200],
+      "rect": [
+        169,
+        89,
+        279,
+        200
+      ],
       "alpha": null,
-      "outputs": ["finance/rupee"]
+      "outputs": [
+        "finance/rupee"
+      ]
     },
     {
       "_note": "Past Life hero: figure silhouetted before a lit doorway. alpha null - the figure and arch are the dark part, exactly the true-love/couple case. NOTE the x range: panel 6 sits at 749-870, NOT 604-723, which is the Name Change panel; an earlier pass grabbed that by mistake and shipped a quill-and-scroll as the Past Life hero until a screenshot caught it.",
       "name": "past-life-doorway",
       "sheet": "allReports",
-      "rect": [753, 90, 866, 203],
+      "rect": [
+        753,
+        90,
+        866,
+        203
+      ],
       "alpha": null,
-      "outputs": ["past-life/doorway"]
+      "outputs": [
+        "past-life/doorway"
+      ]
     },
     {
       "_note": "Numerology hero: numeral wheel on a dark violet wash. alpha null, same reasoning as the rest of this sheet's panels.",
       "name": "numerology-wheel",
       "sheet": "allReports",
-      "rect": [468, 85, 568, 201],
+      "rect": [
+        468,
+        85,
+        568,
+        201
+      ],
       "alpha": null,
-      "outputs": ["numerology/wheel"]
+      "outputs": [
+        "numerology/wheel"
+      ]
     },
     {
       "_note": "Baby Name hero: sleeping baby on a crescent. alpha null.",
       "name": "baby-name-moon",
       "sheet": "allReports",
-      "rect": [18, 88, 142, 200],
+      "rect": [
+        18,
+        88,
+        142,
+        200
+      ],
       "alpha": null,
-      "outputs": ["baby-name/moon"]
+      "outputs": [
+        "baby-name/moon"
+      ]
+    },
+    {
+      "_note": "Palm-reading hero: glowing hand on a lotus inside a zodiac ring. The art has small English line labels baked in, so it is used ONLY at thumbnail/hero size where they read as texture, never as functional labelling — the real per-line labels on the user's own photo are t() keys (see PalmAnnotatedView).",
+      "sheet": "spiritual",
+      "name": "palm-hero",
+      "rect": [
+        8,
+        6,
+        372,
+        338
+      ],
+      "alpha": [
+        6,
+        30
+      ],
+      "outputs": [
+        "palm/hero"
+      ]
+    },
+    {
+      "_note": "Sage reading a scroll - the mantras/shlokas home image. No baked text.",
+      "sheet": "spiritual",
+      "name": "sage-reading",
+      "rect": [
+        390,
+        8,
+        640,
+        320
+      ],
+      "alpha": [
+        6,
+        30
+      ],
+      "outputs": [
+        "shlokas/sage-reading"
+      ]
+    },
+    {
+      "_note": "Meditating figure with the seven chakras lit - used for the spiritual-growth surfaces.",
+      "sheet": "spiritual",
+      "name": "chakra-figure",
+      "rect": [
+        866,
+        8,
+        1100,
+        320
+      ],
+      "alpha": [
+        6,
+        30
+      ],
+      "outputs": [
+        "shlokas/chakra-figure"
+      ]
+    },
+    {
+      "_note": "Om roundel on a brushed gold ring.",
+      "sheet": "spiritual",
+      "name": "om-roundel",
+      "rect": [
+        1100,
+        20,
+        1300,
+        310
+      ],
+      "alpha": [
+        6,
+        30
+      ],
+      "outputs": [
+        "shlokas/om-roundel"
+      ]
+    },
+    {
+      "_note": "Large lotus - shared decorative art.",
+      "sheet": "spiritual",
+      "name": "lotus-large",
+      "rect": [
+        470,
+        448,
+        720,
+        620
+      ],
+      "alpha": [
+        6,
+        30
+      ],
+      "outputs": [
+        "shlokas/lotus"
+      ]
     }
   ]
 }

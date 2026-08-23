@@ -1,17 +1,51 @@
 import type { PalmReportSection } from "@/lib/palm-api";
 
-/** Canonical display names for the tappable line/mount keys — used both as the feature
- * sheet's title and to fuzzy-match against Stage B's free-text section headings (the LLM
- * writes natural section titles like "The Heart Line" or "Mount of Jupiter (Guru)", not a
- * fixed key, so this is a best-effort substring match rather than a strict lookup). */
-export const LINE_LABELS: Record<string, string> = {
+/**
+ * i18n keys for the tappable line/mount ids. The ids themselves are the contract shared with
+ * the backend (palm-types.ts's PALM_LINE_KEYS and the mount keys) — the same ids Stage B keys
+ * its `lineNotes` by, which is what lets a tap be a direct lookup.
+ *
+ * These used to be hardcoded English labels that were ALSO fuzzy-matched against Stage B's
+ * free-text section headings. That match could open the wrong chapter, or silently open
+ * nothing; `lineNotes` replaced it. The section fallback below survives only for readings
+ * generated before `lineNotes` existed.
+ */
+export const LINE_LABEL_KEYS: Record<string, string> = {
+  heartLine: "palm.line.heartLine",
+  headLine: "palm.line.headLine",
+  lifeLine: "palm.line.lifeLine",
+  fateLine: "palm.line.fateLine",
+  sunLine: "palm.line.sunLine",
+  healthLine: "palm.line.healthLine",
+  girdleOfVenus: "palm.line.girdleOfVenus",
+  ringOfSolomon: "palm.line.ringOfSolomon",
+  simianLine: "palm.line.simianLine",
+};
+
+export const MOUNT_LABEL_KEYS: Record<string, string> = {
+  jupiter: "palm.mount.jupiter",
+  saturn: "palm.mount.saturn",
+  apollo: "palm.mount.apollo",
+  mercury: "palm.mount.mercury",
+  venus: "palm.mount.venus",
+  luna: "palm.mount.luna",
+  marsUpper: "palm.mount.marsUpper",
+  marsLower: "palm.mount.marsLower",
+  rahuPlain: "palm.mount.rahuPlain",
+};
+
+/** English names, used ONLY by the legacy section fallback below (Stage B's headings are
+ * English free text regardless of the user's display language). */
+const CANONICAL_NAMES: Record<string, string> = {
   heartLine: "Heart Line",
   headLine: "Head Line",
   lifeLine: "Life Line",
   fateLine: "Fate Line",
-};
-
-export const MOUNT_LABELS: Record<string, string> = {
+  sunLine: "Sun Line",
+  healthLine: "Health Line",
+  girdleOfVenus: "Girdle of Venus",
+  ringOfSolomon: "Ring of Solomon",
+  simianLine: "Simian",
   jupiter: "Jupiter",
   saturn: "Saturn",
   apollo: "Apollo",
@@ -23,14 +57,16 @@ export const MOUNT_LABELS: Record<string, string> = {
   rahuPlain: "Rahu",
 };
 
-/** Finds the section whose heading best matches the tapped feature's canonical name. Falls
- * back to null (caller shows a generic "see the full reading below" message) rather than
- * guessing wrong — Stage B's headings are free text, not a guaranteed key. */
+/**
+ * Legacy fallback for readings generated before `lineNotes` existed: find the section whose
+ * heading mentions the tapped feature. Best-effort by nature — returns null rather than
+ * guessing wrong, and the caller then shows nothing for that tap.
+ */
 export function findMatchingSection(
   sections: PalmReportSection[] | undefined,
-  canonicalName: string,
+  key: string,
 ): PalmReportSection | null {
-  if (!sections) return null;
-  const needle = canonicalName.toLowerCase();
+  const needle = CANONICAL_NAMES[key]?.toLowerCase();
+  if (!sections || !needle) return null;
   return sections.find((s) => s.heading.toLowerCase().includes(needle)) ?? null;
 }

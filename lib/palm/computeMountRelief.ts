@@ -11,7 +11,7 @@
  */
 
 import { detectHandLandmarks } from "./handLandmarks";
-import { deriveMountRegions, MOUNT_KEYS, type MountKey } from "./mountRegions";
+import { deriveMountRegions, MOUNT_KEYS, type MountKey, type MountRegion } from "./mountRegions";
 import { computeRegionLuminanceStdDev, normalizeReliefScores } from "./mountRelief";
 
 function loadImage(blob: Blob): Promise<HTMLImageElement> {
@@ -30,7 +30,16 @@ function loadImage(blob: Blob): Promise<HTMLImageElement> {
   });
 }
 
-export async function computeMountRelief(blob: Blob): Promise<Record<MountKey, number> | null> {
+export interface MountReliefResult {
+  /** Per-mount 0-1 relief score — the CV cross-check palm-rules.ts reads. */
+  scores: Record<MountKey, number>;
+  /** Where each mount actually sits on THIS photograph. Derived here anyway to know where to
+   * sample; returning it lets the annotated overlay draw its dots on the real hand in the real
+   * framing instead of at fixed anatomical averages. */
+  regions: Record<MountKey, MountRegion>;
+}
+
+export async function computeMountRelief(blob: Blob): Promise<MountReliefResult | null> {
   try {
     const img = await loadImage(blob);
     const landmarks = await detectHandLandmarks(img);
@@ -49,7 +58,7 @@ export async function computeMountRelief(blob: Blob): Promise<Record<MountKey, n
     for (const key of MOUNT_KEYS) {
       raw[key] = computeRegionLuminanceStdDev(data, canvas.width, canvas.height, regions[key]);
     }
-    return normalizeReliefScores(raw);
+    return { scores: normalizeReliefScores(raw), regions };
   } catch {
     return null;
   }

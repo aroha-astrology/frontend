@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -19,7 +20,13 @@ export default function ShlokasCard() {
         <div className="flex items-center gap-4 flex-1">
           <div className="relative w-16 h-16 rounded-full border border-gold/40 flex items-center justify-center text-gold overflow-hidden shrink-0">
             <div className="absolute inset-0 bg-gold/5 blur-sm" />
-            <span className="text-3xl leading-none z-10 text-gold font-display">ॐ</span>
+            <Image
+              src="/shlokas/sage-reading.png"
+              alt=""
+              width={64}
+              height={64}
+              className="relative z-10 h-full w-full object-cover"
+            />
           </div>
           <div className="flex-1 pr-2">
             <h3 className="text-lg font-display text-gold mb-1 leading-tight">{t("home.shlokas")}</h3>

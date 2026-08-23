@@ -30,6 +30,14 @@ export interface PalmReportSection {
   paragraphs: string[];
 }
 
+/** What a tapped line or mount shows. Keyed by the SAME ids the overlay draws with, so a tap
+ * is a direct lookup — this replaced fuzzy-matching a free-text section heading, which could
+ * open the wrong chapter or none at all. */
+export interface PalmLineNote {
+  meaning: string;
+  prediction: string;
+}
+
 export interface PalmReadingResponse {
   id: string;
   status: PalmReadingStatus;
@@ -44,6 +52,14 @@ export interface PalmReadingResponse {
    * through untouched. */
   observations?: Record<string, unknown>;
   scores?: Record<string, number>;
+  /** The birth chart's own 0-10 verdict on the same six areas. The palm scores are already
+   * clamped to within a band of these server-side, so this is shown for transparency, not as a
+   * competing number. */
+  chartScores?: Record<string, number>;
+  lineNotes?: Record<string, PalmLineNote>;
+  /** { primary, secondary, primaryRegions, secondaryRegions } — relief scores per hand plus,
+   * where the capture recorded them, each mount's real position on that hand's photograph. */
+  mountRelief?: Record<string, Record<string, unknown>>;
   synthesis?: Record<string, unknown>;
   error?: string | null;
 }
@@ -87,13 +103,20 @@ export const palmApi = {
       auth: true,
     }),
 
-  /** Records one hand's client-computed CV mount-relief scores (see lib/palm/computeMountRelief.ts).
+  /** Records one hand's client-computed CV mount-relief scores and the mount positions the same
+   * landmark pass derived (see lib/palm/computeMountRelief.ts) — the scores cross-check the
+   * vision model's mount ratings, the regions are what the annotated overlay draws its dots at.
    * Best-effort accuracy data — callers should swallow errors rather than surface them, since
    * this call failing must never block the capture flow. */
-  saveMountRelief: (readingId: string, hand: "primary" | "secondary", scores: Record<string, number>) =>
+  saveMountRelief: (
+    readingId: string,
+    hand: "primary" | "secondary",
+    scores: Record<string, number>,
+    regions?: Record<string, { cx: number; cy: number; radius: number }>,
+  ) =>
     request<{ ok: boolean }>(`/v1/palm/readings/${readingId}/mount-relief`, {
       method: "POST",
-      body: { hand, scores },
+      body: { hand, scores, ...(regions ? { regions } : {}) },
       auth: true,
     }),
 

@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { purgeUserCache } from "@/lib/cache";
 import { palmApi } from "@/lib/palm-api";
+import PalmCoverageList from "./PalmCoverageList";
 
 interface PalmUnlockDrawerProps {
   readingId: string;
@@ -66,6 +67,9 @@ export default function PalmUnlockDrawer({ readingId, onClose, onUnlocked }: Pal
     >
       <div className="flex flex-col gap-4">
         <p className="text-xs text-muted leading-relaxed">{t("palm.unlock.body")}</p>
+
+        {/* The price is attached to a stated list of what gets answered, not a vague promise. */}
+        <PalmCoverageList title={t("palm.coverage.title")} />
 
         {insufficient ? (
           <div className="flex flex-col gap-2">

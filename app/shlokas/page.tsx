@@ -85,13 +85,6 @@ function ShlokaRow({
             {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
           </button>
         )}
-        <Link
-          href={`/shlokas/mala?slug=${shloka.slug}`}
-          aria-label={t("shlokas.chantAria")}
-          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
-        >
-          <Repeat size={14} />
-        </Link>
         <button
           type="button"
           onClick={onToggleFav}

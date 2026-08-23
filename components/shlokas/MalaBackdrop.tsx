@@ -3,11 +3,12 @@
 import { useState } from "react";
 
 /**
- * The mala screen's scenic backdrop — foliage left, temple right, hazy
- * mountains, drifting clouds, birds, sun/moon glow, mandala disc — per the
- * reference mockup and the user's explicit call-out of that scenery.
+ * The mala screen's scenic backdrop — foliage left, temple right, drifting
+ * clouds, birds, sun/moon glow, mandala disc. The hazy mountain range that
+ * used to sit behind all of it is gone at the user's request: it washed the
+ * ring out and left the sky reading as a photo rather than a backdrop.
  *
- * Mountains/Temple/Foliage now render the user-supplied photographic crops
+ * Temple/Foliage render the user-supplied photographic crops
  * (public/shlokas/backdrop/*.webp) and fall back to the original coded SVG
  * silhouette on error — same try-image-then-fallback idiom already used by
  * MandalaDisc (public/mandala.png) and RudrakshaBead (the bead photo). Sky,
@@ -24,7 +25,6 @@ export default function MalaBackdrop() {
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
       <Sky />
       <Glow />
-      <Mountains />
       <Clouds />
       <TempleImage />
       <FoliageImage />
@@ -49,37 +49,6 @@ function Glow() {
     <div
       className="absolute left-1/2 top-[8%] w-[70%] aspect-square -translate-x-1/3 rounded-full blur-3xl opacity-50"
       style={{ background: "radial-gradient(circle, var(--mala-glow) 0%, transparent 70%)" }}
-    />
-  );
-}
-
-function MountainsFallback() {
-  return (
-    <>
-      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute right-[-6%] top-[8%] w-[110%] h-[42%] text-[color:var(--mala-silhouette)]" opacity={0.28}>
-        <path
-          fill="currentColor"
-          d="M0,150 L45,95 L80,125 L130,70 L175,115 L215,85 L255,130 L300,90 L345,120 L400,100 L400,200 L0,200 Z"
-        />
-      </svg>
-      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute right-[-6%] top-[20%] w-[110%] h-[38%] text-[color:var(--mala-silhouette)]" opacity={0.4}>
-        <path fill="currentColor" d="M0,170 L60,110 L110,145 L160,100 L220,150 L280,115 L340,155 L400,130 L400,200 L0,200 Z" />
-      </svg>
-    </>
-  );
-}
-
-/** Real hazy-mountain photo, tried before the coded silhouette pair above. Shifted up and toward the right vs. plain full-width/center, per the reference feedback that the range read too low and too centered. */
-function Mountains() {
-  const [imgError, setImgError] = useState(false);
-  if (imgError) return <MountainsFallback />;
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/shlokas/backdrop/mountains.webp"
-      alt=""
-      className="absolute right-[-6%] top-[8%] w-[110%] h-[52%] object-cover object-right opacity-80"
-      onError={() => setImgError(true)}
     />
   );
 }

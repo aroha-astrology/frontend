@@ -29,8 +29,8 @@ const BEAD_MUKHI = 5; // the common commercially-available rudraksha grade
 const VB = 360;
 const CX = 180;
 const CY = 176;
-const RX = 134;
-const RY = 122;
+const RX = 124;
+const RY = 114;
 const BEAD_SIZE = 30;
 const ACTIVE_BEAD_SIZE = 42;
 const SPACER_R = 3.2;
@@ -66,36 +66,52 @@ export default function RudrakshaMala({ total, currentIndex, onTap, locked, mant
     activeBeadRef.current?.pulse();
   }, [currentIndex, reducedMotion]);
 
+  // `foreignObject` clips its content to its own box — `overflow: visible` on
+  // it is not honoured across engines — so the active bead, which alone draws
+  // a halo bloom (r = 0.85 * size) and pulses to scale 1.1, gets its glow
+  // squared off unless its box is padded out. Only it needs the padding: the
+  // rest render hideHalo/hideShadow and never scale, so they fit `size`
+  // exactly. It is also appended last, so the padded box paints over its
+  // neighbours instead of under them; the padding itself is
+  // `pointer-events-none` so it can't swallow taps meant for the bead.
+  const ACTIVE_PAD = 25;
+
   const beads = [];
   const spacers = [];
   for (let k = 0; k < RING_BEADS; k++) {
-    const isActive = k === activeSlot;
+    if (k === activeSlot) continue;
     const p = pt(slotBearing(k), RX, RY);
-    const size = isActive ? ACTIVE_BEAD_SIZE : BEAD_SIZE;
     beads.push(
-      <foreignObject
-        key={`bead-${k}`}
-        x={p.x - size / 2}
-        y={p.y - size / 2}
-        width={size}
-        height={size}
-        style={{ overflow: "visible" }}
-        aria-hidden={!isActive}
-      >
-        <RudrakshaBead
-          ref={isActive ? activeBeadRef : undefined}
-          mukhi={BEAD_MUKHI}
-          size={size}
-          locked={!isActive || locked}
-          onTap={isActive ? onTap : () => {}}
-          hideShadow={!isActive}
-          hideHalo={!isActive || reducedMotion}
-          hitPadding={isActive ? 12 : 0}
-          ariaLabel={isActive ? t("shlokas.tapRudraksha") : undefined}
-        />
+      <foreignObject key={`bead-${k}`} x={p.x - BEAD_SIZE / 2} y={p.y - BEAD_SIZE / 2} width={BEAD_SIZE} height={BEAD_SIZE} aria-hidden>
+        <RudrakshaBead mukhi={BEAD_MUKHI} size={BEAD_SIZE} locked onTap={() => {}} hideShadow hideHalo />
       </foreignObject>,
     );
   }
+
+  const ap = pt(slotBearing(activeSlot), RX, RY);
+  const activeBox = ACTIVE_BEAD_SIZE + ACTIVE_PAD * 2;
+  beads.push(
+    <foreignObject
+      key="bead-active"
+      x={ap.x - activeBox / 2}
+      y={ap.y - activeBox / 2}
+      width={activeBox}
+      height={activeBox}
+    >
+      <div className="w-full h-full flex items-center justify-center pointer-events-none [&>*]:pointer-events-auto">
+        <RudrakshaBead
+          ref={activeBeadRef}
+          mukhi={BEAD_MUKHI}
+          size={ACTIVE_BEAD_SIZE}
+          locked={locked}
+          onTap={onTap}
+          hideHalo={reducedMotion}
+          hitPadding={12}
+          ariaLabel={t("shlokas.tapRudraksha")}
+        />
+      </div>
+    </foreignObject>,
+  );
   for (let i = 0; i < RING_BEADS; i++) {
     const p = pt(slotBearing(i) + 360 / RING_BEADS / 2, RX, RY);
     spacers.push(<circle key={`sp-${i}`} cx={p.x} cy={p.y} r={SPACER_R} fill="var(--gold)" opacity={0.85} />);

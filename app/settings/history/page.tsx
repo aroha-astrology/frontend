@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText, Award } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
@@ -36,6 +36,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "house_unlock": return <Home size={16} />;
     case "referral_bonus": return <Gift size={16} />;
     case "report_unlock": return <ScrollText size={16} />;
+    case "daily_reward": return <Award size={16} />;
   }
 }
 
@@ -49,13 +50,14 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "house_unlock": return t("paymentHistory.houseUnlock", { houseNumber: txn.houseNumber });
     case "referral_bonus": return t("paymentHistory.referralBonus");
     case "report_unlock": return t("paymentHistory.reportUnlock");
+    case "daily_reward": return t("paymentHistory.dailyReward");
   }
 }
 
 /** Whether this row is money flowing INTO the wallet (green, +) vs. out of it (red, -).
  *  Recharges and referral bonuses are always credits; everything else is a debit unless it's a refund. */
 function isCredit(txn: Transaction): boolean {
-  if (txn.kind === "recharge" || txn.kind === "referral_bonus") return true;
+  if (txn.kind === "recharge" || txn.kind === "referral_bonus" || txn.kind === "daily_reward") return true;
   return txn.isRefund;
 }
 

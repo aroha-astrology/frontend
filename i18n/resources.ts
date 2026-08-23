@@ -2047,6 +2047,8 @@ export const resources = {
           cameraUnavailable: "No camera is available on this device. You can upload photos instead.",
           uploadInstead: "Upload a photo instead",
           torch: "Toggle flashlight",
+          useRightHand: "Use your RIGHT hand",
+          useLeftHand: "Use your LEFT hand",
           lowLight: "It's a little dark — try moving to brighter light.",
           lowLightTorch: "It's a little dark — tap the flashlight or move to brighter light.",
           retake: "Retake",
@@ -2071,6 +2073,10 @@ export const resources = {
           tapHint: "Tap any line or mount on your photo to see what it means.",
           lowVisibility: "The lines were hard to see in this photo, so this reading is less certain than usual. A brighter, closer scan will give you a sharper result.",
           retakeCta: "Scan again",
+        },
+        notes: {
+          linesTitle: "Your lines, one by one",
+          mountsTitle: "Your mounts, one by one",
         },
         line: {
           heartLine: "Heart Line",
@@ -4140,6 +4146,8 @@ export const resources = {
           cameraUnavailable: "इस डिवाइस पर कोई कैमरा उपलब्ध नहीं है। आप इसके बजाय तस्वीरें अपलोड कर सकते हैं।",
           uploadInstead: "इसके बजाय तस्वीर अपलोड करें",
           torch: "फ्लैशलाइट टॉगल करें",
+          useRightHand: "अपना दाहिना हाथ दिखाएँ",
+          useLeftHand: "अपना बायाँ हाथ दिखाएँ",
           lowLight: "थोड़ा अंधेरा है — बेहतर रोशनी में जाने की कोशिश करें।",
           lowLightTorch: "थोड़ा अंधेरा है — फ्लैशलाइट दबाएं या बेहतर रोशनी में जाएं।",
           retake: "फिर से लें",
@@ -4164,6 +4172,10 @@ export const resources = {
           tapHint: "अर्थ जानने के लिए अपनी फोटो पर किसी भी रेखा या पर्वत पर टैप करें।",
           lowVisibility: "इस फोटो में रेखाएँ स्पष्ट नहीं थीं, इसलिए यह पठन सामान्य से कम निश्चित है। बेहतर रोशनी में पास से स्कैन करने पर अधिक सटीक परिणाम मिलेगा।",
           retakeCta: "फिर से स्कैन करें",
+        },
+        notes: {
+          linesTitle: "आपकी रेखाएँ, एक-एक करके",
+          mountsTitle: "आपके पर्वत, एक-एक करके",
         },
         line: {
           heartLine: "हृदय रेखा",
@@ -6230,6 +6242,8 @@ export const resources = {
           cameraUnavailable: "এই ডিভাইসে কোনো ক্যামেরা নেই। আপনি এর পরিবর্তে ছবি আপলোড করতে পারেন।",
           uploadInstead: "পরিবর্তে একটি ছবি আপলোড করুন",
           torch: "ফ্ল্যাশলাইট চালু/বন্ধ করুন",
+          useRightHand: "আপনার ডান হাত দেখান",
+          useLeftHand: "আপনার বাঁ হাত দেখান",
           lowLight: "একটু অন্ধকার — উজ্জ্বল আলোতে যাওয়ার চেষ্টা করুন।",
           lowLightTorch: "একটু অন্ধকার — ফ্ল্যাশলাইট চাপুন অথবা উজ্জ্বল আলোতে যান।",
           retake: "আবার তুলুন",
@@ -6254,6 +6268,10 @@ export const resources = {
           tapHint: "অর্থ জানতে আপনার ছবিতে যেকোনো রেখা বা পর্বতে ট্যাপ করুন।",
           lowVisibility: "এই ছবিতে রেখাগুলি স্পষ্ট ছিল না, তাই এই পাঠটি স্বাভাবিকের চেয়ে কম নিশ্চিত। উজ্জ্বল আলোয় কাছ থেকে স্ক্যান করলে আরও নির্ভুল ফল পাবেন।",
           retakeCta: "আবার স্ক্যান করুন",
+        },
+        notes: {
+          linesTitle: "আপনার রেখাগুলি, একে একে",
+          mountsTitle: "আপনার পর্বতগুলি, একে একে",
         },
         line: {
           heartLine: "হৃদয় রেখা",
@@ -8321,6 +8339,8 @@ export const resources = {
           cameraUnavailable: "या डिव्हाइसवर कॅमेरा उपलब्ध नाही. तुम्ही त्याऐवजी फोटो अपलोड करू शकता.",
           uploadInstead: "त्याऐवजी फोटो अपलोड करा",
           torch: "फ्लॅशलाइट टॉगल करा",
+          useRightHand: "तुमचा उजवा हात दाखवा",
+          useLeftHand: "तुमचा डावा हात दाखवा",
           lowLight: "थोडा अंधार आहे — जास्त उजेडात जाण्याचा प्रयत्न करा.",
           lowLightTorch: "थोडा अंधार आहे — फ्लॅशलाइट दाबा किंवा जास्त उजेडात जा.",
           retake: "पुन्हा घ्या",
@@ -8345,6 +8365,10 @@ export const resources = {
           tapHint: "अर्थ पाहण्यासाठी तुमच्या फोटोवरील कोणत्याही रेषेवर किंवा पर्वतावर टॅप करा.",
           lowVisibility: "या फोटोत रेषा स्पष्ट दिसत नव्हत्या, त्यामुळे हे वाचन नेहमीपेक्षा कमी निश्चित आहे. अधिक उजेडात जवळून स्कॅन केल्यास अधिक अचूक निकाल मिळेल.",
           retakeCta: "पुन्हा स्कॅन करा",
+        },
+        notes: {
+          linesTitle: "तुमच्या रेषा, एक-एक करून",
+          mountsTitle: "तुमचे पर्वत, एक-एक करून",
         },
         line: {
           heartLine: "हृदय रेषा",
@@ -10408,6 +10432,8 @@ export const resources = {
           cameraUnavailable: "ఈ పరికరంలో కెమెరా అందుబాటులో లేదు. మీరు బదులుగా ఫోటోలు అప్‌లోడ్ చేయవచ్చు.",
           uploadInstead: "బదులుగా ఫోటో అప్‌లోడ్ చేయండి",
           torch: "ఫ్లాష్‌లైట్ మార్చండి",
+          useRightHand: "మీ కుడి చేయి చూపండి",
+          useLeftHand: "మీ ఎడమ చేయి చూపండి",
           lowLight: "కొంచెం చీకటిగా ఉంది — ప్రకాశవంతమైన వెలుతురుకు వెళ్ళడానికి ప్రయత్నించండి.",
           lowLightTorch: "కొంచెం చీకటిగా ఉంది — ఫ్లాష్‌లైట్ నొక్కండి లేదా ప్రకాశవంతమైన వెలుతురుకు వెళ్ళండి.",
           retake: "మళ్ళీ తీయండి",
@@ -10432,6 +10458,10 @@ export const resources = {
           tapHint: "అర్థం తెలుసుకోవడానికి మీ ఫోటోలోని ఏదైనా రేఖ లేదా పర్వతంపై నొక్కండి.",
           lowVisibility: "ఈ ఫోటోలో రేఖలు స్పష్టంగా కనిపించలేదు, కాబట్టి ఈ పఠనం సాధారణం కంటే తక్కువ ఖచ్చితమైనది. మంచి వెలుతురులో దగ్గరగా స్కాన్ చేస్తే మరింత స్పష్టమైన ఫలితం వస్తుంది.",
           retakeCta: "మళ్లీ స్కాన్ చేయండి",
+        },
+        notes: {
+          linesTitle: "మీ రేఖలు, ఒక్కొక్కటిగా",
+          mountsTitle: "మీ పర్వతాలు, ఒక్కొక్కటిగా",
         },
         line: {
           heartLine: "హృదయ రేఖ",
@@ -12501,6 +12531,8 @@ export const resources = {
           cameraUnavailable: "இந்தச் சாதனத்தில் கேமரா இல்லை. அதற்குப் பதிலாக நீங்கள் புகைப்படங்களைப் பதிவேற்றலாம்.",
           uploadInstead: "அதற்குப் பதிலாக புகைப்படத்தைப் பதிவேற்றவும்",
           torch: "ஃபிளாஷ்லைட்டை மாற்று",
+          useRightHand: "உங்கள் வலது கையைக் காட்டுங்கள்",
+          useLeftHand: "உங்கள் இடது கையைக் காட்டுங்கள்",
           lowLight: "கொஞ்சம் இருட்டாக உள்ளது — பிரகாசமான வெளிச்சத்திற்குச் செல்ல முயற்சிக்கவும்.",
           lowLightTorch: "கொஞ்சம் இருட்டாக உள்ளது — ஃபிளாஷ்லைட்டை அழுத்தவும் அல்லது பிரகாசமான வெளிச்சத்திற்குச் செல்லவும்.",
           retake: "மீண்டும் எடு",
@@ -12525,6 +12557,10 @@ export const resources = {
           tapHint: "பொருளை அறிய உங்கள் புகைப்படத்தில் எந்த ரேகை அல்லது மேட்டையும் தட்டவும்.",
           lowVisibility: "இந்தப் புகைப்படத்தில் ரேகைகள் தெளிவாகத் தெரியவில்லை, எனவே இந்த வாசிப்பு வழக்கத்தை விட குறைவான உறுதியானது. நல்ல வெளிச்சத்தில் அருகில் ஸ்கேன் செய்தால் தெளிவான முடிவு கிடைக்கும்.",
           retakeCta: "மீண்டும் ஸ்கேன் செய்யவும்",
+        },
+        notes: {
+          linesTitle: "உங்கள் ரேகைகள், ஒவ்வொன்றாக",
+          mountsTitle: "உங்கள் மேடுகள், ஒவ்வொன்றாக",
         },
         line: {
           heartLine: "இதய ரேகை",
@@ -14586,6 +14622,8 @@ export const resources = {
           cameraUnavailable: "આ ડિવાઇસ પર કોઈ કેમેરા ઉપલબ્ધ નથી. તમે તેના બદલે ફોટા અપલોડ કરી શકો છો.",
           uploadInstead: "તેના બદલે ફોટો અપલોડ કરો",
           torch: "ફ્લેશલાઇટ ટૉગલ કરો",
+          useRightHand: "તમારો જમણો હાથ બતાવો",
+          useLeftHand: "તમારો ડાબો હાથ બતાવો",
           lowLight: "થોડું અંધારું છે — તેજસ્વી પ્રકાશમાં જવાનો પ્રયાસ કરો.",
           lowLightTorch: "થોડું અંધારું છે — ફ્લેશલાઇટ દબાવો અથવા તેજસ્વી પ્રકાશમાં જાઓ.",
           retake: "ફરી લો",
@@ -14610,6 +14648,10 @@ export const resources = {
           tapHint: "અર્થ જાણવા માટે તમારા ફોટામાં કોઈપણ રેખા કે પર્વત પર ટૅપ કરો.",
           lowVisibility: "આ ફોટામાં રેખાઓ સ્પષ્ટ દેખાતી ન હતી, તેથી આ વાંચન સામાન્ય કરતાં ઓછું નિશ્ચિત છે. વધુ પ્રકાશમાં નજીકથી સ્કૅન કરવાથી વધુ સચોટ પરિણામ મળશે.",
           retakeCta: "ફરીથી સ્કૅન કરો",
+        },
+        notes: {
+          linesTitle: "તમારી રેખાઓ, એક-એક કરીને",
+          mountsTitle: "તમારા પર્વતો, એક-એક કરીને",
         },
         line: {
           heartLine: "હૃદય રેખા",

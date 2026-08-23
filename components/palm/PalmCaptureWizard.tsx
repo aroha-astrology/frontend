@@ -31,6 +31,25 @@ interface CapturedFrame {
   previewUrl: string;
 }
 
+/** The first four slots are the primary (dominant) hand, the last two the other one. */
+const SECONDARY_SLOTS: readonly PalmCaptureSlot[] = ["secondaryFront", "secondaryPercussion"];
+
+/**
+ * Which PHYSICAL hand to hold up for this step.
+ *
+ * The backend picks the primary hand from gender by the classical rule (male -> right,
+ * female -> left; see resolvePrimaryHand) and returns it from create(). Until now the on-screen
+ * instruction only ever said "your primary hand", which is meaningless to a user — they were
+ * left guessing, and a reading of the wrong hand is wrong in a way nothing downstream can
+ * detect. This turns that into a plain "Right hand" / "Left hand".
+ */
+function handForSlot(primaryHand: string | null, slot: PalmCaptureSlot): "left" | "right" | null {
+  if (primaryHand !== "left" && primaryHand !== "right") return null;
+  const isSecondary = SECONDARY_SLOTS.includes(slot);
+  if (!isSecondary) return primaryHand;
+  return primaryHand === "left" ? "right" : "left";
+}
+
 export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -47,7 +66,6 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [stepIndex, setStepIndex] = useState(0);
   const [captured, setCaptured] = useState<Partial<Record<PalmCaptureSlot, CapturedFrame>>>({});
   const [reviewing, setReviewing] = useState<CapturedFrame | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [brightness, setBrightness] = useState<number | null>(null);
   const [framing, setFraming] = useState<HandFraming>("none");
@@ -55,9 +73,21 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [finishError, setFinishError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /**
+   * In-flight frame uploads.
+   *
+   * Capture used to AWAIT the upload of each frame before moving to the next step, so all six
+   * steps were serialized behind a JPEG-sized network round trip on a phone connection — which
+   * is what made capture feel slow. Uploads now start immediately and the wizard advances at
+   * once; the only place that actually needs them finished is the final analyze() call, which
+   * awaits this list. A failed upload surfaces there (the backend also rejects analyze() with a
+   * 400 if any slot is missing), so nothing is silently dropped.
+   */
+  const uploadsRef = useRef<Array<Promise<unknown>>>([]);
 
   const slot = PALM_CAPTURE_SLOTS[stepIndex]!;
   const isLastStep = stepIndex === PALM_CAPTURE_SLOTS.length - 1;
+  const stepHand = handForSlot(primaryHand, slot);
 
   useDismissOnBackPress(true, onClose);
 
@@ -167,6 +197,8 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       setFinishing(true);
       setFinishError(null);
       try {
+        // Every frame must have landed before the backend will accept the scan.
+        await Promise.all(uploadsRef.current);
         await palmApi.analyze(readingId);
         Object.values(allFrames).forEach((f) => f && URL.revokeObjectURL(f.previewUrl));
         router.push(`/palm/${readingId}`);
@@ -187,35 +219,33 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
 
   const handleUseThisPhoto = useCallback(async () => {
     if (!reviewing || !readingId) return;
-    setUploading(true);
     setUploadError(null);
-    try {
-      await palmApi.uploadFrame(readingId, slot, reviewing.blob);
 
-      // CV mount-relief pass — front-view frames only (the only angle the region geometry in
-      // mountRegions.ts is anchored to). Fire-and-forget: this is a purely additive accuracy
-      // signal (see palm-rules.ts's cross-validation), never allowed to block or fail the
-      // capture flow. MediaPipe WASM load + inference takes a few seconds, which is fine —
-      // it only needs to finish before the user reaches "Unlock" later in the flow.
-      if (slot === "primaryFront" || slot === "secondaryFront") {
-        const hand = slot === "primaryFront" ? "primary" : "secondary";
-        void computeMountRelief(reviewing.blob)
-          .then(
-            (result) =>
-              result && palmApi.saveMountRelief(readingId, hand, result.scores, result.regions),
-          )
-          .catch(() => {});
-      }
+    // Fire the upload, do NOT wait for it — see uploadsRef. Errors are captured on the promise
+    // so an early failure is reported rather than becoming an unhandled rejection, and the
+    // awaited Promise.all in advanceOrFinish still rejects on it.
+    const upload = palmApi.uploadFrame(readingId, slot, reviewing.blob);
+    upload.catch(() => setUploadError(t("palm.capture.uploadError")));
+    uploadsRef.current.push(upload);
 
-      const nextCaptured = { ...captured, [slot]: reviewing };
-      setCaptured(nextCaptured);
-      setReviewing(null);
-      setUploading(false);
-      await advanceOrFinish(nextCaptured);
-    } catch {
-      setUploadError(t("palm.capture.uploadError"));
-      setUploading(false);
+    // CV mount-relief pass — front-view frames only (the only angle the region geometry in
+    // mountRegions.ts is anchored to). Fire-and-forget: this is a purely additive accuracy
+    // signal (see palm-rules.ts's cross-validation), never allowed to block or fail the
+    // capture flow, and deliberately NOT added to uploadsRef for the same reason.
+    if (slot === "primaryFront" || slot === "secondaryFront") {
+      const hand = slot === "primaryFront" ? "primary" : "secondary";
+      void computeMountRelief(reviewing.blob)
+        .then(
+          (result) =>
+            result && palmApi.saveMountRelief(readingId, hand, result.scores, result.regions),
+        )
+        .catch(() => {});
     }
+
+    const nextCaptured = { ...captured, [slot]: reviewing };
+    setCaptured(nextCaptured);
+    setReviewing(null);
+    await advanceOrFinish(nextCaptured);
   }, [reviewing, readingId, slot, captured, advanceOrFinish, t]);
 
   if (initError) {
@@ -319,9 +349,16 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       {/* Instruction + captured thumbnails */}
       <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 to-transparent pt-16 pb-8 px-5">
         {!reviewing && (
-          <p className="text-center text-sm text-white font-medium mb-4 px-4 leading-relaxed">
-            {t(SLOT_INSTRUCTION_KEY[slot])}
-          </p>
+          <div className="mb-4 px-4 space-y-1.5">
+            {stepHand && (
+              <p className="text-center text-base font-display text-gold">
+                {t(stepHand === "right" ? "palm.capture.useRightHand" : "palm.capture.useLeftHand")}
+              </p>
+            )}
+            <p className="text-center text-sm text-white font-medium leading-relaxed">
+              {t(SLOT_INSTRUCTION_KEY[slot])}
+            </p>
+          </div>
         )}
 
         {uploadError && <p className="text-center text-xs text-red-400 mb-2">{uploadError}</p>}
@@ -332,7 +369,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             <button
               type="button"
               onClick={handleRetake}
-              disabled={uploading}
+              disabled={finishing}
               className="flex items-center gap-2 rounded-2xl border border-white/25 text-white px-5 py-3 text-sm font-medium disabled:opacity-50"
             >
               <RotateCcw size={15} /> {t("palm.capture.retake")}
@@ -340,10 +377,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             <button
               type="button"
               onClick={handleUseThisPhoto}
-              disabled={uploading || finishing}
+              disabled={finishing}
               className="flex items-center gap-2 rounded-2xl bg-gold text-[#1a0e00] px-6 py-3 text-sm font-bold disabled:opacity-60"
             >
-              {uploading || finishing ? t("palm.capture.uploading") : t("palm.capture.usePhoto")}
+              {finishing ? t("palm.capture.uploading") : t("palm.capture.usePhoto")}
             </button>
           </div>
         ) : camera.status === "granted" ? (
@@ -356,16 +393,14 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             >
               <Upload size={16} />
             </button>
-            {/* Dimmed, never disabled, while no hand is framed: detection can be unavailable
-                entirely (CDN blocked, unsupported browser), and a hint must not be able to lock
-                the user out of their own capture. */}
+            {/* Never gated on hand detection. The framing text above is a hint; the same
+                landmark pass has already proven unreliable on real captures, and making the
+                shutter look unavailable on its say-so just slows people down. */}
             <button
               type="button"
               onClick={handleManualCapture}
               aria-label={t("palm.capture.shutter")}
-              className={`h-16 w-16 rounded-full border-4 border-white bg-white/20 active:scale-95 transition-all ${
-                framing === "good" ? "" : "opacity-60"
-              }`}
+              className="h-16 w-16 rounded-full border-4 border-white bg-white/20 active:scale-95 transition-transform"
             />
             <div className="h-11 w-11" />
           </div>

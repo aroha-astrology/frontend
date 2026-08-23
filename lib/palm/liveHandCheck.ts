@@ -64,6 +64,7 @@ export async function checkFrameForHand(
   }
 }
 
-/** How often to run the check. Fast enough to feel live while the user is positioning, slow
- * enough that a WASM inference per tick stays unnoticeable. */
-export const HAND_CHECK_INTERVAL_MS = 600;
+/** How often to run the check. Each tick is a WASM inference on the main thread while a camera
+ * preview is running, so this is deliberately unhurried — the hint being a beat late costs
+ * nothing, a stuttering preview costs the shot. */
+export const HAND_CHECK_INTERVAL_MS = 1000;

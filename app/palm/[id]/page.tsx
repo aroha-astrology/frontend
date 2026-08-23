@@ -8,9 +8,9 @@ import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
 import PalmAnnotatedView from "@/components/palm/PalmAnnotatedView";
 import PalmUnlockDrawer from "@/components/palm/PalmUnlockDrawer";
 import PalmCoverageList from "@/components/palm/PalmCoverageList";
+import PalmLineNotes from "@/components/palm/PalmLineNotes";
 import { usePalmReading } from "@/hooks/usePalmReading";
 import { palmApi } from "@/lib/palm-api";
-import { LINE_LABEL_KEYS, MOUNT_LABEL_KEYS, findMatchingSection } from "@/lib/palm/matchSection";
 
 const SCORE_LABEL_KEY: Record<string, string> = {
   career: "palm.scores.career",
@@ -35,7 +35,6 @@ export default function PalmReadingPage() {
   const { state, data, failedError, retry } = usePalmReading(id, i18n.language);
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [unlockOpen, setUnlockOpen] = useState(false);
-  const [selected, setSelected] = useState<{ key: string; labelKey: string } | null>(null);
 
   const isObservedOnly = data?.status === "observed";
   const isFullyReady = data?.status === "ready";
@@ -65,16 +64,6 @@ export default function PalmReadingPage() {
     return (obs?.primary as never) ?? null;
   }, [data]);
 
-  /** Landmark-derived mount positions for this exact photograph, when the capture recorded
-   * them. Absent for older readings — the overlay falls back to anatomical averages there. */
-  const primaryMountRegions = useMemo(
-    () =>
-      (data?.mountRelief?.primaryRegions as
-        | Record<string, { cx: number; cy: number; radius: number }>
-        | undefined) ?? null,
-    [data],
-  );
-
   const typedObservations = primaryObservations as {
     handType?: { element?: string };
     imageQuality?: { lineVisibility?: number };
@@ -83,15 +72,6 @@ export default function PalmReadingPage() {
   const lineVisibility = typedObservations?.imageQuality?.lineVisibility;
   const lowVisibility =
     typeof lineVisibility === "number" && lineVisibility < LOW_VISIBILITY_THRESHOLD;
-
-  const handleSelectLine = (key: string) =>
-    setSelected({ key, labelKey: LINE_LABEL_KEYS[key] ?? key });
-  const handleSelectMount = (key: string) =>
-    setSelected({ key, labelKey: MOUNT_LABEL_KEYS[key] ?? key });
-
-  const selectedNote = selected ? data?.lineNotes?.[selected.key] : undefined;
-  // Only consulted for readings generated before lineNotes existed.
-  const legacySection = selected && !selectedNote ? findMatchingSection(data?.sections, selected.key) : null;
 
   const handleUnlocked = () => {
     setUnlockOpen(false);
@@ -137,13 +117,7 @@ export default function PalmReadingPage() {
 
         {state === "ready" && data && (
           <>
-            <PalmAnnotatedView
-              photoUrl={heroUrl}
-              observations={primaryObservations}
-              mountRegions={primaryMountRegions}
-              onSelectLine={handleSelectLine}
-              onSelectMount={handleSelectMount}
-            />
+            <PalmAnnotatedView photoUrl={heroUrl} />
 
             {lowVisibility && (
               <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 flex items-start gap-2">
@@ -173,45 +147,6 @@ export default function PalmReadingPage() {
                 </span>
               )}
             </div>
-
-            {selected && (selectedNote || legacySection) && (
-              <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-3">
-                <h3 className="font-display text-base text-gold">{t(selected.labelKey)}</h3>
-                {selectedNote ? (
-                  <>
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">
-                        {t("palm.note.meaning")}
-                      </p>
-                      <p className="text-sm text-foreground/85 leading-relaxed">
-                        {selectedNote.meaning}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">
-                        {t("palm.note.prediction")}
-                      </p>
-                      <p className="text-sm text-foreground/85 leading-relaxed">
-                        {selectedNote.prediction}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  legacySection?.paragraphs.map((p, i) => (
-                    <p key={i} className="text-sm text-foreground/85 leading-relaxed">
-                      {p}
-                    </p>
-                  ))
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  className="text-xs text-muted underline"
-                >
-                  {t("common.close")}
-                </button>
-              </div>
-            )}
 
             {isFullyReady && data.scores && (
               <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-3">
@@ -260,6 +195,8 @@ export default function PalmReadingPage() {
                   ))}
                 </section>
               ))}
+
+            {isFullyReady && data.lineNotes && <PalmLineNotes notes={data.lineNotes} />}
 
             {isFullyReady && data.synthesis && (
               <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-2">

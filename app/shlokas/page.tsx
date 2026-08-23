@@ -328,7 +328,7 @@ function ShlokasLibrary() {
                           <img
                             src={`${IMG_BASE}${meta.image}`}
                             alt=""
-                            className="w-7 h-7 rounded-full object-cover border border-current/40"
+                            className="w-11 h-11 rounded-lg object-cover border border-current/40"
                           />
                         ) : (
                           <Icon size={18} />

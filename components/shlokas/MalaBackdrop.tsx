@@ -56,20 +56,20 @@ function Glow() {
 function MountainsFallback() {
   return (
     <>
-      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[18%] w-full h-[42%] text-[color:var(--mala-silhouette)]" opacity={0.28}>
+      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute right-[-6%] top-[8%] w-[110%] h-[42%] text-[color:var(--mala-silhouette)]" opacity={0.28}>
         <path
           fill="currentColor"
           d="M0,150 L45,95 L80,125 L130,70 L175,115 L215,85 L255,130 L300,90 L345,120 L400,100 L400,200 L0,200 Z"
         />
       </svg>
-      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 top-[30%] w-full h-[38%] text-[color:var(--mala-silhouette)]" opacity={0.4}>
+      <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" className="absolute right-[-6%] top-[20%] w-[110%] h-[38%] text-[color:var(--mala-silhouette)]" opacity={0.4}>
         <path fill="currentColor" d="M0,170 L60,110 L110,145 L160,100 L220,150 L280,115 L340,155 L400,130 L400,200 L0,200 Z" />
       </svg>
     </>
   );
 }
 
-/** Real hazy-mountain photo, tried before the coded silhouette pair above. */
+/** Real hazy-mountain photo, tried before the coded silhouette pair above. Shifted up and toward the right vs. plain full-width/center, per the reference feedback that the range read too low and too centered. */
 function Mountains() {
   const [imgError, setImgError] = useState(false);
   if (imgError) return <MountainsFallback />;
@@ -78,7 +78,7 @@ function Mountains() {
     <img
       src="/shlokas/backdrop/mountains.webp"
       alt=""
-      className="absolute inset-x-0 top-[18%] w-full h-[52%] object-cover opacity-80"
+      className="absolute right-[-6%] top-[8%] w-[110%] h-[52%] object-cover object-right opacity-80"
       onError={() => setImgError(true)}
     />
   );
@@ -116,7 +116,7 @@ function TempleFallback() {
     <svg
       viewBox="0 0 120 160"
       preserveAspectRatio="xMaxYMax meet"
-      className="absolute right-[4%] bottom-[30%] w-[26%] max-w-[110px] h-[34%] text-[color:var(--mala-silhouette)]"
+      className="absolute right-[4%] bottom-[16%] w-[26%] max-w-[110px] h-[34%] text-[color:var(--mala-silhouette)]"
       opacity={0.55}
     >
       {/* Stepped shikhara tapering to a finial, on a small base. */}
@@ -144,7 +144,7 @@ function TempleImage() {
     <img
       src="/shlokas/backdrop/temple.webp"
       alt=""
-      className="absolute right-[2%] bottom-[24%] w-[38%] max-w-[160px] h-[40%] object-contain object-bottom opacity-90"
+      className="absolute right-[2%] bottom-[10%] w-[38%] max-w-[160px] h-[40%] object-contain object-bottom opacity-90"
       onError={() => setImgError(true)}
     />
   );
@@ -190,7 +190,7 @@ function DiyaAccent() {
     <img
       src="/shlokas/backdrop/diya.webp"
       alt=""
-      className="absolute left-[2%] bottom-[20%] w-[16%] max-w-[70px] object-contain opacity-85"
+      className="absolute left-[2%] bottom-[6%] w-[16%] max-w-[70px] object-contain opacity-85"
       onError={() => setImgError(true)}
     />
   );

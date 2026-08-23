@@ -12,7 +12,7 @@
 
 const FAVS_KEY = "aroha:shloka:favs";
 const HISTORY_KEY = "aroha:shloka:history";
-const POS_KEY = "aroha:shloka:pos";
+const JAP_KEY_PREFIX = "aroha:shloka:jap:";
 const HISTORY_LIMIT = 50;
 
 function readJSON<T>(key: string, fallback: T): T {
@@ -70,14 +70,22 @@ export function pushHistory(slug: string) {
   writeJSON(HISTORY_KEY, history.slice(0, HISTORY_LIMIT));
 }
 
-// ---- Mala reading position ------------------------------------------------
+// ---- Jap (chant) progress ---------------------------------------------
 
-export function getMalaPosition(): number {
-  return readJSON<number>(POS_KEY, 0);
+/** One mala's progress through a single mantra/verse, keyed by that item's
+ * own identifier (a shloka slug, or `gita:<verseId>`) — each mantra/verse
+ * keeps its own count and target, not one shared global position. */
+export interface JapProgress {
+  index: number;
+  target: number;
 }
 
-export function setMalaPosition(index: number) {
-  writeJSON(POS_KEY, index);
+export function getJapProgress(key: string, defaultTarget: number): JapProgress {
+  return readJSON<JapProgress>(`${JAP_KEY_PREFIX}${key}`, { index: 0, target: defaultTarget });
+}
+
+export function setJapProgress(key: string, progress: JapProgress) {
+  writeJSON(`${JAP_KEY_PREFIX}${key}`, progress);
 }
 
 // ---- Shared audio singleton -------------------------------------------

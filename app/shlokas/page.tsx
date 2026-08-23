@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, ChevronDown, List } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, ChevronDown, List, Repeat } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import LanguagePicker from "@/components/LanguagePicker";
 import FeatureGuard from "@/components/FeatureGuard";
@@ -85,6 +85,13 @@ function ShlokaRow({
             {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
           </button>
         )}
+        <Link
+          href={`/shlokas/mala?slug=${shloka.slug}`}
+          aria-label={t("shlokas.chantAria")}
+          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
+        >
+          <Repeat size={14} />
+        </Link>
         <button
           type="button"
           onClick={onToggleFav}
@@ -136,6 +143,13 @@ function GitaRow({ v, playing, onTogglePlay }: { v: GitaVerse; playing: boolean;
         >
           {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
         </button>
+        <Link
+          href={`/shlokas/mala?verse=${v.id}&type=gita`}
+          aria-label={t("shlokas.chantAria")}
+          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
+        >
+          <Repeat size={14} />
+        </Link>
       </div>
     </div>
   );
@@ -241,10 +255,6 @@ function ShlokasLibrary() {
   }
 
   function handleTabSelect(tab: ShlokaTab) {
-    if (tab === "mala") {
-      router.push("/shlokas/mala");
-      return;
-    }
     setActiveTab(tab);
   }
 

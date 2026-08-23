@@ -2,21 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Heart, Play, Pause, AudioLines, BarChart3 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Heart, Play, Pause, AudioLines, BarChart3 } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import FeatureGuard from "@/components/FeatureGuard";
 import LotusSilhouette from "@/components/LotusSilhouette";
 import RudrakshaMala from "@/components/shlokas/RudrakshaMala";
 import MalaBackdrop from "@/components/shlokas/MalaBackdrop";
-import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, MALA_COUNT, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
+import { gitaAudioUrl, loadGitaVerses, type GitaVerse } from "@/lib/gita";
 import {
-  getMalaPosition,
-  setMalaPosition,
+  getJapProgress,
+  setJapProgress,
   isFav,
   toggleFav,
   pushHistory,
@@ -26,124 +26,148 @@ import {
 } from "@/lib/shlokas-prefs";
 
 /**
- * The rudraksha mala screen — reproduces the reference mockup's mala screen
- * exactly (see the shlokas redesign plan's "middle part" scope). Counts up
- * to the traditional MALA_COUNT (108), cycling through the 50-verse library
- * (`libIndex = index % libLen`) rather than stopping at 50 or repeating one
- * verse — the latter is what the old per-verse JapCounter did, and it's
- * still gone; this walks all 50 distinct verses, looping the list ~2.16x.
+ * Chants ONE mantra or Gita verse — chosen by the caller via `?slug=` (a
+ * mantra row's chant button) or `?verse=&type=gita` (a Gita row's) — repeated
+ * up to a user-editable target, seeded from that verse's own `japCount`
+ * (MALA_COUNT for Gita, which carries no japCount field). This replaced an
+ * earlier version that cycled through all 50 mantras to fill a fixed 108
+ * count; Mala is no longer a library-browsing screen or its own nav tab, so
+ * there's no ShlokaTabs bar here — just a back arrow like any detail screen.
  */
 
-function MantraSnippet({ shloka, lang }: { shloka: Shloka; lang: Parameters<typeof pick>[1] }) {
-  return (
-    <>
-      <p className="font-devanagari text-sm text-foreground/90 truncate">{shloka.sanskrit.split("\n")[0]}</p>
-      <p className="text-[10px] text-muted truncate">{pick(shloka.title, lang)}</p>
-    </>
-  );
+interface ChantItem {
+  key: string;
+  sanskrit: string;
+  iast?: string;
+  subtitle: string;
+  audioSrc: string | null;
+  defaultTarget: number;
+  slug?: string;
+  detailHref: string;
 }
 
 function MalaScreen() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("slug");
+  const verseId = searchParams.get("verse");
+  const isGita = searchParams.get("type") === "gita" && !!verseId;
+
   const [shlokas, setShlokas] = useState<Shloka[] | null>(null);
+  const [gitaVerses, setGitaVerses] = useState<GitaVerse[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [index, setIndex] = useState(0);
+  const [target, setTarget] = useState(MALA_COUNT);
   const [ready, setReady] = useState(false);
   const [fav, setFav] = useState(false);
-  // True while the current mantra's audio is playing. Doubles as the ring
-  // bead's tap-lock (see advanceAndPlay below) and the card's play/pause icon.
+  // True while the current audio is playing. Doubles as the ring bead's
+  // tap-lock and the card's play/pause icon.
   const [locked, setLocked] = useState(false);
 
   useEffect(() => {
-    loadShlokas().then(setShlokas).catch(() => setFailed(true));
-  }, []);
+    if (!slug && !isGita) {
+      router.replace("/shlokas");
+      return;
+    }
+    if (isGita) {
+      loadGitaVerses().then(setGitaVerses).catch(() => setFailed(true));
+    } else {
+      loadShlokas().then(setShlokas).catch(() => setFailed(true));
+    }
+  }, [slug, isGita, router]);
 
-  // Restore the saved reading position once the library is loaded — after
-  // mount only, same reasoning JapCounter documented for its own localStorage
-  // read (SSR has no localStorage; seeding useState from it directly would
-  // hydrate-mismatch). Position is a spot in the MALA_COUNT (108) cycle, not
-  // a direct library index — see libIndex below.
+  const item: ChantItem | null = useMemo(() => {
+    if (isGita) {
+      const v = gitaVerses?.find((g) => g.id === verseId);
+      if (!v) return null;
+      return {
+        key: `gita:${v.id}`,
+        sanskrit: v.sanskrit,
+        subtitle: `${t("gita.title")} ${v.chapter}.${v.verse}`,
+        audioSrc: gitaAudioUrl(v.id),
+        defaultTarget: MALA_COUNT,
+        detailHref: `/gita/${v.id}`,
+      };
+    }
+    const s = shlokas?.find((x) => x.slug === slug);
+    if (!s) return null;
+    return {
+      key: s.slug,
+      sanskrit: s.sanskrit,
+      iast: s.iast,
+      subtitle: pick(s.title, lang),
+      audioSrc: s.audio ? AUDIO_BASE + s.audio : null,
+      defaultTarget: s.japCount || MALA_COUNT,
+      slug: s.slug,
+      detailHref: `/shlokas/${s.slug}`,
+    };
+  }, [isGita, gitaVerses, shlokas, verseId, slug, lang, t]);
+
+  // Restore saved progress/target once the item is known — after mount only
+  // (SSR has no localStorage; seeding useState from it directly would
+  // hydrate-mismatch).
   useEffect(() => {
-    if (!shlokas) return;
-    const saved = getMalaPosition();
-    setIndex(Number.isFinite(saved) ? Math.min(Math.max(saved, 0), MALA_COUNT - 1) : 0);
+    if (!item) return;
+    const saved = getJapProgress(item.key, item.defaultTarget);
+    setTarget(saved.target);
+    setIndex(Math.min(Math.max(saved.index, 0), saved.target - 1));
     setReady(true);
-  }, [shlokas]);
+    if (item.slug) {
+      setFav(isFav(item.slug));
+      pushHistory(item.slug);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.key]);
 
-  const libLen = shlokas?.length ?? 0;
-  // The library only has 50 distinct verses; positions past 50 cycle back
-  // through the same list rather than needing 108 distinct pieces of
-  // content — see MALA_COUNT's doc comment in lib/shlokas.ts.
-  const libIndex = libLen > 0 ? index % libLen : 0;
-
-  // Gated on `ready`, not just `shlokas` — otherwise this is truthy the
-  // instant the library loads, one render before the position-restore effect
-  // below corrects `index` away from its initial 0, and a returning user
-  // sees mantra 1 flash before snapping to wherever they actually left off.
-  const current = ready ? shlokas?.[libIndex] : undefined;
-
-  useEffect(() => {
-    if (!ready || !current) return;
-    setMalaPosition(index);
-    pushHistory(current.slug);
-    setFav(isFav(current.slug));
-  }, [ready, index, current]);
-
-  const total = libLen > 0 ? MALA_COUNT : 0;
+  const total = item ? target : 0;
   const isComplete = ready && total > 0 && index === total - 1;
   const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
-  // Wrapped, not clamped — prev of the first mantra is the last, and vice
-  // versa, so the strip never has to show a dead/disabled side.
-  const prevIndex = total > 0 ? (index - 1 + total) % total : 0;
-  const nextIndex = total > 0 ? (index + 1) % total : 0;
-
-  // Prev/next strip and Start Again are free browsing, not the guided
-  // tap-through-and-listen flow below — they always stop whatever's playing
-  // rather than fighting over the lock.
-  function goTo(next: number) {
-    pauseShlokaAudio();
-    setLocked(false);
-    setIndex(((next % total) + total) % total);
-  }
 
   // The bead's own tap handler: advance and pronounce are one bundled
-  // action, and the bead can't be tapped again until this mantra's audio
-  // finishes. Reads the next shloka directly rather than waiting for
-  // `current` to update, so the right audio starts in the same tap.
+  // action, and the bead can't be tapped again until this chant's audio
+  // finishes.
   function advanceAndPlay() {
-    if (locked || !shlokas || total === 0) return;
+    if (locked || !item || total === 0) return;
     const nextIndex = Math.min(index + 1, total - 1);
-    if (nextIndex === index) return; // already at the last mantra
-    const nextShloka = shlokas[nextIndex % libLen];
+    if (nextIndex === index) return; // already at the last chant
     navigator.vibrate?.(20);
     setIndex(nextIndex);
-    if (nextShloka.audio) {
+    setJapProgress(item.key, { index: nextIndex, target });
+    if (item.audioSrc) {
       setLocked(true);
-      playShlokaAudio(AUDIO_BASE + nextShloka.audio, () => setLocked(false));
+      playShlokaAudio(item.audioSrc, () => setLocked(false));
     }
   }
 
-  // The card's own play button — replays whatever's currently shown, on
-  // demand, independent of advancing. Shares the same lock so the ring bead
+  // The card's own play button — replays the current audio on demand,
+  // independent of advancing. Shares the same lock so the ring bead
   // correctly shows as un-tappable while this is playing too.
   function playCurrent() {
-    if (!current?.audio) return;
-    if (isShlokaAudioPlaying(AUDIO_BASE + current.audio)) {
+    if (!item?.audioSrc) return;
+    if (isShlokaAudioPlaying(item.audioSrc)) {
       pauseShlokaAudio();
       setLocked(false);
       return;
     }
     setLocked(true);
-    playShlokaAudio(AUDIO_BASE + current.audio, () => setLocked(false));
+    playShlokaAudio(item.audioSrc, () => setLocked(false));
   }
 
-  function handleTabSelect(tab: ShlokaTab) {
-    if (tab === "mala") return;
-    if (tab === "favorites") router.push("/shlokas?view=favorites");
-    else if (tab === "history") router.push("/shlokas?view=history");
-    else router.push("/shlokas");
+  function resetToZero() {
+    pauseShlokaAudio();
+    setLocked(false);
+    setIndex(0);
+    if (item) setJapProgress(item.key, { index: 0, target });
+  }
+
+  function updateTarget(next: number) {
+    const clamped = Math.min(Math.max(Math.round(next) || 1, 1), 1008);
+    const clampedIndex = Math.min(index, clamped - 1);
+    setTarget(clamped);
+    setIndex(clampedIndex);
+    if (item) setJapProgress(item.key, { index: clampedIndex, target: clamped });
   }
 
   if (failed) {
@@ -164,16 +188,14 @@ function MalaScreen() {
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
           </IconButton>
-          <h1 className="text-lg font-display text-foreground flex-1 truncate">{t("shlokas.malaHeading")}</h1>
+          <h1 className="text-lg font-display text-foreground flex-1 truncate">{t("shlokas.tabs.mantras")}</h1>
         </div>
 
-        <ShlokaTabs active="mala" onSelect={handleTabSelect} />
+        {!item && !failed && <p className="text-sm text-muted text-center py-16">{t("shlokas.loading")}</p>}
 
-        {!current && !failed && <p className="text-sm text-muted text-center py-16">{t("shlokas.loading")}</p>}
-
-        {current && (
+        {item && (
           <>
-            <div className="relative rounded-3xl overflow-hidden border border-gold/15 py-8">
+            <div className="relative rounded-3xl overflow-hidden border border-gold/15 pt-8 pb-4">
               <MalaBackdrop />
               <div className="relative">
                 <RudrakshaMala
@@ -181,7 +203,7 @@ function MalaScreen() {
                   currentIndex={index}
                   onTap={advanceAndPlay}
                   locked={locked}
-                  mantraSnippet={current.sanskrit.split("\n")[0]}
+                  mantraSnippet={item.sanskrit.split("\n")[0]}
                 />
               </div>
             </div>
@@ -196,24 +218,26 @@ function MalaScreen() {
               </div>
 
               <p className="mt-3 font-devanagari text-2xl text-foreground text-center leading-relaxed line-clamp-3 whitespace-pre-line">
-                {current.sanskrit}
+                {item.sanskrit}
               </p>
-              <p className="mt-2 text-sm text-muted text-center line-clamp-1">{current.iast.split("\n")[0]}</p>
+              <p className="mt-2 text-sm text-muted text-center line-clamp-1">
+                {item.iast ? item.iast.split("\n")[0] : item.subtitle}
+              </p>
 
               <LotusSilhouette className="h-4 w-4 mx-auto mt-3 text-gold" opacity={0.45} />
 
               <div className="mt-4 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFav(toggleFav(current.slug));
-                  }}
-                  aria-label={t(fav ? "shlokas.removeFavoriteAria" : "shlokas.addFavoriteAria")}
-                  className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center text-gold"
-                >
-                  <Heart size={17} className={fav ? "fill-gold" : ""} />
-                </button>
-                {current.audio && (
+                {item.slug && (
+                  <button
+                    type="button"
+                    onClick={() => setFav(toggleFav(item.slug!))}
+                    aria-label={t(fav ? "shlokas.removeFavoriteAria" : "shlokas.addFavoriteAria")}
+                    className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center text-gold"
+                  >
+                    <Heart size={17} className={fav ? "fill-gold" : ""} />
+                  </button>
+                )}
+                {item.audioSrc && (
                   <>
                     <AudioLines size={18} className="text-gold/60" aria-hidden="true" />
                     <button
@@ -229,44 +253,14 @@ function MalaScreen() {
               </div>
             </Card>
 
-            <div className="flex items-stretch gap-2">
-              <button
-                type="button"
-                onClick={() => goTo(index - 1)}
-                aria-label={t("shlokas.prevMantraAria")}
-                className="flex-1 flex items-center gap-2 rounded-2xl border border-gold/15 bg-card p-3 text-left min-w-0"
-              >
-                <ChevronLeft size={18} className="text-gold shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-muted tabular-nums">
-                    {prevIndex + 1} / {total}
-                  </p>
-                  <MantraSnippet shloka={shlokas![prevIndex % libLen]} lang={lang} />
-                </div>
-              </button>
-
+            <div className="flex justify-center">
               <Link
-                href={`/shlokas/${current.slug}`}
-                aria-label={t("shlokas.viewFullVerse")}
-                className="shrink-0 w-11 h-11 rounded-full border border-gold/30 bg-card flex items-center justify-center self-center"
+                href={item.detailHref}
+                className="flex items-center gap-2 px-4 h-11 rounded-full border border-gold/30 bg-card text-sm text-gold font-medium"
               >
-                <LotusSilhouette className="h-5 w-5 text-gold" opacity={0.9} />
+                <LotusSilhouette className="h-4 w-4 text-gold" opacity={0.9} />
+                {t("shlokas.viewFullVerse")}
               </Link>
-
-              <button
-                type="button"
-                onClick={() => goTo(index + 1)}
-                aria-label={t("shlokas.nextMantraAria")}
-                className="flex-1 flex items-center gap-2 rounded-2xl border border-gold/15 bg-card p-3 text-right min-w-0"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-muted tabular-nums">
-                    {nextIndex + 1} / {total}
-                  </p>
-                  <MantraSnippet shloka={shlokas![nextIndex % libLen]} lang={lang} />
-                </div>
-                <ChevronRight size={18} className="text-gold shrink-0" />
-              </button>
             </div>
 
             <Card className="p-5">
@@ -292,15 +286,25 @@ function MalaScreen() {
               {isComplete ? (
                 <button
                   type="button"
-                  onClick={() => goTo(0)}
+                  onClick={resetToZero}
                   className="mt-3 w-full py-2.5 rounded-full bg-gold text-background text-sm font-semibold"
                 >
                   {t("shlokas.startAgain")}
                 </button>
               ) : (
-                <p className="mt-2 text-[11px] text-muted text-center">
-                  {t("shlokas.mantrasOf", { current: index + 1, total })}
-                </p>
+                <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-muted">
+                  <span className="tabular-nums">{index + 1}</span>
+                  <span>/</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={1008}
+                    value={target}
+                    onChange={(e) => updateTarget(Number(e.target.value))}
+                    aria-label={t("shlokas.chantCountAria")}
+                    className="w-12 bg-transparent border-b border-gold/30 text-center text-gold font-semibold tabular-nums focus:outline-none"
+                  />
+                </div>
               )}
             </Card>
           </>

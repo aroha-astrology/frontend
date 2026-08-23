@@ -78,11 +78,8 @@ export const IMG_BASE = "/shlokas/img/";
 export const AUDIO_BASE = "/shlokas/audio/";
 
 /**
- * The mala screen's counter target — the traditional 108-bead count. The
- * library only has 50 distinct verses, so positions past 50 cycle back
- * through the same list (position % library length) rather than needing 108
- * distinct pieces of content. Still not the old per-verse JapCounter this
- * screen replaced (see mala/page.tsx) — that repeated ONE verse 108 times;
- * this walks through all 50 distinct verses, looping the list ~2.16x.
+ * Default jap target — the traditional 108-bead count. Used to seed the
+ * chant screen's editable target when a mantra has no `japCount` of its own,
+ * and always for Gita verses (GitaVerse carries no japCount field at all).
  */
 export const MALA_COUNT = 108;

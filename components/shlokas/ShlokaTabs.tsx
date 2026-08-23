@@ -4,24 +4,9 @@ import { Heart, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
-export type ShlokaTab = "mantras" | "gita" | "mala" | "favorites" | "history";
+export type ShlokaTab = "mantras" | "gita" | "favorites" | "history";
 
-const TABS: ShlokaTab[] = ["mantras", "gita", "mala", "favorites", "history"];
-
-/** Small dot-ring glyph standing in for a mala — lucide has no rosary/mala icon, and the project's own rule is no emoji for this kind of asset (see ShlokasCard.tsx's Om-in-a-circle for the same "draw the glyph" precedent). */
-function MalaGlyph({ active }: { active: boolean }) {
-  const dots = Array.from({ length: 8 }, (_, i) => {
-    const a = (i / 8) * Math.PI * 2;
-    return { x: 11 + 8 * Math.sin(a), y: 11 - 8 * Math.cos(a) };
-  });
-  return (
-    <svg width={22} height={22} viewBox="0 0 22 22" className={active ? "fill-gold" : "fill-muted"}>
-      {dots.map((d, i) => (
-        <circle key={i} cx={d.x} cy={d.y} r={1.6} />
-      ))}
-    </svg>
-  );
-}
+const TABS: ShlokaTab[] = ["mantras", "gita", "favorites", "history"];
 
 function OmGlyph({ active }: { active: boolean }) {
   return (
@@ -51,13 +36,14 @@ function GitaGlyph({ active }: { active: boolean }) {
 }
 
 /**
- * The reference mockup's 4-way switcher (Mantras / Mala / Favorites /
- * History), reproduced as its own screen-local bar rather than folded into
- * the app's global BottomNavigation — that stays untouched per the redesign
- * plan. "Mantras" and "Mala" are real routes; "Favorites" and "History" are
- * view-modes within the list page, so this is a controlled component and
- * the caller decides what selecting each tab actually does (navigate vs.
- * set local state) — see app/shlokas/page.tsx and app/shlokas/mala/page.tsx.
+ * The reference mockup's switcher (Mantras / Gita / Favorites / History),
+ * reproduced as its own screen-local bar rather than folded into the app's
+ * global BottomNavigation — that stays untouched per the redesign plan.
+ * Mala is no longer one of these tabs: it's a per-item chant screen opened
+ * from a mantra/Gita row (see app/shlokas/mala/page.tsx), not a library view.
+ * "Mantras" is a real route; "Favorites" and "History" are view-modes within
+ * the list page, so this is a controlled component and the caller decides
+ * what selecting each tab actually does — see app/shlokas/page.tsx.
  */
 export default function ShlokaTabs({
   active,
@@ -90,7 +76,6 @@ export default function ShlokaTabs({
           >
             {tab === "mantras" && <OmGlyph active={isActive} />}
             {tab === "gita" && <GitaGlyph active={isActive} />}
-            {tab === "mala" && <MalaGlyph active={isActive} />}
             {tab === "favorites" && <Heart size={20} className={isActive ? "fill-gold text-gold" : "text-muted"} />}
             {tab === "history" && <History size={20} className={isActive ? "text-gold" : "text-muted"} />}
             <span className={cn("text-[10px] font-medium", isActive ? "text-gold" : "text-muted")}>

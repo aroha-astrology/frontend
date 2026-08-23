@@ -113,7 +113,7 @@ function TempleImage() {
     <img
       src="/shlokas/backdrop/temple.webp"
       alt=""
-      className="absolute right-[2%] bottom-[10%] w-[38%] max-w-[160px] h-[40%] object-contain object-bottom opacity-90"
+      className="absolute right-0 bottom-0 w-[32%] max-w-[130px] h-[34%] object-contain object-right-bottom opacity-90"
       onError={() => setImgError(true)}
     />
   );

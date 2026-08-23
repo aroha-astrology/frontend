@@ -17,6 +17,7 @@ import ShareAppPrompt from "@/components/ShareAppPrompt";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import FestivalGiftModal from "@/components/FestivalGiftModal";
+import DailyRewardModal from "@/components/DailyRewardModal";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -105,6 +106,7 @@ export default function RootLayout({
                         <ShareAppPrompt />
                         <FeedbackPrompt />
                         <FestivalGiftModal />
+                        <DailyRewardModal />
                       </AuthGuard>
                     </TopBarProvider>
                     <BackButtonListener />

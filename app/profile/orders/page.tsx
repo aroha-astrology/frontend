@@ -21,6 +21,7 @@ function kindLabel(t: TFunction, txn: Transaction): string {
     case "house_unlock": return t("transactions.reasonHouseUnlock", "House {{houseNumber}} Insight Unlock", { houseNumber: txn.houseNumber });
     case "referral_bonus": return t("transactions.reasonReferralBonus", "Referral Bonus");
     case "report_unlock": return t("transactions.reasonReportUnlock", "Report Unlock");
+    case "daily_reward": return t("transactions.reasonDailyReward", "Daily Reward");
   }
 }
 
@@ -28,6 +29,7 @@ function kindLabel(t: TFunction, txn: Transaction): string {
 function isCredit(txn: Transaction): boolean {
   if (txn.kind === "recharge") return true;
   if (txn.kind === "referral_bonus") return true;
+  if (txn.kind === "daily_reward") return true;
   return txn.isRefund;
 }
 

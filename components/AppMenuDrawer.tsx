@@ -23,6 +23,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useFeature } from "@/hooks/useFeature";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import { useKundli } from "@/hooks/useKundli";
@@ -47,6 +48,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const referralAmounts = useReferralAmounts();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { enabled: rewardsEnabled } = useFeature("nav.rewards");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -246,6 +248,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   href="/profile/orders"
                   onClick={onClose}
                 />
+                {rewardsEnabled && (
+                  <ListRow
+                    icon={<Gift size={16} />}
+                    label={t("rewards.menuLabel")}
+                    href="/rewards"
+                    onClick={onClose}
+                  />
+                )}
                 <ListRow
                   icon={<FileText size={16} />}
                   label={t("menu.myReports")}

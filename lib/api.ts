@@ -599,6 +599,22 @@ export interface Order {
   paidAt: string | null;
 }
 
+export interface DailyRewardDay {
+  day: number;
+  amountPaise: number;
+  isBonusDay: boolean;
+  claimed: boolean;
+}
+
+export interface DailyRewardState {
+  currentDay: number;
+  claimedToday: boolean;
+  todayAmountPaise: number;
+  nextDayAmountPaise: number;
+  expiresInDays: number;
+  ladder: DailyRewardDay[];
+}
+
 export type TransactionKind =
   | "recharge"
   | "chat"
@@ -607,7 +623,8 @@ export type TransactionKind =
   | "profile_creation"
   | "house_unlock"
   | "referral_bonus"
-  | "report_unlock";
+  | "report_unlock"
+  | "daily_reward";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
@@ -1019,6 +1036,25 @@ export const api = {
       `/v1/me/claim-bonus/${campaignKey}`,
       { method: "POST", auth: true },
     ),
+
+  /**
+   * The daily login streak state (7-day ladder, which slot "today" occupies,
+   * whether it's already claimed). Gated by `nav.rewards` — 403s with
+   * FEATURE_DISABLED when the flag is off, same as claimDailyReward below.
+   */
+  getDailyReward: () => request<DailyRewardState>("/v1/rewards/daily", { auth: true }),
+
+  /**
+   * Claims today's ladder amount. `claimed: false` means today was already
+   * claimed (another device, or a repeat tap) — not an error. Caller should
+   * re-fetch the user (`refresh()` from useAuth) afterward to pick up the
+   * updated wallet balance.
+   */
+  claimDailyReward: () =>
+    request<{ claimed: boolean; walletBalancePaise: number }>("/v1/rewards/daily/claim", {
+      method: "POST",
+      auth: true,
+    }),
 
   /**
    * Spend wallet balance to unlock the full gemstone report (whole report, one-time).

@@ -8,6 +8,7 @@ import { api, type DailyRewardState } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
 import Card from "@/components/ui/Card";
+import RewardCoin from "@/components/rewards/RewardCoin";
 import { cn } from "@/lib/utils";
 
 type ClaimStatus = "idle" | "claiming" | "error";
@@ -72,20 +73,11 @@ export default function DailyRewardLadder() {
       <div className="grid grid-cols-7 gap-1.5">
         {ladder.map((slot) => {
           const isToday = slot.day === currentDay;
+          const bright = slot.claimed || isToday;
           return (
             <div key={slot.day} className="flex flex-col items-center gap-1">
-              <div
-                className={cn(
-                  "relative w-9 h-9 sm:w-11 sm:h-11",
-                  isToday && !slot.claimed && "animate-pulse",
-                )}
-              >
-                <Image
-                  src={slot.isBonusDay ? "/rewards/sun.png" : slot.claimed ? "/rewards/moon-claimed.png" : "/rewards/moon-locked.png"}
-                  alt=""
-                  fill
-                  className={cn("object-contain", !slot.claimed && !isToday && "opacity-40")}
-                />
+              <div className={cn(isToday && !slot.claimed && "animate-pulse")}>
+                <RewardCoin bright={bright} size={36} />
               </div>
               <span className={cn("text-[10px]", isToday ? "text-gold font-semibold" : "text-muted")}>
                 {formatRupees(slot.amountPaise)}

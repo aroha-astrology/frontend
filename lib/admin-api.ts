@@ -88,8 +88,9 @@ export interface AdminUserRow {
   walletBalancePaise: number;
   createdAt: string;
   lastActiveAt: string | null;
-  /** Has this user claimed the Independence Day 2026 wallet bonus (independence_day_2026 campaign)? */
-  claimedIndependenceDay: boolean;
+  /** Independence Day 2026 wallet bonus (independence_day_2026 campaign) claim amount, if claimed. */
+  claimedAmountPaise: number | null;
+  claimedAt: string | null;
 }
 
 export interface AdminUsersResponse {
@@ -315,7 +316,7 @@ export const adminApi = {
       contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedIndependenceDay";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {

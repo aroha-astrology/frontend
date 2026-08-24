@@ -16,7 +16,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
 const LIMIT = 20;
 
-type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedIndependenceDay";
+type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt";
 type ContactType = "all" | "phone" | "email";
 
 function formatDate(iso: string | null): string {
@@ -167,6 +167,13 @@ export default function AdminUsersPage() {
   const [walletTarget, setWalletTarget] = useState<AdminUserRow | null>(null);
   const [sortBy, setSortBy] = useState<SortColumn>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function copyUserId(id: string) {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 1500);
+  }
 
   function toggleSort(col: SortColumn) {
     if (sortBy === col) {
@@ -255,7 +262,7 @@ export default function AdminUsersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[11px] text-muted uppercase tracking-wide bg-surface">
-                    <th className="px-4 py-2 font-medium">Name</th>
+                    <th className="px-4 py-2 font-medium">Name / User ID</th>
                     <th className="px-4 py-2 font-medium">Phone</th>
                     <th className="px-4 py-2 font-medium">Email</th>
                     <th className="px-4 py-2 font-medium text-right">
@@ -291,11 +298,11 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium">
                       <button
                         type="button"
-                        onClick={() => toggleSort("claimedIndependenceDay")}
+                        onClick={() => toggleSort("claimedAt")}
                         className="flex items-center gap-1 hover:text-foreground transition-colors"
                       >
-                        🇮🇳 Aug 15
-                        {sortBy === "claimedIndependenceDay" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                        🇮🇳 Gift claimed
+                        {sortBy === "claimedAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
                     <th className="px-4 py-2 font-medium" />
@@ -304,7 +311,18 @@ export default function AdminUsersPage() {
                 <tbody>
                   {users.map((u) => (
                     <tr key={u.id} className="border-t border-border">
-                      <td className="px-4 py-2 text-foreground">{u.displayName ?? "—"}</td>
+                      <td className="px-4 py-2 text-foreground">
+                        <div>{u.displayName ?? "—"}</div>
+                        <button
+                          type="button"
+                          onClick={() => copyUserId(u.id)}
+                          title="Copy user ID"
+                          className="mt-0.5 flex items-center gap-1 font-mono text-[11px] text-muted hover:text-foreground transition-colors"
+                        >
+                          {u.id}
+                          <span>{copiedId === u.id ? "✓" : "⧉"}</span>
+                        </button>
+                      </td>
                       <td className="px-4 py-2 text-foreground">{u.phoneE164 ?? "—"}</td>
                       <td className="px-4 py-2 text-foreground">{u.email ?? "—"}</td>
                       <td className="px-4 py-2 text-right text-foreground">{formatRupees(u.walletBalancePaise)}</td>
@@ -329,10 +347,13 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-2">
-                        {u.claimedIndependenceDay ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
-                            Claimed
-                          </span>
+                        {u.claimedAmountPaise !== null ? (
+                          <div>
+                            <div className="text-green-400 text-xs font-medium">
+                              {formatRupees(u.claimedAmountPaise)}
+                            </div>
+                            <div className="text-muted text-[11px]">{formatDate(u.claimedAt)}</div>
+                          </div>
                         ) : (
                           <span className="text-muted text-xs">—</span>
                         )}
@@ -351,12 +372,6 @@ export default function AdminUsersPage() {
                             className="px-3 py-1.5 rounded-full border border-border text-muted text-xs hover:text-foreground transition-colors"
                           >
                             Tickets
-                          </Link>
-                          <Link
-                            href={`/admin?userId=${encodeURIComponent(u.id)}`}
-                            className="px-3 py-1.5 rounded-full border border-border text-muted text-xs hover:text-foreground transition-colors"
-                          >
-                            AI Cost
                           </Link>
                         </div>
                       </td>

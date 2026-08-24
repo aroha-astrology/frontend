@@ -11,7 +11,13 @@ import {
 import { onAuthStateChanged, signOut as fbSignOut, type User as FirebaseUser } from "firebase/auth";
 import posthog from "posthog-js";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
-import { api, type Profile, type SessionResponse, type User } from "@/lib/api";
+import {
+  api,
+  setSessionInvalidHandler,
+  type Profile,
+  type SessionResponse,
+  type User,
+} from "@/lib/api";
 
 /**
  * Bridges Firebase auth state to the backend app user.
@@ -161,6 +167,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.clear();
     }
   };
+
+  useEffect(() => {
+    // Registered once so lib/api.ts (a plain function module, not a hook — it can't call
+    // useAuth() itself) can drive a real sign-out when an authenticated call comes back 401
+    // (revoked token, or the account was deleted server-side mid-session). Without this, an
+    // invalidated session left every screen to hit its own 401 and show a local error instead
+    // of returning to sign-in.
+    setSessionInvalidHandler(() => {
+      void signOut();
+    });
+  }, []);
 
   useEffect(() => {
     // Without Firebase config there is nothing to subscribe to — keep the app

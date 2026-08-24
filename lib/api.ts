@@ -1,5 +1,6 @@
 // Typed client for the Aroha Astrology Backend (v0.1.0).
-// Spec: http://13.232.179.137:3000/docs  ·  base URL from NEXT_PUBLIC_API_BASE_URL.
+// Spec: {API base URL}/docs (Swagger UI) · base URL from NEXT_PUBLIC_API_BASE_URL, default
+// https://api.arohaastrology.in (see BASE_URL below).
 //
 // Auth model: the backend verifies a Firebase ID token passed as
 // `Authorization: Bearer <token>`. Authed calls pull a fresh token from the
@@ -661,6 +662,23 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Fired when an AUTHENTICATED call comes back 401 from the server — token revoked, or the
+ * account was deleted server-side since the session started. This module can't import
+ * auth-provider (it's a plain function, not a hook, and importing the provider here would be a
+ * dependency-direction inversion), so AuthProvider registers itself once via
+ * setSessionInvalidHandler instead. Without this, an invalidated session used to leave every
+ * screen to hit its own 401 and show a local error, rather than the app returning to sign-in.
+ *
+ * Deliberately NOT fired for the client-side "no_session" short-circuit in authHeader() below
+ * (there's no user to sign out) or for unauthenticated calls (a 401 there isn't a session
+ * problem this app has today).
+ */
+let onSessionInvalid: (() => void) | null = null;
+export function setSessionInvalidHandler(handler: () => void): void {
+  onSessionInvalid = handler;
+}
+
 // ─── Core request helper ──────────────────────────────────────────────────────
 
 async function authHeader(): Promise<Record<string, string>> {
@@ -723,6 +741,11 @@ export async function request<T>(path: string, opts: RequestOpts = {}): Promise<
     if (!res.ok) {
       const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
         ?.error;
+      // Fire-and-forget: signOut() is async, but this is a pure API-layer error path and
+      // shouldn't delay (or change the shape of) the exception this call's own caller is about
+      // to receive. Only for an authenticated call's real server 401 — see the handler's doc
+      // comment for why "no_session" and unauthenticated calls are excluded.
+      if (res.status === 401 && needsAuth) onSessionInvalid?.();
       throw new ApiError(
         res.status,
         err?.code ?? "http_error",

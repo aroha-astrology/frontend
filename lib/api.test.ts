@@ -1,5 +1,10 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { request, ApiError } from "./api";
+
+vi.mock("./firebase", () => ({
+  getFirebaseAuth: () => ({ currentUser: { getIdToken: async () => "test-token" } }),
+}));
+
+import { request, ApiError, setSessionInvalidHandler } from "./api";
 
 /**
  * Reproduces the "stuck spinner forever" bug: request() had no timeout at
@@ -29,5 +34,51 @@ describe("request() timeout", () => {
     ) as unknown as typeof fetch;
 
     await expect(request("/v1/me", { timeoutMs: 30 } as never)).resolves.toEqual({ ok: true });
+  });
+});
+
+/**
+ * An authenticated call's 401 (revoked token, or the account was deleted server-side mid-
+ * session) used to leave every screen to hit its own error with no path back to sign-in.
+ * setSessionInvalidHandler is how AuthProvider (which request() can't import — it's a plain
+ * function, not a hook) wires itself up to drive a real sign-out from this one place instead.
+ */
+describe("request() session-invalid handler", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    setSessionInvalidHandler(() => {});
+    vi.restoreAllMocks();
+  });
+
+  it("fires the registered handler on a 401 from an authenticated call", async () => {
+    global.fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: { code: "unauthorized", message: "no" } }), {
+        status: 401,
+      }),
+    ) as unknown as typeof fetch;
+
+    const handler = vi.fn();
+    setSessionInvalidHandler(handler);
+
+    await expect(request("/v1/me", { auth: true, timeoutMs: 30 })).rejects.toBeInstanceOf(
+      ApiError,
+    );
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not fire the handler for a 401 on an unauthenticated call", async () => {
+    global.fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: { code: "unauthorized", message: "no" } }), {
+        status: 401,
+      }),
+    ) as unknown as typeof fetch;
+
+    const handler = vi.fn();
+    setSessionInvalidHandler(handler);
+
+    await expect(request("/v1/public/thing", { timeoutMs: 30 })).rejects.toBeInstanceOf(ApiError);
+    expect(handler).not.toHaveBeenCalled();
   });
 });

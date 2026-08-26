@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { ActivityHeartbeatProvider } from "@/providers/activity-heartbeat-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
@@ -96,33 +97,35 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>
               <AuthProvider>
-                <PermissionsPromptProvider>
-                  <BackHandlerProvider>
-                    <TopBarProvider>
-                      <AuthGuard>
-                        {/* TourProvider wraps the modal stack, not just the page:
-                            every prompt below defers to `tourActive` so nothing
-                            renders underneath a running tour's scrim. */}
-                        <TourProvider>
-                          <TopBar />
-                          <PageTransition>{children}</PageTransition>
-                          <BottomNavigationGate />
-                          <PermissionsPrompt />
-                          <TourHost />
-                          <UpdatePrompt />
-                          <ShareAppPrompt />
-                          <FeedbackPrompt />
-                          <FestivalGiftModal />
-                          <DailyRewardModal />
-                        </TourProvider>
-                      </AuthGuard>
-                    </TopBarProvider>
-                    <BackButtonListener />
-                    <PushNotificationListener />
-                    <ReferralCapture />
-                    <GooglePlayPurchaseReconciler />
-                  </BackHandlerProvider>
-                </PermissionsPromptProvider>
+                <ActivityHeartbeatProvider>
+                  <PermissionsPromptProvider>
+                    <BackHandlerProvider>
+                      <TopBarProvider>
+                        <AuthGuard>
+                          {/* TourProvider wraps the modal stack, not just the page:
+                              every prompt below defers to `tourActive` so nothing
+                              renders underneath a running tour's scrim. */}
+                          <TourProvider>
+                            <TopBar />
+                            <PageTransition>{children}</PageTransition>
+                            <BottomNavigationGate />
+                            <PermissionsPrompt />
+                            <TourHost />
+                            <UpdatePrompt />
+                            <ShareAppPrompt />
+                            <FeedbackPrompt />
+                            <FestivalGiftModal />
+                            <DailyRewardModal />
+                          </TourProvider>
+                        </AuthGuard>
+                      </TopBarProvider>
+                      <BackButtonListener />
+                      <PushNotificationListener />
+                      <ReferralCapture />
+                      <GooglePlayPurchaseReconciler />
+                    </BackHandlerProvider>
+                  </PermissionsPromptProvider>
+                </ActivityHeartbeatProvider>
               </AuthProvider>
             </LanguageProvider>
           </ThemeProvider>

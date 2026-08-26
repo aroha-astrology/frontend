@@ -113,10 +113,12 @@ export interface AdminWalletAdjustResponse {
 
 // ─── Support tickets ───────────────────────────────────────────────────────
 
-/** Admin-facing shape — unlike the caller-facing `SupportTicket` in lib/api.ts, includes `userId` and `adminNote`. */
+/** Admin-facing shape — unlike the caller-facing `SupportTicket` in lib/api.ts, includes `userId`/`contactName`/`contactEmail` and `adminNote`. `userId` is null for a ticket filed from the public (unauthenticated) /support form, in which case `contactName`/`contactEmail` are the submitter's identity instead. */
 export interface AdminSupportTicket {
   id: string;
-  userId: string;
+  userId: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
   category: string;
   message: string;
   locale: string | null;

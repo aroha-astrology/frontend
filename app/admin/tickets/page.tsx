@@ -95,10 +95,29 @@ function TicketModal({
     >
       <div className="space-y-4">
         <div>
-          <p className="text-xs text-muted mb-1">User ID</p>
-          <p className="text-sm text-foreground break-all" title={ticket.userId}>
-            {ticket.userId}
-          </p>
+          <p className="text-xs text-muted mb-1">{ticket.userId ? "User ID" : "Submitted by"}</p>
+          {ticket.userId ? (
+            <p className="text-sm text-foreground break-all" title={ticket.userId}>
+              {ticket.userId}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold border border-blue-500/40 bg-blue-500/10 text-blue-400">
+                Public
+              </span>
+              <p className="text-sm text-foreground break-all">
+                {ticket.contactName ?? "—"}
+                {ticket.contactEmail && (
+                  <>
+                    {" · "}
+                    <a href={`mailto:${ticket.contactEmail}`} className="text-gold hover:underline">
+                      {ticket.contactEmail}
+                    </a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -286,8 +305,21 @@ function AdminTicketsPageInner() {
                 <tbody>
                   {tickets.map((ticket) => (
                     <tr key={ticket.id} className="border-t border-border">
-                      <td className="px-4 py-2 text-foreground font-mono text-xs" title={ticket.userId}>
-                        {truncate(ticket.userId, 12)}
+                      <td className="px-4 py-2 text-foreground text-xs">
+                        {ticket.userId ? (
+                          <span className="font-mono" title={ticket.userId}>
+                            {truncate(ticket.userId, 12)}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold border border-blue-500/40 bg-blue-500/10 text-blue-400">
+                              Public
+                            </span>
+                            <span title={ticket.contactEmail ?? undefined}>
+                              {ticket.contactName ?? ticket.contactEmail ?? "—"}
+                            </span>
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-2 text-foreground">{ticket.category}</td>
                       <td className="px-4 py-2 text-muted max-w-xs truncate">{truncate(ticket.message, 60)}</td>

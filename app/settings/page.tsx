@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
+  Compass,
   Globe,
   MessageSquare,
   Moon,
@@ -27,6 +28,7 @@ import { isNativeAndroid } from "@/lib/play-billing";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import { useAuth } from "@/providers/auth-provider";
+import { useTour } from "@/providers/tour-provider";
 import { api, type Profile } from "@/lib/api";
 import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 
@@ -70,6 +72,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { signOut, profiles, refreshProfiles } = useAuth();
+  const { resetAll } = useTour();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -157,6 +160,16 @@ export default function SettingsPage() {
         <div className="space-y-2.5 mb-6">
           <ListRow icon={<Globe size={16} />} label={t("settings.language")} right={<LanguagePicker />} />
           <ListRow icon={<Moon size={16} />} label={t("settings.theme")} right={<ThemeSwitch />} />
+          {/* Clears every tour's completion, server-side included, then sends
+              them home with ?tour=1 so the first one starts immediately. */}
+          <ListRow
+            icon={<Compass size={16} />}
+            label={t("settings.replayTour")}
+            onClick={async () => {
+              await resetAll();
+              router.push("/?tour=1");
+            }}
+          />
           <ListRow
             icon={<MessageSquare size={16} />}
             label={t("settings.sendFeedback")}

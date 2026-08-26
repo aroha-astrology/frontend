@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Gift, Sparkles } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
@@ -30,6 +31,7 @@ export default function FestivalGiftModal() {
   const router = useRouter();
   const { user, refresh } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const { tourActive } = useTour();
   const chatFeature = useFeature("nav.askAI");
   const referralAmounts = useReferralAmounts();
 
@@ -47,7 +49,10 @@ export default function FestivalGiftModal() {
     if (window.localStorage.getItem(dismissKey)) setDismissed(true);
   }, [dismissKey]);
 
-  const visible = !!campaign && permissionsResolved && !!user?.profileCompletedAt && !dismissed;
+  // Never render underneath a running tour's scrim — the tour is the one
+  // overlay that must finish before any launch-time prompt gets the screen.
+  const visible =
+    !!campaign && permissionsResolved && !!user?.profileCompletedAt && !dismissed && !tourActive;
 
   const dismiss = () => {
     if (dismissKey) {

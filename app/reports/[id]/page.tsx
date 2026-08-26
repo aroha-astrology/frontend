@@ -17,6 +17,7 @@ import ReportHero from "@/components/reports/ReportHero";
 import PlanetStrengthCard from "@/components/reports/PlanetStrengthCard";
 import { DESIGNED_SCREENS } from "@/components/reports/designed-screens";
 import { useReport, type ReportReady } from "@/hooks/useReport";
+import { useTour, useTourReady } from "@/providers/tour-provider";
 import {
   humanizeKey,
   isPlanetStrengthArray,
@@ -63,15 +64,28 @@ export default function ReportDetailPage() {
     if (state === "ready" && data) window.scrollTo(0, 0);
   }, [state, data]);
 
+  const ready = state === "ready" && !!data;
+
+  // The report tour explains the gauges, bands and verdict cards, which have no
+  // legend anywhere else. Gated on `ready` because ReportGeneratingSheet can
+  // hold this screen for up to 200s and the tour must never run over it.
+  useTourReady("report-detail", ready);
+  const { tourActive } = useTour();
+
   // A finished report is a milestone worth offering Google's review card on, and
   // the trigger for our own rating sheet — the latter deliberately delayed so it
   // asks after they've read this, not over it. Plain useEffect, not layout: this
   // must never sit between the state flip and paint.
+  //
+  // Held back while the tour is up: the Play review card is a native dialog, so
+  // unlike our own overlays it would appear ON TOP of the tour rather than
+  // behind it. `markReportGeneratedForReview` is likewise deferred so the 3-min
+  // read timer it arms starts when they actually start reading.
   useEffect(() => {
-    if (state !== "ready" || !data) return;
+    if (!ready || tourActive) return;
     void maybeRequestReview();
     markReportGeneratedForReview();
-  }, [state, data]);
+  }, [ready, tourActive]);
 
   const title =
     state === "ready" && data
@@ -142,6 +156,7 @@ export default function ReportDetailPage() {
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
         {designed ? (
+          <div data-tour="report-header">
           <ReportHero
             title={title}
             onBack={() => router.back()}
@@ -149,8 +164,9 @@ export default function ReportDetailPage() {
             subtitleKey={designed.subtitleKey}
             validUntilLabel={validUntilLabel}
           />
+          </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" data-tour="report-header">
             <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
               <ArrowLeft size={18} />
             </IconButton>
@@ -189,14 +205,16 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && designed && (
           <>
-            <designed.View data={data} />
+            <div data-tour="report-body">
+              <designed.View data={data} />
+            </div>
             {/* The 10 designed screens compose their own cards and never call
                 ReportScoreFacts, so the strength card is appended once here rather than
                 pasted into each View. It sits last deliberately — it is supporting chart
                 detail, not a headline. Generic-path reports get it through
                 ReportScoreFacts below, from the same `scores.planetStrength`. */}
             {isPlanetStrengthArray(data.scores.planetStrength) && (
-              <section>
+              <section data-tour="report-strength">
                 <h2 className="mb-2 font-display text-base text-gold">
                   {t("reportScores.label.planetStrength")}
                 </h2>
@@ -222,7 +240,7 @@ export default function ReportDetailPage() {
             )}
 
             {data.sections.length > 1 && (
-              <section className="rounded-2xl border border-gold/15 bg-card p-3.5">
+              <section className="rounded-2xl border border-gold/15 bg-card p-3.5" data-tour="report-covers">
                 <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
                   {t("reports.coversTitle")}
                 </h2>
@@ -236,11 +254,17 @@ export default function ReportDetailPage() {
               </section>
             )}
 
-            <ReportScoreFacts scores={data.scores} />
+            <div data-tour="report-scores">
+              <ReportScoreFacts scores={data.scores} />
+            </div>
 
-            <div className="space-y-6">{data.sections.map(renderSection)}</div>
+            <div className="space-y-6" data-tour="report-sections">{data.sections.map(renderSection)}</div>
 
-            {isReportVerdict(data.scores.verdict) && <ReportVerdictCard verdict={data.scores.verdict} />}
+            {isReportVerdict(data.scores.verdict) && (
+              <div data-tour="report-verdict">
+                <ReportVerdictCard verdict={data.scores.verdict} />
+              </div>
+            )}
           </>
         )}
       </div>

@@ -84,6 +84,13 @@ export interface User {
    */
   claimedCampaigns: string[];
   /**
+   * Ids of the per-screen product tours this user has already finished (see
+   * components/tour/tour-registry.ts). Server truth for the same reason
+   * `feedbackGiven` is: the localStorage mirror forgets on a reinstall or a
+   * second device, and a one-time tour that replays is worse than no tour.
+   */
+  toursCompleted: string[];
+  /**
    * Whichever self-claim gift campaign (festival or custom) is currently
    * live and eligible for this user, or null. Server-computed — see
    * resolveActiveClaimableCampaign in the backend's users.service.ts.
@@ -189,6 +196,10 @@ export interface UpdateMeBody {
   onboardingStatus?: string;
   consent?: ConsentInput;
   referredByCode?: string;
+  /** Id of a tour just finished — the server APPENDS it to `toursCompleted`, never replaces. */
+  tourCompleted?: string;
+  /** Clears `toursCompleted` so every tour runs again (Settings -> "Show me around again"). */
+  resetTours?: boolean;
 }
 
 // ─── Profiles (multi-profile) ─────────────────────────────────────────────────

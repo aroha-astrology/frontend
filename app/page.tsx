@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import GreetingHeader from "@/components/GreetingHeader";
 import HoroscopeSlider from "@/components/HoroscopeSlider";
@@ -17,11 +16,9 @@ import RemediesCard from "@/components/RemediesCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
-import AppTour from "@/components/tour/AppTour";
 import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
-import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
-import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTourReady } from "@/providers/tour-provider";
 import { resolveFeature } from "@/hooks/useFeature";
 import { filterByFeature } from "@/lib/feature-filter";
 
@@ -117,7 +114,7 @@ function ShlokasSection() {
 
 function RemediesSection() {
   return (
-    <div className="px-5 mt-8 mb-6">
+    <div className="px-5 mt-8 mb-6" data-tour="remedies-card">
       <RemediesCard />
     </div>
   );
@@ -143,47 +140,19 @@ const HOME_SECTIONS: HomeSection[] = [
 ];
 
 export default function HomePage() {
-  const router = useRouter();
   const { user } = useAuth();
-  const { resolved: permissionsResolved } = usePermissionsPrompt();
-  const [tourOpen, setTourOpen] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
 
-  // Show the tour right after onboarding (?tour=1) or once for any existing
-  // user who hasn't seen it yet — but never twice, tracked via localStorage.
-  // Gated on the splash finishing first so it doesn't spotlight content that's
-  // still hidden behind the loading logo, and on the permissions prompt
-  // having resolved first so the two overlays never stack (the tour should
-  // appear after the user enables/dismisses permissions, not on top of it).
-  // ALSO gated on the welcome modal finishing first so they don't overlap.
-  useEffect(() => {
-    if (!splashDone) return;
-    if (!permissionsResolved) return;
-    if (!welcomeDone) return;
-    const alreadySeen = localStorage.getItem(TOUR_DONE_KEY) === "1";
-    if (alreadySeen) return;
+  // The home tour's targets are in the DOM from first paint but sit behind the
+  // splash logo and then the welcome modal, so the tour can't just key off the
+  // route. TourHost owns the rest of the decision (already seen? permissions
+  // resolved? ?tour=1?) — this only reports that the screen is actually visible.
+  useTourReady("home", splashDone && welcomeDone);
 
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("tour") === "1") {
-      setTourOpen(true);
-    } else if (user?.profileCompletedAt) {
-      setTourOpen(true);
-    }
-  }, [splashDone, permissionsResolved, user, welcomeDone]);
-
-  const finishTour = () => {
-    setTourOpen(false);
-    // Clear today's reward dismiss key so the DailyRewardModal (mounted in layout)
-    // naturally surfaces itself immediately after the tour overlay closes.
-    const todayKey = `aroha:dailyReward:${new Date().toISOString().slice(0, 10)}`;
-    try {
-      localStorage.removeItem(todayKey);
-    } catch {
-      // ignore
-    }
-    router.replace("/", { scroll: false });
-  };
+  // The old finishTour() cleared today's `aroha:dailyReward:<date>` key to force
+  // the reward modal open the instant the tour closed. Unnecessary now: the
+  // modal gates on `tourActive`, so it surfaces on its own once the tour ends.
 
   // Resolved once per render (not one useFeature() call per section, which
   // would call a hook from inside a filter callback) — see
@@ -197,7 +166,6 @@ export default function HomePage() {
       <MoonBackground planet="mercury" />
       <SplashScreen onDone={() => setSplashDone(true)} />
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
-      {tourOpen && <AppTour onFinish={finishTour} />}
 
       <div className="relative z-10">
         {/* Personalized greeting header — identity chrome, always shown */}

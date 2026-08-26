@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Gift } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api } from "@/lib/api";
@@ -23,6 +24,7 @@ export default function DailyRewardModal() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const { tourActive } = useTour();
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
 
   const [dismissed, setDismissed] = useState(false);
@@ -51,7 +53,9 @@ export default function DailyRewardModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eligible, todayKey]);
 
-  const visible = eligible && !dismissed && claimedToday === false;
+  // Never render underneath a running tour's scrim — the tour is the one
+  // overlay that must finish before any launch-time prompt gets the screen.
+  const visible = eligible && !dismissed && claimedToday === false && !tourActive;
 
   const dismiss = () => {
     try {

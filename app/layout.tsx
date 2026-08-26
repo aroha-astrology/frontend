@@ -7,10 +7,12 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
+import { TourProvider } from "@/providers/tour-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
 import TopBar from "@/components/TopBar";
 import BottomNavigationGate from "@/components/BottomNavigationGate";
+import TourHost from "@/components/tour/TourHost";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import ShareAppPrompt from "@/components/ShareAppPrompt";
@@ -98,15 +100,21 @@ export default function RootLayout({
                   <BackHandlerProvider>
                     <TopBarProvider>
                       <AuthGuard>
-                        <TopBar />
-                        <PageTransition>{children}</PageTransition>
-                        <BottomNavigationGate />
-                        <PermissionsPrompt />
-                        <UpdatePrompt />
-                        <ShareAppPrompt />
-                        <FeedbackPrompt />
-                        <FestivalGiftModal />
-                        <DailyRewardModal />
+                        {/* TourProvider wraps the modal stack, not just the page:
+                            every prompt below defers to `tourActive` so nothing
+                            renders underneath a running tour's scrim. */}
+                        <TourProvider>
+                          <TopBar />
+                          <PageTransition>{children}</PageTransition>
+                          <BottomNavigationGate />
+                          <PermissionsPrompt />
+                          <TourHost />
+                          <UpdatePrompt />
+                          <ShareAppPrompt />
+                          <FeedbackPrompt />
+                          <FestivalGiftModal />
+                          <DailyRewardModal />
+                        </TourProvider>
                       </AuthGuard>
                     </TopBarProvider>
                     <BackButtonListener />

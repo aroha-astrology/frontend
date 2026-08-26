@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTour } from "@/providers/tour-provider";
 import FeedbackSheet, { FEEDBACK_SEEN_KEY as SEEN_KEY } from "@/components/FeedbackSheet";
 import { feedbackAskDue } from "@/lib/app-review";
 
@@ -21,11 +22,16 @@ export default function FeedbackPrompt() {
   const { user } = useAuth();
   const pathname = usePathname();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const { tourActive } = useTour();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!permissionsResolved || !user?.profileCompletedAt) return;
+    // Bail BEFORE the SEEN_KEY write below, not just before the render: this
+    // effect marks the ask as seen on show, so deciding during a tour would
+    // burn the one rating prompt behind the tour's scrim.
+    if (tourActive) return;
     // Server-side truth first: localStorage forgets on reinstall or a new phone,
     // this doesn't.
     if (user.feedbackGiven) return;
@@ -42,7 +48,7 @@ export default function FeedbackPrompt() {
     } catch {
       // localStorage unavailable — skip rather than nag every open.
     }
-  }, [pathname, permissionsResolved, user?.profileCompletedAt, user?.feedbackGiven]);
+  }, [pathname, permissionsResolved, tourActive, user?.profileCompletedAt, user?.feedbackGiven]);
 
   if (!open) return null;
   return <FeedbackSheet onClose={() => setOpen(false)} />;

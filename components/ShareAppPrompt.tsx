@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Gift } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
@@ -29,6 +30,7 @@ export default function ShareAppPrompt() {
   const { user } = useAuth();
   const referralAmounts = useReferralAmounts();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const { tourActive } = useTour();
   const [opens, setOpens] = useState(0);
   const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -71,7 +73,9 @@ export default function ShareAppPrompt() {
   return (
     <>
     <AnimatePresence>
-      {visible && (
+  // Never render underneath a running tour's scrim — the tour is the one
+  // overlay that must finish before any launch-time prompt gets the screen.
+      {visible && !tourActive && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

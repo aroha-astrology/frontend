@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, Sparkles } from "lucide-react";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { isUpdateAvailable, snoozeUpdatePrompt } from "@/lib/app-update";
@@ -18,6 +19,7 @@ import { isUpdateAvailable, snoozeUpdatePrompt } from "@/lib/app-update";
 export default function UpdatePrompt() {
   const { t } = useTranslation();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const { tourActive } = useTour();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -48,7 +50,9 @@ export default function UpdatePrompt() {
 
   return (
     <AnimatePresence>
-      {visible && (
+  // Never render underneath a running tour's scrim — the tour is the one
+  // overlay that must finish before any launch-time prompt gets the screen.
+      {visible && !tourActive && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

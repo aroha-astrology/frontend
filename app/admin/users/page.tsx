@@ -272,6 +272,7 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium">Name / User ID</th>
                     <th className="px-4 py-2 font-medium">Phone</th>
                     <th className="px-4 py-2 font-medium">Email</th>
+                    <th className="px-4 py-2 font-medium">Source</th>
                     <th className="px-4 py-2 font-medium">Country</th>
                     <th className="px-4 py-2 font-medium">City</th>
                     <th className="px-4 py-2 font-medium text-right">
@@ -339,6 +340,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-4 py-2 text-foreground">{u.phoneE164 ?? "—"}</td>
                       <td className="px-4 py-2 text-foreground">{u.email ?? "—"}</td>
+                      <td className="px-4 py-2 text-muted">{u.referralSource ?? "—"}</td>
                       <td className="px-4 py-2 text-foreground">{u.country ?? "—"}</td>
                       <td className="px-4 py-2 text-foreground">{u.city ?? "—"}</td>
                       <td className="px-4 py-2 text-right text-foreground">{formatRupees(u.walletBalancePaise)}</td>

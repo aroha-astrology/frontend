@@ -36,6 +36,45 @@ export function clearPendingReferralCode() {
   }
 }
 
+const UTM_STORAGE_KEY = "pending_utm_source";
+
+/**
+ * Reads `?utm_source=`/`?utm_campaign=` from the current URL and stashes them
+ * for onboarding, same lifecycle as the `?ref=` capture above. Combined as
+ * "source/campaign" (or just "source" with no campaign) since the backend's
+ * `referral_source` column is a single free-text field.
+ */
+export function capturePendingUtmSource() {
+  if (typeof window === "undefined") return;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utm_source");
+    if (!source) return;
+    const campaign = params.get("utm_campaign");
+    localStorage.setItem(UTM_STORAGE_KEY, campaign ? `${source}/${campaign}` : source);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getPendingUtmSource(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(UTM_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingUtmSource() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(UTM_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * `amounts` carries the admin-resolved referral bonuses (see
  * `useReferralAmounts`) — the share text quotes real figures, so it must never

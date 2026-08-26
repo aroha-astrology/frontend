@@ -196,6 +196,7 @@ export interface UpdateMeBody {
   onboardingStatus?: string;
   consent?: ConsentInput;
   referredByCode?: string;
+  referralSource?: string;
   /** Id of a tour just finished — the server APPENDS it to `toursCompleted`, never replaces. */
   tourCompleted?: string;
   /** Clears `toursCompleted` so every tour runs again (Settings -> "Show me around again"). */

@@ -85,6 +85,8 @@ export interface AdminUserRow {
   displayName: string | null;
   phoneE164: string | null;
   email: string | null;
+  /** utm_source[/utm_campaign] captured from a direct app-domain link (push, broadcast, QR code) — null for organic/unattributed signups. */
+  referralSource: string | null;
   walletBalancePaise: number;
   createdAt: string;
   lastActiveAt: string | null;

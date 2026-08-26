@@ -24,7 +24,12 @@ import {
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
-import { getPendingReferralCode, clearPendingReferralCode } from "@/lib/referral";
+import {
+  getPendingReferralCode,
+  clearPendingReferralCode,
+  getPendingUtmSource,
+  clearPendingUtmSource,
+} from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
 import { useFeature } from "@/hooks/useFeature";
 
@@ -446,7 +451,11 @@ function OnboardingPageInner() {
       if (answers.referralCode) {
         body.referredByCode = answers.referralCode;
       }
-      
+      const pendingUtmSource = getPendingUtmSource();
+      if (pendingUtmSource) {
+        body.referralSource = pendingUtmSource;
+      }
+
       if ("geolocation" in navigator) {
         try {
           // Belt-and-suspenders timeout: some Android WebViews never invoke
@@ -485,6 +494,7 @@ function OnboardingPageInner() {
       await api.updateMe(body);
       await refresh();
       clearPendingReferralCode();
+      clearPendingUtmSource();
       api.regenerateKundli().catch(() => {});
       // Birth details were just set for the first time — same cache purge
       // as profile/page.tsx's birth-detail edit path (nothing should have

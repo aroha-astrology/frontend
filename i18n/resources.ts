@@ -715,6 +715,8 @@ export const resources = {
         remedies: { title: "Remedies" },
       },
       marriageReport: {
+        spouseDetails: { title: "Your Combined Reading", cta: "Compatibility Match Report", subtitle: "Add your spouse's birth details to read both charts together — compatibility, doshas and long-term harmony." },
+        loveOrArrange: { title: "Love or Arranged Marriage", love: { label: "Love Marriage", description: "Your chart leans toward a love marriage. Venus and the 5th house point to a partner you choose through personal connection and mutual attraction." }, arrange: { label: "Arranged Marriage", description: "Your chart leans toward an arranged marriage through family or social channels. The 7th lord's placement points to a traditionally introduced alliance." }, mixed: { label: "Love-cum-Arranged", description: "Your chart shows a blend of both — you may meet through a common introduction, but the connection develops through personal chemistry before becoming formal." } },
         subtitle: "Your personalized insights",
         noValue: "—",
         outlook: { title: "Overall Marriage Outlook", band: { excellent: "Very Favourable", good: "Favourable", average: "Mixed" } },
@@ -1280,6 +1282,9 @@ export const resources = {
         retry: "Retry",
       },
       rewards: {
+        welcomeTitle: "Welcome to Aroha! 🎉",
+        welcomeBody: "Your cosmic journey begins now. We've unlocked your first daily reward to get you started!",
+        welcomeButton: "Start Exploring",
         eyebrow: "Daily Reward",
         claimTitle: "Day {{day}} is here",
         claimBody: "Come back every day to grow your reward — up to {{total}} in a week.",
@@ -3199,6 +3204,8 @@ export const resources = {
         remedies: { title: "उपाय" },
       },
       marriageReport: {
+        spouseDetails: { title: "आपका संयुक्त विश्लेषण", cta: "कुंडली मिलान रिपोर्ट", subtitle: "अपने जीवनसाथी का जन्म विवरण जोड़ें और दोनों कुंडलियाँ एक साथ पढ़ें — अनुकूलता, दोष और दीर्घकालिक सामंजस्य।" },
+        loveOrArrange: { title: "प्रेम या अरेंज विवाह", love: { label: "प्रेम विवाह", description: "आपकी कुंडली प्रेम विवाह की ओर झुकी है। शुक्र और पंचम भाव ऐसे साथी की ओर संकेत करते हैं जिसे आप व्यक्तिगत जुड़ाव और आपसी आकर्षण से चुनते हैं।" }, arrange: { label: "अरेंज विवाह", description: "आपकी कुंडली परिवार या सामाजिक माध्यम से हुए अरेंज विवाह की ओर झुकी है। सप्तमेश की स्थिति पारंपरिक रूप से कराए गए संबंध का संकेत देती है।" }, mixed: { label: "प्रेम-सह-अरेंज", description: "आपकी कुंडली दोनों का मिश्रण दिखाती है — मुलाकात किसी सामान्य परिचय से हो सकती है, पर संबंध औपचारिक होने से पहले व्यक्तिगत जुड़ाव से विकसित होता है।" } },
         subtitle: "आपके लिए व्यक्तिगत जानकारी",
         noValue: "—",
         outlook: { title: "समग्र विवाह दृष्टिकोण", band: { excellent: "अत्यंत अनुकूल", good: "अनुकूल", average: "मिश्रित" } },
@@ -3898,6 +3905,9 @@ export const resources = {
         retry: "फिर से कोशिश करें",
       },
       rewards: {
+        welcomeTitle: "अरोहा में आपका स्वागत है! 🎉",
+        welcomeBody: "आपकी वैदिक यात्रा अब शुरू होती है। शुरुआत के लिए हमने आपका पहला दैनिक उपहार खोल दिया है!",
+        welcomeButton: "शुरू करें",
         eyebrow: "डेली रिवॉर्ड",
         claimTitle: "दिन {{day}} आ गया",
         claimBody: "हर दिन वापस आएं और अपना रिवॉर्ड बढ़ाएं — एक हफ्ते में {{total}} तक।",
@@ -5290,6 +5300,8 @@ export const resources = {
         remedies: { title: "প্রতিকার" },
       },
       marriageReport: {
+        spouseDetails: { title: "আপনার যৌথ বিশ্লেষণ", cta: "কুণ্ডলী মিলন রিপোর্ট", subtitle: "আপনার সঙ্গীর জন্মবিবরণ যোগ করে দুটি কুণ্ডলী একসাথে পড়ুন — সামঞ্জস্য, দোষ ও দীর্ঘমেয়াদি সম্প্রীতি।" },
+        loveOrArrange: { title: "প্রেম না সম্বন্ধ বিবাহ", love: { label: "প্রেম বিবাহ", description: "আপনার কুণ্ডলী প্রেম বিবাহের দিকে ঝুঁকে আছে। শুক্র ও পঞ্চম ভাব এমন সঙ্গীর ইঙ্গিত দেয় যাঁকে আপনি ব্যক্তিগত সংযোগ ও পারস্পরিক আকর্ষণে বেছে নেন।" }, arrange: { label: "সম্বন্ধ বিবাহ", description: "আপনার কুণ্ডলী পরিবার বা সামাজিক মাধ্যমে সম্বন্ধ বিবাহের দিকে ঝুঁকে আছে। সপ্তমেশের অবস্থান পারিবারিকভাবে স্থির হওয়া সম্বন্ধের ইঙ্গিত দেয়।" }, mixed: { label: "প্রেম-সহ-সম্বন্ধ", description: "আপনার কুণ্ডলীতে দুইয়েরই মিশ্রণ — পরিচয় হতে পারে সাধারণ কারও মাধ্যমে, তবে আনুষ্ঠানিক হওয়ার আগে সম্পর্ক ব্যক্তিগত বোঝাপড়ায় গড়ে ওঠে।" } },
         subtitle: "আপনার ব্যক্তিগত অন্তর্দৃষ্টি",
         noValue: "—",
         outlook: { title: "সামগ্রিক বিবাহ দৃষ্টিভঙ্গি", band: { excellent: "অত্যন্ত অনুকূল", good: "অনুকূল", average: "মিশ্র" } },
@@ -5993,6 +6005,9 @@ export const resources = {
         retry: "আবার চেষ্টা করুন",
       },
       rewards: {
+        welcomeTitle: "অরোহা-তে স্বাগতম! 🎉",
+        welcomeBody: "আপনার জ্যোতিষ যাত্রা এখনই শুরু। শুরু করার জন্য আমরা আপনার প্রথম দৈনিক পুরস্কার খুলে দিয়েছি!",
+        welcomeButton: "শুরু করুন",
         eyebrow: "দৈনিক পুরস্কার",
         claimTitle: "দিন {{day}} এসে গেছে",
         claimBody: "প্রতিদিন ফিরে আসুন এবং আপনার পুরস্কার বাড়ান — এক সপ্তাহে {{total}} পর্যন্ত।",
@@ -7385,6 +7400,8 @@ export const resources = {
         remedies: { title: "उपाय" },
       },
       marriageReport: {
+        spouseDetails: { title: "तुमचे एकत्रित विश्लेषण", cta: "कुंडली जुळणी अहवाल", subtitle: "जोडीदाराचे जन्मतपशील जोडून दोन्ही कुंडल्या एकत्र वाचा — अनुकूलता, दोष आणि दीर्घकालीन सुसंवाद." },
+        loveOrArrange: { title: "प्रेम की ठरवून केलेले लग्न", love: { label: "प्रेमविवाह", description: "तुमची कुंडली प्रेमविवाहाकडे झुकते. शुक्र आणि पंचम स्थान अशा जोडीदाराकडे निर्देश करतात जो तुम्ही वैयक्तिक जवळीक व परस्पर आकर्षणातून निवडता." }, arrange: { label: "ठरवून केलेले लग्न", description: "तुमची कुंडली कुटुंब किंवा सामाजिक माध्यमातून ठरवलेल्या विवाहाकडे झुकते. सप्तमेशाची स्थिती पारंपरिक पद्धतीने जुळवलेल्या नात्याचे संकेत देते." }, mixed: { label: "प्रेम-सह-ठरवून", description: "तुमची कुंडली दोन्हींचे मिश्रण दाखवते — ओळख एखाद्या सामान्य माध्यमातून होऊ शकते, पण नाते औपचारिक होण्याआधी वैयक्तिक जवळिकीतून वाढते." } },
         subtitle: "तुमच्यासाठी वैयक्तिक माहिती",
         noValue: "—",
         outlook: { title: "एकूण विवाह दृष्टिकोन", band: { excellent: "अत्यंत अनुकूल", good: "अनुकूल", average: "मिश्र" } },
@@ -8089,6 +8106,9 @@ export const resources = {
         retry: "पुन्हा प्रयत्न करा",
       },
       rewards: {
+        welcomeTitle: "अरोहामध्ये स्वागत आहे! 🎉",
+        welcomeBody: "तुमचा ज्योतिष प्रवास आता सुरू होतो. सुरुवातीसाठी आम्ही तुमचे पहिले दैनिक बक्षीस उघडले आहे!",
+        welcomeButton: "सुरू करा",
         eyebrow: "डेली रिवॉर्ड",
         claimTitle: "दिवस {{day}} आला",
         claimBody: "दररोज परत या आणि तुमचे रिवॉर्ड वाढवा — आठवड्याला {{total}} पर्यंत.",
@@ -9477,6 +9497,8 @@ export const resources = {
         remedies: { title: "పరిహారాలు" },
       },
       marriageReport: {
+        spouseDetails: { title: "మీ సంయుక్త విశ్లేషణ", cta: "కుండలి మిలన్ నివేదిక", subtitle: "మీ జీవిత భాగస్వామి జనన వివరాలు జోడించి రెండు కుండలులను కలిపి చదవండి — అనుకూలత, దోషాలు మరియు దీర్ఘకాలిక సామరస్యం." },
+        loveOrArrange: { title: "ప్రేమ లేదా పెద్దలు కుదిర్చిన వివాహం", love: { label: "ప్రేమ వివాహం", description: "మీ జాతకం ప్రేమ వివాహం వైపు మొగ్గు చూపుతోంది. శుక్రుడు మరియు పంచమ స్థానం మీరు వ్యక్తిగత అనుబంధం, పరస్పర ఆకర్షణ ద్వారా ఎంచుకునే భాగస్వామిని సూచిస్తాయి." }, arrange: { label: "పెద్దలు కుదిర్చిన వివాహం", description: "మీ జాతకం కుటుంబం లేదా సామాజిక మార్గంలో కుదిరే వివాహం వైపు మొగ్గు చూపుతోంది. సప్తమాధిపతి స్థానం సంప్రదాయబద్ధంగా కుదిరిన సంబంధాన్ని సూచిస్తుంది." }, mixed: { label: "ప్రేమ-కమ్-పెద్దలు కుదిర్చినది", description: "మీ జాతకం రెండింటి కలయికను చూపుతుంది — పరిచయం ఉమ్మడి పరిచయస్తుల ద్వారా కావచ్చు, కానీ అధికారికం కాకముందే బంధం వ్యక్తిగత అనుబంధంతో పెరుగుతుంది." } },
         subtitle: "మీ వ్యక్తిగత అంతర్దృష్టులు",
         noValue: "—",
         outlook: { title: "మొత్తం వివాహ దృక్పథం", band: { excellent: "అత్యంత అనుకూలం", good: "అనుకూలం", average: "మిశ్రమం" } },
@@ -10181,6 +10203,9 @@ export const resources = {
         retry: "మళ్లీ ప్రయత్నించండి",
       },
       rewards: {
+        welcomeTitle: "అరోహాకు స్వాగతం! 🎉",
+        welcomeBody: "మీ జ్యోతిష ప్రయాణం ఇప్పుడే మొదలవుతుంది. ప్రారంభం కోసం మీ మొదటి రోజువారీ బహుమతిని అన్‌లాక్ చేశాము!",
+        welcomeButton: "అన్వేషణ ప్రారంభించండి",
         eyebrow: "డైలీ రివార్డ్",
         claimTitle: "{{day}} రోజు వచ్చింది",
         claimBody: "ప్రతిరోజూ తిరిగి రండి మరియు మీ రివార్డ్‌ను పెంచుకోండి — వారానికి {{total}} వరకు.",
@@ -11573,6 +11598,8 @@ export const resources = {
         remedies: { title: "பரிகாரங்கள்" },
       },
       marriageReport: {
+        spouseDetails: { title: "உங்கள் இணைந்த பரிசீலனை", cta: "திருமணப் பொருத்த அறிக்கை", subtitle: "உங்கள் துணையின் பிறப்பு விவரங்களைச் சேர்த்து இரு ஜாதகங்களையும் ஒன்றாகப் படியுங்கள் — பொருத்தம், தோஷங்கள் மற்றும் நீண்டகால ஒற்றுமை." },
+        loveOrArrange: { title: "காதல் அல்லது பெரியோர் நிச்சயித்த திருமணம்", love: { label: "காதல் திருமணம்", description: "உங்கள் ஜாதகம் காதல் திருமணத்தை நோக்கிச் சாய்கிறது. சுக்கிரனும் ஐந்தாம் வீடும், தனிப்பட்ட நெருக்கத்தாலும் பரஸ்பர யீர்ப்பாலும் நீங்கள் தேர்ந்தெடுக்கும் துணையைக் குறிக்கின்றன." }, arrange: { label: "நிச்சயித்த திருமணம்", description: "உங்கள் ஜாதகம் குடும்பம் அல்லது சமூக வழியில் நிச்சயிக்கப்படும் திருமணத்தை நோக்கிச் சாய்கிறது. ஏழாம் அதிபதியின் நிலை பாரம்பரிய முறையில் அமையும் உறவைக் குறிக்கிறது." }, mixed: { label: "காதல்-கம்-நிச்சயம்", description: "உங்கள் ஜாதகம் இரண்டின் கலவையைக் காட்டுகிறது — அறிமுகம் பொதுவான ஒருவர் மூலம் நிகழலாம், ஆனால் முறையானதாக மாறும் முன் உறவு தனிப்பட்ட நெருக்கத்தால் வளர்கிறது." } },
         subtitle: "உங்களுக்கான தனிப்பட்ட நுண்ணறிவுகள்",
         noValue: "—",
         outlook: { title: "ஒட்டுமொத்த திருமண நோக்கு", band: { excellent: "மிகவும் சாதகம்", good: "சாதகம்", average: "கலவை" } },
@@ -12279,6 +12306,9 @@ export const resources = {
         retry: "மீண்டும் முயற்சிக்கவும்",
       },
       rewards: {
+        welcomeTitle: "அரோஹாவிற்கு வரவேற்கிறோம்! 🎉",
+        welcomeBody: "உங்கள் ஜோதிடப் பயணம் இப்போது தொடங்குகிறது. தொடங்குவதற்கு உங்கள் முதல் தினசரி பரிசைத் திறந்துள்ளோம்!",
+        welcomeButton: "ஆரம்பிக்கலாம்",
         eyebrow: "தினசரி வெகுமதி",
         claimTitle: "{{day}}-ஆம் நாள் வந்துவிட்டது",
         claimBody: "ஒவ்வொரு நாளும் திரும்பி வந்து உங்கள் வெகுமதியை அதிகரிக்கவும் — வாரத்திற்கு {{total}} வரை.",
@@ -13666,6 +13696,8 @@ export const resources = {
         remedies: { title: "ઉપાય" },
       },
       marriageReport: {
+        spouseDetails: { title: "તમારું સંયુક્ત વિશ્લેષણ", cta: "કુંડળી મેળાપ રિપોર્ટ", subtitle: "તમારા જીવનસાથીની જન્મવિગત ઉમેરીને બંને કુંડળી સાથે વાંચો — અનુકૂળતા, દોષ અને લાંબા ગાળાની સંવાદિતા." },
+        loveOrArrange: { title: "પ્રેમ કે ગોઠવેલાં લગ્ન", love: { label: "પ્રેમલગ્ન", description: "તમારી કુંડળી પ્રેમલગ્ન તરફ ઢળે છે. શુક્ર અને પંચમ ભાવ એવા સાથીનો સંકેત આપે છે જેને તમે વ્યક્તિગત જોડાણ અને પરસ્પર આકર્ષણથી પસંદ કરો છો." }, arrange: { label: "ગોઠવેલાં લગ્ન", description: "તમારી કુંડળી પરિવાર કે સામાજિક માધ્યમથી ગોઠવાયેલાં લગ્ન તરફ ઢળે છે. સપ્તમેશની સ્થિતિ પરંપરાગત રીતે ગોઠવાયેલા સંબંધનો સંકેત આપે છે." }, mixed: { label: "પ્રેમ-સહ-ગોઠવેલાં", description: "તમારી કુંડળી બંનેનું મિશ્રણ દર્શાવે છે — ઓળખાણ કોઈ સામાન્ય માધ્યમથી થઈ શકે, પણ ઔપચારિક બને તે પહેલાં સંબંધ વ્યક્તિગત જોડાણથી વિકસે છે." } },
         subtitle: "તમારા માટે વ્યક્તિગત માહિતી",
         noValue: "—",
         outlook: { title: "એકંદર લગ્ન દૃષ્ટિકોણ", band: { excellent: "અત્યંત અનુકૂળ", good: "અનુકૂળ", average: "મિશ્ર" } },
@@ -14369,6 +14401,9 @@ export const resources = {
         retry: "ફરી પ્રયાસ કરો",
       },
       rewards: {
+        welcomeTitle: "અરોહામાં આપનું સ્વાગત છે! 🎉",
+        welcomeBody: "તમારી જ્યોતિષ યાત્રા હવે શરૂ થાય છે. શરૂઆત માટે અમે તમારું પહેલું દૈનિક ઈનામ ખોલી દીધું છે!",
+        welcomeButton: "શરૂ કરો",
         eyebrow: "ડેઇલી રિવોર્ડ",
         claimTitle: "દિવસ {{day}} આવી ગયો",
         claimBody: "દરરોજ પાછા આવો અને તમારું રિવોર્ડ વધારો — અઠવાડિયામાં {{total}} સુધી.",

@@ -43,3 +43,7 @@ next-env.d.ts
 
 .worktrees/
 .claude/
+
+# one-off ops scripts — del_reports.sh carries a live DB URL, never commit it
+del_reports.sh
+run.ps1

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { buildMarriageView } from "@/lib/marriage-report-view";
+import { buildMarriageView, isDecadeExplanationArray } from "@/lib/marriage-report-view";
 import {
   isDecadeBandArray,
   isDoshaYogaSummary,
@@ -24,10 +23,9 @@ import OutlookCard from "./OutlookCard";
 import HighlightTiles from "./HighlightTiles";
 import PlanetImpactStrip from "./PlanetImpactStrip";
 import SeventhHouseCard from "./SeventhHouseCard";
-import LoveOrArrangeCard from "./LoveOrArrangeCard";
-import SpouseBirthCard, { type SpouseDetails } from "./SpouseBirthCard";
+import LoveOrArrangeCard, { isLoveOrArrange } from "./LoveOrArrangeCard";
+import SpouseBirthCard from "./SpouseBirthCard";
 import type { ReportReady } from "@/hooks/useReport";
-import { reportsApi } from "@/lib/reports-api";
 
 /**
  * The bespoke Marriage Report screen, built to the supplied visual mock.
@@ -68,38 +66,10 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
 
   const isMarried = scores.relationshipStatus === "married";
 
-  // Love or arranged marriage — read defensively from scores (backend field: loveOrArrange)
-  const loveOrArrange =
-    typeof scores.loveOrArrange === "string" && scores.loveOrArrange.trim()
-      ? (scores.loveOrArrange as string)
-      : null;
-
-  // Spouse details submission state
-  const [spouseSubmitting, setSpouseSubmitting] = useState(false);
-  const [spouseSubmitted, setSpouseSubmitted] = useState(false);
-
-  const handleSpouseDetails = async (details: SpouseDetails) => {
-    setSpouseSubmitting(true);
-    try {
-      await reportsApi.purchase({
-        reportKey: "marriage",
-        answers: {
-          spouseName: details.name,
-          spouseDob: details.dob,
-          spouseTime: details.time,
-          spousePlace: details.place.name,
-          spouseLat: String(details.place.lat),
-          spouseLon: String(details.place.lon),
-          spouseTz: details.place.tz,
-        },
-      });
-      setSpouseSubmitted(true);
-    } catch {
-      // Silently swallow — user can retry; the card remains visible.
-    } finally {
-      setSpouseSubmitting(false);
-    }
-  };
+  // Love or arranged marriage — read defensively from scores (backend field: loveOrArrange,
+  // computed in astro-engine/reports/marriage.ts). Absent on any report generated before that
+  // field shipped, in which case the card simply doesn't render.
+  const loveOrArrange = isLoveOrArrange(scores.loveOrArrange) ? scores.loveOrArrange : null;
 
   return (
     <>
@@ -148,20 +118,7 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
       )}
 
       {/* ── Spouse birth details (married users only) ── */}
-      {isMarried && !spouseSubmitted && (
-        <SpouseBirthCard
-          onSubmit={handleSpouseDetails}
-          submitting={spouseSubmitting}
-        />
-      )}
-      {isMarried && spouseSubmitted && (
-        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-400">
-          {t(
-            "marriageReport.spouseDetails.submitted",
-            "✓ Spouse details submitted. Your personalized combined reading will be ready shortly."
-          )}
-        </div>
-      )}
+      {isMarried && <SpouseBirthCard />}
 
       <AnalysisAccordion
         sections={data.sections}
@@ -180,13 +137,16 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         <section>
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.decade.title")}</h2>
           <DecadeArcCard
-            bands={scores.marriageQualityArc.map(b => {
-              const explanations = Array.isArray(uiData.decadeExplanations) ? uiData.decadeExplanations : [];
-              const match = explanations.find((e: any) => e?.label === b.label);
-              return {
-                ...b,
-                aiExplanation: match?.explanation
-              };
+            bands={scores.marriageQualityArc.map((b, i) => {
+              const explanations = isDecadeExplanationArray(uiData.decadeExplanations)
+                ? uiData.decadeExplanations
+                : [];
+              // Label first, position as the fallback: the model is asked for one entry per band
+              // in order, but it reformats the label often enough ("1-10" for "Years 1-10") that
+              // matching on the string alone silently drops every explanation.
+              const match =
+                explanations.find((e) => e.label === b.label) ?? explanations[i];
+              return { ...b, aiExplanation: match?.explanation };
             })}
           />
         </section>

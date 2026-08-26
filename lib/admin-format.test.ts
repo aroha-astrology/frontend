@@ -286,7 +286,7 @@ describe("groupFeaturesByGroup", () => {
     // "referral" added alongside FEATURE_REGISTRY's referral.* keys
     // (config/features.ts, backend) — referrer/referee bonus and earnings cap,
     // now admin-editable instead of hardcoded constants.
-    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral"]);
+    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai"]);
   });
 });
 

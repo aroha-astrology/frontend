@@ -239,3 +239,28 @@ export const SECTION_ICON: Record<string, string> = {
   marriage_quality_by_decade: "TrendingUp",
   modern_realities: "Globe",
 };
+
+/** One decade band's AI explanation, as it arrives inside a section's `uiData`. */
+export interface DecadeExplanation {
+  label: string;
+  explanation: string;
+}
+
+/**
+ * `uiData.decadeExplanations` is model-generated and therefore untrusted — narrowed here
+ * rather than cast, same fail-open discipline as the `is*` guards in report-score-facts.ts.
+ * Entries missing either field are dropped, not defaulted: a band with no explanation renders
+ * without one, which is the pre-existing look.
+ */
+export function isDecadeExplanationArray(v: unknown): v is DecadeExplanation[] {
+  return (
+    Array.isArray(v) &&
+    v.every(
+      (e) =>
+        typeof e === "object" &&
+        e !== null &&
+        typeof (e as DecadeExplanation).label === "string" &&
+        typeof (e as DecadeExplanation).explanation === "string"
+    )
+  );
+}

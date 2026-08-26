@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { PartyPopper } from "lucide-react";
@@ -15,29 +15,56 @@ const WELCOME_SHOWN_KEY = "aroha:welcomeShown";
  */
 export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => void }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   
   const [visible, setVisible] = useState(false);
+  /** Set once this modal has decided whether to show, so the decision (and the caller's
+   * `onDismiss` gate) fires exactly once per mount. */
+  const [decided, setDecided] = useState(false);
+
+  // Callers pass an inline arrow; keeping it in a ref keeps it out of the effect's deps.
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
 
   useEffect(() => {
-    // Need permissions to resolve first so modals don't stack
-    if (!permissionsResolved || !user?.profileCompletedAt) return;
-    
-    // Check if we've already shown this modal
-    if (typeof window !== "undefined" && window.localStorage.getItem(WELCOME_SHOWN_KEY)) {
-      return;
+    // Wait for permissions AND auth to resolve before deciding anything — `user` is null on the
+    // first render of every session, and deciding from that transient state would either skip
+    // the modal for a genuinely new user or release the caller's gate too early.
+    if (!permissionsResolved || loading) return;
+    if (decided) return;
+
+    // Every path below is a final decision, so each one must call `settle` — the caller gates
+    // the app tour on this callback (app/page.tsx), and a path that returns without settling
+    // leaves the tour permanently unreachable for everyone this modal never shows to.
+    const settle = () => {
+      setDecided(true);
+      onDismissRef.current?.();
+    };
+
+    if (!user?.profileCompletedAt) return settle();
+
+    try {
+      if (window.localStorage.getItem(WELCOME_SHOWN_KEY)) return settle();
+    } catch {
+      // localStorage unavailable (private mode) — fall through and treat as not-yet-shown.
     }
 
-    // Only show to users who completed their profile in the last 5 minutes (brand new)
+    // Only show to users who completed their profile in the last 5 minutes (brand new).
     const profileAgeMs = Date.now() - new Date(user.profileCompletedAt).getTime();
-    if (profileAgeMs < 5 * 60 * 1000) {
-      setVisible(true);
-    } else {
+    if (profileAgeMs >= 5 * 60 * 1000) {
       // Old user who never saw it (e.g. from before this feature) shouldn't see it now.
-      window.localStorage.setItem(WELCOME_SHOWN_KEY, "1");
+      try {
+        window.localStorage.setItem(WELCOME_SHOWN_KEY, "1");
+      } catch {
+        // ignore
+      }
+      return settle();
     }
-  }, [permissionsResolved, user]);
+
+    setDecided(true);
+    setVisible(true);
+  }, [permissionsResolved, loading, user, decided]);
 
   const dismiss = () => {
     try {
@@ -46,7 +73,7 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
       // localStorage unavailable
     }
     setVisible(false);
-    onDismiss?.();
+    onDismissRef.current?.();
   };
 
   return (

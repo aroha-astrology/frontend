@@ -151,10 +151,10 @@ export function sortByTotalPaiseDescending<T extends { totalPaise: number }>(ite
   return [...items].sort((a, b) => b.totalPaise - a.totalPaise);
 }
 
-export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral";
+export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral" | "rewards" | "ai";
 
 /** The feature groups the backend contract defines, in the fixed display order every board (main + per-group overrides) uses. */
-export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral"];
+export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai"];
 
 export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   nav: "Navigation",
@@ -165,6 +165,8 @@ export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   // Unlike every other group, these amounts are paid OUT to users rather than
   // charged to them — the price editor still applies, it just sets a payout.
   referral: "Referral & Rewards",
+  rewards: "Daily Rewards",
+  ai: "AI",
 };
 
 /**

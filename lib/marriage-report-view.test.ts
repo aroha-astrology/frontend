@@ -6,6 +6,7 @@ import {
   isStrength,
   HIGHLIGHT_KEYS,
   SECTION_ICON,
+  isDecadeExplanationArray,
 } from "./marriage-report-view";
 
 /** A representative marriage `scores` bag, shaped exactly as the API returns it. */
@@ -237,5 +238,37 @@ describe("SECTION_ICON", () => {
         "who_you_will_marry",
       ].sort(),
     );
+  });
+});
+
+describe("isDecadeExplanationArray", () => {
+  it("accepts a well-formed model response", () => {
+    expect(
+      isDecadeExplanationArray([{ label: "Years 1-10", explanation: "Jupiter's period." }]),
+    ).toBe(true);
+    expect(isDecadeExplanationArray([])).toBe(true);
+  });
+
+  it("rejects every shape the model actually gets wrong", () => {
+    expect(isDecadeExplanationArray(undefined)).toBe(false);
+    expect(isDecadeExplanationArray("Years 1-10: good")).toBe(false);
+    expect(isDecadeExplanationArray({ "Years 1-10": "good" })).toBe(false);
+    expect(isDecadeExplanationArray([{ label: "Years 1-10" }])).toBe(false);
+    expect(isDecadeExplanationArray([{ label: 1, explanation: "x" }])).toBe(false);
+    expect(isDecadeExplanationArray([null])).toBe(false);
+  });
+
+  it("pairs explanations by label, falling back to position when the model reformats it", () => {
+    // The exact failure this fallback exists for: the model answers "1-10" for a band the
+    // engine labelled "Years 1-10", which an exact-match-only lookup drops silently.
+    const bands = [{ label: "Years 1-10" }, { label: "Years 11-20" }];
+    const explanations = [
+      { label: "1-10", explanation: "first" },
+      { label: "Years 11-20", explanation: "second" },
+    ];
+    const paired = bands.map(
+      (b, i) => (explanations.find((e) => e.label === b.label) ?? explanations[i])?.explanation,
+    );
+    expect(paired).toEqual(["first", "second"]);
   });
 });

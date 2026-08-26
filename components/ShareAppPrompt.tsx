@@ -30,7 +30,7 @@ export default function ShareAppPrompt() {
   const { user } = useAuth();
   const referralAmounts = useReferralAmounts();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
-  const { tourActive } = useTour();
+  const { tourActive, tourPending } = useTour();
   const [opens, setOpens] = useState(0);
   const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -75,7 +75,8 @@ export default function ShareAppPrompt() {
     <AnimatePresence>
   // Never render underneath a running tour's scrim — the tour is the one
   // overlay that must finish before any launch-time prompt gets the screen.
-      {visible && !tourActive && (
+  // tourPending covers the gap before tourActive itself flips true.
+      {visible && !tourActive && !tourPending && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

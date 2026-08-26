@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { buildReferralShareLinks } from "@/lib/referral";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
+import { useAuth } from "@/providers/auth-provider";
 
 /**
  * App-choice picker for sharing a referral link — WhatsApp/Telegram/SMS/Copy,
@@ -25,10 +26,18 @@ export default function ShareOptionsSheet({
   code: string;
 }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   // Amounts come from the admin-set referral features so the shared message
-  // quotes what the recipient will actually receive.
-  const links = buildReferralShareLinks(t, code, useReferralAmounts());
+  // quotes what the recipient will actually receive. A live gift campaign
+  // (e.g. Raksha Bandhan) swaps in its festive framing via i18next context —
+  // see buildReferralShareLinks — with no code change needed once it ends.
+  const links = buildReferralShareLinks(
+    t,
+    code,
+    useReferralAmounts(),
+    user?.activeClaimableCampaign?.title,
+  );
   const canShareMore = typeof navigator !== "undefined" && !!navigator.share;
 
   useDismissOnBackPress(open, onClose);

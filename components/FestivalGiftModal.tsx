@@ -31,7 +31,7 @@ export default function FestivalGiftModal() {
   const router = useRouter();
   const { user, refresh } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
-  const { tourActive } = useTour();
+  const { tourActive, tourPending } = useTour();
   const chatFeature = useFeature("nav.askAI");
   const referralAmounts = useReferralAmounts();
 
@@ -51,8 +51,17 @@ export default function FestivalGiftModal() {
 
   // Never render underneath a running tour's scrim — the tour is the one
   // overlay that must finish before any launch-time prompt gets the screen.
+  // tourPending covers the gap before tourActive itself flips true (TourHost
+  // can poll up to 4s for the tour's target before opening it) — without it a
+  // brand-new user sees this modal flash on first paint, then get yanked away
+  // the instant the tour actually opens.
   const visible =
-    !!campaign && permissionsResolved && !!user?.profileCompletedAt && !dismissed && !tourActive;
+    !!campaign &&
+    permissionsResolved &&
+    !!user?.profileCompletedAt &&
+    !dismissed &&
+    !tourActive &&
+    !tourPending;
 
   const dismiss = () => {
     if (dismissKey) {
@@ -165,13 +174,18 @@ export default function FestivalGiftModal() {
                           {t("festivalGift.chatCta")}
                         </button>
                       )}
-                      {/* "Want more? Share it" — the referral bonus is the only other way to top up for free. */}
+                      {/* "Want more? Share it" — the referral bonus is the only other way to top up for free.
+                          `campaign` is the one that's live right now, so the festive framing always applies here. */}
                       {user?.referralCode && (
                         <button
                           onClick={() => setSheetOpen(true)}
                           className="py-3 rounded-xl border border-gold/20 text-foreground text-sm font-medium transition-opacity"
                         >
-                          {t("sharePrompt.title", referralAmounts)}
+                          {t("sharePrompt.title", {
+                            ...referralAmounts,
+                            context: "festival",
+                            festival: campaign.title,
+                          })}
                         </button>
                       )}
                       <button onClick={dismiss} className="py-2 text-sm text-muted">

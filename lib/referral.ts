@@ -81,6 +81,12 @@ export function clearPendingUtmSource() {
  * fall back to literals baked into the copy. Callers in React should pass
  * `useReferralAmounts()`; the defaults here mirror the backend registry and
  * exist only for a caller with no feature map available.
+ *
+ * `festivalTitle` — when a gift campaign is currently live
+ * (`user.activeClaimableCampaign?.title`), pass it here to pick up the
+ * `_festival` i18next context variant of the same key (e.g. "Share the
+ * Blessings, Earn ₹500!" instead of the evergreen line). Omit it and the
+ * plain key is used — no separate revert step needed once the campaign ends.
  */
 export function buildReferralShareText(
   t: TFunction,
@@ -89,11 +95,14 @@ export function buildReferralShareText(
     referrerBonus: "₹100",
     refereeBonus: "₹50",
   },
+  festivalTitle?: string,
 ): string {
   return t("referral.shareMessage", {
     code,
     url: PLAY_STORE_URL,
     ...amounts,
+    context: festivalTitle ? "festival" : undefined,
+    festival: festivalTitle,
   });
 }
 
@@ -111,8 +120,9 @@ export function buildReferralShareLinks(
   t: TFunction,
   code: string,
   amounts?: { referrerBonus: string; refereeBonus: string },
+  festivalTitle?: string,
 ): ReferralShareLinks {
-  const text = buildReferralShareText(t, code, amounts);
+  const text = buildReferralShareText(t, code, amounts, festivalTitle);
   const link = PLAY_STORE_URL;
   return {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,

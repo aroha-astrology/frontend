@@ -26,7 +26,7 @@ export default function TourHost() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
-  const { isDone, markDone, setTourActive, readyTourId, resetNonce } = useTour();
+  const { isDone, markDone, setTourActive, setTourPending, readyTourId, resetNonce } = useTour();
 
   const tour = findTour(pathname ?? "");
   const [openTourId, setOpenTourId] = useState<string | null>(null);
@@ -52,18 +52,37 @@ export default function TourHost() {
   }, [resetNonce]);
 
   useEffect(() => {
-    if (!tour || openTourId === tour.id || shownRef.current.has(tour.id)) return;
+    if (!tour || openTourId === tour.id || shownRef.current.has(tour.id)) {
+      setTourPending(false);
+      return;
+    }
     if (loading || !permissionsResolved) return;
     // Tours describe the signed-in app; there is nothing to point at before onboarding.
-    if (!user?.profileCompletedAt) return;
+    if (!user?.profileCompletedAt) {
+      setTourPending(false);
+      return;
+    }
     // Pages whose targets are covered by something else on arrival (the splash
     // and welcome modal on home, ReportGeneratingSheet on a report) opt in
     // explicitly via useTourReady rather than being raced.
-    if (tour.readyGate && readyTourId !== tour.id) return;
+    if (tour.readyGate && readyTourId !== tour.id) {
+      setTourPending(false);
+      return;
+    }
 
     const forced =
       typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tour") === "1";
-    if (!forced && isDone(tour.id)) return;
+    if (!forced && isDone(tour.id)) {
+      setTourPending(false);
+      return;
+    }
+
+    // Past every gate: this tour WILL open once its target is on screen. Every
+    // launch-time modal must stay hidden for this stretch too, not just once
+    // tourActive flips — otherwise a brand-new user (nothing done yet, so this
+    // branch is hit immediately) sees the modal flash on first paint and then
+    // get yanked away the moment the tour actually opens.
+    setTourPending(true);
 
     // Even past the gates, a data-driven page may not have painted its targets
     // yet. Poll briefly rather than opening onto a screen with nothing to
@@ -88,10 +107,23 @@ export default function TourHost() {
         open();
       } else if (elapsed >= TARGET_WAIT_MS) {
         clearInterval(poll);
+        // Gave up waiting — this tour isn't happening this mount, so it's no
+        // longer blocking anything.
+        setTourPending(false);
       }
     }, TARGET_POLL_MS);
     return () => clearInterval(poll);
-  }, [tour, openTourId, loading, permissionsResolved, user?.profileCompletedAt, readyTourId, resetNonce, isDone]);
+  }, [
+    tour,
+    openTourId,
+    loading,
+    permissionsResolved,
+    user?.profileCompletedAt,
+    readyTourId,
+    resetNonce,
+    isDone,
+    setTourPending,
+  ]);
 
   // Publish the flag the launch-time modals gate on. Kept in an effect (not set
   // inside the open/close handlers) so it can never be left stuck true after an

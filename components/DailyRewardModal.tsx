@@ -24,7 +24,7 @@ export default function DailyRewardModal() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
-  const { tourActive } = useTour();
+  const { tourActive, tourPending } = useTour();
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
 
   const [dismissed, setDismissed] = useState(false);
@@ -55,7 +55,7 @@ export default function DailyRewardModal() {
 
   // Never render underneath a running tour's scrim — the tour is the one
   // overlay that must finish before any launch-time prompt gets the screen.
-  const visible = eligible && !dismissed && claimedToday === false && !tourActive;
+  const visible = eligible && !dismissed && claimedToday === false && !tourActive && !tourPending;
 
   const dismiss = () => {
     try {

@@ -1256,6 +1256,7 @@ export const resources = {
         codeInputPlaceholder: "Got a code? Enter it here",
         shareMessage: "Join Aroha Astrology using my referral code: {{code}} — you get {{refereeBonus}} and I get {{referrerBonus}}!\n{{url}}",
         autoApplied: "Applied automatically from your invite link",
+        shareMessage_festival: "This {{festival}}, share the blessings! Join Aroha Astrology using my code {{code}} — you get {{refereeBonus}} and I get {{referrerBonus}}!\n{{url}}",
       },
       updatePrompt: {
         title: "Update Available",
@@ -1268,6 +1269,8 @@ export const resources = {
         body: "Share Aroha Astrology with friends and family — earn {{referrerBonus}} for every friend who joins!",
         cta: "Share Now",
         notNow: "Not Now",
+        title_festival: "Share the Blessings, Earn {{referrerBonus}}!",
+        body_festival: "This {{festival}}, share Aroha Astrology with friends and family — earn {{referrerBonus}} for every friend who joins!",
       },
       festivalGift: {
         eyebrow: "On the house",
@@ -3985,6 +3988,7 @@ export const resources = {
         codeInputPlaceholder: "कोड है? यहां दर्ज करें",
         shareMessage: "मेरे रेफरल कोड {{code}} से Aroha Astrology जॉइन करें — आपको {{refereeBonus}} और मुझे {{referrerBonus}} मिलेंगे!\n{{url}}",
         autoApplied: "आपके इनवाइट लिंक से अपने आप लागू हो गया",
+        shareMessage_festival: "इस {{festival}} पर, आशीर्वाद बांटें! मेरे रेफरल कोड {{code}} से Aroha Astrology जॉइन करें — आपको {{refereeBonus}} और मुझे {{referrerBonus}} मिलेंगे!\n{{url}}",
       },
       updatePrompt: {
         title: "अपडेट उपलब्ध है",
@@ -3997,6 +4001,8 @@ export const resources = {
         body: "Aroha Astrology को दोस्तों और परिवार के साथ शेयर करें — हर दोस्त के जुड़ने पर {{referrerBonus}} कमाएं!",
         cta: "अभी शेयर करें",
         notNow: "अभी नहीं",
+        title_festival: "आशीर्वाद बांटें, {{referrerBonus}} कमाएं!",
+        body_festival: "इस {{festival}} के मौके पर, Aroha Astrology को दोस्तों और परिवार के साथ शेयर करें — हर दोस्त के जुड़ने पर {{referrerBonus}} कमाएं!",
       },
       festivalGift: {
         eyebrow: "हमारी ओर से",
@@ -6190,6 +6196,7 @@ export const resources = {
         codeInputPlaceholder: "কোড আছে? এখানে দিন",
         shareMessage: "আমার রেফারেল কোড {{code}} দিয়ে Aroha Astrology-তে যোগ দিন — আপনি {{refereeBonus}} পাবেন এবং আমি {{referrerBonus}} পাব!\n{{url}}",
         autoApplied: "আপনার আমন্ত্রণ লিঙ্ক থেকে স্বয়ংক্রিয়ভাবে প্রয়োগ হয়েছে",
+        shareMessage_festival: "এই {{festival}}-এ, আশীর্বাদ ভাগ করুন! আমার রেফারেল কোড {{code}} দিয়ে Aroha Astrology-তে যোগ দিন — আপনি {{refereeBonus}} পাবেন এবং আমি {{referrerBonus}} পাব!\n{{url}}",
       },
       updatePrompt: {
         title: "আপডেট উপলব্ধ",
@@ -6202,6 +6209,8 @@ export const resources = {
         body: "Aroha Astrology বন্ধু ও পরিবারের সাথে শেয়ার করুন — প্রতিটি বন্ধু যোগ দিলে {{referrerBonus}} উপার্জন করুন!",
         cta: "এখনই শেয়ার করুন",
         notNow: "এখন নয়",
+        title_festival: "আশীর্বাদ ভাগ করুন, {{referrerBonus}} উপার্জন করুন!",
+        body_festival: "এই {{festival}} উপলক্ষে, Aroha Astrology বন্ধু ও পরিবারের সাথে শেয়ার করুন — প্রতিটি বন্ধু যোগ দিলে {{referrerBonus}} উপার্জন করুন!",
       },
       festivalGift: {
         eyebrow: "আমাদের পক্ষ থেকে",
@@ -8396,6 +8405,7 @@ export const resources = {
         codeInputPlaceholder: "कोड आहे? इथे टाका",
         shareMessage: "माझ्या रेफरल कोड {{code}} वापरून Aroha Astrology जॉइन करा — तुम्हाला {{refereeBonus}} आणि मला {{referrerBonus}} मिळतील!\n{{url}}",
         autoApplied: "तुमच्या आमंत्रण लिंकवरून आपोआप लागू झाले",
+        shareMessage_festival: "या {{festival}} निमित्त, आशीर्वाद वाटा! माझ्या रेफरल कोड {{code}} वापरून Aroha Astrology जॉइन करा — तुम्हाला {{refereeBonus}} आणि मला {{referrerBonus}} मिळतील!\n{{url}}",
       },
       updatePrompt: {
         title: "अपडेट उपलब्ध",
@@ -8408,6 +8418,8 @@ export const resources = {
         body: "Aroha Astrology मित्र आणि कुटुंबासोबत शेअर करा — प्रत्येक मित्र सामील झाल्यावर {{referrerBonus}} कमवा!",
         cta: "आता शेअर करा",
         notNow: "आता नाही",
+        title_festival: "आशीर्वाद वाटा, {{referrerBonus}} कमवा!",
+        body_festival: "या {{festival}} निमित्ताने, Aroha Astrology मित्र आणि कुटुंबासोबत शेअर करा — प्रत्येक मित्र सामील झाल्यावर {{referrerBonus}} कमवा!",
       },
       festivalGift: {
         eyebrow: "आमच्याकडून",
@@ -10598,6 +10610,7 @@ export const resources = {
         codeInputPlaceholder: "కోడ్ ఉందా? ఇక్కడ నమోదు చేయండి",
         shareMessage: "నా రెఫరల్ కోడ్ {{code}} ఉపయోగించి Aroha Astrology లో చేరండి — మీకు {{refereeBonus}} మరియు నాకు {{referrerBonus}} లభిస్తుంది!\n{{url}}",
         autoApplied: "మీ ఆహ్వాన లింక్ నుండి స్వయంచాలకంగా వర్తించబడింది",
+        shareMessage_festival: "ఈ {{festival}} సందర్భంగా, ఆశీర్వాదాలు పంచుకోండి! నా రెఫరల్ కోడ్ {{code}} ఉపయోగించి Aroha Astrology లో చేరండి — మీకు {{refereeBonus}} మరియు నాకు {{referrerBonus}} లభిస్తుంది!\n{{url}}",
       },
       updatePrompt: {
         title: "అప్‌డేట్ అందుబాటులో ఉంది",
@@ -10610,6 +10623,8 @@ export const resources = {
         body: "Aroha Astrology ని స్నేహితులు మరియు కుటుంబంతో షేర్ చేయండి — ప్రతి స్నేహితుడు జాయిన్ అయితే {{referrerBonus}} సంపాదించండి!",
         cta: "ఇప్పుడే షేర్ చేయండి",
         notNow: "ఇప్పుడు వద్దు",
+        title_festival: "ఆశీర్వాదాలు పంచుకోండి, {{referrerBonus}} సంపాదించండి!",
+        body_festival: "ఈ {{festival}} సందర్భంగా, Aroha Astrology ని స్నేహితులు మరియు కుటుంబంతో షేర్ చేయండి — ప్రతి స్నేహితుడు జాయిన్ అయితే {{referrerBonus}} సంపాదించండి!",
       },
       festivalGift: {
         eyebrow: "మా తరపు నుండి",
@@ -12806,6 +12821,7 @@ export const resources = {
         codeInputPlaceholder: "குறியீடு உள்ளதா? இங்கே உள்ளிடவும்",
         shareMessage: "எனது பரிந்துரை குறியீடு {{code}} மூலம் Aroha Astrology-ஐ இணையுங்கள் — உங்களுக்கு {{refereeBonus}} மற்றும் எனக்கு {{referrerBonus}} கிடைக்கும்!\n{{url}}",
         autoApplied: "உங்கள் அழைப்பு இணைப்பிலிருந்து தானாகப் பயன்படுத்தப்பட்டது",
+        shareMessage_festival: "இந்த {{festival}} அன்று, ஆசீர்வாதங்களைப் பகிருங்கள்! எனது பரிந்துரை குறியீடு {{code}} மூலம் Aroha Astrology-ஐ இணையுங்கள் — உங்களுக்கு {{refereeBonus}} மற்றும் எனக்கு {{referrerBonus}} கிடைக்கும்!\n{{url}}",
       },
       updatePrompt: {
         title: "புதுப்பிப்பு கிடைக்கிறது",
@@ -12818,6 +12834,8 @@ export const resources = {
         body: "Aroha Astrology-ஐ நண்பர்கள் மற்றும் குடும்பத்துடன் பகிரவும் — ஒவ்வொரு நண்பரும் இணையும்போது {{referrerBonus}} சம்பாதியுங்கள்!",
         cta: "இப்போது பகிரவும்",
         notNow: "இப்போது வேண்டாம்",
+        title_festival: "ஆசீர்வாதங்களைப் பகிர்ந்து {{referrerBonus}} சம்பாதியுங்கள்!",
+        body_festival: "இந்த {{festival}} முன்னிட்டு, Aroha Astrology-ஐ நண்பர்கள் மற்றும் குடும்பத்துடன் பகிரவும் — ஒவ்வொரு நண்பரும் இணையும்போது {{referrerBonus}} சம்பாதியுங்கள்!",
       },
       festivalGift: {
         eyebrow: "எங்கள் சார்பாக",
@@ -15006,6 +15024,7 @@ export const resources = {
         codeInputPlaceholder: "કોડ છે? અહીં દાખલ કરો",
         shareMessage: "મારા રેફરલ કોડ {{code}} વડે Aroha Astrology જોડાઓ — તમને {{refereeBonus}} અને મને {{referrerBonus}} મળશે!\n{{url}}",
         autoApplied: "તમારી આમંત્રણ લિંક પરથી આપમેળે લાગુ થયું",
+        shareMessage_festival: "આ {{festival}} નિમિત્તે, આશીર્વાદ વહેંચો! મારા રેફરલ કોડ {{code}} વડે Aroha Astrology જોડાઓ — તમને {{refereeBonus}} અને મને {{referrerBonus}} મળશે!\n{{url}}",
       },
       updatePrompt: {
         title: "અપડેટ ઉપલબ્ધ છે",
@@ -15018,6 +15037,8 @@ export const resources = {
         body: "Aroha Astrology ને મિત્રો અને પરિવાર સાથે શેર કરો — દરેક મિત્ર જોડાય ત્યારે {{referrerBonus}} કમાઓ!",
         cta: "હમણાં શેર કરો",
         notNow: "હમણાં નહીં",
+        title_festival: "આશીર્વાદ વહેંચો, {{referrerBonus}} કમાઓ!",
+        body_festival: "આ {{festival}} નિમિત્તે, Aroha Astrology ને મિત્રો અને પરિવાર સાથે શેર કરો — દરેક મિત્ર જોડાય ત્યારે {{referrerBonus}} કમાઓ!",
       },
       festivalGift: {
         eyebrow: "અમારા તરફથી",

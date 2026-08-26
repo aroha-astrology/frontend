@@ -23,6 +23,17 @@ interface TourContextValue {
    */
   tourActive: boolean;
   setTourActive: (active: boolean) => void;
+  /**
+   * True from the moment TourHost finds an undone tour for this route/user
+   * until it either opens (tourActive takes over) or gives up waiting for its
+   * target. A brand-new user hits this window on their very first render —
+   * TourHost polls for up to 4s (TARGET_WAIT_MS) for the tour's target to
+   * mount before it can flip tourActive true, and every launch-time modal
+   * must stay hidden through that gap too, or it flashes on screen and gets
+   * yanked away the instant the tour actually opens.
+   */
+  tourPending: boolean;
+  setTourPending: (pending: boolean) => void;
   /** Whether this user has already finished `tourId`. */
   isDone: (tourId: string) => boolean;
   /** Records completion locally (instant) and on the server (best effort). */
@@ -45,6 +56,8 @@ interface TourContextValue {
 const TourContext = createContext<TourContextValue>({
   tourActive: false,
   setTourActive: () => {},
+  tourPending: false,
+  setTourPending: () => {},
   isDone: () => false,
   markDone: () => {},
   resetAll: async () => {},
@@ -74,6 +87,7 @@ function writeMirror(ids: string[]) {
 export function TourProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [tourActive, setTourActive] = useState(false);
+  const [tourPending, setTourPending] = useState(false);
   const [readyTourId, setReadyTourId] = useState<string | null>(null);
   /** Local completions, seeded from the mirror and merged with the server's list. */
   const [localDone, setLocalDone] = useState<string[]>([]);
@@ -138,8 +152,19 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ tourActive, setTourActive, isDone, markDone, resetAll, resetNonce, readyTourId, setReadyTourId }),
-    [tourActive, isDone, markDone, resetAll, resetNonce, readyTourId],
+    () => ({
+      tourActive,
+      setTourActive,
+      tourPending,
+      setTourPending,
+      isDone,
+      markDone,
+      resetAll,
+      resetNonce,
+      readyTourId,
+      setReadyTourId,
+    }),
+    [tourActive, tourPending, isDone, markDone, resetAll, resetNonce, readyTourId],
   );
 
   return <TourContext.Provider value={value}>{children}</TourContext.Provider>;

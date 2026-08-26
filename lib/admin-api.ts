@@ -458,5 +458,19 @@ export const adminApi = {
   /** Cancel a draft or scheduled campaign. */
   cancelGiftCampaign: (id: string) =>
     request<void>(`/v1/admin/gift-campaigns/${id}`, { method: "DELETE", auth: true }),
+
+  /** Eligible/pushable count for the one-off "Share & Earn" referral-promo broadcast. */
+  previewReferralPromoBroadcast: () =>
+    request<{ eligibleCount: number; pushableCount: number }>(
+      "/v1/admin/broadcast/referral-promo/preview",
+      { auth: true },
+    ),
+
+  /** Sends the "Share & Earn" push to every active user now, in their own language. */
+  sendReferralPromoBroadcast: () =>
+    request<{ attempted: number }>("/v1/admin/broadcast/referral-promo", {
+      method: "POST",
+      auth: true,
+    }),
 };
 

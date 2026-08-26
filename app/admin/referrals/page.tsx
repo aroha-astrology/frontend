@@ -7,6 +7,7 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminReferralRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import ErrorRetry from "@/components/admin/ErrorRetry";
+import ConfirmModal from "@/components/admin/ConfirmModal";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -20,6 +21,40 @@ export default function AdminReferralsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const [showBroadcastConfirm, setShowBroadcastConfirm] = useState(false);
+  const [broadcastPreview, setBroadcastPreview] = useState<{
+    eligibleCount: number;
+    pushableCount: number;
+  } | null>(null);
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [broadcastError, setBroadcastError] = useState<string | null>(null);
+  const [broadcastResult, setBroadcastResult] = useState<number | null>(null);
+
+  function openBroadcastConfirm() {
+    setBroadcastResult(null);
+    setBroadcastError(null);
+    setBroadcastPreview(null);
+    setShowBroadcastConfirm(true);
+    adminApi
+      .previewReferralPromoBroadcast()
+      .then(setBroadcastPreview)
+      .catch((err) => setBroadcastError(err instanceof ApiError ? err.message : "Failed to load audience size"));
+  }
+
+  async function sendBroadcast() {
+    setBroadcastBusy(true);
+    setBroadcastError(null);
+    try {
+      const { attempted } = await adminApi.sendReferralPromoBroadcast();
+      setBroadcastResult(attempted);
+      setShowBroadcastConfirm(false);
+    } catch (err) {
+      setBroadcastError(err instanceof ApiError ? err.message : "Failed to send broadcast");
+    } finally {
+      setBroadcastBusy(false);
+    }
+  }
 
   const fetchReferrals = useCallback(() => {
     setLoading(true);
@@ -49,7 +84,22 @@ export default function AdminReferralsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-gold mb-4">Referrals</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold text-gold">Referrals</h1>
+        <button
+          type="button"
+          onClick={openBroadcastConfirm}
+          className="px-4 py-2 rounded-full bg-gold text-black text-sm font-medium"
+        >
+          📣 Send &quot;Share &amp; Earn&quot; Notification
+        </button>
+      </div>
+
+      {broadcastResult !== null && (
+        <p className="mb-4 text-sm text-green-400">
+          Sent to {broadcastResult} user{broadcastResult === 1 ? "" : "s"}.
+        </p>
+      )}
 
       {loading && !referrals && <p className="text-sm text-muted text-center py-10">Loading…</p>}
       {error && <ErrorRetry message={error} onRetry={fetchReferrals} />}
@@ -132,6 +182,31 @@ export default function AdminReferralsPage() {
               : `${referrals.length} referrer${referrals.length === 1 ? "" : "s"} · lifetime totals`}
           </p>
         </>
+      )}
+
+      {showBroadcastConfirm && (
+        <ConfirmModal
+          title="Send referral-promo notification"
+          body={
+            <>
+              <p className="mb-2">
+                Pushes a &quot;Share &amp; Earn&quot; notification to every active user right now, in
+                their own language, quoting the live referral bonus amounts. This cannot be undone
+                or unsent.
+              </p>
+              <p className="text-foreground">
+                {broadcastPreview
+                  ? `${broadcastPreview.eligibleCount} eligible (${broadcastPreview.pushableCount} have a push token)`
+                  : "Loading audience size…"}
+              </p>
+            </>
+          }
+          confirmLabel="Send Now"
+          busy={broadcastBusy}
+          error={broadcastError}
+          onConfirm={sendBroadcast}
+          onCancel={() => setShowBroadcastConfirm(false)}
+        />
       )}
     </div>
   );

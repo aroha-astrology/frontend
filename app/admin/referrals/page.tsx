@@ -26,6 +26,9 @@ export default function AdminReferralsPage() {
   const [broadcastPreview, setBroadcastPreview] = useState<{
     eligibleCount: number;
     pushableCount: number;
+    iosCount: number;
+    androidCount: number;
+    webCount: number;
   } | null>(null);
   const [broadcastBusy, setBroadcastBusy] = useState(false);
   const [broadcastError, setBroadcastError] = useState<string | null>(null);
@@ -194,11 +197,20 @@ export default function AdminReferralsPage() {
                 their own language, quoting the live referral bonus amounts. This cannot be undone
                 or unsent.
               </p>
-              <p className="text-foreground">
-                {broadcastPreview
-                  ? `${broadcastPreview.eligibleCount} eligible (${broadcastPreview.pushableCount} have a push token)`
-                  : "Loading audience size…"}
-              </p>
+              {broadcastPreview ? (
+                <div className="text-foreground">
+                  <p>
+                    {broadcastPreview.eligibleCount} eligible ·{" "}
+                    {broadcastPreview.pushableCount} have a push token
+                  </p>
+                  <p className="text-xs text-muted mt-1">
+                    📱 iOS {broadcastPreview.iosCount} · 🤖 Android {broadcastPreview.androidCount}
+                    {broadcastPreview.webCount > 0 ? ` · 🌐 Web ${broadcastPreview.webCount}` : ""}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-foreground">Loading audience size…</p>
+              )}
             </>
           }
           confirmLabel="Send Now"

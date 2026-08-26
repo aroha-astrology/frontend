@@ -461,10 +461,13 @@ export const adminApi = {
 
   /** Eligible/pushable count for the one-off "Share & Earn" referral-promo broadcast. */
   previewReferralPromoBroadcast: () =>
-    request<{ eligibleCount: number; pushableCount: number }>(
-      "/v1/admin/broadcast/referral-promo/preview",
-      { auth: true },
-    ),
+    request<{
+      eligibleCount: number;
+      pushableCount: number;
+      iosCount: number;
+      androidCount: number;
+      webCount: number;
+    }>("/v1/admin/broadcast/referral-promo/preview", { auth: true }),
 
   /** Sends the "Share & Earn" push to every active user now, in their own language. */
   sendReferralPromoBroadcast: () =>

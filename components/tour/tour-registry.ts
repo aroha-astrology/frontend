@@ -1,5 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { Sparkles, Moon, Star, MessageCircle, CalendarDays, Flower2, FileText, Gauge, ListTree, Scale, Activity } from "lucide-react";
+import {
+  Sparkles, Moon, Star, MessageCircle, CalendarDays, Flower2, FileText, Gauge, ListTree, Scale, Activity,
+  Grid3x3, Layers, Clock, Gem, Hand, Home, Mic, Phone, MapPin, Compass, ScrollText, Sun,
+} from "lucide-react";
 
 export interface TourStep {
   id: string;
@@ -59,6 +62,94 @@ export const TOURS: TourDef[] = [
       { id: "strength", target: "report-strength", titleKey: "tour.report.strengthTitle", bodyKey: "tour.report.strengthBody", icon: Activity },
       { id: "verdict", target: "report-verdict", titleKey: "tour.report.verdictTitle", bodyKey: "tour.report.verdictBody", icon: Scale },
       { id: "followup", target: "ask-ai", titleKey: "tour.report.followUpTitle", bodyKey: "tour.report.followUpBody", icon: MessageCircle },
+    ],
+  },
+  {
+    id: "kundli",
+    path: "/kundli",
+    exact: true,
+    steps: [
+      { id: "header", target: "kundli-header", titleKey: "tour.kundli.headerTitle", bodyKey: "tour.kundli.headerBody", icon: Star },
+      { id: "chart", target: "kundli-chart", titleKey: "tour.kundli.chartTitle", bodyKey: "tour.kundli.chartBody", icon: Grid3x3 },
+      { id: "viewmode", target: "kundli-viewmode", titleKey: "tour.kundli.viewModeTitle", bodyKey: "tour.kundli.viewModeBody", icon: Layers },
+      { id: "houses", target: "kundli-houses", titleKey: "tour.kundli.housesTitle", bodyKey: "tour.kundli.housesBody", icon: Home },
+      { id: "dasha", target: "kundli-dasha", titleKey: "tour.kundli.dashaTitle", bodyKey: "tour.kundli.dashaBody", icon: Clock },
+      { id: "yogadosha", target: "kundli-yogadosha", titleKey: "tour.kundli.yogaDoshaTitle", bodyKey: "tour.kundli.yogaDoshaBody", icon: Sparkles },
+      { id: "planets", target: "kundli-planets", titleKey: "tour.kundli.planetsTitle", bodyKey: "tour.kundli.planetsBody", icon: Activity },
+      { id: "gemstone", target: "kundli-gemstone", titleKey: "tour.kundli.gemstoneTitle", bodyKey: "tour.kundli.gemstoneBody", icon: Gem },
+    ],
+  },
+  {
+    id: "reports-list",
+    path: "/reports",
+    exact: true,
+    steps: [
+      { id: "tabs", target: "reports-tabs", titleKey: "tour.reportsList.tabsTitle", bodyKey: "tour.reportsList.tabsBody", icon: ListTree },
+      { id: "list", target: "reports-list", titleKey: "tour.reportsList.listTitle", bodyKey: "tour.reportsList.listBody", icon: FileText },
+      { id: "gemstone", target: "reports-gemstone", titleKey: "tour.reportsList.gemstoneTitle", bodyKey: "tour.reportsList.gemstoneBody", icon: Gem },
+    ],
+  },
+  {
+    id: "ai-chat",
+    path: "/ai-chat",
+    exact: true,
+    steps: [
+      { id: "intro", target: null, titleKey: "tour.chat.introTitle", bodyKey: "tour.chat.introBody", icon: MessageCircle },
+      { id: "messages", target: "chat-messages", titleKey: "tour.chat.messagesTitle", bodyKey: "tour.chat.messagesBody", icon: MessageCircle },
+      { id: "input", target: "chat-input", titleKey: "tour.chat.inputTitle", bodyKey: "tour.chat.inputBody", icon: ScrollText },
+      { id: "mic", target: "chat-mic", titleKey: "tour.chat.micTitle", bodyKey: "tour.chat.micBody", icon: Mic },
+      { id: "voice", target: "chat-voice", titleKey: "tour.chat.voiceTitle", bodyKey: "tour.chat.voiceBody", icon: Phone },
+    ],
+  },
+  {
+    id: "horoscope",
+    path: "/horoscope",
+    exact: true,
+    steps: [
+      { id: "timescale", target: "horoscope-timescale", titleKey: "tour.horoscopePage.timescaleTitle", bodyKey: "tour.horoscopePage.timescaleBody", icon: CalendarDays },
+      { id: "personalized", target: "horoscope-personalized", titleKey: "tour.horoscopePage.personalizedTitle", bodyKey: "tour.horoscopePage.personalizedBody", icon: Sparkles },
+      { id: "signs", target: "horoscope-signs", titleKey: "tour.horoscopePage.signsTitle", bodyKey: "tour.horoscopePage.signsBody", icon: Moon },
+      { id: "rating", target: "horoscope-rating", titleKey: "tour.horoscopePage.ratingTitle", bodyKey: "tour.horoscopePage.ratingBody", icon: Gauge },
+    ],
+  },
+  {
+    id: "panchang",
+    path: "/panchang",
+    exact: true,
+    steps: [
+      { id: "region", target: "panchang-region", titleKey: "tour.panchangPage.regionTitle", bodyKey: "tour.panchangPage.regionBody", icon: MapPin },
+      { id: "tithi", target: "panchang-tithi", titleKey: "tour.panchangPage.tithiTitle", bodyKey: "tour.panchangPage.tithiBody", icon: Moon },
+      { id: "timings", target: "panchang-timings", titleKey: "tour.panchangPage.timingsTitle", bodyKey: "tour.panchangPage.timingsBody", icon: Sun },
+      { id: "choghadiya", target: "panchang-choghadiya", titleKey: "tour.panchangPage.choghadiyaTitle", bodyKey: "tour.panchangPage.choghadiyaBody", icon: Clock },
+    ],
+  },
+  {
+    id: "remedies",
+    path: "/remedies",
+    exact: true,
+    steps: [
+      { id: "debts", target: "remedies-debts", titleKey: "tour.remediesPage.debtsTitle", bodyKey: "tour.remediesPage.debtsBody", icon: Scale },
+      { id: "planets", target: "remedies-planets", titleKey: "tour.remediesPage.planetsTitle", bodyKey: "tour.remediesPage.planetsBody", icon: Flower2 },
+      { id: "thisyear", target: "remedies-thisyear", titleKey: "tour.remediesPage.thisYearTitle", bodyKey: "tour.remediesPage.thisYearBody", icon: CalendarDays },
+    ],
+  },
+  {
+    id: "vastu",
+    path: "/vastu",
+    exact: true,
+    steps: [
+      { id: "canvas", target: "vastu-canvas", titleKey: "tour.vastu.canvasTitle", bodyKey: "tour.vastu.canvasBody", icon: Grid3x3 },
+      { id: "palette", target: "vastu-palette", titleKey: "tour.vastu.paletteTitle", bodyKey: "tour.vastu.paletteBody", icon: Home },
+      { id: "analysis", target: "vastu-analysis", titleKey: "tour.vastu.analysisTitle", bodyKey: "tour.vastu.analysisBody", icon: Compass },
+    ],
+  },
+  {
+    id: "palm",
+    path: "/palm",
+    exact: true,
+    steps: [
+      { id: "start", target: "palm-start", titleKey: "tour.palm.startTitle", bodyKey: "tour.palm.startBody", icon: Hand },
+      { id: "history", target: "palm-history", titleKey: "tour.palm.historyTitle", bodyKey: "tour.palm.historyBody", icon: ScrollText },
     ],
   },
   {

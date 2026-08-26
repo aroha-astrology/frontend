@@ -362,6 +362,7 @@ function RemediesContent() {
 
               {planets.length > 0 && (
                 <>
+                  <div data-tour="remedies-debts">
                   <ChapterCard
                     heading={`⚖️ ${t("remediesPage.debtsHeading")}`}
                     dek={t("remediesPage.debtsDek")}
@@ -447,12 +448,18 @@ function RemediesContent() {
                       ))
                     )}
                   </ChapterCard>
+                  </div>
 
-                  {data.annual && <ThisYearSection annual={data.annual} />}
+                  {data.annual && (
+                    <div data-tour="remedies-thisyear">
+                      <ThisYearSection annual={data.annual} />
+                    </div>
+                  )}
                 </>
               )}
 
               {general.length > 0 && (
+                <div data-tour="remedies-planets">
                 <ChapterCard
                   heading={t("remediesPage.planetsHeading")}
                   dek={t("remediesPage.planetsDek")}
@@ -468,6 +475,7 @@ function RemediesContent() {
                     </FactCard>
                   ))}
                 </ChapterCard>
+                </div>
               )}
 
               <ChapterCard heading={`🧭 ${t("remediesPage.howToHeading")}`} accent="violet">

@@ -72,6 +72,7 @@ function ReportsCatalogue() {
         <SectionTitle title={t("reports.title")} subtitle={t("reports.subtitle")} />
         <ProfileSwitchTrigger className="mb-4 -mt-2" />
 
+        <div data-tour="reports-tabs">
         <SegmentedToggle
           value={tab}
           onChange={setTab}
@@ -81,6 +82,7 @@ function ReportsCatalogue() {
           ]}
           className="mb-4"
         />
+        </div>
 
         {loading && !reports ? (
           <div className="flex justify-center py-10">
@@ -91,7 +93,7 @@ function ReportsCatalogue() {
         ) : activeList.length === 0 ? (
           <p className="text-xs text-muted text-center py-10">{t("reports.empty")}</p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" data-tour="reports-list">
             {activeList.map((entry) => (
               <ReportCard
                 key={entry.key}
@@ -110,7 +112,7 @@ function ReportsCatalogue() {
             ReportCatalogueEntry it doesn't have data for. One-time tab only (there's no
             monthly variant). */}
         {tab === "oneTime" && (
-          <div className="mt-4">
+          <div className="mt-4" data-tour="reports-gemstone">
             <GemstoneCard />
           </div>
         )}

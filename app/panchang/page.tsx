@@ -291,7 +291,9 @@ export default function PanchangPage() {
             usePanchangRegion); the choice persists and also drives
             MonthlyPanchangCalendar's header below. */}
         <div className="mt-3 flex items-center justify-end gap-2 flex-wrap">
-          <RegionPicker region={region} onChange={setRegion} />
+          <div data-tour="panchang-region">
+            <RegionPicker region={region} onChange={setRegion} />
+          </div>
         </div>
 
         {/* Adhik Maas banner — a specific-day fact (unlike the calendar's own regional month/year
@@ -331,7 +333,9 @@ export default function PanchangPage() {
         {state === "ready" && data && (
           <div className="mt-6 space-y-6">
             {/* Hero: today's vara-lord orb, tithi, festival pill, and the Rahu Kaal / Abhijit Muhurta bar */}
-            <TithiHero data={data} dateIso={selectedDate} />
+            <div data-tour="panchang-tithi">
+              <TithiHero data={data} dateIso={selectedDate} />
+            </div>
 
             {/* Remaining core facts — tithi itself is already covered by the hero above, so it's left out here to avoid showing it twice. */}
             {(data.vara || data.nakshatra || data.yoga || data.karana) && (
@@ -346,16 +350,18 @@ export default function PanchangPage() {
             )}
 
             {/* Sunrise/sunset (+ moonrise/moonset when available) */}
+            <div data-tour="panchang-timings">
             <SunMoonTimings
               sunriseTime={data.sunriseTime}
               sunsetTime={data.sunsetTime}
               moonriseTime={data.moonriseTime}
               moonsetTime={data.moonsetTime}
             />
+            </div>
 
             {/* Choghadiya — one continuous day+night rail (replaces the old collapsed accordion) */}
             {data.choghadiya && (
-              <Card className="p-4 border-gold/10">
+              <Card className="p-4 border-gold/10" data-tour="panchang-choghadiya">
                 <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.choghadiyaTitle")}</h2>
                 <ChoghadiyaTimeline day={data.choghadiya.day} night={data.choghadiya.night} />
               </Card>

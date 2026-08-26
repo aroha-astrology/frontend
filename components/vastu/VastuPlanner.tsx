@@ -214,7 +214,7 @@ export default function VastuPlanner() {
         }}
       />
 
-      <div className="relative rounded-2xl bg-surface/40 border border-gold/10 p-2">
+      <div className="relative rounded-2xl bg-surface/40 border border-gold/10 p-2" data-tour="vastu-canvas">
         <button
           onClick={() => setFullscreen((f) => !f)}
           aria-label={t(fullscreen ? "vastu.toolbar.collapse" : "vastu.toolbar.expand")}
@@ -258,7 +258,9 @@ export default function VastuPlanner() {
 
       <div>
         <p className="text-[11px] text-muted mb-1.5">{t("vastu.palette.hint")}</p>
-        <RoomPalette onAdd={(type) => dispatch({ type: "addRoom", roomType: type })} />
+        <div data-tour="vastu-palette">
+          <RoomPalette onAdd={(type) => dispatch({ type: "addRoom", roomType: type })} />
+        </div>
       </div>
     </div>
   );
@@ -272,6 +274,7 @@ export default function VastuPlanner() {
         <Card className="p-4">{editor}</Card>
       )}
 
+      <div data-tour="vastu-analysis">
       <AnalysisPanel
         analysis={analysis}
         signedIn={!!user}
@@ -290,6 +293,7 @@ export default function VastuPlanner() {
         asking={asking}
         askError={askError}
       />
+      </div>
     </div>
   );
 }

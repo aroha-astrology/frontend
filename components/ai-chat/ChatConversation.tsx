@@ -681,7 +681,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         {/* Call icon — absolutely positioned rather than a flex sibling so the
             astrologer's name stays optically centred in the header, the same
             as it was before voice existed. */}
-        <div className="absolute left-5 top-1/2 -translate-y-1/2">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2" data-tour="chat-voice">
           <VoiceCall locale={i18n.language} />
         </div>
         <h1 className="text-2xl font-bold text-gold font-display text-center">
@@ -690,7 +690,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       </div>
 
       {/* Messages — the only scrolling element on this screen. */}
-      <div ref={messagesContainerRef} className="flex-1 px-4 space-y-4 overflow-y-auto pb-4">
+      <div ref={messagesContainerRef} className="flex-1 px-4 space-y-4 overflow-y-auto pb-4" data-tour="chat-messages">
         {/* Specialty + disclosure — lives inside the scroll container so it
             genuinely scrolls away with the rest of the conversation once
             there's enough history, instead of permanently eating vertical
@@ -942,6 +942,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               below — free text-to-speech input, not the paid realtime call. */}
           <div className="flex gap-3 items-end">
             <div
+              data-tour="chat-input"
               className="flex-1 flex items-end gap-1 rounded-3xl px-3 py-1.5 border"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
@@ -966,6 +967,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 <button
                   type="button"
                   onClick={handleDictate}
+                  data-tour="chat-mic"
                   aria-label={t(isListening ? "aiChatPage.listeningNow" : "aiChatPage.dictate")}
                   className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center transition-colors mb-0.5"
                   style={{

@@ -161,10 +161,12 @@ export default function HoroscopePage() {
             played out. Renders nothing when there is nothing to ask, so it
             costs the page nothing on the common path. Placed here because this
             screen is already about timing. */}
-        <PredictionRatingCard className="mt-4" />
+        <div data-tour="horoscope-rating">
+          <PredictionRatingCard className="mt-4" />
+        </div>
 
         {/* Timescale tabs */}
-        <div className="mt-6 grid grid-cols-4 gap-2 items-stretch">
+        <div className="mt-6 grid grid-cols-4 gap-2 items-stretch" data-tour="horoscope-timescale">
           {TIMESCALES.map((ts) => (
             <button
               key={ts}
@@ -209,12 +211,12 @@ export default function HoroscopePage() {
             from the generic per-sign moon-sign section below. Available for
             today/tomorrow/weekly/monthly/yearly; yearly additionally offers a
             month-by-month detail view. */}
-        <div className="mt-4">
+        <div className="mt-4" data-tour="horoscope-personalized">
           <PersonalizedCard key={personalizedPeriod} period={personalizedPeriod} />
         </div>
 
         {/* Moon-sign section */}
-        <div className="mt-8">
+        <div className="mt-8" data-tour="horoscope-signs">
           <h2 className="text-lg font-display text-foreground mb-1">{t("horoscope.moonSignSection")}</h2>
           <p className="text-xs text-muted mb-4">{t("horoscope.moonSignSectionHint")}</p>
 

@@ -44,6 +44,7 @@ export default function PalmPage() {
 
         <button
           type="button"
+          data-tour="palm-start"
           onClick={() => setWizardOpen(true)}
           className="w-full flex items-center gap-4 rounded-3xl border border-gold/20 bg-card p-5 text-left active:scale-[0.98] transition-transform"
         >
@@ -57,7 +58,7 @@ export default function PalmPage() {
         </button>
 
         {readings && readings.length > 0 && (
-          <div className="pt-2">
+          <div className="pt-2" data-tour="palm-history">
             <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 px-1">
               {t("palm.history")}
             </p>

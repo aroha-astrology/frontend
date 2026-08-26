@@ -167,7 +167,7 @@ function SectionHeading({ icon = "✦", children }: { icon?: string; children: R
 function ViewModeToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
   const { t } = useTranslation();
   return (
-    <div className="sticky top-0 z-10 py-2 backdrop-blur-md" style={{ background: "var(--background)cc" }}>
+    <div className="sticky top-0 z-10 py-2 backdrop-blur-md" data-tour="kundli-viewmode" style={{ background: "var(--background)cc" }}>
       <div className="flex gap-1 p-1 rounded-2xl bg-surface/60 border border-gold/10 w-fit mx-auto">
         {(["plain", "technical"] as ViewMode[]).map((m) => (
           <button
@@ -491,15 +491,18 @@ export default function KundliPage() {
           <div className="space-y-4">
             {/* 1. Header card */}
             {(ascendant || planets.length > 0) && (
+              <div data-tour="kundli-header">
               <KundliHeaderCard
                 name={displayName}
                 planets={planets}
                 ascendant={ascendant}
                 ayanamsaValue={ayanamsaValue}
               />
+              </div>
             )}
 
             {/* 2. Chart carousel — Rashi (D1) / Navamsa (D9) / Dasamsa (D10) */}
+            <div data-tour="kundli-chart">
             <ChartCarousel
               natalHouses={houses}
               natalPlanets={planets}
@@ -511,6 +514,7 @@ export default function KundliPage() {
                 setIsDrawerOpen(true);
               }}
             />
+            </div>
 
             {viewMode === "plain" ? (
               <>
@@ -529,13 +533,21 @@ export default function KundliPage() {
                 )}
 
                 {/* Current Dasha */}
-                {dasha && <PlainDashaCard dasha={dasha} />}
+                {dasha && (
+                  <div data-tour="kundli-dasha">
+                    <PlainDashaCard dasha={dasha} />
+                  </div>
+                )}
 
                 {/* Gemstone recommendations — credit-gated, all unlock in one go */}
-                <GemstoneCard />
+                <div data-tour="kundli-gemstone">
+                  <GemstoneCard />
+                </div>
 
                 {/* Yogas & Doshas */}
-                <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
+                <div data-tour="kundli-yogadosha">
+                  <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
+                </div>
                 
                 {/* Unlock Drawer */}
                 <HouseUnlockDrawer
@@ -563,9 +575,19 @@ export default function KundliPage() {
               </>
             ) : (
               <>
-                {dasha && <DashaTimeline dasha={dasha} />}
-                <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
-                {planets.length > 0 && <PlanetsTable planets={planets} />}
+                {dasha && (
+                  <div data-tour="kundli-dasha">
+                    <DashaTimeline dasha={dasha} />
+                  </div>
+                )}
+                <div data-tour="kundli-yogadosha">
+                  <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
+                </div>
+                {planets.length > 0 && (
+                  <div data-tour="kundli-planets">
+                    <PlanetsTable planets={planets} />
+                  </div>
+                )}
                 {houses.length > 0 && (
                   <HouseGrid
                     houses={houses}

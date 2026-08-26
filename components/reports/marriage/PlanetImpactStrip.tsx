@@ -6,6 +6,10 @@ import StatusPill, { strengthPillTone } from "@/components/ui/StatusPill";
 import PlanetIcon from "../PlanetIcon";
 import type { PlanetImpact } from "@/lib/marriage-report-view";
 
+interface PlanetImpactWithUi extends PlanetImpact {
+  aiExplanation?: string;
+}
+
 /**
  * The three planets this report actually scores — Venus (love), Jupiter (the marriage
  * karaka), and whichever planet rules the 7th house — each with its strength and the
@@ -14,7 +18,7 @@ import type { PlanetImpact } from "@/lib/marriage-report-view";
  * Venus can legitimately appear twice, once as karaka and once as 7th lord; that is a
  * real placement, not a duplicate row, so it is shown as-is with each role labelled.
  */
-export default function PlanetImpactStrip({ planets }: { planets: PlanetImpact[] }) {
+export default function PlanetImpactStrip({ planets }: { planets: PlanetImpactWithUi[] }) {
   const { t } = useTranslation();
   if (planets.length === 0) return null;
 
@@ -30,6 +34,11 @@ export default function PlanetImpactStrip({ planets }: { planets: PlanetImpact[]
                 {t(`marriageReport.planets.role.${p.role}`)}
               </p>
               {p.reason && <p className="text-[11px] leading-snug text-muted mt-0.5">{p.reason}</p>}
+              {p.aiExplanation && (
+                <p className="text-[11px] leading-relaxed text-foreground/80 mt-2 bg-foreground/5 p-2 rounded-lg border border-foreground/5">
+                  {p.aiExplanation}
+                </p>
+              )}
             </div>
             {p.strength && (
               <StatusPill tone={strengthPillTone(p.strength)}>

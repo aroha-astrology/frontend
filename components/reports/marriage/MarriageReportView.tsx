@@ -61,6 +61,11 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
   const view = buildMarriageView(scores);
   const verdict = isReportVerdict(scores.verdict) ? scores.verdict : null;
 
+  const uiData = data.sections.reduce(
+    (acc, sec) => ({ ...acc, ...(sec.uiData || {}) }),
+    {} as Record<string, unknown>
+  );
+
   const isMarried = scores.relationshipStatus === "married";
 
   // Love or arranged marriage — read defensively from scores (backend field: loveOrArrange)
@@ -108,13 +113,25 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         cautionCount={view.cautionCount}
       />
 
-      <PlanetImpactStrip planets={view.planets} />
+      <PlanetImpactStrip
+        planets={view.planets.map(p => ({
+          ...p,
+          aiExplanation: typeof uiData[`planetImpact_${p.role === 'seventhLord' ? 'seventhLord' : p.planet}`] === 'string'
+            ? uiData[`planetImpact_${p.role === 'seventhLord' ? 'seventhLord' : p.planet}`] as string
+            : undefined
+        }))}
+      />
 
       {/* Bespoke key-fact block, same group as HighlightTiles/PlanetImpactStrip above — moved
           up from after the accordion (its old spot) so every designed screen's fact blocks sit
           together before the timing/narrative sections, matching the canonical cross-report
           order (see designed-screens.tsx). */}
-      <SeventhHouseCard facts={view.seventhHouse} />
+      <SeventhHouseCard
+        facts={{
+          ...view.seventhHouse,
+          aiExplanation: typeof uiData.seventhHouseImpact === 'string' ? uiData.seventhHouseImpact : undefined
+        }}
+      />
 
       {/* ── Love or Arranged Marriage (unmarried users only) ── */}
       {!isMarried && loveOrArrange && (
@@ -162,7 +179,16 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
       {isDecadeBandArray(scores.marriageQualityArc) && (
         <section>
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.decade.title")}</h2>
-          <DecadeArcCard bands={scores.marriageQualityArc} />
+          <DecadeArcCard
+            bands={scores.marriageQualityArc.map(b => {
+              const explanations = Array.isArray(uiData.decadeExplanations) ? uiData.decadeExplanations : [];
+              const match = explanations.find((e: any) => e?.label === b.label);
+              return {
+                ...b,
+                aiExplanation: match?.explanation
+              };
+            })}
+          />
         </section>
       )}
 
@@ -181,6 +207,13 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         <section>
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.remedies.title")}</h2>
           <RemedyPlacementsCards placements={scores.planetRemedies} />
+          {typeof uiData.remediesImpact === 'string' && (
+            <div className="mt-4 rounded-2xl border border-gold/15 bg-card p-4">
+              <p className="text-[13px] leading-relaxed text-foreground/90">
+                {uiData.remediesImpact}
+              </p>
+            </div>
+          )}
         </section>
       )}
 

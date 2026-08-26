@@ -114,8 +114,10 @@ export interface ReportSection {
   paragraphs: string[];
   /** Section-level bullet list, rendered under `paragraphs`. */
   bullets?: string[];
-  /** Card-rendered ranked/scored items, rendered under `bullets`. */
+  /** Card-rendered ranked/scored items, rendered under `bullets` — optional, additive-only. */
   items?: ReportSectionItem[];
+  /** Structured data for UI cards (e.g. Planet Strength, Decades, Remedies) */
+  uiData?: Record<string, unknown>;
 }
 
 /** match_report only — one of the 8 life-area severities computed deterministically by the

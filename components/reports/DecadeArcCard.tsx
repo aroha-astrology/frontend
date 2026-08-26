@@ -6,6 +6,10 @@ import { ScoreRing } from "./ReportScoreFacts";
 import DecadeArcChart from "./DecadeArcChart";
 import type { DecadeBand } from "@/lib/report-score-facts";
 
+interface DecadeBandWithUi extends DecadeBand {
+  aiExplanation?: string;
+}
+
 /**
  * Tone-badge coloring for the decade-by-decade arc: favorable=emerald,
  * mixed=amber, challenging=red — this shape's own tone vocabulary
@@ -41,7 +45,7 @@ function formatDecadeDate(iso: string): string {
  * list (defensive: buildScoreFact only ever produces a non-empty `bands`
  * array, but this component may also be used directly).
  */
-export default function DecadeArcCard({ bands }: { bands: DecadeBand[] }) {
+export default function DecadeArcCard({ bands }: { bands: DecadeBandWithUi[] }) {
   const { t } = useTranslation();
 
   if (bands.length === 0) {
@@ -58,21 +62,28 @@ export default function DecadeArcCard({ bands }: { bands: DecadeBand[] }) {
         <DecadeArcChart bands={bands} />
       </Card>
       {bands.map((b, i) => (
-        <Card key={`${b.label}-${i}`} className="flex items-center justify-between gap-3 p-3">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-foreground">{b.label}</p>
-            <p className="mt-0.5 text-[10px] text-muted">
-              {formatDecadeDate(b.startDate)} – {formatDecadeDate(b.endDate)}
+        <Card key={`${b.label}-${i}`} className="flex flex-col gap-3 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-foreground">{b.label}</p>
+              <p className="mt-0.5 text-[10px] text-muted">
+                {formatDecadeDate(b.startDate)} – {formatDecadeDate(b.endDate)}
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <ScoreRing value={Math.round(b.score)} max={100} pct={Math.round(b.score)} />
+              <span
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-medium ${TONE_STYLES[b.tone]}`}
+              >
+                {t(`reports.facts.tone.${b.tone}`)}
+              </span>
+            </div>
+          </div>
+          {b.aiExplanation && (
+            <p className="text-[11px] leading-relaxed text-foreground/80 bg-foreground/5 p-2 rounded-lg border border-foreground/5">
+              {b.aiExplanation}
             </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <ScoreRing value={Math.round(b.score)} max={100} pct={Math.round(b.score)} />
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-medium ${TONE_STYLES[b.tone]}`}
-            >
-              {t(`reports.facts.tone.${b.tone}`)}
-            </span>
-          </div>
+          )}
         </Card>
       ))}
     </div>

@@ -9,6 +9,10 @@ import PlanetIcon from "../PlanetIcon";
 import { zodiacSignLabel } from "@/data/zodiac";
 import type { SeventhHouseFacts } from "@/lib/marriage-report-view";
 
+interface SeventhHouseFactsWithUi extends SeventhHouseFacts {
+  aiExplanation?: string;
+}
+
 /**
  * The 7th house read — the house of marriage — as the mock's chart-preview card.
  *
@@ -18,7 +22,7 @@ import type { SeventhHouseFacts } from "@/lib/marriage-report-view";
  * a pure re-presentation. The "View Full Chart" link goes to /kundli, which already
  * renders the real thing.
  */
-export default function SeventhHouseCard({ facts }: { facts: SeventhHouseFacts }) {
+export default function SeventhHouseCard({ facts }: { facts: SeventhHouseFactsWithUi }) {
   const { t } = useTranslation();
   const rows: { label: string; value: string }[] = [];
 
@@ -56,6 +60,12 @@ export default function SeventhHouseCard({ facts }: { facts: SeventhHouseFacts }
               {t(`marriageReport.strength.${facts.strength}`)}
             </StatusPill>
           </div>
+        )}
+
+        {facts.aiExplanation && (
+          <p className="text-[11px] leading-relaxed text-foreground/80 bg-foreground/5 p-2 rounded-lg border border-foreground/5">
+            {facts.aiExplanation}
+          </p>
         )}
 
         <Link

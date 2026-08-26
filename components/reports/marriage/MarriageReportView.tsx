@@ -166,14 +166,16 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
       {isRemedyPlacementArray(scores.planetRemedies) && (
         <section>
           <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.remedies.title")}</h2>
-          <RemedyPlacementsCards placements={scores.planetRemedies} />
-          {typeof uiData.remediesImpact === 'string' && (
-            <div className="mt-4 rounded-2xl border border-gold/15 bg-card p-4">
-              <p className="text-[13px] leading-relaxed text-foreground/90">
-                {uiData.remediesImpact}
-              </p>
-            </div>
-          )}
+          <RemedyPlacementsCards
+            placements={scores.planetRemedies.map((p) => {
+              const key = p.planet.toLowerCase();
+              return {
+                ...p,
+                aiEffect: typeof uiData[`remedyEffect_${key}`] === 'string' ? uiData[`remedyEffect_${key}`] as string : undefined,
+                aiDuration: typeof uiData[`remedyDuration_${key}`] === 'string' ? uiData[`remedyDuration_${key}`] as string : undefined,
+              };
+            })}
+          />
         </section>
       )}
 

@@ -25,6 +25,17 @@ import type {
  * hardcoded-English copy of the same handful of labels.
  */
 
+interface RemedyPlacementWithUi extends RemedyPlacementValue {
+  /** What performing this specific remedy is classically believed to strengthen, and how long
+   * to continue it — model-generated (`uiData.remedyEffect_<planet>`/`remedyDuration_<planet>`
+   * from the marriage report's 5th LLM call), keyed onto each placement by the caller. Optional:
+   * absent on any report generated before this shipped, or if the model call failed — the card
+   * simply shows the remedy itself with no extra explanation, same fail-open pattern as the
+   * Planet Impact / Decade cards. */
+  aiEffect?: string;
+  aiDuration?: string;
+}
+
 function BulletList({ items, marker }: { items: string[]; marker: string }) {
   if (items.length === 0) return null;
   return (
@@ -41,7 +52,7 @@ function BulletList({ items, marker }: { items: string[]; marker: string }) {
   );
 }
 
-export function RemedyPlacementsCards({ placements }: { placements: RemedyPlacementValue[] }) {
+export function RemedyPlacementsCards({ placements }: { placements: RemedyPlacementWithUi[] }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2">
@@ -59,6 +70,26 @@ export function RemedyPlacementsCards({ placements }: { placements: RemedyPlacem
               </span>
               <BulletList items={p.totke} marker="✦" />
             </>
+          )}
+          {(p.aiEffect || p.aiDuration) && (
+            <div className="mt-2.5 flex flex-col gap-1.5 rounded-lg border border-foreground/5 bg-foreground/5 p-2">
+              {p.aiEffect && (
+                <p className="text-[11px] leading-relaxed">
+                  <span className="font-semibold text-foreground/70">
+                    {t("remediesPage.effectLabel")}:{" "}
+                  </span>
+                  <span className="text-foreground/80">{p.aiEffect}</span>
+                </p>
+              )}
+              {p.aiDuration && (
+                <p className="text-[11px] leading-relaxed">
+                  <span className="font-semibold text-foreground/70">
+                    {t("remediesPage.durationLabel")}:{" "}
+                  </span>
+                  <span className="text-foreground/80">{p.aiDuration}</span>
+                </p>
+              )}
+            </div>
           )}
         </FactCard>
       ))}

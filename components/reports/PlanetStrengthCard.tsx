@@ -5,6 +5,14 @@ import Card from "@/components/ui/Card";
 import PlanetIcon from "./PlanetIcon";
 import type { PlanetStrengthValue } from "@/lib/report-score-facts";
 
+interface PlanetStrengthWithUi extends PlanetStrengthValue {
+  /** 1-2 line model explanation of what this planet's strength means, tied to its classical
+   * significations (e.g. Saturn → discipline, Moon → emotional stability) — currently only
+   * populated for the marriage report's 5th LLM call (`uiData.planetStrength_<planet>`), keyed
+   * on by the caller. Optional and additive: every other report simply omits it. */
+  aiExplanation?: string;
+}
+
 /**
  * The reader-facing view of `scores.planetStrength` — the same Shadbala /
  * retrogression / combustion data the backend also emits as `planetCondition`
@@ -40,7 +48,7 @@ function toneFor(isStrong: boolean) {
     : { bar: "bg-amber-400", badge: "border-amber-500/25 bg-amber-500/10 text-amber-400" };
 }
 
-export default function PlanetStrengthCard({ planets }: { planets: PlanetStrengthValue[] }) {
+export default function PlanetStrengthCard({ planets }: { planets: PlanetStrengthWithUi[] }) {
   const { t } = useTranslation();
 
   if (planets.length === 0) return null;
@@ -110,6 +118,12 @@ export default function PlanetStrengthCard({ planets }: { planets: PlanetStrengt
                     </span>
                   )}
                 </div>
+
+                {p.aiExplanation && (
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-foreground/80">
+                    {p.aiExplanation}
+                  </p>
+                )}
               </div>
             </div>
           );

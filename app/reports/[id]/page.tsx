@@ -152,6 +152,14 @@ export default function ReportDetailPage() {
       ? formatDateKey(addOneYear(data.periodMonth))
       : undefined;
 
+  // Currently only populated by the marriage report's 5th LLM call (see
+  // lib/llm/reports/marriage.ts) — every other report type's sections simply have no matching
+  // `planetStrength_<planet>` key, so PlanetStrengthCard's aiExplanation stays undefined for them.
+  const uiDataForStrength: Record<string, unknown> =
+    state === "ready" && data
+      ? data.sections.reduce((acc, sec) => ({ ...acc, ...(sec.uiData || {}) }), {} as Record<string, unknown>)
+      : {};
+
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
       <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
@@ -218,7 +226,15 @@ export default function ReportDetailPage() {
                 <h2 className="mb-2 font-display text-base text-gold">
                   {t("reportScores.label.planetStrength")}
                 </h2>
-                <PlanetStrengthCard planets={data.scores.planetStrength} />
+                <PlanetStrengthCard
+                  planets={data.scores.planetStrength.map((p) => {
+                    const key = `planetStrength_${p.planet.toLowerCase()}`;
+                    return {
+                      ...p,
+                      aiExplanation: typeof uiDataForStrength[key] === 'string' ? uiDataForStrength[key] as string : undefined,
+                    };
+                  })}
+                />
               </section>
             )}
           </>

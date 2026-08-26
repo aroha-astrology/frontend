@@ -26,6 +26,13 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function formatDuration(totalSeconds: number): string {
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
 function WalletModal({
   user,
   onClose,
@@ -265,6 +272,8 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium">Name / User ID</th>
                     <th className="px-4 py-2 font-medium">Phone</th>
                     <th className="px-4 py-2 font-medium">Email</th>
+                    <th className="px-4 py-2 font-medium">Country</th>
+                    <th className="px-4 py-2 font-medium">City</th>
                     <th className="px-4 py-2 font-medium text-right">
                       <button
                         type="button"
@@ -305,6 +314,11 @@ export default function AdminUsersPage() {
                         {sortBy === "claimedAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
+                    <th className="px-4 py-2 font-medium text-right">Today</th>
+                    <th className="px-4 py-2 font-medium text-right">Yesterday</th>
+                    <th className="px-4 py-2 font-medium text-right">Week</th>
+                    <th className="px-4 py-2 font-medium text-right">Month</th>
+                    <th className="px-4 py-2 font-medium text-right">Year</th>
                     <th className="px-4 py-2 font-medium" />
                   </tr>
                 </thead>
@@ -325,6 +339,8 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-4 py-2 text-foreground">{u.phoneE164 ?? "—"}</td>
                       <td className="px-4 py-2 text-foreground">{u.email ?? "—"}</td>
+                      <td className="px-4 py-2 text-foreground">{u.country ?? "—"}</td>
+                      <td className="px-4 py-2 text-foreground">{u.city ?? "—"}</td>
                       <td className="px-4 py-2 text-right text-foreground">{formatRupees(u.walletBalancePaise)}</td>
                       <td className="px-4 py-2 text-muted">{formatDate(u.createdAt)}</td>
                       <td className="px-4 py-2 text-muted">
@@ -358,6 +374,11 @@ export default function AdminUsersPage() {
                           <span className="text-muted text-xs">—</span>
                         )}
                       </td>
+                      <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentTodaySec)}</td>
+                      <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentYesterdaySec)}</td>
+                      <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentWeekSec)}</td>
+                      <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentMonthSec)}</td>
+                      <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentYearSec)}</td>
                       <td className="px-4 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button

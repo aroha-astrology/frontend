@@ -91,6 +91,14 @@ export interface AdminUserRow {
   /** Independence Day 2026 wallet bonus (independence_day_2026 campaign) claim amount, if claimed. */
   claimedAmountPaise: number | null;
   claimedAt: string | null;
+  /** IP-geolocated on the user's most recent activity heartbeat; null until their first one. */
+  country: string | null;
+  city: string | null;
+  timeSpentTodaySec: number;
+  timeSpentYesterdaySec: number;
+  timeSpentWeekSec: number;
+  timeSpentMonthSec: number;
+  timeSpentYearSec: number;
 }
 
 export interface AdminUsersResponse {
@@ -98,6 +106,12 @@ export interface AdminUsersResponse {
   total: number;
   offset: number;
   limit: number;
+}
+
+export interface AdminLocationCountRow {
+  country: string | null;
+  city: string | null;
+  totalUsers: number;
 }
 
 export interface AdminWalletAdjustBody {
@@ -291,6 +305,13 @@ export const adminApi = {
         // Narrows the LLM cost breakdown only — the revenue and funnel figures
         // in the same response stay business-wide.
         (params.userId ? `&userId=${encodeURIComponent(params.userId)}` : ""),
+      { auth: true },
+    ),
+
+  /** Active users in a preset window, grouped by IP-geolocated country/city, count descending. */
+  activeUsersByLocation: (preset: AdminDateRangePreset) =>
+    request<{ locations: AdminLocationCountRow[] }>(
+      `/v1/admin/active-users/by-location?preset=${preset}`,
       { auth: true },
     ),
 

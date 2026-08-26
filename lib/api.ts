@@ -1057,6 +1057,10 @@ export const api = {
       auth: true,
     }),
 
+  /** One interval of active-usage ping, for admin time-spent reporting. See ActivityHeartbeatProvider. */
+  activityHeartbeat: () =>
+    request<{ success: boolean }>("/v1/me/activity-heartbeat", { method: "POST", auth: true }),
+
   /**
    * Claim a one-time wallet bonus campaign (e.g. "independence_day_2026" —
    * see the backend's config/campaigns.ts). `claimed: false` in the response

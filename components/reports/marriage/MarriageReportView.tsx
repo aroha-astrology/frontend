@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { buildMarriageView } from "@/lib/marriage-report-view";
 import {
@@ -23,7 +24,10 @@ import OutlookCard from "./OutlookCard";
 import HighlightTiles from "./HighlightTiles";
 import PlanetImpactStrip from "./PlanetImpactStrip";
 import SeventhHouseCard from "./SeventhHouseCard";
+import LoveOrArrangeCard from "./LoveOrArrangeCard";
+import SpouseBirthCard, { type SpouseDetails } from "./SpouseBirthCard";
 import type { ReportReady } from "@/hooks/useReport";
+import { reportsApi } from "@/lib/reports-api";
 
 /**
  * The bespoke Marriage Report screen, built to the supplied visual mock.
@@ -37,8 +41,12 @@ import type { ReportReady } from "@/hooks/useReport";
  * deliberately not rendered:
  *   - the You/Partner compatibility rings — `marriage` is a single-person report;
  *     partner scoring only exists on kundli_milan / match_report.
- *   - a "when will I marry" timing card for a user whose onboarding relationship
- *     status is already "married" — see the `scores.relationshipStatus` check below.
+ *
+ * For UNMARRIED users: shows LoveOrArrangeCard (love vs arranged marriage prediction)
+ * and the TopWindowCard (when will I marry timing).
+ *
+ * For MARRIED users: shows SpouseBirthCard so they can enter their spouse's birth
+ * details, submitted as `answers` to regenerate a combined reading.
  *
  * The Remedies section shows real Lal Kitab remedies (report-remedy-slots.ts on the
  * backend) — never a gemstone recommendation; those are sold exclusively through the
@@ -52,6 +60,41 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
   const scores = data.scores;
   const view = buildMarriageView(scores);
   const verdict = isReportVerdict(scores.verdict) ? scores.verdict : null;
+
+  const isMarried = scores.relationshipStatus === "married";
+
+  // Love or arranged marriage — read defensively from scores (backend field: loveOrArrange)
+  const loveOrArrange =
+    typeof scores.loveOrArrange === "string" && scores.loveOrArrange.trim()
+      ? (scores.loveOrArrange as string)
+      : null;
+
+  // Spouse details submission state
+  const [spouseSubmitting, setSpouseSubmitting] = useState(false);
+  const [spouseSubmitted, setSpouseSubmitted] = useState(false);
+
+  const handleSpouseDetails = async (details: SpouseDetails) => {
+    setSpouseSubmitting(true);
+    try {
+      await reportsApi.purchase({
+        reportKey: "marriage",
+        answers: {
+          spouseName: details.name,
+          spouseDob: details.dob,
+          spouseTime: details.time,
+          spousePlace: details.place.name,
+          spouseLat: String(details.place.lat),
+          spouseLon: String(details.place.lon),
+          spouseTz: details.place.tz,
+        },
+      });
+      setSpouseSubmitted(true);
+    } catch {
+      // Silently swallow — user can retry; the card remains visible.
+    } finally {
+      setSpouseSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -73,12 +116,34 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
           order (see designed-screens.tsx). */}
       <SeventhHouseCard facts={view.seventhHouse} />
 
-      {isRankedWindowArray(scores.windows) && scores.relationshipStatus !== "married" && (
+      {/* ── Love or Arranged Marriage (unmarried users only) ── */}
+      {!isMarried && loveOrArrange && (
+        <LoveOrArrangeCard value={loveOrArrange} />
+      )}
+
+      {/* ── Marriage timing window (unmarried users only) ── */}
+      {isRankedWindowArray(scores.windows) && !isMarried && (
         <TopWindowCard
           windows={scores.windows}
           titleKey="marriageReport.timing.title"
           labelKey="marriageReport.timing.strongPeriod"
         />
+      )}
+
+      {/* ── Spouse birth details (married users only) ── */}
+      {isMarried && !spouseSubmitted && (
+        <SpouseBirthCard
+          onSubmit={handleSpouseDetails}
+          submitting={spouseSubmitting}
+        />
+      )}
+      {isMarried && spouseSubmitted && (
+        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-400">
+          {t(
+            "marriageReport.spouseDetails.submitted",
+            "✓ Spouse details submitted. Your personalized combined reading will be ready shortly."
+          )}
+        </div>
       )}
 
       <AnalysisAccordion

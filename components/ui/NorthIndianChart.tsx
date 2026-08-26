@@ -10,6 +10,10 @@ interface PlanetPosition {
   sign: string;
   signIndex: number;
   isRetrograde: boolean;
+  /** Present when the backend computes planet dignity states. */
+  isCombust?: boolean;
+  isExalted?: boolean;
+  isDebilitated?: boolean;
   house: number;
   [key: string]: unknown;
 }
@@ -44,11 +48,35 @@ const PLANET_ABBR_KEY: Record<Planet, string> = {
   Jupiter: 'jupiter', Venus: 'venus', Saturn: 'saturn', Rahu: 'rahu', Ketu: 'ketu',
 };
 
-function getPlanetLabel(planet: Planet, isRetrograde: boolean, abbrMap: Record<string, string>): string {
+/**
+ * Build the display label for a planet inside the chart cell.
+ * Suffixes follow the HoroCosmo convention shown in the reference image:
+ *   * = retrograde   ^ = combust   ↑ = exalted   ↓ = debilitated
+ * Multiple states combine left-to-right (e.g. "Ve*↑").
+ */
+function getPlanetLabel(
+  planet: Planet,
+  pos: Pick<PlanetPosition, 'isRetrograde' | 'isCombust' | 'isExalted' | 'isDebilitated'>,
+  abbrMap: Record<string, string>,
+): string {
   const glyph = PLANET_GLYPHS[planet] ?? '';
   const abbr = abbrMap[PLANET_ABBR_KEY[planet]] || planet.slice(0, 2);
   const base = glyph ? `${glyph} ${abbr}` : abbr;
-  return isRetrograde ? `${base}(R)` : base;
+  let suffix = '';
+  if (pos.isRetrograde) suffix += '*';
+  if (pos.isCombust)    suffix += '^';
+  if (pos.isExalted)    suffix += '\u2191'; // ↑
+  if (pos.isDebilitated) suffix += '\u2193'; // ↓
+  return suffix ? `${base}${suffix}` : base;
+}
+
+/** True when any state symbol should render in a special colour. */
+function planetLabelColor(pos: Pick<PlanetPosition, 'isRetrograde' | 'isCombust' | 'isExalted' | 'isDebilitated'>): string {
+  if (pos.isExalted)    return 'rgba(52,211,153,0.95)';  // emerald
+  if (pos.isDebilitated) return 'rgba(248,113,113,0.95)'; // red
+  if (pos.isCombust)    return 'rgba(251,146,60,0.95)';  // orange
+  if (pos.isRetrograde) return 'rgba(174,128,255,0.85)'; // purple
+  return 'rgba(212,175,55,0.95)'; // gold default
 }
 
 interface HousePos { numberX: number; numberY: number; planetX: number; planetY: number }
@@ -117,11 +145,13 @@ export default function NorthIndianChart({
           transition: { duration: 0.45, ease: 'easeOut' as const, delay },
         };
 
-  const housePlanets: Record<number, string[]> = {};
+  // Build per-house label+color pairs so the SVG text can pick the right fill.
+  const housePlanets: Record<number, Array<{ label: string; color: string }>> = {};
   for (let i = 1; i <= 12; i++) housePlanets[i] = [];
   planets.forEach((p) => {
-    const label = getPlanetLabel(p.planet, p.isRetrograde, planetAbbr);
-    if (housePlanets[p.house]) housePlanets[p.house].push(label);
+    const label = getPlanetLabel(p.planet, p, planetAbbr);
+    const color = planetLabelColor(p);
+    if (housePlanets[p.house]) housePlanets[p.house].push({ label, color });
   });
 
   function getDisplayPosition(logicalHouse: number): number {
@@ -129,7 +159,8 @@ export default function NorthIndianChart({
   }
 
   return (
-    <svg viewBox="0 0 400 400" className="w-full max-w-[400px]" role="img" aria-label={resolvedTitle}>
+    <>
+      <svg viewBox="0 0 400 400" className="w-full max-w-[400px]" role="img" aria-label={resolvedTitle}>
       <defs>
         <radialGradient id="niCenterGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(212,175,55,0.07)" />
@@ -218,11 +249,11 @@ export default function NorthIndianChart({
             <text x={pos.numberX} y={pos.numberY} textAnchor="middle"
               fill={isAscendant ? 'rgba(212,175,55,1)' : 'rgba(225,226,235,0.9)'}
               fontSize="11" fontWeight={isAscendant ? '800' : '700'} fontFamily="DM Sans, sans-serif">
-              {house.house}
+              {house.signIndex + 1}
             </text>
-            {planetLabels.map((label, idx) => (
+            {planetLabels.map(({ label, color }, idx) => (
               <motion.text key={label} x={pos.planetX} y={pos.planetY + idx * 14} textAnchor="middle"
-                fill={label.includes('(R)') ? 'rgba(174,128,255,0.85)' : 'rgba(212,175,55,0.95)'}
+                fill={color}
                 fontSize="11" fontWeight="700" fontFamily="DM Sans, sans-serif"
                 {...fadeOnly(baseDelay + 0.08 + idx * 0.06)}>
                 {label}
@@ -262,5 +293,21 @@ export default function NorthIndianChart({
         </>
       )}
     </svg>
+
+    {/* ── Planet State Legend ── matches HoroCosmo reference image */}
+    <div className="mt-3 grid grid-cols-2 gap-2 px-1">
+      {([
+        { symbol: '*',  label: t('kundli.chart.legend.retrograde',  'Retrograde'),  color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
+        { symbol: '^',  label: t('kundli.chart.legend.combust',     'Combust'),     color: 'text-orange-400', bg: 'bg-orange-400/10 border-orange-400/20' },
+        { symbol: '\u2191', label: t('kundli.chart.legend.exalted',  'Exalted'),     color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
+        { symbol: '\u2193', label: t('kundli.chart.legend.debilitated', 'Debilitated'), color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/20' },
+      ] as const).map(({ symbol, label, color, bg }) => (
+        <div key={symbol} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${bg}`}>
+          <span className={`text-sm font-bold font-mono ${color}`}>{symbol}</span>
+          <span className="text-xs text-foreground/80">{label}</span>
+        </div>
+      ))}
+    </div>
+    </>
   );
 }

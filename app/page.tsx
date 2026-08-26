@@ -18,6 +18,7 @@ import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import AppTour from "@/components/tour/AppTour";
+import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
 import { TOUR_DONE_KEY } from "@/components/tour/tour-steps";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
@@ -147,6 +148,7 @@ export default function HomePage() {
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const [tourOpen, setTourOpen] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
+  const [welcomeDone, setWelcomeDone] = useState(false);
 
   // Show the tour right after onboarding (?tour=1) or once for any existing
   // user who hasn't seen it yet — but never twice, tracked via localStorage.
@@ -154,9 +156,11 @@ export default function HomePage() {
   // still hidden behind the loading logo, and on the permissions prompt
   // having resolved first so the two overlays never stack (the tour should
   // appear after the user enables/dismisses permissions, not on top of it).
+  // ALSO gated on the welcome modal finishing first so they don't overlap.
   useEffect(() => {
     if (!splashDone) return;
     if (!permissionsResolved) return;
+    if (!welcomeDone) return;
     const alreadySeen = localStorage.getItem(TOUR_DONE_KEY) === "1";
     if (alreadySeen) return;
 
@@ -166,10 +170,18 @@ export default function HomePage() {
     } else if (user?.profileCompletedAt) {
       setTourOpen(true);
     }
-  }, [splashDone, permissionsResolved, user]);
+  }, [splashDone, permissionsResolved, user, welcomeDone]);
 
   const finishTour = () => {
     setTourOpen(false);
+    // Clear today's reward dismiss key so the DailyRewardModal (mounted in layout)
+    // naturally surfaces itself immediately after the tour overlay closes.
+    const todayKey = `aroha:dailyReward:${new Date().toISOString().slice(0, 10)}`;
+    try {
+      localStorage.removeItem(todayKey);
+    } catch {
+      // ignore
+    }
     router.replace("/", { scroll: false });
   };
 
@@ -184,6 +196,7 @@ export default function HomePage() {
       <ParticleBackground />
       <MoonBackground planet="mercury" />
       <SplashScreen onDone={() => setSplashDone(true)} />
+      <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
       {tourOpen && <AppTour onFinish={finishTour} />}
 
       <div className="relative z-10">

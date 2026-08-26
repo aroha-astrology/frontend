@@ -78,7 +78,7 @@ export default function HighlightTiles({
                 {t(`marriageReport.strength.${tile.strength}`)}
               </StatusPill>
             ) : (
-              <span className="text-xs font-semibold text-foreground truncate">
+              <span className="text-xs font-semibold text-foreground leading-tight">
                 {tile.text ?? t("marriageReport.noValue")}
               </span>
             )}

@@ -196,6 +196,7 @@ export interface UpdateMeBody {
   onboardingStatus?: string;
   consent?: ConsentInput;
   referredByCode?: string;
+  referralSource?: string;
   /** Id of a tour just finished — the server APPENDS it to `toursCompleted`, never replaces. */
   tourCompleted?: string;
   /** Clears `toursCompleted` so every tour runs again (Settings -> "Show me around again"). */
@@ -1056,6 +1057,10 @@ export const api = {
       body: { houseNumber },
       auth: true,
     }),
+
+  /** One interval of active-usage ping, for admin time-spent reporting. See ActivityHeartbeatProvider. */
+  activityHeartbeat: () =>
+    request<{ success: boolean }>("/v1/me/activity-heartbeat", { method: "POST", auth: true }),
 
   /**
    * Claim a one-time wallet bonus campaign (e.g. "independence_day_2026" —

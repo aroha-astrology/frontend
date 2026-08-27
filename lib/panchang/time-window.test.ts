@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   timeToMinutes,
+  minutesToTime,
   timeToPercent,
   durationMinutes,
   formatDurationHm,
@@ -13,6 +14,23 @@ describe("timeToMinutes", () => {
     expect(timeToMinutes("01:30")).toBe(90);
     expect(timeToMinutes("12:00")).toBe(720);
     expect(timeToMinutes("23:59")).toBe(1439);
+  });
+});
+
+describe("minutesToTime", () => {
+  it("is the inverse of timeToMinutes", () => {
+    expect(minutesToTime(0)).toBe("00:00");
+    expect(minutesToTime(90)).toBe("01:30");
+    expect(minutesToTime(1439)).toBe("23:59");
+  });
+
+  it("wraps minutes past 24h", () => {
+    expect(minutesToTime(1440)).toBe("00:00");
+    expect(minutesToTime(1450)).toBe("00:10");
+  });
+
+  it("wraps negative minutes", () => {
+    expect(minutesToTime(-10)).toBe("23:50");
   });
 });
 

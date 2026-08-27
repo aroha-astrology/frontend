@@ -10,6 +10,12 @@ export function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
+/** Inverse of timeToMinutes: minutes since midnight (mod 24h, wraps negatives) -> "HH:mm". */
+export function minutesToTime(totalMinutes: number): string {
+  const m = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+
 /**
  * Percent position (0-100) of a clock time within a single midnight-to-
  * midnight day. Only meaningful for windows that never cross midnight —

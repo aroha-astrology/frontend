@@ -12,6 +12,17 @@ export interface HinduFestival {
   name: string;
   emoji: string;
   importance: "major" | "minor";
+  /** Published auspicious window for this occurrence, same drikpanchang.com sourcing as the
+   * rest of this table. Only set for festivals with a genuinely named muhurat (Lakshmi Puja,
+   * Nishita Kaal, etc.) — most entries have none. */
+  muhurat?: {
+    start: string; // "HH:mm" — same wire format as PanchangTimeWindow/sunriseTime
+    end: string; // "HH:mm"
+    /** e.g. "Nishita Puja" — proper-noun content, not translated (same precedent as festival names). */
+    label?: string;
+    /** Local sun/moon event this window is pegged to, used by festival-muhurat.ts to shift it per-location. Defaults to "sunset" when omitted. */
+    anchor?: "sunrise" | "sunset" | "midnight" | "moonrise";
+  };
 }
 
 export const HINDU_FESTIVALS: Record<string, HinduFestival[]> = {
@@ -83,11 +94,111 @@ export const HINDU_FESTIVALS: Record<string, HinduFestival[]> = {
   "2027-04-15": [{ name: "Rama Navami", emoji: "🏹", importance: "major" }],
   "2027-04-21": [{ name: "Hanuman Jayanti", emoji: "🐒", importance: "major" }],
   "2027-05-09": [{ name: "Akshaya Tritiya", emoji: "✨", importance: "major" }],
+  "2027-07-14": [{ name: "Devshayani Ekadashi", emoji: "🕉", importance: "minor" }],
+  "2027-07-18": [{ name: "Guru Purnima", emoji: "🌕", importance: "major" }],
   "2027-08-18": [{ name: "Raksha Bandhan", emoji: "🪢", importance: "major" }],
   "2027-08-25": [{ name: "Krishna Janmashtami", emoji: "🦚", importance: "major" }],
   "2027-09-04": [{ name: "Ganesh Chaturthi", emoji: "🐘", importance: "major" }],
+  "2027-09-30": [{ name: "Sharad Navratri begins", emoji: "🪔", importance: "major" }],
+  "2027-10-07": [{ name: "Durga Ashtami", emoji: "🗡", importance: "major" }],
   "2027-10-08": [{ name: "Vijayadashami (Dussehra)", emoji: "🏹", importance: "major" }],
-  "2027-10-27": [{ name: "Diwali (Lakshmi Puja)", emoji: "🪔", importance: "major" }],
+  "2027-10-18": [
+    {
+      name: "Karwa Chauth",
+      emoji: "🌙",
+      importance: "major",
+      muhurat: { start: "17:49", end: "19:04", anchor: "moonrise", label: "Puja Muhurat" },
+    },
+  ],
+  // Note: the previous table dated Diwali itself to 2027-10-27 — that's actually Dhanteras
+  // (drikpanchang.com confirmed Diwali/Lakshmi Puja 2027 falls on 2027-10-29, two days later).
+  "2027-10-27": [
+    {
+      name: "Dhanteras",
+      emoji: "💰",
+      importance: "major",
+      muhurat: { start: "18:42", end: "20:14", label: "Pradosh Kaal Puja" },
+    },
+  ],
+  "2027-10-29": [
+    {
+      name: "Diwali (Lakshmi Puja)",
+      emoji: "🪔",
+      importance: "major",
+      muhurat: { start: "18:34", end: "19:05", label: "Lakshmi Puja Muhurat" },
+    },
+  ],
+  "2027-10-30": [
+    {
+      name: "Govardhan Puja",
+      emoji: "🐄",
+      importance: "minor",
+      muhurat: { start: "06:31", end: "08:45", anchor: "sunrise", label: "Pratahkal Muhurat" },
+    },
+  ],
+  "2027-10-31": [
+    {
+      name: "Bhai Dooj",
+      emoji: "👫",
+      importance: "minor",
+      muhurat: { start: "13:11", end: "15:24", label: "Aparahna Muhurat" },
+    },
+  ],
+  "2027-11-04": [{ name: "Chhath Puja", emoji: "🌅", importance: "major" }],
+  "2027-12-09": [{ name: "Mokshada Ekadashi (Gita Jayanti)", emoji: "📖", importance: "major" }],
+
+  // -- 2028 --------------------------------------------------------------
+  "2028-01-15": [
+    {
+      name: "Makar Sankranti",
+      emoji: "🪁",
+      importance: "major",
+      muhurat: { start: "07:15", end: "17:46", anchor: "sunrise", label: "Punya Kaal" },
+    },
+  ],
+  "2028-01-26": [{ name: "Republic Day", emoji: "🇮🇳", importance: "minor" }],
+  "2028-01-31": [{ name: "Vasant Panchami", emoji: "📚", importance: "major" }],
+  "2028-02-23": [
+    {
+      name: "Maha Shivaratri",
+      emoji: "🔱",
+      importance: "major",
+      muhurat: { start: "00:09", end: "00:59", anchor: "midnight", label: "Nishita Kaal Puja" },
+    },
+  ],
+  "2028-03-10": [
+    {
+      name: "Holika Dahan",
+      emoji: "🔥",
+      importance: "minor",
+      muhurat: { start: "18:27", end: "20:52", label: "Bhadra-free Dahan Muhurat" },
+    },
+  ],
+  "2028-03-11": [{ name: "Holi", emoji: "🎨", importance: "major" }],
+  "2028-03-27": [{ name: "Chaitra Navratri begins", emoji: "🪔", importance: "major" }],
+  "2028-04-03": [{ name: "Rama Navami", emoji: "🏹", importance: "major" }],
+  "2028-04-09": [{ name: "Hanuman Jayanti", emoji: "🐒", importance: "major" }],
+  "2028-04-27": [
+    {
+      name: "Akshaya Tritiya",
+      emoji: "✨",
+      importance: "major",
+      muhurat: { start: "05:44", end: "12:19", anchor: "sunrise", label: "Puja Muhurat" },
+    },
+  ],
+  "2028-07-02": [{ name: "Devshayani Ekadashi", emoji: "🕉", importance: "minor" }],
+  "2028-07-06": [{ name: "Guru Purnima", emoji: "🌕", importance: "major" }],
+  "2028-08-05": [{ name: "Raksha Bandhan", emoji: "🪢", importance: "major" }],
+  "2028-08-13": [
+    {
+      name: "Krishna Janmashtami",
+      emoji: "🦚",
+      importance: "major",
+      muhurat: { start: "00:04", end: "00:48", anchor: "midnight", label: "Nishita Puja" },
+    },
+  ],
+  "2028-08-15": [{ name: "Independence Day", emoji: "🇮🇳", importance: "minor" }],
+  "2028-08-23": [{ name: "Ganesh Chaturthi", emoji: "🐘", importance: "major" }],
 };
 
 export function getFestivalsForDate(date: string): HinduFestival[] {

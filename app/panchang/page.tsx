@@ -334,7 +334,7 @@ export default function PanchangPage() {
           <div className="mt-6 space-y-6">
             {/* Hero: today's vara-lord orb, tithi, festival pill, and the Rahu Kaal / Abhijit Muhurta bar */}
             <div data-tour="panchang-tithi">
-              <TithiHero data={data} dateIso={selectedDate} />
+              <TithiHero data={data} dateIso={selectedDate} refData={refData} userData={userData} />
             </div>
 
             {/* Remaining core facts — tithi itself is already covered by the hero above, so it's left out here to avoid showing it twice. */}
@@ -409,10 +409,11 @@ export default function PanchangPage() {
                     if (!m) return null;
                     return (
                       <Card key={r} className="p-3.5 border-gold/10">
-                        <p className="text-[10px] text-muted uppercase tracking-wider">{m.calendar}</p>
+                        <p className="text-[10px] text-muted uppercase tracking-wider leading-tight">{REGION_META[r].state}</p>
                         <p className="text-sm text-foreground font-medium mt-0.5">
                           {m.monthName} {m.year}
                         </p>
+                        <p className="text-[10px] text-muted/70 mt-0.5">{m.calendar}</p>
                       </Card>
                     );
                   })}

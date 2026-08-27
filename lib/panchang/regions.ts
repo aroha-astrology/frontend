@@ -28,23 +28,25 @@ export const REGION_OPTIONS: { value: RegionId; label: string }[] = [
 export interface RegionMeta {
   id: RegionId;
   label: string;
+  /** State/community identity shown as the Regional Calendars card title — disambiguates cards that share a calendarName (e.g. 5 regions all use "Shalivahana Shaka"). */
+  state: string;
   calendarName: string; // 'Vikram Samvat', 'Bengali San', 'Kollam Era', 'Nanakshahi', ...
   /** Localised Adhik Maas / intercalary-month name — omitted for regions with no direct equivalent term (fixed-solar Nanakshahi). */
   adhikMaasName?: string;
 }
 
 export const REGION_META: Record<RegionId, RegionMeta> = {
-  north: { id: "north", label: "Hindi", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
-  south: { id: "south", label: "Telugu", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masam" },
-  kannada: { id: "kannada", label: "Kannada", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masa" },
-  west: { id: "west", label: "Marathi", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhik Maas" },
-  east: { id: "east", label: "Bengali", calendarName: "Bengali San", adhikMaasName: "Mol Maas" },
-  gujarat: { id: "gujarat", label: "Gujarati", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
-  odisha: { id: "odisha", label: "Odia", calendarName: "Shalivahana Shaka" },
-  assam: { id: "assam", label: "Assamese", calendarName: "Bengali San" },
-  tamil: { id: "tamil", label: "Tamil", calendarName: "Shalivahana Shaka" },
-  malayalam: { id: "malayalam", label: "Malayalam", calendarName: "Kollam Era" },
-  punjab: { id: "punjab", label: "Punjabi", calendarName: "Nanakshahi" },
+  north: { id: "north", label: "Hindi", state: "Delhi, Uttar Pradesh, Bihar & the Hindi belt", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
+  south: { id: "south", label: "Telugu", state: "Andhra Pradesh & Telangana", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masam" },
+  kannada: { id: "kannada", label: "Kannada", state: "Karnataka", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhika Masa" },
+  west: { id: "west", label: "Marathi", state: "Maharashtra", calendarName: "Shalivahana Shaka", adhikMaasName: "Adhik Maas" },
+  east: { id: "east", label: "Bengali", state: "West Bengal", calendarName: "Bengali San", adhikMaasName: "Mol Maas" },
+  gujarat: { id: "gujarat", label: "Gujarati", state: "Gujarat", calendarName: "Vikram Samvat", adhikMaasName: "Adhik Maas" },
+  odisha: { id: "odisha", label: "Odia", state: "Odisha", calendarName: "Shalivahana Shaka" },
+  assam: { id: "assam", label: "Assamese", state: "Assam", calendarName: "Bengali San" },
+  tamil: { id: "tamil", label: "Tamil", state: "Tamil Nadu", calendarName: "Shalivahana Shaka" },
+  malayalam: { id: "malayalam", label: "Malayalam", state: "Kerala", calendarName: "Kollam Era" },
+  punjab: { id: "punjab", label: "Punjabi", state: "Punjab (Sikh community)", calendarName: "Nanakshahi" },
 };
 
 /**

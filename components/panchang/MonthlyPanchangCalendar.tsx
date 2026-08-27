@@ -276,12 +276,15 @@ export default function MonthlyPanchangCalendar({
                 <button
                   key={d.isoDate}
                   onClick={() => onSelectDate(d.isoDate)}
-                  className="w-full flex items-center justify-between text-[11px] px-2 py-1 rounded-lg hover:bg-gold/5"
+                  className="w-full flex items-center justify-between gap-2 text-[11px] px-2 py-1.5 rounded-lg border border-transparent hover:bg-gold/5 hover:border-gold/15 active:bg-gold/10 transition-colors"
                 >
                   <span className="text-muted">
-                    {d.isoDate.slice(8, 10)} · {label}
+                    {d.isoDate.slice(8, 10)}/{d.isoDate.slice(5, 7)} · {label}
                   </span>
-                  <span className="text-foreground">{d.vara}</span>
+                  <span className="flex items-center gap-1 text-foreground shrink-0">
+                    {d.vara}
+                    <ChevronRight size={12} className="text-gold/60" />
+                  </span>
                 </button>
               );
             })}

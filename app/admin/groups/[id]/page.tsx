@@ -302,9 +302,14 @@ export default function AdminGroupDetailPage() {
                   featureKey={row.key}
                   error={featureErrors[row.key]}
                   priceEditor={
-                    // Only meaningful once this group's own override is explicitly on — see
-                    // handleModelChange's doc comment.
-                    row.modelOptions.length > 0 && row.state === true ? (
+                    // Always shown for a model-picker key, same as the main Features page —
+                    // hiding it until the toggle was explicitly "On" meant an admin had to
+                    // flip the override on blind, THEN a dropdown would appear, before they
+                    // could see what they were picking. Picking an option here while still
+                    // "Inherit" flips the override on as a side effect (see
+                    // handleModelChange's own doc comment) rather than requiring two separate
+                    // steps.
+                    row.modelOptions.length > 0 ? (
                       <ModelSelect
                         id={`group-model-${row.key}`}
                         value={row.model}

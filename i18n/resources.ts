@@ -1821,6 +1821,13 @@ export const resources = {
         encryptionNote: "Your birth details, phone number, and chat history are encrypted.",
         appVersion: "Version {{version}}",
       },
+      chatHistory: {
+        deleteAriaLabel: "Delete {{title}}",
+        deleteConfirmTitle: "Delete this chat?",
+        deleteConfirmBody: "This chat will be removed from your history. This cannot be undone.",
+        deleteConfirmButton: "Yes, delete",
+        cancel: "Cancel",
+      },
       profile: {
         title: "My Profile",
         name: "Name",
@@ -3802,6 +3809,13 @@ export const resources = {
         languageAvailable: "उपलब्ध भाषाएं: {{languages}}",
         encryptionNote: "आपका जन्म विवरण, फ़ोन नंबर और चैट इतिहास एन्क्रिप्टेड है।",
         appVersion: "संस्करण {{version}}",
+      },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} हटाएं",
+        deleteConfirmTitle: "यह चैट हटाएं?",
+        deleteConfirmBody: "यह चैट आपके इतिहास से हटा दी जाएगी। इसे पूर्ववत नहीं किया जा सकता।",
+        deleteConfirmButton: "हां, हटाएं",
+        cancel: "रद्द करें",
       },
       profile: {
         title: "मेरी प्रोफ़ाइल",
@@ -6007,6 +6021,13 @@ export const resources = {
         languageAvailable: "উপলব্ধ ভাষা: {{languages}}",
         encryptionNote: "আপনার জন্ম বিবরণ, ফোন নম্বর এবং চ্যাট ইতিহাস এনক্রিপ্ট করা আছে।",
         appVersion: "সংস্করণ {{version}}",
+      },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} মুছুন",
+        deleteConfirmTitle: "এই চ্যাট মুছবেন?",
+        deleteConfirmBody: "এই চ্যাটটি আপনার ইতিহাস থেকে সরিয়ে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।",
+        deleteConfirmButton: "হ্যাঁ, মুছুন",
+        cancel: "বাতিল করুন",
       },
       profile: {
         title: "আমার প্রোফাইল",
@@ -8217,6 +8238,13 @@ export const resources = {
         encryptionNote: "तुमचा जन्म तपशील, फोन नंबर आणि चॅट इतिहास एन्क्रिप्टेड आहे.",
         appVersion: "आवृत्ती {{version}}",
       },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} हटवा",
+        deleteConfirmTitle: "ही चॅट हटवायची?",
+        deleteConfirmBody: "ही चॅट तुमच्या इतिहासातून काढली जाईल. हे पूर्ववत करता येणार नाही.",
+        deleteConfirmButton: "हो, हटवा",
+        cancel: "रद्द करा",
+      },
       profile: {
         title: "माझी प्रोफाइल",
         name: "नाव",
@@ -10422,6 +10450,13 @@ export const resources = {
         languageAvailable: "అందుబాటులో ఉన్న భాషలు: {{languages}}",
         encryptionNote: "మీ జనన వివరాలు, ఫోన్ నంబర్ మరియు చాట్ చరిత్ర ఎన్‌క్రిప్ట్ చేయబడ్డాయి.",
         appVersion: "వెర్షన్ {{version}}",
+      },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} తొలగించండి",
+        deleteConfirmTitle: "ఈ చాట్ తొలగించాలా?",
+        deleteConfirmBody: "ఈ చాట్ మీ చరిత్ర నుండి తీసివేయబడుతుంది. దీన్ని వెనక్కి తీసుకోలేరు.",
+        deleteConfirmButton: "అవును, తొలగించండి",
+        cancel: "రద్దు చేయండి",
       },
       profile: {
         title: "నా ప్రొఫైల్",
@@ -12633,6 +12668,13 @@ export const resources = {
         encryptionNote: "உங்கள் பிறப்பு விவரங்கள், தொலைபேசி எண் மற்றும் அரட்டை வரலாறு குறியாக்கம் செய்யப்பட்டுள்ளது.",
         appVersion: "பதிப்பு {{version}}",
       },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} நீக்கு",
+        deleteConfirmTitle: "இந்த அரட்டையை நீக்கவா?",
+        deleteConfirmBody: "இந்த அரட்டை உங்கள் வரலாற்றிலிருந்து அகற்றப்படும். இதை மீட்க முடியாது.",
+        deleteConfirmButton: "ஆம், நீக்கு",
+        cancel: "ரத்து செய்",
+      },
       profile: {
         title: "எனது சுயவிவரம்",
         name: "பெயர்",
@@ -14839,6 +14881,13 @@ export const resources = {
         languageAvailable: "ઉપલબ્ધ ભાષાઓ: {{languages}}",
         encryptionNote: "તમારી જન્મ વિગતો, ફોન નંબર અને ચેટ ઇતિહાસ એન્ક્રિપ્ટેડ છે.",
         appVersion: "આવૃત્તિ {{version}}",
+      },
+      chatHistory: {
+        deleteAriaLabel: "{{title}} ડિલીટ કરો",
+        deleteConfirmTitle: "આ ચેટ ડિલીટ કરવી છે?",
+        deleteConfirmBody: "આ ચેટ તમારા ઇતિહાસમાંથી દૂર કરવામાં આવશે. આ પૂર્વવત્ કરી શકાશે નહીં.",
+        deleteConfirmButton: "હા, ડિલીટ કરો",
+        cancel: "રદ કરો",
       },
       profile: {
         title: "મારી પ્રોફાઇલ",

@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageCircle, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
+import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { useTranslation } from "react-i18next";
 import { getFirebaseAuth } from "@/lib/firebase";
 
@@ -21,14 +22,17 @@ export default function ChatHistoryPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingSession, setDeletingSession] = useState<ChatSession | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
+  const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in").replace(/\/$/, "");
 
   useEffect(() => {
     async function fetchSessions() {
       try {
         const auth = getFirebaseAuth();
         const token = await auth.currentUser?.getIdToken();
-        const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in").replace(/\/$/, "");
-        
+
         const response = await fetch(`${baseUrl}/v1/chat/sessions`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -47,7 +51,26 @@ export default function ChatHistoryPage() {
       }
     }
     fetchSessions();
-  }, []);
+  }, [baseUrl]);
+
+  async function handleDeleteSession() {
+    if (!deletingSession) return;
+    setDeleteBusy(true);
+    try {
+      const auth = getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch(`${baseUrl}/v1/chat/sessions/${deletingSession.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setSessions((prev) => prev.filter((s) => s.id !== deletingSession.id));
+        setDeletingSession(null);
+      }
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -86,12 +109,53 @@ export default function ChatHistoryPage() {
                     {new Date(session.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingSession(session);
+                  }}
+                  aria-label={t("chatHistory.deleteAriaLabel", { title: session.title })}
+                  className="p-1.5 -m-1.5 mr-1 text-muted hover:text-red-400 transition-colors shrink-0"
+                >
+                  <Trash2 size={18} />
+                </button>
                 <ChevronRight size={20} className="text-muted shrink-0" />
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {deletingSession && (
+        <BottomSheetModal
+          onClose={() => !deleteBusy && setDeletingSession(null)}
+          closeLabel={t("common.close")}
+          header={
+            <h2 className="text-base font-display text-foreground">
+              {t("chatHistory.deleteConfirmTitle")}
+            </h2>
+          }
+        >
+          <p className="text-sm text-muted mb-5">{t("chatHistory.deleteConfirmBody")}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDeletingSession(null)}
+              disabled={deleteBusy}
+              className="flex-1 px-4 py-3 rounded-2xl border border-gold/20 text-sm font-medium text-foreground disabled:opacity-50"
+            >
+              {t("chatHistory.cancel")}
+            </button>
+            <button
+              onClick={handleDeleteSession}
+              disabled={deleteBusy}
+              className="flex-1 px-4 py-3 rounded-2xl bg-red-500 text-white text-sm font-medium disabled:opacity-50"
+            >
+              {t("chatHistory.deleteConfirmButton")}
+            </button>
+          </div>
+        </BottomSheetModal>
+      )}
     </main>
   );
 }

@@ -250,6 +250,46 @@ export const GEMINI_INPUT_USD_PER_MILLION_TOKENS = 0.25;
 export const GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = 1.5;
 
 /**
+ * Per-model USD/1M-token list pricing (standard/paid tier, ex-GST), for the
+ * "which model costs how much" caption on the Admin -> Features / Groups
+ * model-picker dropdowns — a DIFFERENT concern from
+ * GEMINI_INPUT/OUTPUT_USD_PER_MILLION_TOKENS above, which drive the actual
+ * cost DASHBOARD and stay pinned to flash-lite's rate on purpose (every
+ * agent has run on flash-lite exclusively until the model pickers below
+ * existed). This table does NOT feed that dashboard — it exists purely so an
+ * admin can see the price difference BEFORE picking a model. If a picker
+ * here is ever actually turned on for a group, `estimateLlmCostPaise`/
+ * `estimateLlmListPricePaise` above will start under-reporting that slice of
+ * spend (still priced at flash-lite's rate regardless of what actually ran)
+ * until the cost dashboard is made model-aware — a real gap, out of scope for
+ * just adding the picker, flagged here rather than fixed silently.
+ *
+ * Sourced from ai.google.dev/gemini-api/docs/pricing on 2026-08-28.
+ * gemini-3.1-pro's >200k-token-prompt tier ($4/$18) and gemini-3.7-flash's
+ * post-2027-01-01 standard tier ($1.50/$7.50, double the introductory rate
+ * shown here) are each a separate, higher rate not captured by this single
+ * number — the caption these numbers feed says "from" for that reason.
+ */
+export const MODEL_PRICING: Record<string, { inputUsdPerMillion: number; outputUsdPerMillion: number }> = {
+  'gemini-3.1-flash-lite': { inputUsdPerMillion: 0.25, outputUsdPerMillion: 1.5 },
+  'gemini-3.1-flash': { inputUsdPerMillion: 0.75, outputUsdPerMillion: 4.5 },
+  'gemini-3.1-pro': { inputUsdPerMillion: 2.0, outputUsdPerMillion: 12.0 },
+  'gemini-3.7-flash': { inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75 },
+};
+
+/**
+ * "from $0.25 / $1.50 per 1M" — the dropdown-option caption. Returns null for
+ * a model id with no pricing entry (never blocks rendering the option over a
+ * missing price).
+ */
+export function formatModelPricing(model: string): string | null {
+  const p = MODEL_PRICING[model];
+  if (!p) return null;
+  const fmt = (n: number) => (Number.isInteger(n) ? n.toString() : n.toFixed(2));
+  return `from $${fmt(p.inputUsdPerMillion)} / $${fmt(p.outputUsdPerMillion)} per 1M tokens`;
+}
+
+/**
  * FALLBACK USD→INR rate, used only when the live rate lookup in lib/fx.ts fails.
  *
  * This used to be the single hardcoded source of truth at 88, which is how the

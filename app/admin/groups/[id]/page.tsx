@@ -16,6 +16,7 @@ import ErrorRetry from "@/components/admin/ErrorRetry";
 import FeatureGroupSection from "@/components/admin/FeatureGroupSection";
 import FeatureRow from "@/components/admin/FeatureRow";
 import ThreeWayToggle from "@/components/admin/ThreeWayToggle";
+import ModelSelect from "@/components/admin/ModelSelect";
 import Card from "@/components/ui/Card";
 
 function formatDate(iso: string): string {
@@ -194,6 +195,44 @@ export default function AdminGroupDetailPage() {
     }
   }
 
+  /**
+   * A group model choice only applies while the group's own override is `true` — 'inherit'/false
+   * both mean "this group has no opinion, defer to the global model" (see
+   * admin-groups.service.ts#listGroupFeaturesForAdmin's own doc comment on the `model` field), so
+   * `enabled: true` is always sent here rather than echoing `row.state`.
+   */
+  async function handleModelChange(row: AdminGroupFeatureRow, nextModel: string) {
+    if (!features) return;
+    const previous = features;
+    setSavingFeatureKeys((prev) => new Set(prev).add(row.key));
+    setFeatureErrors((prev) => {
+      const n = { ...prev };
+      delete n[row.key];
+      return n;
+    });
+    setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? { ...f, model: nextModel } : f)));
+    try {
+      const updated = await adminApi.updateGroupFeature(groupId, {
+        key: row.key,
+        enabled: true,
+        model: nextModel,
+      });
+      setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? updated : f)));
+    } catch (err) {
+      setFeatures(previous);
+      setFeatureErrors((prev) => ({
+        ...prev,
+        [row.key]: err instanceof ApiError ? err.message : "Failed to update model",
+      }));
+    } finally {
+      setSavingFeatureKeys((prev) => {
+        const n = new Set(prev);
+        n.delete(row.key);
+        return n;
+      });
+    }
+  }
+
   if (loading && !members) return <p className="text-sm text-muted text-center py-10">Loading…</p>;
   if (error) return <ErrorRetry message={error} onRetry={fetchAll} />;
 
@@ -262,6 +301,19 @@ export default function AdminGroupDetailPage() {
                   label={row.label}
                   featureKey={row.key}
                   error={featureErrors[row.key]}
+                  priceEditor={
+                    // Only meaningful once this group's own override is explicitly on — see
+                    // handleModelChange's doc comment.
+                    row.modelOptions.length > 0 && row.state === true ? (
+                      <ModelSelect
+                        id={`group-model-${row.key}`}
+                        value={row.model}
+                        options={row.modelOptions}
+                        disabled={savingFeatureKeys.has(row.key)}
+                        onChange={(next) => handleModelChange(row, next)}
+                      />
+                    ) : undefined
+                  }
                   control={
                     <ThreeWayToggle
                       value={row.state}

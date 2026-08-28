@@ -130,9 +130,17 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
 
 const TIMESCALES: Timescale[] = ["daily", "weekly", "monthly", "yearly"];
 
-// Tomorrow's personalized reading is hidden for now — the backend produces
-// near-identical lucky-element output across periods, so this toggle is
-// disabled until that's fixed. Flip back on once resolved.
+// Tomorrow's personalized reading was hidden because the backend produced
+// near-identical output across periods — traced (2026-08-28) to a stack of
+// backend bugs, all now fixed: an 800-token ceiling too small for the 6-block
+// schema (truncated JSON), a deterministic score mathematically frozen for
+// months at a time (see jyotish-backend's daily-synthesis.ts), and a prompt
+// fed ~97% permanent natal data with almost nothing day-specific to latch
+// onto. `tryReuseYesterdaysTomorrow` (horoscope.service.ts) itself was never
+// the bug — reusing yesterday's correctly-generated "tomorrow" reading AS
+// today is astrologically correct, it's the same calendar day. Re-enable once
+// a quick live check across two real calendar days confirms today's and
+// tomorrow's readings actually differ now.
 const SHOW_TOMORROW_TOGGLE = false;
 
 export default function HoroscopePage() {

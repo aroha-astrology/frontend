@@ -23,6 +23,8 @@ import {
   addGst,
   splitFreeVsPaid,
   GST_RATE,
+  MODEL_PRICING,
+  formatModelPricing,
 } from "./admin-format";
 
 describe("ADMIN_DATE_RANGE_PRESETS", () => {
@@ -469,5 +471,33 @@ describe("splitFreeVsPaid", () => {
     // Paid/list price come from separate SQL aggregates computed at different
     // moments; a stray inconsistency must not render a negative free share.
     expect(splitFreeVsPaid(100, 150)).toMatchObject({ freePaise: 0, paidPaise: 100, paidPercent: 100 });
+  });
+});
+
+describe("formatModelPricing", () => {
+  it("formats a known model's caption with $ input/output rates", () => {
+    expect(formatModelPricing("gemini-3.1-flash-lite")).toBe("from $0.25 / $1.50 per 1M tokens");
+  });
+
+  it("formats a whole-dollar rate without a trailing .00", () => {
+    expect(formatModelPricing("gemini-3.1-pro")).toBe("from $2 / $12 per 1M tokens");
+  });
+
+  it("returns null for a model id with no pricing entry, never throws", () => {
+    expect(formatModelPricing("not-a-real-model")).toBeNull();
+  });
+
+  it("has a pricing entry for every model in SELECTABLE_GEMINI_MODELS's frontend mirror", () => {
+    // No shared import between backend config/features.ts and this file (frontend/backend are
+    // separate builds) — this just guards against MODEL_PRICING silently drifting out of sync
+    // with the four models the backend's SELECTABLE_GEMINI_MODELS actually offers.
+    for (const model of [
+      "gemini-3.1-flash-lite",
+      "gemini-3.1-flash",
+      "gemini-3.1-pro",
+      "gemini-3.7-flash",
+    ]) {
+      expect(MODEL_PRICING[model]).toBeDefined();
+    }
   });
 });

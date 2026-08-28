@@ -9,6 +9,7 @@ import ErrorRetry from "@/components/admin/ErrorRetry";
 import FeatureGroupSection from "@/components/admin/FeatureGroupSection";
 import FeatureRow from "@/components/admin/FeatureRow";
 import AdminPriceField from "@/components/admin/AdminPriceField";
+import ModelSelect from "@/components/admin/ModelSelect";
 
 /** Empty string means "no draft typed yet" — same as an empty Original Price field. */
 function originalPriceDraft(paise: number | null): string {
@@ -78,6 +79,29 @@ export default function AdminFeaturesPage() {
     } catch (err) {
       setFeatures(previous);
       setRowError(row.key, err instanceof ApiError ? err.message : "Failed to update");
+    } finally {
+      setSaving(row.key, false);
+    }
+  }
+
+  async function handleModelChange(row: AdminFeatureRow, nextModel: string) {
+    if (!features) return;
+    const previous = features;
+    setSaving(row.key, true);
+    setRowError(row.key, null);
+    setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? { ...f, model: nextModel } : f)));
+    try {
+      const updated = await adminApi.updateFeature({
+        key: row.key,
+        enabled: row.enabled,
+        pricePaise: row.pricePaise,
+        originalPricePaise: row.originalPricePaise,
+        model: nextModel,
+      });
+      setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? updated : f)));
+    } catch (err) {
+      setFeatures(previous);
+      setRowError(row.key, err instanceof ApiError ? err.message : "Failed to update model");
     } finally {
       setSaving(row.key, false);
     }
@@ -174,7 +198,15 @@ export default function AdminFeaturesPage() {
                   featureKey={row.key}
                   error={rowErrors[row.key]}
                   priceEditor={
-                    row.pricePaise !== null ? (
+                    row.modelOptions.length > 0 ? (
+                      <ModelSelect
+                        id={`model-${row.key}`}
+                        value={row.model}
+                        options={row.modelOptions}
+                        disabled={savingKeys.has(row.key)}
+                        onChange={(next) => handleModelChange(row, next)}
+                      />
+                    ) : row.pricePaise !== null ? (
                       <div className="flex flex-wrap items-end justify-end gap-2">
                         <AdminPriceField
                           id={`original-price-${row.key}`}

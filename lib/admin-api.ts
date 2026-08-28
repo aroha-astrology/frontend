@@ -69,6 +69,11 @@ export interface AdminFeatureRow {
   pricePaise: number | null;
   /** "Strikethrough" MRP shown on the customer report catalogue when higher than pricePaise. Null = no discount configured. */
   originalPricePaise: number | null;
+  /** Currently selected model, for a model-picker key (non-empty `modelOptions`); null for every
+   * other key, and for a model key whose toggle is off (falls back to the global default model). */
+  model: string | null;
+  /** Non-empty ONLY for a model-picker key — renders a dropdown of these instead of a price box. */
+  modelOptions: string[];
 }
 
 export interface UpdateAdminFeatureBody {
@@ -76,6 +81,8 @@ export interface UpdateAdminFeatureBody {
   enabled: boolean;
   pricePaise?: number | null;
   originalPricePaise?: number | null;
+  /** Omit to leave the current model choice untouched; null clears it (inherit the global default); a string sets it. */
+  model?: string | null;
 }
 
 // ─── Users ─────────────────────────────────────────────────────────────────
@@ -191,12 +198,21 @@ export interface AdminGroupFeatureRow {
   label: string;
   group: AdminFeatureGroupKey;
   state: AdminGroupFeatureState;
+  /** This group's model override for a model-picker key; null while `state` isn't `true`, or for
+   * a non-model-picker key (mirrors AdminFeatureRow.model's own convention). */
+  model: string | null;
+  /** Non-empty ONLY for a model-picker key. */
+  modelOptions: string[];
 }
 
 export interface UpdateAdminGroupFeatureBody {
   key: string;
   /** `null` clears the override back to 'inherit'. */
   enabled: boolean | null;
+  /** The group's full intended model choice — null = inherit the global model. Omit only for a
+   * non-model-picker key or when `enabled` is null (see UpdateGroupFeatureBodySchema on the
+   * backend for why this has no "leave untouched" case, unlike UpdateAdminFeatureBody.model). */
+  model?: string | null;
 }
 
 // ─── Referrals ─────────────────────────────────────────────────────────────

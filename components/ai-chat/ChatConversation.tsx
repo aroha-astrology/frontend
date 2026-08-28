@@ -851,7 +851,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             suggestions would just clutter a conversation already in progress. */}
         {userMessageCount === 0 && !streaming && (
           <div className="flex flex-wrap gap-2 ml-9">
-            {(["suggestion1"] as const).map((key) => (
+            {(["suggestion1", "suggestion2", "suggestion3", "suggestion4", "suggestion5"] as const).map((key) => (
               <button
                 key={key}
                 onClick={() => sendMessage(t(`aiChatPage.${key}`))}

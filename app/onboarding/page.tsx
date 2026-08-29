@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Send, Check, ChevronRight, Loader2 } from "lucide-react";
+import { Send, Check, ChevronRight, Loader2, Pencil } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -49,14 +49,13 @@ interface Answers {
   dob: string;
   tob: string;
   timeSource: string;
-  accuracy: string;
   place: string;
   gender: string;
   status: string;
   referralCode?: string;
 }
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 8;
 
 /**
  * The relationship-to-account-owner question, only reached in new-profile
@@ -85,6 +84,11 @@ function isoToDob(iso: string) {
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
+/** Reverse of isoToDob — prefills the native date input when re-editing an existing dob. */
+function dobToIso(dob: string) {
+  const [d, m, y] = dob.split("/");
+  return `${y}-${m}-${d}`;
+}
 /** Native date inputs clamp to `max`, so a birth date can never be in the future. */
 function todayIso() {
   return new Date().toLocaleDateString("en-CA");
@@ -105,7 +109,6 @@ function applyBirthDataFields(
     timeOfBirth?: string | null;
     placeOfBirth?: PlaceOfBirth | null;
     birthTimeSource?: string;
-    birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   },
   answers: Partial<Answers>,
   resolvedPlace: PlaceOfBirth | null,
@@ -125,9 +128,6 @@ function applyBirthDataFields(
       approximate: "unknown", // mapped from approximate source
     };
     body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
-  }
-  if (answers.accuracy) {
-    body.birthTimeAccuracy = answers.accuracy as "exact" | "approximate" | "unknown";
   }
 }
 
@@ -196,6 +196,11 @@ function OnboardingPageInner() {
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [refAutoApplied, setRefAutoApplied] = useState(false);
+  /** Non-null while re-answering a single field from the confirm screen's
+   * per-field edit icons — holds the step being corrected so each step's
+   * completion handler can shortcut straight back to the confirm screen
+   * instead of walking the rest of the wizard forward. */
+  const [editingField, setEditingField] = useState<number | null>(null);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
   /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
@@ -248,6 +253,28 @@ function OnboardingPageInner() {
     setStep((s) => nextStep ?? s + 1);
   };
 
+  // Jump into a single step from the confirm screen's per-field edit icon,
+  // prefilled with the value already on file — other answers are untouched.
+  const startEditField = (fieldStep: number) => {
+    setShowConfirm(false);
+    setEditingField(fieldStep);
+    setStep(fieldStep);
+    setInputErr("");
+    setTextInput(
+      fieldStep === 2 ? (answers.name ?? "") :
+      fieldStep === 3 ? (answers.dob ? dobToIso(answers.dob) : "") :
+      fieldStep === 4 ? (answers.tob ?? "") : "",
+    );
+  };
+
+  // Records the corrected answer and returns straight to the confirm screen
+  // instead of walking forward through the rest of the wizard.
+  const finishEdit = (ans: Partial<Answers>) => {
+    setAnswers((a) => ({ ...a, ...ans }));
+    setEditingField(null);
+    setShowConfirm(true);
+  };
+
   // ── Step questions (resolved at render time so i18next re-renders on lang change)
   const Q: Record<number, string> = {
     0: t("onboarding.step1q"),
@@ -255,10 +282,9 @@ function OnboardingPageInner() {
     2: t("onboarding.step3q"),
     3: t("onboarding.step4q"),
     4: t("onboarding.step5q"),
-    5: t("onboarding.step5_5q", "How confident are you in this birth time?"),
-    6: t("onboarding.step6q"),
-    7: t("onboarding.step7q"),
-    8: t("onboarding.step8q"),
+    5: t("onboarding.step6q"),
+    6: t("onboarding.step7q"),
+    7: t("onboarding.step8q"),
   };
 
   // ── Kick off the conversation
@@ -287,6 +313,22 @@ function OnboardingPageInner() {
   const handleTextSubmit = async () => {
     const val = textInput.trim();
     if (!val) return;
+
+    if (editingField !== null) {
+      if (step === 3) {
+        const dob = isoToDob(val);
+        if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
+        finishEdit({ dob });
+      } else if (step === 4) {
+        if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
+        finishEdit({ tob: val });
+      } else {
+        finishEdit({ name: val });
+      }
+      setTextInput("");
+      setInputErr("");
+      return;
+    }
 
     if (step === 2) { // name
       if (isNewProfileMode) {
@@ -341,6 +383,7 @@ function OnboardingPageInner() {
   ];
 
   const handleRelationship = async (key: string, label: string) => {
+    if (editingField !== null) { finishEdit({ relationship: key }); return; }
     // Rejoins the normal flow at step 3 (DOB) — Q[2] is the same DOB question
     // asked right after the name step in the primary flow, so it needs the
     // same {name} interpolation the primary flow applies at line ~294.
@@ -357,21 +400,11 @@ function OnboardingPageInner() {
   ];
 
   const handleTimeSource = async (key: string, label: string) => {
+    if (editingField !== null) { finishEdit({ timeSource: key }); return; }
     await advance({ timeSource: key }, label, Q[5]);
   };
 
-  // ── Accuracy (step 6)
-  const ACCURACIES = [
-    { key: "exact", label: t("onboarding.step5_5exact", "Exact") },
-    { key: "approximate", label: t("onboarding.step5_5approx", "Approximate") },
-    { key: "unknown", label: t("onboarding.step5_5unknown", "Unknown") },
-  ];
-
-  const handleAccuracy = async (key: string, label: string) => {
-    await advance({ accuracy: key }, label, Q[6]);
-  };
-
-  // ── Gender (step 8)
+  // ── Gender (step 7)
   const GENDERS = [
     { key: "male",   label: t("onboarding.step7male") },
     { key: "female", label: t("onboarding.step7female") },
@@ -379,10 +412,11 @@ function OnboardingPageInner() {
   ];
 
   const handleGender = async (key: string, label: string) => {
-    await advance({ gender: key }, label, Q[8]);
+    if (editingField !== null) { finishEdit({ gender: key }); return; }
+    await advance({ gender: key }, label, Q[7]);
   };
 
-  // ── Relationship status (step 9)
+  // ── Relationship status (step 8)
   const STATUSES = [
     { key: "single",   label: t("onboarding.step8single") },
     { key: "dating",   label: t("onboarding.step8dating") },
@@ -392,6 +426,7 @@ function OnboardingPageInner() {
   ];
 
   const handleStatus = async (key: string, label: string) => {
+    if (editingField !== null) { finishEdit({ status: key }); return; }
     setAnswers((a) => ({ ...a, status: key }));
     userSay(label);
     setIsTyping(true);
@@ -650,21 +685,26 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 7: place autocomplete */}
-          {step === 7 && (
+          {/* Step 6: place autocomplete */}
+          {step === 6 && (
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
               inputClassName="w-full bg-transparent py-3 px-4 text-[16px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
               worldwide={!user?.phoneE164}
+              defaultQuery={editingField !== null ? answers.place : undefined}
               onSelect={(place) => {
                 if (!place) {
                   setResolvedPlace(null);
                   return;
                 }
                 setResolvedPlace(place);
+                if (editingField !== null) {
+                  finishEdit({ place: place.name });
+                  return;
+                }
                 setAnswers((a) => ({ ...a, place: place.name }));
                 userSay(place.name);
-                botSay(Q[7]).then(() => setStep(8));
+                botSay(Q[6]).then(() => setStep(7));
               }}
             />
           )}
@@ -684,23 +724,8 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 6: accuracy */}
-          {step === 6 && (
-            <div className="grid grid-cols-3 gap-2">
-              {ACCURACIES.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => handleAccuracy(s.key, s.label)}
-                  className="py-3.5 px-3 rounded-xl border border-gold/20 bg-card/80 text-[13px] text-foreground text-center hover:border-gold/50 hover:bg-gold/8 transition-all active:scale-95"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Step 8: gender */}
-          {step === 8 && (
+          {/* Step 7: gender */}
+          {step === 7 && (
             <div className="flex gap-2">
               {GENDERS.map((g) => (
                 <button
@@ -714,8 +739,8 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 9: relationship status */}
-          {step === 9 && (
+          {/* Step 8: relationship status */}
+          {step === 8 && (
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((s) => (
                 <button
@@ -743,45 +768,33 @@ function OnboardingPageInner() {
             {/* Handle */}
             <div className="w-10 h-1 rounded-full bg-gold/30 mx-auto mb-5" />
 
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-[20px] text-foreground">
-                {t(isNewProfileMode ? "onboarding.confirmTitleNewProfile" : "onboarding.confirmTitle")}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowConfirm(false);
-                  setStep(1);
-                  setAnswers({});
-                  setConsented(false);
-                  setResolvedPlace(null);
-                  setTextInput("");
-                  setInputErr("");
-                  setSubmitErr("");
-                  setMessages([
-                    { id: nextId(), from: "bot", text: t("onboarding.greeting") },
-                    { id: nextId(), from: "bot", text: Q[0] },
-                  ]);
-                }}
-                className="text-[13px] text-gold/80 hover:text-gold uppercase tracking-wider font-medium px-3 py-1 -mr-2 active:scale-95 transition-all"
-              >
-                {t("profile.edit")}
-              </button>
-            </div>
+            <h3 className="font-display text-[20px] text-foreground mb-4">
+              {t(isNewProfileMode ? "onboarding.confirmTitleNewProfile" : "onboarding.confirmTitle")}
+            </h3>
 
             <div className="space-y-3 mb-6">
               {[
-                { label: t("onboarding.labelName"),    value: answers.name },
-                { label: t("onboarding.labelDob"),     value: answers.dob },
-                { label: t("onboarding.labelTob"),     value: answers.tob },
-                { label: t("onboarding.labelPlace"),   value: answers.place },
-                { label: t("onboarding.labelGender"),  value: answers.gender },
+                { label: t("onboarding.labelName"),    value: answers.name, step: 2 },
+                { label: t("onboarding.labelDob"),     value: answers.dob,  step: 3 },
+                { label: t("onboarding.labelTob"),     value: answers.tob,  step: 4 },
+                { label: t("onboarding.labelPlace"),   value: answers.place, step: 6 },
+                { label: t("onboarding.labelGender"),  value: answers.gender, step: 7 },
                 isNewProfileMode
-                  ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label }
-                  : { label: t("onboarding.labelStatus"),  value: answers.status },
-              ].map(({ label, value }) => value ? (
+                  ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label, step: RELATIONSHIP_STEP }
+                  : { label: t("onboarding.labelStatus"),  value: answers.status, step: 8 },
+              ].map(({ label, value, step: fieldStep }) => value ? (
                 <div key={label} className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gold/10 bg-surface">
                   <span className="text-[12px] text-muted uppercase tracking-wider">{label}</span>
-                  <span className="text-[14px] text-foreground font-medium">{value}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[14px] text-foreground font-medium">{value}</span>
+                    <button
+                      onClick={() => startEditField(fieldStep)}
+                      aria-label={t("profile.edit")}
+                      className="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-gold/70 hover:text-gold active:scale-90 transition-all"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  </div>
                 </div>
               ) : null)}
             </div>

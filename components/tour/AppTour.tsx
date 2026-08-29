@@ -57,7 +57,11 @@ export default function AppTour({ steps, onFinish }: { steps: TourStep[]; onFini
   // Resolved once on open: re-filtering mid-tour would renumber the steps
   // under the user as they scroll.
   const visibleSteps = useMemo(
-    () => (mounted ? steps.filter((s) => s.target === null || findTarget(s.target) !== null) : steps),
+    // measure(), not findTarget(): a flag-gated feature (e.g. voice call off)
+    // still leaves its wrapper div in the DOM, collapsed to 0x0 — that must
+    // drop the step too, not just skip the spotlight and show a floating
+    // card promoting a feature the user doesn't have.
+    () => (mounted ? steps.filter((s) => s.target === null || measure(s.target) !== null) : steps),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mounted, steps],
   );
@@ -97,8 +101,14 @@ export default function AppTour({ steps, onFinish }: { steps: TourStep[]; onFini
   };
   const goBack = () => setStepIndex((i) => Math.max(0, i - 1));
 
+  // visualViewport tracks the actually-visible height on mobile (address bar,
+  // webview chrome) — window.innerHeight stays pinned to the larger layout
+  // viewport, which understated how cramped the space really was and let the
+  // "below" branch below place a card past the true bottom of the screen.
+  const viewportH = window.visualViewport?.height ?? window.innerHeight;
+
   const spotlightRect: Rect = rect ?? {
-    top: window.innerHeight / 2,
+    top: viewportH / 2,
     left: window.innerWidth / 2,
     width: 0,
     height: 0,
@@ -121,12 +131,11 @@ export default function AppTour({ steps, onFinish }: { steps: TourStep[]; onFini
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: "min(360px, calc(100vw - 32px))",
-    maxHeight: "calc(100vh - 32px)",
+    maxHeight: viewportH - 32,
     overflowY: "auto",
     zIndex: 202,
   };
   if (rect) {
-    const viewportH = window.innerHeight;
     const gap = PAD * 2 + 12;
     const spaceAbove = rect.top - gap - 16;
     const spaceBelow = viewportH - (rect.top + rect.height) - gap - 16;

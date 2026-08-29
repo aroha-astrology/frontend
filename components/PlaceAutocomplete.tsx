@@ -19,6 +19,8 @@ interface PlaceAutocompleteProps {
   inputStyle?: React.CSSProperties;
   /** Search all cities/towns worldwide (Nominatim) instead of India Post's post-office index — no pincode. Callers pass `!user?.phoneE164` (Google/Apple sign-in implies non-India per the region-gated auth flow). */
   worldwide?: boolean;
+  /** Prefill the input — e.g. re-editing a place already on file. Only read on mount. */
+  defaultQuery?: string;
 }
 
 export default function PlaceAutocomplete({
@@ -28,12 +30,13 @@ export default function PlaceAutocomplete({
   inputClassName,
   inputStyle,
   worldwide = false,
+  defaultQuery = "",
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation();
   const {
     query, setQuery, suggestions, loading, selectedPlace,
     select, clearSelection, geocodingId, selectError,
-  } = usePlaceAutocomplete(worldwide);
+  } = usePlaceAutocomplete(worldwide, defaultQuery);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);

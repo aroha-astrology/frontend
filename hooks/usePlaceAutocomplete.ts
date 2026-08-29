@@ -18,9 +18,10 @@ export interface PlaceSuggestion {
  * India Post's post-office index. Intended for users who signed in without
  * a phone number (Google/Apple) — see PlaceAutocomplete's callers, which
  * derive this from `!user?.phoneE164`.
+ * @param defaultQuery Initial text — e.g. re-editing a place already on file.
  */
-export function usePlaceAutocomplete(worldwide = false) {
-  const [query, setQuery] = useState('');
+export function usePlaceAutocomplete(worldwide = false, defaultQuery = '') {
+  const [query, setQuery] = useState(defaultQuery);
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceOfBirth | null>(null);

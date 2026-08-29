@@ -1,18 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BarChart3, Pause, Play } from "lucide-react";
 import Card from "@/components/ui/Card";
 import RudrakshaMala from "@/components/shlokas/RudrakshaMala";
 import MalaBackdrop from "@/components/shlokas/MalaBackdrop";
-import {
-  getJapProgress,
-  setJapProgress,
-  playShlokaAudio,
-  pauseShlokaAudio,
-  isShlokaAudioPlaying,
-} from "@/lib/shlokas-prefs";
+import { getJapProgress, setJapProgress, playShlokaAudio, pauseShlokaAudio } from "@/lib/shlokas-prefs";
 
 /**
  * The chant ring + its progress card, extracted out of app/shlokas/mala so
@@ -20,10 +14,16 @@ import {
  * artwork instead of sending the user to a second screen for it. Both
  * callers get one shared jap position, keyed by `chantKey` in localStorage.
  *
- * The play/pause button lives here rather than on either caller's verse card
- * because it shares the bead's audio lock: while a chant is sounding the
- * bead can't be tapped again, and that one `locked` flag drives both.
+ * The play/pause button runs the WHOLE mala: one press auto-advances and
+ * chants every remaining repetition up to `target`, pausing GAP_MS between
+ * each, until it completes or the user presses pause again. It shares the
+ * bead's audio lock with manual tapping — while the auto-run is active
+ * (playing OR in its gap) the bead can't be tapped, and that one `locked`
+ * flag drives both.
  */
+
+/** Pause between one chant ending and the next starting, during an auto-run. */
+const GAP_MS = 2000;
 
 interface Props {
   /** localStorage key for this verse's saved position, e.g. its slug or `gita:<id>`. */
@@ -33,67 +33,136 @@ interface Props {
   audioSrc: string | null;
   /** Traditional repetition count for this verse; the user can edit the target. */
   defaultTarget: number;
+  /** Wins over the saved target on mount — how an AI-picked count (e.g. the
+   *  horoscope remedy) reaches the ring. The saved index still restores,
+   *  clamped to this target. */
+  targetOverride?: number;
 }
 
-export default function ChantRing({ chantKey, sanskrit, audioSrc, defaultTarget }: Props) {
+export default function ChantRing({ chantKey, sanskrit, audioSrc, defaultTarget, targetOverride }: Props) {
   const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [target, setTarget] = useState(defaultTarget);
   const [ready, setReady] = useState(false);
   const [locked, setLocked] = useState(false);
 
+  // Mirrors of index/target for the auto-run's callbacks below, which fire
+  // from a setTimeout/audio "ended" event well after the render that
+  // scheduled them — reading React state there would see whatever was
+  // current AT SCHEDULING TIME, not the latest. Refs are mutable containers
+  // read at CALL time, so they always see the latest value.
+  const indexRef = useRef(0);
+  const targetRef = useRef(defaultTarget);
+  // Whether an auto-run is currently armed (playing or between chants in its
+  // gap) — separate from `locked` because it must also be readable/writable
+  // from inside those same stale-closure-prone callbacks.
+  const autoRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function stopAuto() {
+    autoRef.current = false;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    pauseShlokaAudio();
+    setLocked(false);
+  }
+
   // Restore saved progress after mount only — SSR has no localStorage, so
-  // seeding useState from it directly would hydrate-mismatch.
+  // seeding useState from it directly would hydrate-mismatch. Also stops any
+  // in-flight auto-run: chantKey/targetOverride can change without a full
+  // remount (the mala screen forces one via `key`, but other callers don't).
   useEffect(() => {
+    stopAuto();
     const saved = getJapProgress(chantKey, defaultTarget);
-    setTarget(saved.target);
-    setIndex(Math.min(Math.max(saved.index, 0), saved.target - 1));
+    const initialTarget = targetOverride ?? saved.target;
+    const initialIndex = Math.min(Math.max(saved.index, 0), initialTarget - 1);
+    targetRef.current = initialTarget;
+    indexRef.current = initialIndex;
+    setTarget(initialTarget);
+    setIndex(initialIndex);
     setReady(true);
-  }, [chantKey, defaultTarget]);
+  }, [chantKey, defaultTarget, targetOverride]);
+
+  // Auto-run must not keep chanting into an unmounted screen (navigating
+  // away mid-gap would otherwise leave a live timer + a shared audio element
+  // still playing).
+  useEffect(() => {
+    return stopAuto;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const total = target;
   const isComplete = ready && total > 0 && index === total - 1;
   const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
 
+  /** Updates index state + its ref + persistence together — the single
+   *  source of truth advanceAndPlay/resetToZero/updateTarget/the auto-run
+   *  all commit through, so they can never drift from each other. */
+  function commitIndex(next: number) {
+    indexRef.current = next;
+    setIndex(next);
+    setJapProgress(chantKey, { index: next, target: targetRef.current });
+  }
+
   // Advance and pronounce are one bundled action; the bead can't be tapped
-  // again until this chant's audio finishes.
+  // again until this chant's audio finishes. Untouched by the auto-run above
+  // other than reusing commitIndex — a single tap still plays exactly one
+  // clip, same as before.
   function advanceAndPlay() {
     if (locked || total === 0) return;
     const nextIndex = Math.min(index + 1, total - 1);
     if (nextIndex === index) return; // already at the last chant
     navigator.vibrate?.(20);
-    setIndex(nextIndex);
-    setJapProgress(chantKey, { index: nextIndex, target });
+    commitIndex(nextIndex);
     if (audioSrc) {
       setLocked(true);
       playShlokaAudio(audioSrc, () => setLocked(false));
     }
   }
 
+  /** Plays the CURRENT index's clip, then — unlike a bead tap — keeps going:
+   *  waits GAP_MS, advances, plays the next, and so on until `target` is
+   *  reached. `locked` stays true for the whole run (gaps included) so a
+   *  bead tap can't interleave with it; pressing this button again cancels. */
+  function chantNext() {
+    if (!audioSrc) return;
+    playShlokaAudio(audioSrc, () => {
+      if (!autoRef.current) return; // paused/cancelled while this clip played
+      if (indexRef.current >= targetRef.current - 1) {
+        stopAuto(); // reached the target — mala complete
+        return;
+      }
+      timerRef.current = setTimeout(() => {
+        if (!autoRef.current) return; // cancelled during the gap
+        commitIndex(indexRef.current + 1);
+        chantNext();
+      }, GAP_MS);
+    });
+  }
+
   function playCurrent() {
     if (!audioSrc) return;
-    if (isShlokaAudioPlaying(audioSrc)) {
-      pauseShlokaAudio();
-      setLocked(false);
+    if (autoRef.current) {
+      stopAuto();
       return;
     }
+    autoRef.current = true;
     setLocked(true);
-    playShlokaAudio(audioSrc, () => setLocked(false));
+    chantNext();
   }
 
   function resetToZero() {
-    pauseShlokaAudio();
-    setLocked(false);
-    setIndex(0);
-    setJapProgress(chantKey, { index: 0, target });
+    stopAuto();
+    commitIndex(0);
   }
 
   function updateTarget(next: number) {
     const clamped = Math.min(Math.max(Math.round(next) || 1, 1), 1008);
-    const clampedIndex = Math.min(index, clamped - 1);
+    targetRef.current = clamped;
     setTarget(clamped);
-    setIndex(clampedIndex);
-    setJapProgress(chantKey, { index: clampedIndex, target: clamped });
+    commitIndex(Math.min(index, clamped - 1));
   }
 
   return (

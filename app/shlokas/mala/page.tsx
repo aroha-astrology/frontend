@@ -47,6 +47,14 @@ function MalaScreen() {
   const slug = searchParams.get("slug");
   const verseId = searchParams.get("verse");
   const isGita = searchParams.get("type") === "gita" && !!verseId;
+  // From the horoscope remedy card's CTA (?target=<japCount>) — an AI-picked
+  // count that should win over whatever target this mantra was last left at.
+  // Clamped to the same 1..108 range the backend already enforces on
+  // japCount, so a hand-edited URL can't push the ring past a sane count.
+  const targetParam = Number(searchParams.get("target"));
+  const targetOverride = Number.isFinite(targetParam) && targetParam >= 1
+    ? Math.min(108, Math.round(targetParam))
+    : undefined;
 
   const [shlokas, setShlokas] = useState<Shloka[] | null>(null);
   const [gitaVerses, setGitaVerses] = useState<GitaVerse[] | null>(null);
@@ -129,6 +137,7 @@ function MalaScreen() {
               sanskrit={item.sanskrit}
               audioSrc={item.audioSrc}
               defaultTarget={item.defaultTarget}
+              targetOverride={targetOverride}
             />
 
             <Card className="p-5 relative">

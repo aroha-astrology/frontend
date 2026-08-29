@@ -309,6 +309,10 @@ export interface StructuredHoroscope {
   luckyColor: string;
   luckyNumber: number;
   categories: Record<Category, CategoryReading>;
+  /** AI-picked mantra for the day's dominant pressure — only present for daily/tomorrow. `slug`
+   * is looked up against the shloka library (lib/shlokas.ts); a slug it can't resolve means the
+   * remedy card just doesn't render (see HoroscopeRemedyCard.tsx). */
+  remedy?: { slug: string; japCount: number; reason: string };
 }
 
 /** Plain-language reading of the user's current Vimshottari dasha — same on all 4 periods. */

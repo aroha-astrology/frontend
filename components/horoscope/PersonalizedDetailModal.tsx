@@ -6,6 +6,7 @@ import type { PersonalizedHoroscope } from "@/lib/api";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import CategoryRatingRow from "./CategoryRatingRow";
 import DashaChapterCard from "./DashaChapterCard";
+import HoroscopeRemedyCard from "./HoroscopeRemedyCard";
 
 const CATEGORY_ORDER = ["overall", "health", "career", "marriage", "finance", "education"] as const;
 
@@ -58,6 +59,8 @@ export default function PersonalizedDetailModal({
               <p className="text-sm text-foreground font-medium">{s.luckyNumber}</p>
             </div>
           </div>
+
+          {s.remedy && <HoroscopeRemedyCard remedy={s.remedy} />}
 
           {data.dasha && (
             <div className="pt-1">

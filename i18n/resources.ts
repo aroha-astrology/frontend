@@ -868,6 +868,11 @@ export const resources = {
           finance: "Finance",
           education: "Education",
         },
+        remedy: {
+          title: "Today's Remedy",
+          hint: "A mantra chosen for what today brings.",
+          chantCta: "Chant {{count}} times",
+        },
         dasha: {
           title: "Your Current Chapter",
           mahadasha: "Main Period",
@@ -3473,6 +3478,11 @@ export const resources = {
           finance: "वित्त",
           education: "शिक्षा",
         },
+        remedy: {
+          title: "आज का उपाय",
+          hint: "आज के लिए चुना गया एक मंत्र।",
+          chantCta: "{{count}} बार जाप करें",
+        },
         dasha: {
           title: "आपका वर्तमान अध्याय",
           mahadasha: "मुख्य अवधि",
@@ -5684,6 +5694,11 @@ export const resources = {
           marriage: "বিবাহ",
           finance: "অর্থ",
           education: "শিক্ষা",
+        },
+        remedy: {
+          title: "আজকের উপায়",
+          hint: "আজকের জন্য বেছে নেওয়া একটি মন্ত্র।",
+          chantCta: "{{count}} বার জপ করুন",
         },
         dasha: {
           title: "আপনার বর্তমান অধ্যায়",
@@ -7901,6 +7916,11 @@ export const resources = {
           finance: "अर्थ",
           education: "शिक्षण",
         },
+        remedy: {
+          title: "आजचा उपाय",
+          hint: "आजसाठी निवडलेला एक मंत्र.",
+          chantCta: "{{count}} वेळा जप करा",
+        },
         dasha: {
           title: "तुमचा सध्याचा अध्याय",
           mahadasha: "मुख्य कालावधी",
@@ -10113,6 +10133,11 @@ export const resources = {
           marriage: "వివాహం",
           finance: "ఆర్థికం",
           education: "విద్య",
+        },
+        remedy: {
+          title: "నేటి పరిహారం",
+          hint: "ఈ రోజు కోసం ఎంపిక చేసిన మంత్రం.",
+          chantCta: "{{count}} సార్లు జపించండి",
         },
         dasha: {
           title: "మీ ప్రస్తుత అధ్యాయం",
@@ -12331,6 +12356,11 @@ export const resources = {
           finance: "நிதி",
           education: "கல்வி",
         },
+        remedy: {
+          title: "இன்றைய பரிகாரம்",
+          hint: "இன்றைக்காக தேர்ந்தெடுக்கப்பட்ட மந்திரம்.",
+          chantCta: "{{count}} முறை உச்சரிக்கவும்",
+        },
         dasha: {
           title: "உங்கள் தற்போதைய அத்தியாயம்",
           mahadasha: "முதன்மைக் காலம்",
@@ -14544,6 +14574,11 @@ export const resources = {
           marriage: "લગ્ન",
           finance: "નાણાં",
           education: "શિક્ષણ",
+        },
+        remedy: {
+          title: "આજનો ઉપાય",
+          hint: "આજ માટે પસંદ કરેલો મંત્ર.",
+          chantCta: "{{count}} વાર જાપ કરો",
         },
         dasha: {
           title: "તમારો વર્તમાન અધ્યાય",

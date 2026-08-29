@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Gift } from "lucide-react";
+import { Gift, X } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
@@ -75,29 +75,31 @@ export default function DailyRewardModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={dismiss}
           className="fixed inset-0 z-[89] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
         >
           <motion.div
+            onClick={(e) => e.stopPropagation()}
             initial={{ y: 40, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", damping: 26 }}
             className="w-full max-w-sm"
           >
-            <div className="flex items-center justify-center gap-2 mb-3 text-gold">
+            <div className="relative flex items-center justify-center gap-2 mb-3 text-gold">
               <Gift size={22} />
               <span className="text-sm font-display">{t("rewards.eyebrow")}</span>
+              <button
+                type="button"
+                onClick={dismiss}
+                aria-label={t("common.close")}
+                className="absolute right-0 p-1 text-muted hover:text-foreground"
+              >
+                <X size={20} />
+              </button>
             </div>
 
             <DailyRewardLadder />
-
-            <button
-              type="button"
-              onClick={dismiss}
-              className="w-full py-2.5 mt-3 text-sm text-muted"
-            >
-              {t("rewards.dismiss")}
-            </button>
           </motion.div>
         </motion.div>
       )}

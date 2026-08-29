@@ -39,6 +39,10 @@ interface Message {
   id: number;
   from: "bot" | "user";
   text: string;
+  /** Set on a user's answer bubble that corresponds to an editable field —
+   * lets the chat bubble itself carry an edit icon, jumping back into that
+   * step, same as the confirm screen's per-field pencil. */
+  editStep?: number;
 }
 
 interface Answers {
@@ -147,9 +151,18 @@ function BotBubble({ text }: { text: string }) {
   );
 }
 
-function UserBubble({ text }: { text: string }) {
+function UserBubble({ text, onEdit }: { text: string; onEdit?: () => void }) {
   return (
-    <div className="flex justify-end max-w-[82%] ml-auto">
+    <div className="flex items-center gap-1.5 justify-end max-w-[82%] ml-auto">
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          aria-label="Edit"
+          className="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-gold/60 hover:text-gold active:scale-90 transition-all"
+        >
+          <Pencil size={12} />
+        </button>
+      )}
       <div className="px-4 py-3 rounded-2xl rounded-br-sm bg-gold/15 border border-gold/20 text-[14px] text-foreground leading-relaxed">
         {text}
       </div>
@@ -196,11 +209,15 @@ function OnboardingPageInner() {
   const [submitErr, setSubmitErr] = useState("");
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [refAutoApplied, setRefAutoApplied] = useState(false);
-  /** Non-null while re-answering a single field from the confirm screen's
-   * per-field edit icons — holds the step being corrected so each step's
-   * completion handler can shortcut straight back to the confirm screen
-   * instead of walking the rest of the wizard forward. */
+  /** Non-null while re-answering a single field — from the confirm screen's
+   * per-field edit icon, or from a pencil on an earlier answer bubble in the
+   * chat itself — so the relevant step's completion handler can shortcut
+   * straight back to wherever the user was, instead of walking forward
+   * through the rest of the wizard. */
   const [editingField, setEditingField] = useState<number | null>(null);
+  // Where to snap back to once the edit is submitted — doesn't need to
+  // trigger a re-render, so a ref (not state) is enough.
+  const editResumeRef = useRef<{ step: number; showConfirm: boolean } | null>(null);
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
   /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
@@ -238,24 +255,28 @@ function OnboardingPageInner() {
     });
   };
 
-  // Add a user message
-  const userSay = (text: string) => {
-    setMessages((m) => [...m, { id: nextId(), from: "user", text }]);
+  // Add a user message. `editStep` tags the bubble as a correctable answer
+  // for a chat-side edit icon (see UserBubble); omit it for messages that
+  // aren't an editable field's answer (language, free-text confirmations).
+  const userSay = (text: string, editStep?: number) => {
+    setMessages((m) => [...m, { id: nextId(), from: "user", text, editStep }]);
   };
 
   // Advance to next step after the user responds. `nextStep` overrides the
   // default `s + 1` — used by new-profile mode to detour through
   // RELATIONSHIP_STEP without renumbering any of the existing steps.
-  const advance = async (ans: Partial<Answers>, userText: string, nextQ: string, nextStep?: number) => {
+  const advance = async (ans: Partial<Answers>, userText: string, nextQ: string, nextStep?: number, editStep?: number) => {
     setAnswers((a) => ({ ...a, ...ans }));
-    userSay(userText);
+    userSay(userText, editStep);
     await botSay(nextQ);
     setStep((s) => nextStep ?? s + 1);
   };
 
-  // Jump into a single step from the confirm screen's per-field edit icon,
-  // prefilled with the value already on file — other answers are untouched.
+  // Jump into a single step — from the confirm screen's per-field edit icon
+  // or from a pencil on an earlier answer bubble in the chat — prefilled
+  // with the value already on file. Remembers where to snap back to.
   const startEditField = (fieldStep: number) => {
+    editResumeRef.current = { step, showConfirm };
     setShowConfirm(false);
     setEditingField(fieldStep);
     setStep(fieldStep);
@@ -267,12 +288,18 @@ function OnboardingPageInner() {
     );
   };
 
-  // Records the corrected answer and returns straight to the confirm screen
-  // instead of walking forward through the rest of the wizard.
+  // Records the corrected answer and snaps back to wherever the edit was
+  // started from — the confirm screen, or mid-conversation — instead of
+  // walking forward through the rest of the wizard.
   const finishEdit = (ans: Partial<Answers>) => {
     setAnswers((a) => ({ ...a, ...ans }));
     setEditingField(null);
-    setShowConfirm(true);
+    const resume = editResumeRef.current;
+    editResumeRef.current = null;
+    if (resume) {
+      setStep(resume.step);
+      if (resume.showConfirm) setShowConfirm(true);
+    }
   };
 
   // ── Step questions (resolved at render time so i18next re-renders on lang change)
@@ -336,17 +363,17 @@ function OnboardingPageInner() {
         // to DOB — inserted only for this mode, existing step numbers (3
         // onward) are untouched.
         const relationshipQ = t("onboarding.newProfile.relationshipQ").replace("{name}", val).replace("{{name}}", val);
-        await advance({ name: val }, val, relationshipQ, RELATIONSHIP_STEP);
+        await advance({ name: val }, val, relationshipQ, RELATIONSHIP_STEP, 2);
       } else {
-        await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val));
+        await advance({ name: val }, val, Q[2].replace("{name}", val).replace("{{name}}", val), undefined, 2);
       }
     } else if (step === 3) { // dob — the date input holds ISO; store DD/MM/YYYY
       const dob = isoToDob(val);
       if (!isValidDob(dob)) { setInputErr(t("onboarding.invalidDob")); return; }
-      await advance({ dob }, dob, Q[3]);
+      await advance({ dob }, dob, Q[3], undefined, 3);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
-      await advance({ tob: val }, val, Q[4]);
+      await advance({ tob: val }, val, Q[4], undefined, 4);
     }
 
     setTextInput("");
@@ -388,7 +415,7 @@ function OnboardingPageInner() {
     // asked right after the name step in the primary flow, so it needs the
     // same {name} interpolation the primary flow applies at line ~294.
     const dobQ = Q[2].replace("{name}", answers.name ?? "").replace("{{name}}", answers.name ?? "");
-    await advance({ relationship: key }, label, dobQ, 3);
+    await advance({ relationship: key }, label, dobQ, 3, RELATIONSHIP_STEP);
   };
 
   // ── Time source (step 5)
@@ -401,7 +428,7 @@ function OnboardingPageInner() {
 
   const handleTimeSource = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ timeSource: key }); return; }
-    await advance({ timeSource: key }, label, Q[5]);
+    await advance({ timeSource: key }, label, Q[5], undefined, 5);
   };
 
   // ── Gender (step 7)
@@ -413,7 +440,7 @@ function OnboardingPageInner() {
 
   const handleGender = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ gender: key }); return; }
-    await advance({ gender: key }, label, Q[7]);
+    await advance({ gender: key }, label, Q[7], undefined, 7);
   };
 
   // ── Relationship status (step 8)
@@ -428,7 +455,7 @@ function OnboardingPageInner() {
   const handleStatus = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ status: key }); return; }
     setAnswers((a) => ({ ...a, status: key }));
-    userSay(label);
+    userSay(label, 8);
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
@@ -591,7 +618,14 @@ function OnboardingPageInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              {msg.from === "bot" ? <BotBubble text={msg.text} /> : <UserBubble text={msg.text} />}
+              {msg.from === "bot" ? (
+                <BotBubble text={msg.text} />
+              ) : (
+                <UserBubble
+                  text={msg.text}
+                  onEdit={msg.editStep !== undefined && !submitting ? () => startEditField(msg.editStep!) : undefined}
+                />
+              )}
             </motion.div>
           ))}
         </AnimatePresence>
@@ -703,7 +737,7 @@ function OnboardingPageInner() {
                   return;
                 }
                 setAnswers((a) => ({ ...a, place: place.name }));
-                userSay(place.name);
+                userSay(place.name, 6);
                 botSay(Q[6]).then(() => setStep(7));
               }}
             />

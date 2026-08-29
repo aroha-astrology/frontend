@@ -191,7 +191,6 @@ export interface UpdateMeBody {
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   currentLocation?: PlaceOfBirth | null;
   locale?: string;
-  birthTimeSource?: string;
   relationshipStatus?: string;
   onboardingStatus?: string;
   consent?: ConsentInput;
@@ -246,7 +245,6 @@ export interface CreateProfileBody {
   timeOfBirth?: string | null; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
-  birthTimeSource?: string;
   birthLocationAccuracy?: "exact" | "city" | "region" | "unknown";
   relationship?: ProfileRelationship;
   /** Owner attests they may store this person's birth data — the per-profile analogue of the account's own dataProcessing consent. */

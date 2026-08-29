@@ -52,14 +52,13 @@ interface Answers {
   relationship: string;
   dob: string;
   tob: string;
-  timeSource: string;
   place: string;
   gender: string;
   status: string;
   referralCode?: string;
 }
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 /**
  * The relationship-to-account-owner question, only reached in new-profile
@@ -112,7 +111,6 @@ function applyBirthDataFields(
     dateOfBirth?: string;
     timeOfBirth?: string | null;
     placeOfBirth?: PlaceOfBirth | null;
-    birthTimeSource?: string;
   },
   answers: Partial<Answers>,
   resolvedPlace: PlaceOfBirth | null,
@@ -124,15 +122,6 @@ function applyBirthDataFields(
   }
   if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
   if (resolvedPlace) body.placeOfBirth = resolvedPlace;
-  if (answers.timeSource) {
-    const sourceMap: Record<string, string> = {
-      certificate: "birth_certificate",
-      hospital: "hospital_record",
-      family: "family_memory",
-      approximate: "unknown", // mapped from approximate source
-    };
-    body.birthTimeSource = sourceMap[answers.timeSource] ?? "unknown";
-  }
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -308,10 +297,9 @@ function OnboardingPageInner() {
     1: t("onboarding.step2q"),
     2: t("onboarding.step3q"),
     3: t("onboarding.step4q"),
-    4: t("onboarding.step5q"),
-    5: t("onboarding.step6q"),
-    6: t("onboarding.step7q"),
-    7: t("onboarding.step8q"),
+    4: t("onboarding.step6q"),
+    5: t("onboarding.step7q"),
+    6: t("onboarding.step8q"),
   };
 
   // ── Kick off the conversation
@@ -331,12 +319,12 @@ function OnboardingPageInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Progress indicator (0-based step vs 1-9). Math.floor absorbs
+  // ── Progress indicator (0-based step vs 1-7). Math.floor absorbs
   // RELATIONSHIP_STEP's fractional value so a dot still highlights as
   // "current" on that screen; a no-op for every integer step.
   const progress = Math.min(Math.floor(step) - 1, TOTAL_STEPS - 1);
 
-  // ── Text submit (steps 2, 3, 4, 7)
+  // ── Text submit (steps 2, 3, 4)
   const handleTextSubmit = async () => {
     const val = textInput.trim();
     if (!val) return;
@@ -373,7 +361,7 @@ function OnboardingPageInner() {
       await advance({ dob }, dob, Q[3], undefined, 3);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
-      await advance({ tob: val }, val, Q[4], undefined, 4);
+      await advance({ tob: val }, val, Q[4], undefined, 4); // Q[4] is now the place question — time source was removed
     }
 
     setTextInput("");
@@ -418,20 +406,7 @@ function OnboardingPageInner() {
     await advance({ relationship: key }, label, dobQ, 3, RELATIONSHIP_STEP);
   };
 
-  // ── Time source (step 5)
-  const TIME_SOURCES = [
-    { key: "certificate", label: t("onboarding.step5cert") },
-    { key: "family",      label: t("onboarding.step5family") },
-    { key: "hospital",    label: t("onboarding.step5hospital") },
-    { key: "approximate", label: t("onboarding.step5approx") },
-  ];
-
-  const handleTimeSource = async (key: string, label: string) => {
-    if (editingField !== null) { finishEdit({ timeSource: key }); return; }
-    await advance({ timeSource: key }, label, Q[5], undefined, 5);
-  };
-
-  // ── Gender (step 7)
+  // ── Gender (step 6)
   const GENDERS = [
     { key: "male",   label: t("onboarding.step7male") },
     { key: "female", label: t("onboarding.step7female") },
@@ -440,10 +415,10 @@ function OnboardingPageInner() {
 
   const handleGender = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ gender: key }); return; }
-    await advance({ gender: key }, label, Q[7], undefined, 7);
+    await advance({ gender: key }, label, Q[6], undefined, 6);
   };
 
-  // ── Relationship status (step 8)
+  // ── Relationship status (step 7)
   const STATUSES = [
     { key: "single",   label: t("onboarding.step8single") },
     { key: "dating",   label: t("onboarding.step8dating") },
@@ -455,7 +430,7 @@ function OnboardingPageInner() {
   const handleStatus = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ status: key }); return; }
     setAnswers((a) => ({ ...a, status: key }));
-    userSay(label, 8);
+    userSay(label, 7);
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
@@ -719,8 +694,8 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 6: place autocomplete */}
-          {step === 6 && (
+          {/* Step 5: place autocomplete */}
+          {step === 5 && (
             <PlaceAutocomplete
               placeholder={t("onboarding.step6hint")}
               inputClassName="w-full bg-transparent py-3 px-4 text-[16px] text-foreground placeholder:text-muted/40 outline-none rounded-2xl border border-gold/20 bg-card/85 backdrop-blur-md focus:border-gold/45 transition-colors"
@@ -737,29 +712,14 @@ function OnboardingPageInner() {
                   return;
                 }
                 setAnswers((a) => ({ ...a, place: place.name }));
-                userSay(place.name, 6);
-                botSay(Q[6]).then(() => setStep(7));
+                userSay(place.name, 5);
+                botSay(Q[5]).then(() => setStep(6));
               }}
             />
           )}
 
-          {/* Step 5: time source */}
-          {step === 5 && (
-            <div className="grid grid-cols-2 gap-2">
-              {TIME_SOURCES.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => handleTimeSource(s.key, s.label)}
-                  className="py-3.5 px-3 rounded-xl border border-gold/20 bg-card/80 text-[13px] text-foreground text-center hover:border-gold/50 hover:bg-gold/8 transition-all active:scale-95"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Step 7: gender */}
-          {step === 7 && (
+          {/* Step 6: gender */}
+          {step === 6 && (
             <div className="flex gap-2">
               {GENDERS.map((g) => (
                 <button
@@ -773,8 +733,8 @@ function OnboardingPageInner() {
             </div>
           )}
 
-          {/* Step 8: relationship status */}
-          {step === 8 && (
+          {/* Step 7: relationship status */}
+          {step === 7 && (
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((s) => (
                 <button
@@ -811,11 +771,11 @@ function OnboardingPageInner() {
                 { label: t("onboarding.labelName"),    value: answers.name, step: 2 },
                 { label: t("onboarding.labelDob"),     value: answers.dob,  step: 3 },
                 { label: t("onboarding.labelTob"),     value: answers.tob,  step: 4 },
-                { label: t("onboarding.labelPlace"),   value: answers.place, step: 6 },
-                { label: t("onboarding.labelGender"),  value: answers.gender, step: 7 },
+                { label: t("onboarding.labelPlace"),   value: answers.place, step: 5 },
+                { label: t("onboarding.labelGender"),  value: answers.gender, step: 6 },
                 isNewProfileMode
                   ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label, step: RELATIONSHIP_STEP }
-                  : { label: t("onboarding.labelStatus"),  value: answers.status, step: 8 },
+                  : { label: t("onboarding.labelStatus"),  value: answers.status, step: 7 },
               ].map(({ label, value, step: fieldStep }) => value ? (
                 <div key={label} className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gold/10 bg-surface">
                   <span className="text-[12px] text-muted uppercase tracking-wider">{label}</span>

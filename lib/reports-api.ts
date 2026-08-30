@@ -44,19 +44,29 @@ export interface ReportCatalogueEntry {
    * plainly. Only meaningful when it's strictly greater than `pricePaise`. */
   originalPricePaise: number | null;
   purchases: ReportPurchaseSummary[];
+  /** marriage only — the most recently purchased marriage report's own stored spouse birth
+   * details, for pre-filling the optional spouse-details section on a later purchase. Null for
+   * every other report key, and for a marriage report with no spouse data on file yet. */
+  lastSpouseDetails: ReportPartnerInput | null;
 }
 
 export interface ReportCatalogueResponse {
   reports: ReportCatalogueEntry[];
 }
 
-/** Raw partner birth data for a Kundli Milan purchase — the partner is NOT a saved profile. */
+/** Raw partner birth data for a Kundli Milan purchase, or an optional spouse for a marriage
+ * purchase — the partner/spouse is NOT a saved profile. */
 export interface ReportPartnerInput {
   dateOfBirth: string; // YYYY-MM-DD
   timeOfBirth: string; // HH:mm
   latitude: number;
   longitude: number;
   timezone: string;
+  /** marriage only. */
+  name?: string;
+  /** marriage only — display label for the resolved place, used purely to pre-fill the
+   * place-autocomplete input on a later purchase. */
+  placeLabel?: string;
 }
 
 export interface PurchaseReportBody {
@@ -65,7 +75,7 @@ export interface PurchaseReportBody {
   months?: string[];
   /** Omit (or null) for the primary profile. */
   birthProfileId?: string | null;
-  /** kundli_milan only. */
+  /** kundli_milan (required) or marriage (optional, married users only). */
   partner?: ReportPartnerInput;
   /** Optional answers to a small, skippable pre-purchase questionnaire — see
    * lib/report-questions.ts for which report keys have one configured. */

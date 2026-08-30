@@ -57,6 +57,9 @@ export interface User {
   deletionRequestedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /** users.relationship_status — single/in_relationship/engaged/married/divorced/widowed/
+   * separated/complicated/prefer_not_to_say, or null if not yet answered at onboarding. */
+  relationshipStatus: string | null;
   /**
    * Version of the Terms the user actually agreed to. Compared against
    * LEGAL_VERSION in AuthGuard to re-prompt when the documents change —

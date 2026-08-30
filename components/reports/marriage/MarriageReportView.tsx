@@ -73,7 +73,7 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
     <>
       {isReportHeader(scores.header) && <ReportHeaderCard header={scores.header} />}
 
-      <OutlookCard score={view.score} band={view.band} headline={verdict?.headline ?? null} />
+      <OutlookCard headline={verdict?.headline ?? null} />
 
       <HighlightTiles
         tiles={view.highlights}
@@ -119,7 +119,7 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
       {isMarried && <SpouseBirthCard />}
 
       <AnalysisAccordion
-        sections={data.sections}
+        sections={data.sections.filter((s) => s.id !== "marriage_quality_by_decade")}
         sectionIcon={SECTION_ICON}
         titleKey="marriageReport.analysis.title"
       />

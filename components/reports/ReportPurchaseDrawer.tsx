@@ -8,7 +8,7 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees, formatCount } from "@/lib/format";
-import { currentMonthKey } from "@/lib/reports-logic";
+import { currentMonthKey, shouldShowSpouseSection } from "@/lib/reports-logic";
 import {
   reportsApi,
   type ReportCatalogueEntry,
@@ -49,11 +49,14 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const label = t(`reports.labels.${entry.key}`, entry.label);
   const balancePaise = user?.walletBalancePaise ?? 0;
 
-  const mode: "simple" | "kundli_milan" | "monthly" = entry.requiresPartner
+  const showSpouseSection = shouldShowSpouseSection(entry.key, user?.relationshipStatus);
+  const mode: "simple" | "kundli_milan" | "monthly" | "marriage_spouse" = entry.requiresPartner
     ? "kundli_milan"
-    : entry.isMonthly
-      ? "monthly"
-      : "simple";
+    : showSpouseSection
+      ? "marriage_spouse"
+      : entry.isMonthly
+        ? "monthly"
+        : "simple";
 
   // ── Kundli Milan partner form ─────────────────────────────────────────
   const [partnerDob, setPartnerDob] = useState("");
@@ -61,6 +64,27 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const [resolvedPartnerPlace, setResolvedPartnerPlace] = useState<PlaceOfBirth | null>(null);
   const [partnerConsented, setPartnerConsented] = useState(false);
   const partnerValid = !!partnerDob && !!resolvedPartnerPlace && partnerConsented;
+
+  // ── Marriage report's optional spouse-details section ────────────────
+  const [spouseName, setSpouseName] = useState(entry.lastSpouseDetails?.name ?? "");
+  const [spouseDob, setSpouseDob] = useState(entry.lastSpouseDetails?.dateOfBirth ?? "");
+  const [spouseTob, setSpouseTob] = useState(entry.lastSpouseDetails?.timeOfBirth ?? "");
+  const [resolvedSpousePlace, setResolvedSpousePlace] = useState<PlaceOfBirth | null>(
+    entry.lastSpouseDetails
+      ? {
+          name: entry.lastSpouseDetails.placeLabel ?? "",
+          lat: entry.lastSpouseDetails.latitude,
+          lon: entry.lastSpouseDetails.longitude,
+          tz: entry.lastSpouseDetails.timezone,
+        }
+      : null,
+  );
+  const [spouseConsented, setSpouseConsented] = useState(!!entry.lastSpouseDetails);
+  // Optional and never blocks purchase: complete (dob+place+consent) or entirely empty are both
+  // valid; a half-filled section is the only invalid state, since it can't build a real chart.
+  const spouseSectionEmpty = !spouseDob && !resolvedSpousePlace;
+  const spouseSectionComplete = !!spouseDob && !!resolvedSpousePlace && spouseConsented;
+  const spouseSectionValid = spouseSectionEmpty || spouseSectionComplete;
 
   // ── Optional pre-purchase questionnaire (see lib/report-questions.ts) ─
   const questions = REPORT_QUESTIONS[entry.key] ?? [];
@@ -80,7 +104,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   // ── Price + confirm ────────────────────────────────────────────────────
   const costPaise = entry.pricePaise;
   const canSubmit =
-    mode === "kundli_milan" ? partnerValid : mode === "monthly" ? !currentMonthAlreadyPurchased : true;
+    mode === "kundli_milan"
+      ? partnerValid
+      : mode === "monthly"
+        ? !currentMonthAlreadyPurchased
+        : mode === "marriage_spouse"
+          ? spouseSectionValid
+          : true;
   const insufficient = canSubmit && balancePaise < costPaise;
 
   const [confirming, setConfirming] = useState(false);
@@ -101,6 +131,17 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           latitude: resolvedPartnerPlace.lat,
           longitude: resolvedPartnerPlace.lon,
           timezone: resolvedPartnerPlace.tz,
+        };
+      }
+      if (mode === "marriage_spouse" && spouseSectionComplete && resolvedSpousePlace) {
+        body.partner = {
+          dateOfBirth: spouseDob,
+          timeOfBirth: spouseTob || "12:00",
+          latitude: resolvedSpousePlace.lat,
+          longitude: resolvedSpousePlace.lon,
+          timezone: resolvedSpousePlace.tz,
+          ...(spouseName.trim() ? { name: spouseName.trim() } : {}),
+          ...(resolvedSpousePlace.name ? { placeLabel: resolvedSpousePlace.name } : {}),
         };
       }
       const visibleAnswerIds = new Set(visibleQuestions.map((q) => q.id));
@@ -255,6 +296,60 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                 className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
               />
               {t("reports.purchase.partnerConsent")}
+            </label>
+          </div>
+        )}
+
+        {mode === "marriage_spouse" && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.spouseTitle")}</p>
+            <p className="text-[11px] text-muted leading-relaxed">{t("reports.purchase.spouseHint")}</p>
+            <div>
+              <label className="text-xs text-muted ml-1 mb-1 block">{t("reports.purchase.spouseName")}</label>
+              <input
+                type="text"
+                value={spouseName}
+                onChange={(e) => setSpouseName(e.target.value)}
+                className={inputClass}
+                style={style}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.dob")}</label>
+              <input
+                type="date"
+                value={spouseDob}
+                onChange={(e) => setSpouseDob(e.target.value)}
+                className={inputClass}
+                style={style}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
+              <input
+                type="time"
+                value={spouseTob}
+                onChange={(e) => setSpouseTob(e.target.value)}
+                className={inputClass}
+                style={style}
+              />
+            </div>
+            <PlaceAutocomplete
+              placeholder={t("compatibilityPage.birthPlace")}
+              inputClassName={inputClass}
+              inputStyle={style}
+              worldwide={!user?.phoneE164}
+              defaultQuery={entry.lastSpouseDetails?.placeLabel ?? ""}
+              onSelect={(place) => setResolvedSpousePlace(place)}
+            />
+            <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer text-muted">
+              <input
+                type="checkbox"
+                checked={spouseConsented}
+                onChange={(e) => setSpouseConsented(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
+              />
+              {t("reports.purchase.spouseConsent")}
             </label>
           </div>
         )}

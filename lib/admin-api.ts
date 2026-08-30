@@ -100,6 +100,9 @@ export interface AdminUserRow {
   /** Independence Day 2026 wallet bonus (independence_day_2026 campaign) claim amount, if claimed. */
   claimedAmountPaise: number | null;
   claimedAt: string | null;
+  /** Lifetime sum of `paid` orders (top-ups), and the most recent one's paidAt — null if they've never paid. */
+  totalPaidPaise: number;
+  lastPaidAt: string | null;
   /** IP-geolocated on the user's most recent activity heartbeat; null until their first one. */
   country: string | null;
   city: string | null;
@@ -357,7 +360,7 @@ export const adminApi = {
       contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {

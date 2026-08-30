@@ -16,7 +16,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
 const LIMIT = 20;
 
-type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt";
+type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise";
 type ContactType = "all" | "phone" | "email";
 
 function formatDate(iso: string | null): string {
@@ -312,6 +312,16 @@ export default function AdminUsersPage() {
                         {sortBy === "claimedAt" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
+                    <th className="px-4 py-2 font-medium text-right">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("totalPaidPaise")}
+                        className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Total Paid
+                        {sortBy === "totalPaidPaise" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
                     <th className="px-4 py-2 font-medium text-right">Today</th>
                     <th className="px-4 py-2 font-medium text-right">Yesterday</th>
                     <th className="px-4 py-2 font-medium text-right">Week</th>
@@ -365,6 +375,18 @@ export default function AdminUsersPage() {
                               {formatRupees(u.claimedAmountPaise)}
                             </div>
                             <div className="text-muted text-[11px]">{formatDate(u.claimedAt)}</div>
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {u.totalPaidPaise > 0 ? (
+                          <div>
+                            <div className="text-foreground text-xs font-medium">
+                              {formatRupees(u.totalPaidPaise)}
+                            </div>
+                            <div className="text-muted text-[11px]">{formatDate(u.lastPaidAt)}</div>
                           </div>
                         ) : (
                           <span className="text-muted text-xs">—</span>

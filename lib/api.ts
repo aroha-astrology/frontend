@@ -1534,7 +1534,7 @@ export interface DuePrediction {
 
 /** Predictions whose window has CLOSED and which this user has not yet rated. */
 export async function getDuePredictions(): Promise<DuePrediction[]> {
-  const res = await request<{ predictions: DuePrediction[] }>("/v1/astro/predictions/due", {
+  const res = await request<{ predictions: DuePrediction[] }>("/v1/predictions/due", {
     auth: true,
   });
   return res.predictions ?? [];
@@ -1545,7 +1545,7 @@ export async function ratePrediction(
   id: string,
   rating: -1 | 0 | 1,
 ): Promise<void> {
-  await request<{ ok: boolean }>(`/v1/astro/predictions/${id}/rate`, {
+  await request<{ ok: boolean }>(`/v1/predictions/${id}/rate`, {
     method: "POST",
     body: { rating, happened: rating === 1 },
     auth: true,
@@ -1604,7 +1604,7 @@ export async function rectifyBirthTime(
   events: RectifyEvent[],
   windowMinutes?: number,
 ): Promise<RectifySuggestion | null> {
-  const res = await request<{ suggestion: RectifySuggestion | null }>("/v1/astro/rectify", {
+  const res = await request<{ suggestion: RectifySuggestion | null }>("/v1/rectify", {
     method: "POST",
     body: windowMinutes ? { events, windowMinutes } : { events },
     auth: true,

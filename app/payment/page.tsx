@@ -159,7 +159,10 @@ export default function PaymentPage() {
       if (method === "google_play") {
         await api.checkout(selectedAmount.id, code);
         const { PlayBilling } = await import("@/lib/play-billing");
-        const purchase = await PlayBilling.purchaseProduct({ productId: selectedAmount.id });
+        const purchase = await PlayBilling.purchaseProduct({
+          productId: selectedAmount.id,
+          userId: user?.id,
+        });
         await api.confirmGooglePlayOrder({
           purchaseToken: purchase.purchaseToken,
           productId: purchase.productId,

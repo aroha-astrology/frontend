@@ -7,7 +7,9 @@ export interface PlayBillingPurchase {
 }
 
 interface PlayBillingPluginInterface {
-  purchaseProduct(options: { productId: string }): Promise<PlayBillingPurchase>;
+  /** `userId` (optional) is set as Play Billing's `obfuscatedAccountId` — it's what lets the
+   * server-side RTDN webhook identify who a purchase belongs to when the app never confirms it. */
+  purchaseProduct(options: { productId: string; userId?: string }): Promise<PlayBillingPurchase>;
   queryUnconsumedPurchases(): Promise<{ purchases: PlayBillingPurchase[] }>;
 }
 

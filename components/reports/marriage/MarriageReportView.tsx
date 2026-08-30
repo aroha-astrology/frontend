@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { buildMarriageView, isDecadeExplanationArray } from "@/lib/marriage-report-view";
+import { buildMarriageView } from "@/lib/marriage-report-view";
 import {
-  isDecadeBandArray,
   isDoshaYogaSummary,
   isRemedyPlacementArray,
   isRankedWindowArray,
@@ -15,7 +14,6 @@ import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
 import { RemedyPlacementsCards } from "../LalKitabFactsCards";
 import ArchetypeCard from "../ArchetypeCard";
-import DecadeArcCard from "../DecadeArcCard";
 import AnalysisAccordion from "../AnalysisAccordion";
 import TopWindowCard from "../TopWindowCard";
 import StrengthsCautions from "../StrengthsCautions";
@@ -133,27 +131,8 @@ export default function MarriageReportView({ data }: { data: ReportReady }) {
         </section>
       )}
 
-      {isDecadeBandArray(scores.marriageQualityArc) && (
-        <section>
-          <h2 className="font-display text-base text-gold mb-2">{t("marriageReport.decade.title")}</h2>
-          <DecadeArcCard
-            bands={scores.marriageQualityArc.map((b, i) => {
-              const explanations = isDecadeExplanationArray(uiData.decadeExplanations)
-                ? uiData.decadeExplanations
-                : [];
-              // Label first, position as the fallback: the model is asked for one entry per band
-              // in order, but it reformats the label often enough ("1-10" for "Years 1-10") that
-              // matching on the string alone silently drops every explanation.
-              const match =
-                explanations.find((e) => e.label === b.label) ?? explanations[i];
-              return { ...b, aiExplanation: match?.explanation };
-            })}
-          />
-        </section>
-      )}
-
       {/* Strengths & Cautions — moved down from just after the accordion (its old spot) so
-          every designed screen shows it in the SAME position: after archetype/decade arc, just
+          every designed screen shows it in the SAME position: after archetype, just
           before remedies (see designed-screens.tsx's canonical order). */}
       {isDoshaYogaSummary(scores.doshaYoga) && (
         <StrengthsCautions

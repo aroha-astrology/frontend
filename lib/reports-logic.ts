@@ -272,3 +272,15 @@ export function filterVisibleReports<T extends VisibilityReport>(
 ): T[] {
   return reports.filter((r) => r.enabled && isFeatureEnabled(`reports.${r.key}`));
 }
+
+/**
+ * Whether the marriage-report purchase drawer should show its optional spouse-details section —
+ * ONLY for the marriage report key, and ONLY for a user whose own relationshipStatus is
+ * "married". Every other report key/status combination gets today's unchanged behavior.
+ */
+export function shouldShowSpouseSection(
+  reportKey: string,
+  relationshipStatus: string | null | undefined,
+): boolean {
+  return reportKey === "marriage" && relationshipStatus === "married";
+}

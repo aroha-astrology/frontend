@@ -13,6 +13,7 @@ import {
   filterVisibleReports,
   computeDiscount,
   sortUnlockedFirst,
+  shouldShowSpouseSection,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -340,5 +341,22 @@ describe("computeDiscount", () => {
   it("rounds to the nearest whole percent rather than truncating", () => {
     // 1 - 90/100 = 0.10 exactly -> 10%.
     expect(computeDiscount(9000, 10000)).toEqual({ percentOff: 10 });
+  });
+});
+
+describe("shouldShowSpouseSection", () => {
+  it("is true for marriage + married", () => {
+    expect(shouldShowSpouseSection("marriage", "married")).toBe(true);
+  });
+
+  it("is false for marriage + any other status", () => {
+    expect(shouldShowSpouseSection("marriage", "single")).toBe(false);
+    expect(shouldShowSpouseSection("marriage", null)).toBe(false);
+    expect(shouldShowSpouseSection("marriage", undefined)).toBe(false);
+  });
+
+  it("is false for every other report key, even when married", () => {
+    expect(shouldShowSpouseSection("wealth", "married")).toBe(false);
+    expect(shouldShowSpouseSection("kundli_milan", "married")).toBe(false);
   });
 });

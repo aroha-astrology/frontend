@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownRight, History } from "lucide-react";
-import { api, type Transaction } from "@/lib/api";
+import { api, type Transaction, type OrderStatus } from "@/lib/api";
 import IconButton from "@/components/ui/IconButton";
 import { formatRupees } from "@/lib/format";
 import { formatDistanceToNow } from "date-fns";
@@ -25,9 +25,19 @@ function kindLabel(t: TFunction, txn: Transaction): string {
   }
 }
 
-/** Whether this row represents money flowing INTO the wallet (shown in green with a + sign). */
+function statusLabel(t: TFunction, status: OrderStatus): string {
+  switch (status) {
+    case "paid": return t("paymentHistory.statusPaid");
+    case "pending": return t("paymentHistory.statusPending");
+    case "failed": return t("paymentHistory.statusFailed");
+    case "cancelled": return t("paymentHistory.statusCancelled");
+  }
+}
+
+/** Whether this row represents money flowing INTO the wallet (shown in green with a + sign).
+ *  A recharge only counts once Play Store confirms the purchase server-side. */
 function isCredit(txn: Transaction): boolean {
-  if (txn.kind === "recharge") return true;
+  if (txn.kind === "recharge") return txn.status === "paid";
   if (txn.kind === "referral_bonus") return true;
   if (txn.kind === "daily_reward") return true;
   return txn.isRefund;
@@ -75,10 +85,11 @@ export default function TransactionsPage() {
           <div className="flex flex-col gap-3">
             {transactions.map(txn => {
               const positive = isCredit(txn);
+              const pending = txn.kind === "recharge" && txn.status !== "paid";
               return (
                 <div key={txn.id} className="p-4 rounded-2xl bg-surface border border-gold/10 flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${positive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
-                    {positive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${pending ? "bg-amber-500/10 text-amber-400" : positive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
+                    {pending ? <Loader2 size={20} /> : positive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-foreground font-medium text-sm truncate">{kindLabel(t, txn)}</p>
@@ -87,10 +98,12 @@ export default function TransactionsPage() {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`font-semibold ${positive ? "text-green-500" : "text-foreground"}`}>
-                      {positive ? "+" : "-"}{formatRupees(txn.amountPaise)}
+                    <p className={`font-semibold ${pending ? "text-amber-400" : positive ? "text-green-500" : "text-foreground"}`}>
+                      {pending ? "" : positive ? "+" : "-"}{formatRupees(txn.amountPaise)}
                     </p>
-                    {txn.kind !== "recharge" && (
+                    {txn.kind === "recharge" && txn.status !== "paid" ? (
+                      <p className="text-amber-400 text-[10px] mt-0.5">{statusLabel(t, txn.status)}</p>
+                    ) : txn.kind !== "recharge" && (
                       <p className="text-muted text-[10px] mt-0.5">
                         {t("transactions.balance", "Balance")}: {formatRupees(txn.balanceAfterPaise)}
                       </p>

@@ -252,6 +252,19 @@ export interface AdminRecurringUsersResponse {
   weeks: AdminRecurringUsersWeek[];
 }
 
+// ─── User demographics ─────────────────────────────────────────────────────
+
+export interface AdminDemographicsBucket {
+  label: string;
+  count: number;
+}
+
+export interface AdminUserDemographicsResponse {
+  ageBrackets: AdminDemographicsBucket[];
+  gender: AdminDemographicsBucket[];
+  relationshipStatus: AdminDemographicsBucket[];
+}
+
 
 
 // ─── Deletion requests ─────────────────────────────────────────────────────
@@ -431,6 +444,10 @@ export const adminApi = {
 
   /** Recurring-user counts + approximate time spent for this week, last week, last week+1, last week+2. */
   recurringUsers: () => request<AdminRecurringUsersResponse>("/v1/admin/recurring-users", { auth: true }),
+
+  /** Age-bracket, gender, and relationship-status breakdown across all current (non-deleted) users. */
+  userDemographics: () =>
+    request<AdminUserDemographicsResponse>("/v1/admin/user-demographics", { auth: true }),
 
   /** Pending account-deletion requests, oldest first. No pagination — same precedent as listReferrals. */
   listDeletionRequests: () =>

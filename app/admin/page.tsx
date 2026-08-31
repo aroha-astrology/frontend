@@ -2,7 +2,13 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { adminApi, type AdminOverview, type AdminUserRow, type AdminRecurringUsersWeek } from "@/lib/admin-api";
+import {
+  adminApi,
+  type AdminOverview,
+  type AdminUserRow,
+  type AdminRecurringUsersWeek,
+  type AdminUserDemographicsResponse,
+} from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import {
@@ -34,6 +40,13 @@ const RECURRING_WEEK_LABELS: Record<AdminRecurringUsersWeek["label"], string> = 
   last_week_plus_1: "Last Week +1",
   last_week_plus_2: "Last Week +2",
 };
+
+function formatDemographicsLabel(label: string): string {
+  return label
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 function defaultCustomRange(): { from: string; to: string } {
   const to = new Date();
@@ -161,6 +174,25 @@ function AdminOverviewContent() {
     };
   }, []);
 
+  // User demographics: same "always as of now, fetched once" convention as
+  // recurringWeeks above — a snapshot of all current users, not scoped to
+  // the DateRangePicker/userId.
+  const [demographics, setDemographics] = useState<AdminUserDemographicsResponse | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .userDemographics()
+      .then((res) => {
+        if (!cancelled) setDemographics(res);
+      })
+      .catch(() => {
+        if (!cancelled) setDemographics(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const fetchOverview = useCallback(() => {
     if (!canFetch) return;
     setLoading(true);
@@ -274,6 +306,72 @@ function AdminOverviewContent() {
                 activity isn&apos;t logged as a standalone event elsewhere. <strong>Time Spent</strong> approximates
                 engagement from chat session duration plus voice minutes charged — it does not capture time spent
                 just reading reports or browsing.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-foreground mb-3">User Demographics</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card className="p-4">
+                  <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
+                    Age Bracket
+                  </h3>
+                  {!demographics ? (
+                    <p className="text-sm text-muted py-2">Loading…</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {demographics.ageBrackets.map((b) => (
+                          <tr key={b.label} className="border-t border-border first:border-t-0">
+                            <td className="py-1.5 text-foreground">{formatDemographicsLabel(b.label)}</td>
+                            <td className="py-1.5 text-right text-foreground">{b.count.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Gender</h3>
+                  {!demographics ? (
+                    <p className="text-sm text-muted py-2">Loading…</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {demographics.gender.map((b) => (
+                          <tr key={b.label} className="border-t border-border first:border-t-0">
+                            <td className="py-1.5 text-foreground">{formatDemographicsLabel(b.label)}</td>
+                            <td className="py-1.5 text-right text-foreground">{b.count.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
+                    Relationship Status
+                  </h3>
+                  {!demographics ? (
+                    <p className="text-sm text-muted py-2">Loading…</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {demographics.relationshipStatus.map((b) => (
+                          <tr key={b.label} className="border-t border-border first:border-t-0">
+                            <td className="py-1.5 text-foreground">{formatDemographicsLabel(b.label)}</td>
+                            <td className="py-1.5 text-right text-foreground">{b.count.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </Card>
+              </div>
+              <p className="text-[11px] text-muted mt-2 max-w-2xl">
+                Snapshot of all current (non-deleted) users, independent of the date range above. Age is derived
+                from encrypted date-of-birth and grouped into fixed brackets; &quot;Unknown&quot; covers users who
+                never provided a birth date or a value that failed to parse.
               </p>
             </section>
 

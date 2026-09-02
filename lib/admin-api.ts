@@ -170,6 +170,28 @@ export interface AdminReportRow {
   count: number;
 }
 
+// ─── Report generations (who generated which report) ──────────────────────
+
+export interface AdminReportGenerationRow {
+  id: string;
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  reportKey: string;
+  status: "queued" | "generating" | "ready" | "failed";
+  periodMonth: string | null;
+  pricePaidPaise: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminReportGenerationsResponse {
+  reports: AdminReportGenerationRow[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
 // ─── Groups ────────────────────────────────────────────────────────────────
 
 export interface AdminGroupRow {
@@ -442,6 +464,42 @@ export const adminApi = {
   /** Updates a ticket's status and/or adminNote (at least one required). Backend auto-stamps/clears resolvedAt on terminal-status transitions. */
   updateSupportTicket: (id: string, body: { status?: string; adminNote?: string }) =>
     request<AdminSupportTicket>(`/v1/admin/support/tickets/${id}`, { method: "PATCH", body, auth: true }),
+
+  /** Every generated report row across all users, newest first, optionally filtered to one report key. */
+  listReportGenerations: (params: { reportKey?: string; offset?: number; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.reportKey) qs.set("reportKey", params.reportKey);
+    qs.set("offset", String(params.offset ?? 0));
+    qs.set("limit", String(params.limit ?? 50));
+    return request<AdminReportGenerationsResponse>(`/v1/admin/report-generations?${qs.toString()}`, { auth: true });
+  },
+
+  /** Unsticks one report row (status -> 'failed') so its owner can regenerate it — content and paid record survive. */
+  resetReportGeneration: (id: string) =>
+    request<{ id: string; status: "failed" }>(`/v1/admin/report-generations/${id}/reset`, {
+      method: "POST",
+      auth: true,
+    }),
+
+  /** Permanently deletes one report row — irreversible. */
+  deleteReportGeneration: (id: string) =>
+    request<void>(`/v1/admin/report-generations/${id}`, { method: "DELETE", auth: true }),
+
+  /** Resets every non-failed row for one report key. */
+  resetReportGenerationsAll: (reportKey: string) =>
+    request<{ count: number }>("/v1/admin/report-generations/reset-all", {
+      method: "POST",
+      body: { reportKey },
+      auth: true,
+    }),
+
+  /** Permanently deletes every row for one report key — irreversible. */
+  deleteReportGenerationsAll: (reportKey: string) =>
+    request<{ count: number }>("/v1/admin/report-generations/delete-all", {
+      method: "POST",
+      body: { reportKey },
+      auth: true,
+    }),
 
   /** All referral relationships — who referred whom, grouped by referrer, sorted by count desc. */
   listReferrals: () => request<AdminReferralsResponse>("/v1/admin/referrals", { auth: true }),

@@ -91,4 +91,15 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   // to let a reader without a phone on file — or who wants to check a different number —
   // override it. See jyotish-backend's resolvePhone (astro-engine/reports/numerology.ts).
   numerology: [{ id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber" }],
+  marriage: [
+    {
+      id: "isMarried",
+      type: "select",
+      labelKey: "reports.questions.marriage.isMarried",
+      options: [
+        { value: "yes", labelKey: "common.yes" },
+        { value: "no", labelKey: "common.no" },
+      ],
+    },
+  ],
 };

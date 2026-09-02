@@ -94,6 +94,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const [spouseConsented, setSpouseConsented] = useState(!!entry.lastSpouseDetails);
   // Optional and never blocks purchase: complete (dob+place+consent) or entirely empty are both
   // valid; a half-filled section is the only invalid state, since it can't build a real chart.
+  // If the user said they are NOT married, treat the spouse section as intentionally empty/valid.
   const spouseSectionEmpty = !spouseDob && !resolvedSpousePlace;
   const spouseSectionComplete = !!spouseDob && !!resolvedSpousePlace && spouseConsented;
   const spouseSectionValid = spouseSectionEmpty || spouseSectionComplete;
@@ -211,26 +212,8 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       }
     >
       <div className="flex flex-col gap-4 pb-1">
-        {Array.isArray(covers) && covers.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.coversTitle")}</p>
-            <ul className="flex flex-col gap-2">
-              {covers.map((line, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/85 leading-relaxed">
-                  <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-gold shrink-0" aria-hidden="true" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
-        {hasGeneratedCount && (
-          <p className="text-[11px] text-muted text-center">
-            {t("reports.statsCount", { count: formatCount(generatedCount) })}
-          </p>
-        )}
-
+        {/* ── Step 1: "Are you married?" — shown first for the marriage report ── */}
         {visibleQuestions.length > 0 && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">
@@ -276,6 +259,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </div>
         )}
 
+        {/* ── Kundli Milan partner form ── */}
         {mode === "kundli_milan" && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.partnerTitle")}</p>
@@ -325,7 +309,8 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </div>
         )}
 
-        {mode === "marriage_spouse" && (
+        {/* ── Marriage: spouse details — only if user answered "Yes, I'm married" ── */}
+        {mode === "marriage_spouse" && answers["isMarried"] === "yes" && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.spouseTitle")}</p>
             <p className="text-[11px] text-muted leading-relaxed">{t("reports.purchase.spouseHint")}</p>
@@ -386,6 +371,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </div>
         )}
 
+        {/* ── Monthly: already purchased state ── */}
         {mode === "monthly" && currentMonthAlreadyPurchased && (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-muted text-center">{t("reports.purchase.alreadyPurchased")}</p>
@@ -401,6 +387,27 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               <p className="text-[11px] text-amber-400 text-center">{t("reports.generating")}</p>
             )}
           </div>
+        )}
+
+        {/* ── "What this report covers" — shown below all inputs ── */}
+        {Array.isArray(covers) && covers.length > 0 && (
+          <div className="flex flex-col gap-2 pt-1">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.coversTitle")}</p>
+            <ul className="flex flex-col gap-2">
+              {covers.map((line, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/85 leading-relaxed">
+                  <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-gold shrink-0" aria-hidden="true" />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {hasGeneratedCount && (
+          <p className="text-[11px] text-muted text-center">
+            {t("reports.statsCount", { count: formatCount(generatedCount) })}
+          </p>
         )}
 
       </div>

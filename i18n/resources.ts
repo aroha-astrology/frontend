@@ -332,6 +332,9 @@ export const resources = {
           numerology: {
             phoneNumber: "Want to check a phone number's numerology too? (optional — we'll use the number on your account if you leave this blank)",
           },
+          marriage: {
+            isMarried: "Are you currently married?",
+          },
         },
         verdict: {
           title: "Final Verdict",
@@ -2670,6 +2673,9 @@ export const resources = {
           },
           numerology: {
             phoneNumber: "क्या आप किसी फोन नंबर की अंकशास्त्र जांच भी करना चाहते हैं? (वैकल्पिक — खाली छोड़ने पर हम आपके खाते वाले नंबर का उपयोग करेंगे)",
+          },
+          marriage: {
+            isMarried: "क्या आप अभी विवाहित हैं?",
           },
         },
         verdict: {

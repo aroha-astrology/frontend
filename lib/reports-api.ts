@@ -62,6 +62,10 @@ export interface ReportPartnerInput {
   latitude: number;
   longitude: number;
   timezone: string;
+  /** Set to "unknown" when the purchaser only knew a part of the day — `timeOfBirth`
+   *  then holds that window's midpoint (see lib/birth-time-window.ts) and the report
+   *  drops to a sign-level reading for this person instead of asserting their lagna. */
+  timeAccuracy?: "exact" | "approximate" | "unknown";
   /** marriage only. */
   name?: string;
   /** marriage only — display label for the resolved place, used purely to pre-fill the

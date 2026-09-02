@@ -14,6 +14,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 import { purgeUserCache } from "@/lib/cache";
 import { formatTimeOfBirth } from "@/lib/format";
+import { birthTimeWindowFor } from "@/lib/birth-time-window";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 
@@ -51,6 +52,10 @@ export default function ProfilePage() {
   const referralAmounts = useReferralAmounts();
 
   const [editing, setEditing] = useState(false);
+  /** Time-only edit: the free upgrade of a part-of-day window to a real clock time.
+   *  Every other birth field stays locked, because only the time is exempt from the
+   *  one lifetime edit (see the backend's isBirthTimeUpgrade). */
+  const [timeOnly, setTimeOnly] = useState(false);
   const [form, setForm] = useState<EditForm | null>(null);
   const [resolvedPlace, setResolvedPlace] = useState<PlaceOfBirth | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -66,12 +71,26 @@ export default function ProfilePage() {
 
   const genderLabel = (g: Gender) => GENDERS.find((g2) => g2.key === g)?.label ?? "";
 
-  function startEdit() {
+  // A stored time is only a real answer when the accuracy isn't 'unknown'; otherwise
+  // it's the midpoint of the part-of-day window picked during onboarding, and showing
+  // that clock time back would read as the app inventing one.
+  const tobWindow =
+    user?.birthTimeAccuracy === "unknown" ? birthTimeWindowFor(user.timeOfBirth) : null;
+  const tobDisplay = tobWindow
+    ? `${t(`onboarding.window.${tobWindow.key}`)} (${tobWindow.range})`
+    : formatTimeOfBirth(user?.timeOfBirth);
+
+  function startEdit(timeOnly = false) {
     if (!user) return;
-    if (!user.canEditBirthDetails) {
+    // A reader who onboarded without knowing their birth time has a window
+    // midpoint stored, not an answer. Letting them replace it with a real clock
+    // time is free (the backend exempts it), so it stays available even after
+    // the one lifetime edit is gone — but only for the time field.
+    if (!user.canEditBirthDetails && !(timeOnly && user.canSetExactBirthTime)) {
       setSubmitErr(t("profile.birthEditLimitReached"));
       return;
     }
+    setTimeOnly(timeOnly);
     setForm({
       displayName: user.displayName ?? "",
       gender: user.gender ?? null,
@@ -110,6 +129,11 @@ export default function ProfilePage() {
       }
       if (form.timeOfBirth && form.timeOfBirth !== (user.timeOfBirth ?? "").slice(0, 5)) {
         body.timeOfBirth = form.timeOfBirth;
+        // Giving a real clock time retires the "unknown" rating — without this the
+        // reading would stay locked to the Moon-sign treatment even though they've
+        // now told us the time, and the backend's free-upgrade exemption keys off
+        // this field being present.
+        if (user.birthTimeAccuracy === "unknown") body.birthTimeAccuracy = "exact";
         birthChanged = true;
       }
       if (resolvedPlace && resolvedPlace.name !== user.placeOfBirth?.name) {
@@ -180,7 +204,7 @@ export default function ProfilePage() {
           <h1 className="text-lg font-display text-foreground flex-1">{t("profile.title")}</h1>
           {!editing && (
             <button
-              onClick={startEdit}
+              onClick={() => startEdit()}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gold/30 text-gold text-xs font-semibold hover:bg-gold/10 transition-colors"
             >
               <Pencil size={13} /> {t("profile.edit")}
@@ -270,7 +294,15 @@ export default function ProfilePage() {
                 label={t("profile.dob")}
                 value={user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : ""}
               />
-              <ReadRow label={t("profile.tob")} value={formatTimeOfBirth(user?.timeOfBirth)} />
+              <ReadRow label={t("profile.tob")} value={tobDisplay} />
+              {user?.canSetExactBirthTime && (
+                <button
+                  onClick={() => startEdit(true)}
+                  className="w-full text-left px-4 py-2.5 rounded-xl border border-gold/25 bg-gold/5 text-[12px] text-gold/90 leading-relaxed hover:border-gold/50 active:scale-[0.99] transition-all"
+                >
+                  {t("profile.setExactTime")}
+                </button>
+              )}
               <ReadRow label={t("profile.place")} value={user?.placeOfBirth?.name ?? ""} />
             </div>
           ) : form ? (
@@ -284,7 +316,8 @@ export default function ProfilePage() {
                   value={form.displayName}
                   onChange={(e) => setForm({ ...form, displayName: e.target.value })}
                   placeholder={t("profile.namePlaceholder")}
-                  className={inputClass}
+                  disabled={timeOnly}
+                  className={`${inputClass} disabled:opacity-40`}
                 />
               </div>
 
@@ -304,6 +337,7 @@ export default function ProfilePage() {
                     <button
                       key={g.key}
                       type="button"
+                      disabled={timeOnly}
                       onClick={() => setForm({ ...form, gender: g.key })}
                       className={`flex-1 py-2.5 rounded-xl border text-[13px] font-medium text-center transition-all ${
                         form.gender === g.key
@@ -325,7 +359,8 @@ export default function ProfilePage() {
                   type="date"
                   value={form.dateOfBirth}
                   onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                  className={inputClass}
+                  disabled={timeOnly}
+                  className={`${inputClass} disabled:opacity-40`}
                 />
               </div>
 
@@ -338,7 +373,13 @@ export default function ProfilePage() {
                   value={form.timeOfBirth}
                   onChange={(e) => setForm({ ...form, timeOfBirth: e.target.value })}
                   className={inputClass}
+                  autoFocus={timeOnly}
                 />
+                {timeOnly && (
+                  <p className="text-[11px] text-muted mt-1.5 ml-1 leading-relaxed">
+                    {t("profile.setExactTimeHint")}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -347,7 +388,8 @@ export default function ProfilePage() {
                 </label>
                 <PlaceAutocomplete
                   placeholder={t("profile.placePlaceholder")}
-                  inputClassName={inputClass}
+                  inputClassName={`${inputClass} disabled:opacity-40`}
+                  disabled={timeOnly}
                   worldwide={!user?.phoneE164}
                   onSelect={(place) => {
                     setResolvedPlace(place);

@@ -10,6 +10,8 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
+import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
+import { birthTimeWindowFor, BIRTH_TIME_WINDOWS } from "@/lib/birth-time-window";
 import { formatRupees } from "@/lib/format";
 import { CHAT_PENDING_CONTEXT_KEY, type ChatPendingPayload } from "@/lib/chat-handoff";
 import BirthProfilePickerSheet from "@/components/compatibility/BirthProfilePickerSheet";
@@ -27,6 +29,9 @@ interface PersonForm {
   name: string;
   dob: string;
   time: string;
+  /** A BIRTH_TIME_WINDOWS key when this person's exact birth time isn't known, else "".
+   *  Set, it supplies the time (the window's midpoint) and marks the accuracy unknown. */
+  timeWindow: string;
   place: string;
 }
 
@@ -35,7 +40,7 @@ interface CompatForm {
   girl: PersonForm;
 }
 
-const emptyPerson: PersonForm = { name: "", dob: "", time: "", place: "" };
+const emptyPerson: PersonForm = { name: "", dob: "", time: "", timeWindow: "", place: "" };
 
 export default function CompatibilityPage() {
   const { t, i18n } = useTranslation();
@@ -99,6 +104,12 @@ export default function CompatibilityPage() {
       name: profile.displayName ?? "",
       dob: profile.dateOfBirth ?? "",
       time: (profile.timeOfBirth ?? "").slice(0, 5),
+      // A saved profile whose own accuracy is 'unknown' carries a window midpoint,
+      // not a time its owner gave — surface it as the window here too.
+      timeWindow:
+        profile.birthTimeAccuracy === "unknown"
+          ? (birthTimeWindowFor(profile.timeOfBirth)?.key ?? "")
+          : "",
       place: profile.placeOfBirth?.name ?? "",
     };
     setForm((prev) => ({ ...prev, [who]: fields }));
@@ -172,12 +183,20 @@ export default function CompatibilityPage() {
     setPurchasing(true);
     setError(null);
 
+    const partnerWindow = BIRTH_TIME_WINDOWS.find(
+      (w) => w.key === form[partnerSide].timeWindow,
+    );
+
     try {
       const body: PurchaseReportBody = {
         reportKey: "match_report",
         partner: {
           dateOfBirth: form[partnerSide].dob,
-          timeOfBirth: form[partnerSide].time || "12:00",
+          // No silent noon fallback: the time is either one they gave or the
+          // midpoint of the window they picked, and the latter is flagged so the
+          // report narrates this person at sign level instead of asserting a lagna.
+          timeOfBirth: partnerWindow?.mid ?? form[partnerSide].time,
+          ...(partnerWindow ? { timeAccuracy: "unknown" as const } : {}),
           latitude: resolvedPartnerPlace.lat,
           longitude: resolvedPartnerPlace.lon,
           timezone: resolvedPartnerPlace.tz,
@@ -263,13 +282,21 @@ export default function CompatibilityPage() {
       </div>
       <div>
         <label className="text-xs text-[var(--text-muted)] ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
-        <input
-          type="time"
-          value={form[who].time}
-          onChange={(e) => updatePerson(who, "time", e.target.value)}
+        {form[who].timeWindow ? null : (
+          <input
+            type="time"
+            value={form[who].time}
+            onChange={(e) => updatePerson(who, "time", e.target.value)}
+            disabled={disabled}
+            className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
+            style={style}
+          />
+        )}
+        <BirthTimeWindowSelect
+          value={form[who].timeWindow}
           disabled={disabled}
-          className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed")}
-          style={style}
+          onChange={(key) => updatePerson(who, "timeWindow", key)}
+          className={cn(inputClass, "mt-1.5", disabled && "opacity-50 cursor-not-allowed")}
         />
       </div>
       {disabled ? (

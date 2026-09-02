@@ -40,6 +40,10 @@ export interface User {
   placeOfBirth: PlaceOfBirth | null;
   /** False once the user has used their one lifetime birth-detail (DOB/time/place) edit. */
   canEditBirthDetails: boolean;
+  birthTimeAccuracy: "exact" | "approximate" | "unknown" | null;
+  /** True while the stored time is only a part-of-day window midpoint — upgrading it to a
+   *  real clock time is free and does not consume the one lifetime birth-detail edit. */
+  canSetExactBirthTime: boolean;
   profileCompletedAt: string | null;
   /**
    * This account was erased once and the same person has signed back in. Their
@@ -229,7 +233,8 @@ export interface Profile {
   displayName: string | null;
   gender: Gender;
   dateOfBirth: string | null; // YYYY-MM-DD
-  timeOfBirth: string | null; // HH:mm[:ss]
+  timeOfBirth: string | null;
+  birthTimeAccuracy: "exact" | "approximate" | "unknown" | null; // HH:mm[:ss]
   placeOfBirth: PlaceOfBirth | null;
   createdAt: string; // ISO
 }

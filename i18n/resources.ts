@@ -1053,6 +1053,7 @@ export const resources = {
         close: "Close",
       },
       compatibilityPage: {
+        timeKnown: "I know the exact time",
         title: "Kundli Matching",
         subtitle: "Find your cosmic compatibility score",
         person1: "Person 1",
@@ -1381,6 +1382,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "What time were you born?",
         step4hint: "HH : MM  (24-hour)",
+        tobUnknown: "I don't know my birth time",
+        tobUnknownExplain:
+          "That's completely fine — most people don't know it. You'll still get your predictions, they'll just vary a little. Your Moon sign, planet positions and daily readings stay accurate; your ascendant (lagna), house placements and exact dasha dates are the parts that can shift. Tell me roughly when you were born and I'll work from the middle of that window. You can add your exact time later from your profile whenever you find it.",
+        windowQ: "Which part of the day were you born in?",
+        window: {
+          late_night: "Late night",
+          early_morning: "Early morning",
+          morning: "Morning",
+          afternoon: "Afternoon",
+          evening: "Evening",
+          night: "Night",
+        },
         step5q: "How do you know your birth time?",
         step5cert: "Birth Certificate",
         step5family: "Family Memory",
@@ -1852,6 +1865,10 @@ export const resources = {
         saving: "Saving...",
         saveError: "Couldn't save your profile. Please try again.",
         birthEditLimitReached: "You've already used your one birth-detail edit. Contact support if you need to correct this.",
+        setExactTime:
+          "Found your exact birth time? Add it to sharpen your ascendant, houses and dasha dates.",
+        setExactTimeHint:
+          "Adding your exact time here is free — it won't use up your one-time birth details edit.",
         loading: "Loading your profile…",
         namePlaceholder: "Your full name",
         placePlaceholder: "City or town",
@@ -3667,6 +3684,7 @@ export const resources = {
         close: "बंद करें",
       },
       compatibilityPage: {
+        timeKnown: "मुझे सही समय पता है",
         title: "कुंडली मिलान",
         subtitle: "अपना ब्रह्मांडीय अनुकूलता स्कोर जानें",
         person1: "व्यक्ति 1",
@@ -3850,6 +3868,10 @@ export const resources = {
         saving: "सहेजा जा रहा है...",
         saveError: "आपकी प्रोफ़ाइल सहेजी नहीं जा सकी। कृपया पुनः प्रयास करें।",
         birthEditLimitReached: "आप अपना एक जन्म-विवरण संपादन पहले ही उपयोग कर चुके हैं। सुधार के लिए सहायता से संपर्क करें।",
+        setExactTime:
+          "अपना सही जन्म समय मिल गया? उसे जोड़ें और अपना लग्न, भाव तथा दशा तिथियाँ और सटीक बनाएँ।",
+        setExactTimeHint:
+          "यहाँ सही समय जोड़ना निःशुल्क है — इससे आपका एक बार का जन्म-विवरण संपादन खर्च नहीं होगा।",
         loading: "आपकी प्रोफ़ाइल लोड हो रही है…",
         namePlaceholder: "आपका पूरा नाम",
         placePlaceholder: "शहर या कस्बा",
@@ -4137,6 +4159,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "आपका जन्म किस समय हुआ?",
         step4hint: "HH : MM  (24-घंटे)",
+        tobUnknown: "मुझे अपना जन्म समय नहीं पता",
+        tobUnknownExplain:
+          "यह बिल्कुल ठीक है — ज़्यादातर लोगों को पता नहीं होता। आपकी भविष्यवाणियाँ फिर भी मिलेंगी, बस उनमें थोड़ा अंतर आ सकता है। आपकी चंद्र राशि, ग्रहों की स्थिति और रोज़ का राशिफल सटीक रहेंगे; लग्न, भावों की स्थिति और दशा की सटीक तारीखें वे हिस्से हैं जो बदल सकते हैं। बस बता दीजिए कि आपका जन्म दिन के किस हिस्से में हुआ था, मैं उसी अवधि के बीच के समय से गणना करूँगा। सही समय पता चलते ही आप उसे कभी भी अपनी प्रोफ़ाइल से जोड़ सकते हैं।",
+        windowQ: "आपका जन्म दिन के किस हिस्से में हुआ था?",
+        window: {
+          late_night: "देर रात",
+          early_morning: "तड़के सुबह",
+          morning: "सुबह",
+          afternoon: "दोपहर",
+          evening: "शाम",
+          night: "रात",
+        },
         step5q: "आप अपना जन्म समय कैसे जानते हैं?",
         step5cert: "जन्म प्रमाण पत्र",
         step5family: "परिवार की याद",
@@ -5888,6 +5922,7 @@ export const resources = {
         close: "বন্ধ করুন",
       },
       compatibilityPage: {
+        timeKnown: "আমি সঠিক সময় জানি",
         title: "কুণ্ডলী মিলান",
         subtitle: "আপনার মহাজাগতিক সামঞ্জস্য স্কোর জানুন",
         person1: "ব্যক্তি ১",
@@ -6071,6 +6106,10 @@ export const resources = {
         saving: "সংরক্ষণ করা হচ্ছে...",
         saveError: "আপনার প্রোফাইল সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
         birthEditLimitReached: "আপনি ইতিমধ্যে আপনার একটি জন্ম-বিবরণ সম্পাদনা ব্যবহার করেছেন। সংশোধনের জন্য সহায়তার সাথে যোগাযোগ করুন।",
+        setExactTime:
+          "আপনার সঠিক জন্মসময় জানতে পেরেছেন? যোগ করুন এবং আপনার লগ্ন, ভাব ও দশার তারিখ আরও নির্ভুল করুন।",
+        setExactTimeHint:
+          "এখানে সঠিক সময় যোগ করা বিনামূল্যে — এতে আপনার একবারের জন্ম-তথ্য সম্পাদনা খরচ হবে না।",
         loading: "আপনার প্রোফাইল লোড হচ্ছে…",
         namePlaceholder: "আপনার পুরো নাম",
         placePlaceholder: "শহর বা শহরাঞ্চল",
@@ -6362,6 +6401,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "আপনার জন্মের সময় কী?",
         step4hint: "HH : MM  (২৪-ঘণ্টা)",
+        tobUnknown: "আমার জন্মের সময় জানা নেই",
+        tobUnknownExplain:
+          "একদম ঠিক আছে — বেশিরভাগ মানুষই জানেন না। আপনি তবুও আপনার ভবিষ্যদ্বাণী পাবেন, শুধু সামান্য তারতম্য হতে পারে। আপনার চন্দ্ররাশি, গ্রহের অবস্থান এবং দৈনিক রাশিফল সঠিক থাকবে; লগ্ন, ভাবের অবস্থান এবং দশার নির্দিষ্ট তারিখ — এই অংশগুলোই বদলাতে পারে। শুধু বলুন দিনের কোন সময়ে আপনার জন্ম, আমি সেই সময়সীমার মাঝামাঝি ধরে হিসাব করব। সঠিক সময় জানতে পারলে যেকোনো সময় প্রোফাইল থেকে যোগ করে নিতে পারবেন।",
+        windowQ: "দিনের কোন সময়ে আপনার জন্ম হয়েছিল?",
+        window: {
+          late_night: "গভীর রাত",
+          early_morning: "ভোর",
+          morning: "সকাল",
+          afternoon: "দুপুর",
+          evening: "সন্ধ্যা",
+          night: "রাত",
+        },
         step5q: "আপনি কীভাবে জন্মের সময় জানেন?",
         step5cert: "জন্ম সনদ",
         step5family: "পরিবারের স্মৃতি",
@@ -8113,6 +8164,7 @@ export const resources = {
         close: "बंद करा",
       },
       compatibilityPage: {
+        timeKnown: "मला नेमकी वेळ माहीत आहे",
         title: "कुंडली जुळवणी",
         subtitle: "तुमचा वैश्विक सुसंगतता स्कोअर जाणून घ्या",
         person1: "व्यक्ती १",
@@ -8296,6 +8348,10 @@ export const resources = {
         saving: "जतन होत आहे...",
         saveError: "तुमची प्रोफाइल जतन करता आली नाही. कृपया पुन्हा प्रयत्न करा.",
         birthEditLimitReached: "तुम्ही तुमचे एक जन्म-तपशील संपादन आधीच वापरले आहे. दुरुस्तीसाठी सहाय्याशी संपर्क साधा.",
+        setExactTime:
+          "तुमची नेमकी जन्मवेळ सापडली? ती जोडा आणि तुमचे लग्न, भाव व दशेच्या तारखा अधिक अचूक करा.",
+        setExactTimeHint:
+          "इथे नेमकी वेळ जोडणे विनामूल्य आहे — यामुळे तुमचे एकदाच मिळणारे जन्म-तपशील संपादन वापरले जाणार नाही.",
         loading: "तुमची प्रोफाइल लोड होत आहे…",
         namePlaceholder: "तुमचे पूर्ण नाव",
         placePlaceholder: "शहर किंवा गाव",
@@ -8588,6 +8644,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "तुमचा जन्म कोणत्या वेळी झाला?",
         step4hint: "HH : MM  (24-तास)",
+        tobUnknown: "मला माझी जन्मवेळ माहीत नाही",
+        tobUnknownExplain:
+          "हे अगदी ठीक आहे — बहुतेकांना ती माहीत नसते। तुम्हाला भाकिते मिळतीलच, फक्त त्यांत थोडा फरक पडू शकतो। तुमची चंद्र रास, ग्रहांची स्थिती आणि रोजचे राशिभविष्य अचूक राहील; लग्न, भावांची स्थिती आणि दशेच्या नेमक्या तारखा हेच भाग बदलू शकतात। दिवसाच्या कोणत्या भागात तुमचा जन्म झाला एवढे सांगा, मी त्या कालावधीच्या मधल्या वेळेवरून गणना करेन। नेमकी वेळ कळल्यावर तुम्ही ती केव्हाही प्रोफाइलमधून जोडू शकता।",
+        windowQ: "दिवसाच्या कोणत्या भागात तुमचा जन्म झाला?",
+        window: {
+          late_night: "मध्यरात्र",
+          early_morning: "पहाटे",
+          morning: "सकाळ",
+          afternoon: "दुपार",
+          evening: "संध्याकाळ",
+          night: "रात्र",
+        },
         step5q: "तुम्हाला जन्माची वेळ कशी माहीत आहे?",
         step5cert: "जन्म दाखला",
         step5family: "कुटुंबाची आठवण",
@@ -10335,6 +10403,7 @@ export const resources = {
         close: "మూసివేయండి",
       },
       compatibilityPage: {
+        timeKnown: "నాకు ఖచ్చితమైన సమయం తెలుసు",
         title: "కుండలి పొంతన",
         subtitle: "మీ విశ్వ అనుకూలత స్కోరును తెలుసుకోండి",
         person1: "వ్యక్తి 1",
@@ -10518,6 +10587,10 @@ export const resources = {
         saving: "సేవ్ అవుతోంది...",
         saveError: "మీ ప్రొఫైల్‌ను సేవ్ చేయడం సాధ్యం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.",
         birthEditLimitReached: "మీరు ఇప్పటికే మీ ఒక జననం-వివరాల సవరణను ఉపయోగించారు. సరిదిద్దడానికి సహాయాన్ని సంప్రదించండి.",
+        setExactTime:
+          "మీ ఖచ్చితమైన జనన సమయం తెలిసిందా? దాన్ని జోడించి మీ లగ్నం, భావాలు మరియు దశల తేదీలను మరింత కచ్చితం చేసుకోండి.",
+        setExactTimeHint:
+          "ఇక్కడ ఖచ్చితమైన సమయం జోడించడం ఉచితం — దీనివల్ల మీ ఒక్కసారి మాత్రమే ఉన్న జనన వివరాల సవరణ ఖర్చు కాదు.",
         loading: "మీ ప్రొఫైల్ లోడ్ అవుతోంది…",
         namePlaceholder: "మీ పూర్తి పేరు",
         placePlaceholder: "నగరం లేదా పట్టణం",
@@ -10810,6 +10883,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "మీరు ఏ సమయంలో జన్మించారు?",
         step4hint: "HH : MM  (24-గంటలు)",
+        tobUnknown: "నా జనన సమయం నాకు తెలియదు",
+        tobUnknownExplain:
+          "ఫర్వాలేదు — చాలామందికి తెలియదు. మీ అంచనాలు మీకు అందుతూనే ఉంటాయి, కేవలం కొంచెం తేడా ఉండవచ్చు. మీ చంద్ర రాశి, గ్రహ స్థానాలు మరియు రోజువారీ రాశిఫలం కచ్చితంగా ఉంటాయి; లగ్నం, భావ స్థానాలు మరియు దశల ఖచ్చితమైన తేదీలు మాత్రమే మారవచ్చు. రోజులో ఏ సమయంలో పుట్టారో చెప్పండి చాలు, ఆ వ్యవధి మధ్య సమయాన్ని తీసుకుని లెక్కిస్తాను. ఖచ్చితమైన సమయం తెలిసినప్పుడు ఎప్పుడైనా మీ ప్రొఫైల్‌లో చేర్చుకోవచ్చు.",
+        windowQ: "రోజులో ఏ సమయంలో మీరు జన్మించారు?",
+        window: {
+          late_night: "అర్ధరాత్రి",
+          early_morning: "తెల్లవారుజాము",
+          morning: "ఉదయం",
+          afternoon: "మధ్యాహ్నం",
+          evening: "సాయంత్రం",
+          night: "రాత్రి",
+        },
         step5q: "మీ జన్మ సమయం ఎలా తెలుసు?",
         step5cert: "జన్మ ధృవీకరణ పత్రం",
         step5family: "కుటుంబ జ్ఞాపకం",
@@ -12561,6 +12646,7 @@ export const resources = {
         close: "மூடு",
       },
       compatibilityPage: {
+        timeKnown: "எனக்குச் சரியான நேரம் தெரியும்",
         title: "ஜாதகப் பொருத்தம்",
         subtitle: "உங்கள் அண்ட பொருத்த மதிப்பெண்ணைக் கண்டறியுங்கள்",
         person1: "நபர் 1",
@@ -12744,6 +12830,10 @@ export const resources = {
         saving: "சேமிக்கப்படுகிறது...",
         saveError: "உங்கள் சுயவிவரத்தை சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
         birthEditLimitReached: "நீங்கள் ஏற்கனவே உங்கள் ஒரு பிறப்பு-விவர திருத்தத்தைப் பயன்படுத்திவிட்டீர்கள். திருத்த வேண்டுமெனில் ஆதரவைத் தொடர்பு கொள்ளவும்.",
+        setExactTime:
+          "உங்கள் சரியான பிறந்த நேரம் கிடைத்ததா? அதைச் சேர்த்து உங்கள் லக்னம், பாவங்கள், தசை தேதிகளைத் துல்லியமாக்குங்கள்.",
+        setExactTimeHint:
+          "இங்கே சரியான நேரத்தைச் சேர்ப்பது இலவசம் — இது உங்கள் ஒருமுறை பிறப்பு விவரத் திருத்தத்தைச் செலவழிக்காது.",
         loading: "உங்கள் சுயவிவரம் ஏற்றப்படுகிறது…",
         namePlaceholder: "உங்கள் முழுப் பெயர்",
         placePlaceholder: "நகரம் அல்லது ஊர்",
@@ -13038,6 +13128,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "நீங்கள் எந்த நேரத்தில் பிறந்தீர்கள்?",
         step4hint: "HH : MM  (24-மணி)",
+        tobUnknown: "எனக்கு என் பிறந்த நேரம் தெரியாது",
+        tobUnknownExplain:
+          "பரவாயில்லை — பெரும்பாலானோருக்குத் தெரிவதில்லை. உங்கள் பலன்கள் தொடர்ந்து கிடைக்கும், சிறிது வேறுபாடு இருக்கலாம் அவ்வளவே. உங்கள் சந்திர ராசி, கிரக நிலைகள், தினசரி பலன் ஆகியவை துல்லியமாக இருக்கும்; லக்னம், பாவ நிலைகள், தசையின் சரியான தேதிகள் ஆகியவை மட்டுமே மாறக்கூடும். நாளின் எந்தப் பகுதியில் பிறந்தீர்கள் என்று சொன்னால் போதும், அந்த நேர இடைவெளியின் நடுப்பகுதியை வைத்துக் கணிக்கிறேன். சரியான நேரம் தெரிந்ததும் எப்போது வேண்டுமானாலும் உங்கள் சுயவிவரத்தில் சேர்க்கலாம்.",
+        windowQ: "நாளின் எந்தப் பகுதியில் நீங்கள் பிறந்தீர்கள்?",
+        window: {
+          late_night: "நள்ளிரவு",
+          early_morning: "அதிகாலை",
+          morning: "காலை",
+          afternoon: "மதியம்",
+          evening: "மாலை",
+          night: "இரவு",
+        },
         step5q: "உங்கள் பிறந்த நேரம் எப்படி தெரியும்?",
         step5cert: "பிறப்பு சான்றிதழ்",
         step5family: "குடும்ப நினைவு",
@@ -14784,6 +14886,7 @@ export const resources = {
         close: "બંધ કરો",
       },
       compatibilityPage: {
+        timeKnown: "મને ચોક્કસ સમય ખબર છે",
         title: "કુંડળી મેળાપ",
         subtitle: "તમારો કોસ્મિક સુસંગતતા સ્કોર જાણો",
         person1: "વ્યક્તિ ૧",
@@ -14967,6 +15070,10 @@ export const resources = {
         saving: "સાચવી રહ્યા છીએ...",
         saveError: "તમારી પ્રોફાઇલ સાચવી શકાઈ નથી. કૃપા કરી ફરી પ્રયાસ કરો.",
         birthEditLimitReached: "તમે તમારો એક જન્મ-વિગત ફેરફાર પહેલેથી જ વાપરી લીધો છે. સુધારા માટે સપોર્ટનો સંપર્ક કરો.",
+        setExactTime:
+          "તમારો ચોક્કસ જન્મ સમય મળી ગયો? તેને ઉમેરો અને તમારું લગ્ન, ભાવ અને દશાની તારીખો વધુ સચોટ બનાવો.",
+        setExactTimeHint:
+          "અહીં ચોક્કસ સમય ઉમેરવો મફત છે — તેનાથી તમારો એક વખતનો જન્મ-વિગત ફેરફાર વપરાશે નહીં.",
         loading: "તમારી પ્રોફાઇલ લોડ થઈ રહી છે…",
         namePlaceholder: "તમારું પૂરું નામ",
         placePlaceholder: "શહેર અથવા નગર",
@@ -15258,6 +15365,18 @@ export const resources = {
         step3hint: "DD / MM / YYYY",
         step4q: "તમારો જન્મ કેટલા વાગ્યે થયો?",
         step4hint: "HH : MM  (24-કલાક)",
+        tobUnknown: "મને મારો જન્મ સમય ખબર નથી",
+        tobUnknownExplain:
+          "એ તદ્દન ઠીક છે — મોટા ભાગના લોકોને ખબર હોતી નથી. તમને ભવિષ્યવાણી મળતી જ રહેશે, ફક્ત તેમાં થોડો ફેર પડી શકે. તમારી ચંદ્ર રાશિ, ગ્રહોની સ્થિતિ અને રોજનું રાશિફળ સચોટ રહેશે; લગ્ન, ભાવોની સ્થિતિ અને દશાની ચોક્કસ તારીખો એ જ ભાગ છે જે બદલાઈ શકે. દિવસના કયા ભાગમાં તમારો જન્મ થયો એટલું કહો, હું એ સમયગાળાની વચ્ચેના સમય પરથી ગણતરી કરીશ. સાચો સમય ખબર પડે ત્યારે તમે ગમે ત્યારે તમારી પ્રોફાઇલમાંથી ઉમેરી શકો છો.",
+        windowQ: "દિવસના કયા ભાગમાં તમારો જન્મ થયો હતો?",
+        window: {
+          late_night: "મોડી રાત",
+          early_morning: "વહેલી સવાર",
+          morning: "સવાર",
+          afternoon: "બપોર",
+          evening: "સાંજ",
+          night: "રાત",
+        },
         step5q: "તમે જન્મ સમય કેવી રીતે જાણો છો?",
         step5cert: "જન્મ પ્રમાણ પત્ર",
         step5family: "પરિવારની યાદ",

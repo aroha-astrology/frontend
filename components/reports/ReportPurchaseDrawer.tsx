@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
+import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
@@ -64,6 +66,8 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   // ── Kundli Milan partner form ─────────────────────────────────────────
   const [partnerDob, setPartnerDob] = useState("");
   const [partnerTob, setPartnerTob] = useState("");
+  /** BIRTH_TIME_WINDOWS key when the exact time isn't known — see BirthTimeWindowSelect. */
+  const [partnerTimeWindow, setPartnerTimeWindow] = useState("");
   const [resolvedPartnerPlace, setResolvedPartnerPlace] = useState<PlaceOfBirth | null>(null);
   const [partnerConsented, setPartnerConsented] = useState(false);
   const partnerValid = !!partnerDob && !!resolvedPartnerPlace && partnerConsented;
@@ -72,6 +76,11 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const [spouseName, setSpouseName] = useState(entry.lastSpouseDetails?.name ?? "");
   const [spouseDob, setSpouseDob] = useState(entry.lastSpouseDetails?.dateOfBirth ?? "");
   const [spouseTob, setSpouseTob] = useState(entry.lastSpouseDetails?.timeOfBirth ?? "");
+  const [spouseTimeWindow, setSpouseTimeWindow] = useState(
+    entry.lastSpouseDetails?.timeAccuracy === "unknown"
+      ? (birthTimeWindowFor(entry.lastSpouseDetails.timeOfBirth)?.key ?? "")
+      : "",
+  );
   const [resolvedSpousePlace, setResolvedSpousePlace] = useState<PlaceOfBirth | null>(
     entry.lastSpouseDetails
       ? {
@@ -128,18 +137,24 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       if (activeProfile && activeProfile.id !== "primary") body.birthProfileId = activeProfile.id;
       if (mode === "monthly") body.months = [currentMonthKey()];
       if (mode === "kundli_milan" && resolvedPartnerPlace) {
+        // No silent noon fallback — either the time they gave, or the midpoint of
+        // the window they picked, flagged so the report reads them at sign level.
+        const w = BIRTH_TIME_WINDOWS.find((x) => x.key === partnerTimeWindow);
         body.partner = {
           dateOfBirth: partnerDob,
-          timeOfBirth: partnerTob || "12:00",
+          timeOfBirth: w?.mid ?? partnerTob,
+          ...(w ? { timeAccuracy: "unknown" as const } : {}),
           latitude: resolvedPartnerPlace.lat,
           longitude: resolvedPartnerPlace.lon,
           timezone: resolvedPartnerPlace.tz,
         };
       }
       if (mode === "marriage_spouse" && spouseSectionComplete && resolvedSpousePlace) {
+        const w = BIRTH_TIME_WINDOWS.find((x) => x.key === spouseTimeWindow);
         body.partner = {
           dateOfBirth: spouseDob,
-          timeOfBirth: spouseTob || "12:00",
+          timeOfBirth: w?.mid ?? spouseTob,
+          ...(w ? { timeAccuracy: "unknown" as const } : {}),
           latitude: resolvedSpousePlace.lat,
           longitude: resolvedSpousePlace.lon,
           timezone: resolvedSpousePlace.tz,
@@ -276,12 +291,19 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
             </div>
             <div>
               <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
-              <input
-                type="time"
-                value={partnerTob}
-                onChange={(e) => setPartnerTob(e.target.value)}
-                className={inputClass}
-                style={style}
+              {!partnerTimeWindow && (
+                <input
+                  type="time"
+                  value={partnerTob}
+                  onChange={(e) => setPartnerTob(e.target.value)}
+                  className={inputClass}
+                  style={style}
+                />
+              )}
+              <BirthTimeWindowSelect
+                value={partnerTimeWindow}
+                onChange={setPartnerTimeWindow}
+                className={`${inputClass} mt-1.5`}
               />
             </div>
             <PlaceAutocomplete
@@ -329,12 +351,19 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
             </div>
             <div>
               <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
-              <input
-                type="time"
-                value={spouseTob}
-                onChange={(e) => setSpouseTob(e.target.value)}
-                className={inputClass}
-                style={style}
+              {!spouseTimeWindow && (
+                <input
+                  type="time"
+                  value={spouseTob}
+                  onChange={(e) => setSpouseTob(e.target.value)}
+                  className={inputClass}
+                  style={style}
+                />
+              )}
+              <BirthTimeWindowSelect
+                value={spouseTimeWindow}
+                onChange={setSpouseTimeWindow}
+                className={`${inputClass} mt-1.5`}
               />
             </div>
             <PlaceAutocomplete

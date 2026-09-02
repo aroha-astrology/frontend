@@ -32,6 +32,7 @@ import {
 } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
 import { useFeature } from "@/hooks/useFeature";
+import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,13 @@ interface Answers {
   place: string;
   gender: string;
   status: string;
+  /** BIRTH_TIME_WINDOWS key, set only when the reader said they don't know their
+   *  birth time. Display-only — never sent; the backend re-derives it from the
+   *  submitted midpoint (see lib/birth-time-window.ts). */
+  timeWindow: string;
+  /** Only ever "unknown", and only on the window path. A typed clock time
+   *  leaves this unset, preserving the existing null-accuracy behaviour. */
+  accuracy: string;
   referralCode?: string;
 }
 
@@ -68,6 +76,15 @@ const TOTAL_STEPS = 7;
  * the primary (non-new-profile) flow.
  */
 const RELATIONSHIP_STEP = 2.5;
+
+/**
+ * The "which part of the day were you born in?" question, reached only from the
+ * "I don't know my birth time" escape on the time step (4). Fractional for the
+ * same reason as RELATIONSHIP_STEP — it detours between the time step and the
+ * place step (5) without renumbering anything downstream. Math.floor in
+ * `progress` absorbs it, so the step dots stay on the time step throughout.
+ */
+const TIME_WINDOW_STEP = 4.5;
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -111,6 +128,7 @@ function applyBirthDataFields(
     dateOfBirth?: string;
     timeOfBirth?: string | null;
     placeOfBirth?: PlaceOfBirth | null;
+    birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   },
   answers: Partial<Answers>,
   resolvedPlace: PlaceOfBirth | null,
@@ -120,7 +138,8 @@ function applyBirthDataFields(
     const [d, m, y] = answers.dob.split("/");
     body.dateOfBirth = `${y}-${m}-${d}`; // DD/MM/YYYY → YYYY-MM-DD
   }
-  if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM
+  if (answers.tob) body.timeOfBirth = answers.tob; // HH:MM (a window's midpoint on the unknown-time path)
+  if (answers.accuracy) body.birthTimeAccuracy = answers.accuracy as "unknown";
   if (resolvedPlace) body.placeOfBirth = resolvedPlace;
 }
 
@@ -336,7 +355,10 @@ function OnboardingPageInner() {
         finishEdit({ dob });
       } else if (step === 4) {
         if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
-        finishEdit({ tob: val });
+        // Typing a clock time supersedes an earlier "I don't know" answer —
+        // clear the window and the unknown accuracy or the confirm sheet would
+        // keep showing "Morning" over a time they just typed.
+        finishEdit({ tob: val, timeWindow: "", accuracy: "" });
       } else {
         finishEdit({ name: val });
       }
@@ -361,7 +383,7 @@ function OnboardingPageInner() {
       await advance({ dob }, dob, Q[3], undefined, 3);
     } else if (step === 4) { // tob
       if (!isValidTob(val)) { setInputErr(t("onboarding.invalidTob")); return; }
-      await advance({ tob: val }, val, Q[4], undefined, 4); // Q[4] is now the place question — time source was removed
+      await advance({ tob: val, timeWindow: "", accuracy: "" }, val, Q[4], undefined, 4); // Q[4] is now the place question — time source was removed
     }
 
     setTextInput("");
@@ -404,6 +426,35 @@ function OnboardingPageInner() {
     // same {name} interpolation the primary flow applies at line ~294.
     const dobQ = Q[2].replace("{name}", answers.name ?? "").replace("{{name}}", answers.name ?? "");
     await advance({ relationship: key }, label, dobQ, 3, RELATIONSHIP_STEP);
+  };
+
+  // ── Birth-time window (TIME_WINDOW_STEP) — the "I don't know" escape from step 4.
+  // We store the window's MIDPOINT as the birth time and flag the accuracy as
+  // 'unknown'; the window itself is re-derived from that midpoint wherever it's
+  // needed (see lib/birth-time-window.ts), so there's nothing extra to persist.
+  const WINDOW_OPTIONS = BIRTH_TIME_WINDOWS.map((w) => ({
+    ...w,
+    label: t(`onboarding.window.${w.key}`),
+  }));
+
+  const handleTimeWindow = async (key: string) => {
+    const w = BIRTH_TIME_WINDOWS.find((x) => x.key === key);
+    if (!w) return;
+    const said = `${t(`onboarding.window.${w.key}`)} (${w.range})`;
+    const ans = { tob: w.mid, timeWindow: w.key, accuracy: "unknown" };
+    if (editingField !== null) { finishEdit(ans); return; }
+    // Rejoins the normal flow at step 5 (place) — Q[4] is the same place
+    // question the typed-time path asks on its way out of step 4.
+    await advance(ans, said, Q[4], 5, 4);
+  };
+
+  const handleDontKnowTime = async () => {
+    userSay(t("onboarding.tobUnknown"), 4);
+    await botSay(t("onboarding.tobUnknownExplain"), 900);
+    await botSay(t("onboarding.windowQ"), 700);
+    setTextInput("");
+    setInputErr("");
+    setStep(TIME_WINDOW_STEP);
   };
 
   // ── Gender (step 6)
@@ -676,6 +727,33 @@ function OnboardingPageInner() {
                   <Send size={15} className="text-[#1a0e00]" />
                 </button>
               </div>
+              {/* The escape hatch. Without it a reader who doesn't know their
+                  birth time can only invent one, and an invented time is
+                  indistinguishable downstream from a birth-certificate time. */}
+              {step === 4 && (
+                <button
+                  onClick={handleDontKnowTime}
+                  className="self-center mt-1 px-3 py-2 text-[13px] text-gold/75 underline underline-offset-4 decoration-gold/30 hover:text-gold active:scale-95 transition-all"
+                >
+                  {t("onboarding.tobUnknown")}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* TIME_WINDOW_STEP: part-of-day picker (the "I don't know" path off step 4) */}
+          {step === TIME_WINDOW_STEP && (
+            <div className="grid grid-cols-2 gap-2">
+              {WINDOW_OPTIONS.map((w) => (
+                <button
+                  key={w.key}
+                  onClick={() => handleTimeWindow(w.key)}
+                  className="py-3 px-3 rounded-xl border border-gold/20 bg-card/80 text-center hover:border-gold/50 hover:bg-gold/8 transition-all active:scale-95"
+                >
+                  <div className="text-[13px] text-foreground">{w.label}</div>
+                  <div className="text-[11px] text-muted mt-0.5 tabular-nums">{w.range}</div>
+                </button>
+              ))}
             </div>
           )}
 
@@ -770,7 +848,16 @@ function OnboardingPageInner() {
               {[
                 { label: t("onboarding.labelName"),    value: answers.name, step: 2 },
                 { label: t("onboarding.labelDob"),     value: answers.dob,  step: 3 },
-                { label: t("onboarding.labelTob"),     value: answers.tob,  step: 4 },
+                {
+                  label: t("onboarding.labelTob"),
+                  // Show the window they actually chose, not the midpoint we
+                  // derived from it — "09:00" to someone who said "Morning"
+                  // reads as the app inventing a time.
+                  value: answers.timeWindow
+                    ? `${t(`onboarding.window.${answers.timeWindow}`)} (${birthTimeWindowFor(answers.tob)?.range ?? ""})`
+                    : answers.tob,
+                  step: 4,
+                },
                 { label: t("onboarding.labelPlace"),   value: answers.place, step: 5 },
                 { label: t("onboarding.labelGender"),  value: answers.gender, step: 6 },
                 isNewProfileMode

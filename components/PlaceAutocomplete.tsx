@@ -21,6 +21,9 @@ interface PlaceAutocompleteProps {
   worldwide?: boolean;
   /** Prefill the input — e.g. re-editing a place already on file. Only read on mount. */
   defaultQuery?: string;
+  /** Read-only: the field renders but takes no input (e.g. a birth-place locked behind
+   *  the one-lifetime-edit rule while an adjacent field is still editable). */
+  disabled?: boolean;
 }
 
 export default function PlaceAutocomplete({
@@ -31,6 +34,7 @@ export default function PlaceAutocomplete({
   inputStyle,
   worldwide = false,
   defaultQuery = "",
+  disabled = false,
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation();
   const {
@@ -129,6 +133,7 @@ export default function PlaceAutocomplete({
       <div className="relative">
         <input
           type="text"
+          disabled={disabled}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);

@@ -8,7 +8,7 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { formatRupees, formatCount } from "@/lib/format";
-import { currentMonthKey, shouldShowSpouseSection } from "@/lib/reports-logic";
+import { currentMonthKey } from "@/lib/reports-logic";
 import {
   reportsApi,
   type ReportCatalogueEntry,
@@ -49,10 +49,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const label = t(`reports.labels.${entry.key}`, entry.label);
   const balancePaise = user?.walletBalancePaise ?? 0;
 
-  const showSpouseSection = shouldShowSpouseSection(entry.key, user?.relationshipStatus);
+  // The spouse section is optional and never blocks purchase, so EVERY marriage buyer is asked.
+  // It used to be gated on the account's relationshipStatus === "married", which hid it from most
+  // buyers: that column is only ever written by onboarding step 7 and no screen can change it
+  // afterwards, so a null / "prefer_not_to_say" / pre-onboarding account could never see it.
   const mode: "simple" | "kundli_milan" | "monthly" | "marriage_spouse" = entry.requiresPartner
     ? "kundli_milan"
-    : showSpouseSection
+    : entry.key === "marriage"
       ? "marriage_spouse"
       : entry.isMonthly
         ? "monthly"

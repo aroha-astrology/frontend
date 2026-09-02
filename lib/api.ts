@@ -646,6 +646,7 @@ export type TransactionKind =
   | "profile_creation"
   | "house_unlock"
   | "referral_bonus"
+  | "admin_adjustment"
   | "report_unlock"
   | "daily_reward";
 
@@ -658,6 +659,10 @@ export type Transaction =
       amountPaise: number;
       balanceAfterPaise: number;
       isRefund: boolean;
+      /** Authoritative sign, read off the ledger's delta server-side — not guessed from `kind`. */
+      isCredit: boolean;
+      /** Set only when this credit itself expires (and gets clawed back) if unused. */
+      expiresAt?: string;
     }
   | {
       id: string;
@@ -666,6 +671,8 @@ export type Transaction =
       amountPaise: number;
       balanceAfterPaise: number;
       isRefund: boolean;
+      isCredit: boolean;
+      expiresAt?: string;
       houseNumber: number;
     };
 
@@ -1081,7 +1088,7 @@ export const api = {
    * pick up the updated wallet balance/claimedCampaigns.
    */
   claimCampaignBonus: (campaignKey: string) =>
-    request<{ claimed: boolean; walletBalancePaise: number }>(
+    request<{ claimed: boolean; walletBalancePaise: number; expiresAt: string | null }>(
       `/v1/me/claim-bonus/${campaignKey}`,
       { method: "POST", auth: true },
     ),

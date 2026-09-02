@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
 import { Gift, Sparkles } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
@@ -38,6 +39,7 @@ export default function FestivalGiftModal() {
   const [dismissed, setDismissed] = useState(false);
   const [status, setStatus] = useState<Status>("offer");
   const [newBalancePaise, setNewBalancePaise] = useState<number | null>(null);
+  const [creditExpiresAt, setCreditExpiresAt] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const campaign = user?.activeClaimableCampaign ?? null;
@@ -85,6 +87,7 @@ export default function FestivalGiftModal() {
       // `claimed: false` means another device won the race — still a success from this
       // screen's POV (the money landed), so it gets the same "claimed" state, not an error.
       setNewBalancePaise(result.walletBalancePaise);
+      setCreditExpiresAt(result.expiresAt);
       setStatus("claimed");
     } catch {
       setStatus("error");
@@ -133,8 +136,13 @@ export default function FestivalGiftModal() {
                     <h2 className="text-xl font-display text-foreground mb-2">
                       {t("festivalGift.title", { amount })}
                     </h2>
-                    <p className="text-sm text-muted leading-relaxed mb-5">
+                    <p className="text-sm text-muted leading-relaxed mb-2">
                       {t("festivalGift.body", { amount, title: campaign.title })}
+                    </p>
+                    <p className="text-xs text-muted/70 mb-5">
+                      {t("festivalGift.validUntil", "Valid until {{date}}", {
+                        date: format(new Date(campaign.validUntil), "d MMM"),
+                      })}
                     </p>
 
                     <div className="flex gap-3 w-full">
@@ -161,9 +169,16 @@ export default function FestivalGiftModal() {
                     <h2 className="text-xl font-display text-foreground mb-2">
                       {t("festivalGift.claimedTitle", { amount })}
                     </h2>
-                    <p className="text-sm text-muted leading-relaxed mb-5">
+                    <p className={`text-sm text-muted leading-relaxed ${creditExpiresAt ? "mb-2" : "mb-5"}`}>
                       {t("festivalGift.claimedBody", { balance: formatRupees(newBalancePaise) })}
                     </p>
+                    {creditExpiresAt && (
+                      <p className="text-xs text-amber-400 mb-3">
+                        {t("festivalGift.creditExpiry", "Use it by {{date}} — unused bonus expires after that.", {
+                          date: format(new Date(creditExpiresAt), "d MMM"),
+                        })}
+                      </p>
+                    )}
                     <div className="flex flex-col gap-2 w-full">
                       {chatFeature.enabled && (
                         <button

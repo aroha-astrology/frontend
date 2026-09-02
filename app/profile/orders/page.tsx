@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownRight, History } from "lucid
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
 import IconButton from "@/components/ui/IconButton";
 import { formatRupees } from "@/lib/format";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import type { TFunction } from "i18next";
 
 /** Kind → translated label, with an English fallback matching this page's existing pattern. */
@@ -22,6 +22,12 @@ function kindLabel(t: TFunction, txn: Transaction): string {
     case "referral_bonus": return t("transactions.reasonReferralBonus", "Referral Bonus");
     case "report_unlock": return t("transactions.reasonReportUnlock", "Report Unlock");
     case "daily_reward": return t("transactions.reasonDailyReward", "Daily Reward");
+    // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
+    // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
+    case "admin_adjustment":
+      return txn.isCredit
+        ? t("transactions.reasonBonus", "Bonus")
+        : t("transactions.reasonAdjustment", "Wallet Adjustment");
   }
 }
 
@@ -35,12 +41,13 @@ function statusLabel(t: TFunction, status: OrderStatus): string {
 }
 
 /** Whether this row represents money flowing INTO the wallet (shown in green with a + sign).
- *  A recharge only counts once Play Store confirms the purchase server-side. */
+ *  A recharge only counts once Play Store confirms the purchase server-side; every other kind
+ *  carries the server's own `isCredit` (read off the ledger's signed delta) rather than a
+ *  per-kind guess — a guess previously missed admin grants and every campaign-bonus claim,
+ *  rendering a credit as a red debit with no label. */
 function isCredit(txn: Transaction): boolean {
   if (txn.kind === "recharge") return txn.status === "paid";
-  if (txn.kind === "referral_bonus") return true;
-  if (txn.kind === "daily_reward") return true;
-  return txn.isRefund;
+  return txn.isCredit;
 }
 
 export default function TransactionsPage() {
@@ -104,9 +111,18 @@ export default function TransactionsPage() {
                     {txn.kind === "recharge" && txn.status !== "paid" ? (
                       <p className="text-amber-400 text-[10px] mt-0.5">{statusLabel(t, txn.status)}</p>
                     ) : txn.kind !== "recharge" && (
-                      <p className="text-muted text-[10px] mt-0.5">
-                        {t("transactions.balance", "Balance")}: {formatRupees(txn.balanceAfterPaise)}
-                      </p>
+                      <>
+                        <p className="text-muted text-[10px] mt-0.5">
+                          {t("transactions.balance", "Balance")}: {formatRupees(txn.balanceAfterPaise)}
+                        </p>
+                        {txn.expiresAt && (
+                          <p className="text-amber-400 text-[10px] mt-0.5">
+                            {t("transactions.validTill", "Valid till {{date}}", {
+                              date: format(new Date(txn.expiresAt), "d MMM"),
+                            })}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ChevronRight, Sparkles, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import posthog from "posthog-js";
 import Card from "@/components/ui/Card";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
@@ -85,7 +86,11 @@ export default function TodayReading() {
 
         <div className="flex justify-end mt-3">
           <button
-            onClick={() => setShowDetails(true)}
+            onClick={() => {
+              // __loaded guard: posthog is never init'd when analytics consent is declined.
+              if (posthog.__loaded) posthog.capture("today_reading_details_opened", { quality: overall.quality, score: overall.score });
+              setShowDetails(true);
+            }}
             className="flex items-center gap-0.5 text-[11px] font-medium text-gold hover:text-gold-light transition-colors"
           >
             {t("home.todayReadingDetails")}

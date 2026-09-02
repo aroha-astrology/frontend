@@ -24,6 +24,9 @@ interface PlaceAutocompleteProps {
   /** Read-only: the field renders but takes no input (e.g. a birth-place locked behind
    *  the one-lifetime-edit rule while an adjacent field is still editable). */
   disabled?: boolean;
+  /** Optional ref forwarded to the underlying <input> — used by parents that need
+   *  to focus the field programmatically, e.g. for validation error focus. */
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function PlaceAutocomplete({
@@ -35,6 +38,7 @@ export default function PlaceAutocomplete({
   worldwide = false,
   defaultQuery = "",
   disabled = false,
+  inputRef,
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation();
   const {
@@ -132,6 +136,7 @@ export default function PlaceAutocomplete({
     <div ref={wrapperRef} className={`relative ${className ?? ""}`}>
       <div className="relative">
         <input
+          ref={inputRef}
           type="text"
           disabled={disabled}
           value={query}

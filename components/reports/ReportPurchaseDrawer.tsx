@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 import Link from "next/link";
@@ -92,9 +92,16 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       : null,
   );
   const [spouseConsented, setSpouseConsented] = useState(!!entry.lastSpouseDetails);
-  // Optional and never blocks purchase: complete (dob+place+consent) or entirely empty are both
-  // valid; a half-filled section is the only invalid state, since it can't build a real chart.
-  // If the user said they are NOT married, treat the spouse section as intentionally empty/valid.
+
+  // ── Refs for focus-on-error in the married spouse section ────────────
+  const spouseDobRef = useRef<HTMLInputElement>(null);
+  const spousePlaceRef = useRef<HTMLInputElement>(null);
+
+  // Per-field inline errors — shown only after the user tries to proceed.
+  const [spouseFieldErrors, setSpouseFieldErrors] = useState<{ dob?: string; place?: string; consent?: string }>({});
+
+  // Derived validity — used for the kundli_milan gate only.
+  // For marriage_spouse the Buy button is always shown; validation runs imperatively on click.
   const spouseSectionEmpty = !spouseDob && !resolvedSpousePlace;
   const spouseSectionComplete = !!spouseDob && !!resolvedSpousePlace && spouseConsented;
   const spouseSectionValid = spouseSectionEmpty || spouseSectionComplete;
@@ -116,15 +123,32 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
 
   // ── Price + confirm ────────────────────────────────────────────────────
   const costPaise = entry.pricePaise;
+
+  // For marriage_spouse we always show the Buy button — validation runs imperatively on click.
   const canSubmit =
     mode === "kundli_milan"
       ? partnerValid
       : mode === "monthly"
         ? !currentMonthAlreadyPurchased
-        : mode === "marriage_spouse"
-          ? spouseSectionValid
-          : true;
+        : true;
   const insufficient = canSubmit && balancePaise < costPaise;
+
+  /** Validate spouse fields when user is married and attempting to proceed. Returns true if ok. */
+  const validateSpouseFields = (): boolean => {
+    if (mode !== "marriage_spouse" || answers["isMarried"] !== "yes") return true;
+    const errs: typeof spouseFieldErrors = {};
+    if (!spouseDob) errs.dob = t("reports.purchase.spouseErrorDob");
+    if (!resolvedSpousePlace) errs.place = t("reports.purchase.spouseErrorPlace");
+    if (!spouseConsented) errs.consent = t("reports.purchase.spouseErrorConsent");
+    if (Object.keys(errs).length > 0) {
+      setSpouseFieldErrors(errs);
+      // Focus the first unfilled field
+      if (errs.dob) spouseDobRef.current?.focus();
+      else if (errs.place) spousePlaceRef.current?.focus();
+      return false;
+    }
+    return true;
+  };
 
   const [confirming, setConfirming] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
@@ -314,6 +338,8 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.spouseTitle")}</p>
             <p className="text-[11px] text-muted leading-relaxed">{t("reports.purchase.spouseHint")}</p>
+
+            {/* Spouse name — optional */}
             <div>
               <label className="text-xs text-muted ml-1 mb-1 block">{t("reports.purchase.spouseName")}</label>
               <input
@@ -324,16 +350,30 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                 style={style}
               />
             </div>
+
+            {/* Spouse DOB — required */}
             <div>
-              <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.dob")}</label>
+              <label className="text-xs text-muted ml-1 mb-1 block">
+                {t("compatibilityPage.dob")}
+                <span className="text-red-400 ml-0.5">*</span>
+              </label>
               <input
+                ref={spouseDobRef}
                 type="date"
                 value={spouseDob}
-                onChange={(e) => setSpouseDob(e.target.value)}
-                className={inputClass}
+                onChange={(e) => {
+                  setSpouseDob(e.target.value);
+                  if (e.target.value) setSpouseFieldErrors((prev) => ({ ...prev, dob: undefined }));
+                }}
+                className={`${inputClass} ${spouseFieldErrors.dob ? "border-red-400" : ""}`}
                 style={style}
               />
+              {spouseFieldErrors.dob && (
+                <p className="mt-1 ml-1 text-[11px] text-red-400">{spouseFieldErrors.dob}</p>
+              )}
             </div>
+
+            {/* Spouse TOB — optional */}
             <div>
               <label className="text-xs text-muted ml-1 mb-1 block">{t("compatibilityPage.tob")}</label>
               {!spouseTimeWindow && (
@@ -351,23 +391,52 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                 className={`${inputClass} mt-1.5`}
               />
             </div>
-            <PlaceAutocomplete
-              placeholder={t("compatibilityPage.birthPlace")}
-              inputClassName={inputClass}
-              inputStyle={style}
-              worldwide={!user?.phoneE164}
-              defaultQuery={entry.lastSpouseDetails?.placeLabel ?? ""}
-              onSelect={(place) => setResolvedSpousePlace(place)}
-            />
-            <label className="flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer text-muted">
-              <input
-                type="checkbox"
-                checked={spouseConsented}
-                onChange={(e) => setSpouseConsented(e.target.checked)}
-                className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
+
+            {/* Spouse birthplace — required */}
+            <div>
+              <label className="text-xs text-muted ml-1 mb-1 block">
+                {t("compatibilityPage.birthPlace")}
+                <span className="text-red-400 ml-0.5">*</span>
+              </label>
+              <PlaceAutocomplete
+                placeholder={t("compatibilityPage.birthPlace")}
+                inputRef={spousePlaceRef}
+                inputClassName={`${inputClass} ${spouseFieldErrors.place ? "border-red-400" : ""}`}
+                inputStyle={style}
+                worldwide={!user?.phoneE164}
+                defaultQuery={entry.lastSpouseDetails?.placeLabel ?? ""}
+                onSelect={(place) => {
+                  setResolvedSpousePlace(place);
+                  if (place) setSpouseFieldErrors((prev) => ({ ...prev, place: undefined }));
+                }}
               />
-              {t("reports.purchase.spouseConsent")}
-            </label>
+              {spouseFieldErrors.place && (
+                <p className="mt-1 ml-1 text-[11px] text-red-400">{spouseFieldErrors.place}</p>
+              )}
+            </div>
+
+            {/* Consent — required */}
+            <div className="flex flex-col gap-1">
+              <label
+                className={`flex items-start gap-2.5 px-1 text-xs leading-relaxed cursor-pointer ${
+                  spouseFieldErrors.consent ? "text-red-400" : "text-muted"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={spouseConsented}
+                  onChange={(e) => {
+                    setSpouseConsented(e.target.checked);
+                    if (e.target.checked) setSpouseFieldErrors((prev) => ({ ...prev, consent: undefined }));
+                  }}
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-yellow-500"
+                />
+                {t("reports.purchase.spouseConsent")}
+              </label>
+              {spouseFieldErrors.consent && (
+                <p className="ml-8 text-[11px] text-red-400">{spouseFieldErrors.consent}</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -459,7 +528,10 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               ) : (
                 <button
                   type="button"
-                  onClick={() => setConfirming(true)}
+                  onClick={() => {
+                    if (!validateSpouseFields()) return;
+                    setConfirming(true);
+                  }}
                   className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
                 >
                   {t("reports.buy")} · {formatRupees(costPaise)}

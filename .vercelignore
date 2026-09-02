@@ -1,0 +1,38 @@
+# Mirror .gitignore so Vercel's uploader doesn't include what git already excludes
+node_modules
+.pnp
+.pnp.js
+
+# Build caches
+.next/
+out/
+/build
+coverage
+test-results/
+playwright-report/
+
+# Subproject folders (each has their own node_modules / .next)
+backend/
+frontend/
+landing/
+mobile/
+
+# Agent worktrees — huge, never needed for a Vercel build
+.claude/
+
+# Env / secrets
+.env*.local
+.env
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.worktrees/
+del_reports.sh
+run.ps1
+
+# Large binary/archive
+backend/deploy.tar.gz

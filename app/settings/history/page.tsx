@@ -8,6 +8,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
+import { format } from "date-fns";
 
 function statusLabel(t: (key: string) => string, status: OrderStatus): string {
   switch (status) {
@@ -37,6 +38,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "referral_bonus": return <Gift size={16} />;
     case "report_unlock": return <ScrollText size={16} />;
     case "daily_reward": return <Award size={16} />;
+    case "admin_adjustment": return <Gift size={16} />;
   }
 }
 
@@ -51,14 +53,20 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "referral_bonus": return t("paymentHistory.referralBonus");
     case "report_unlock": return t("paymentHistory.reportUnlock");
     case "daily_reward": return t("paymentHistory.dailyReward");
+    // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
+    // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
+    case "admin_adjustment":
+      return txn.isCredit ? t("transactions.reasonBonus") : t("transactions.reasonAdjustment");
   }
 }
 
 /** Whether this row is money flowing INTO the wallet (green, +) vs. out of it (red, -).
- *  Recharges and referral bonuses are always credits; everything else is a debit unless it's a refund. */
+ *  Recharge only counts once Play Store confirms the purchase; every other kind carries the
+ *  server's own isCredit (read off the ledger's signed delta) rather than a per-kind guess —
+ *  a guess previously missed admin grants and every campaign-bonus claim. */
 function isCredit(txn: Transaction): boolean {
-  if (txn.kind === "recharge" || txn.kind === "referral_bonus" || txn.kind === "daily_reward") return true;
-  return txn.isRefund;
+  if (txn.kind === "recharge") return txn.status === "paid";
+  return txn.isCredit;
 }
 
 function TransactionRow({ txn, t }: { txn: Transaction; t: (key: string, opts?: Record<string, unknown>) => string }) {
@@ -99,6 +107,11 @@ function TransactionRow({ txn, t }: { txn: Transaction; t: (key: string, opts?: 
         <p className="text-[11px] text-muted mt-0.5">
           {t("paymentHistory.balanceLabel", { balance: formatRupees(txn.balanceAfterPaise) })}
         </p>
+        {txn.expiresAt && (
+          <p className="text-[11px] text-amber-400 mt-0.5">
+            {t("transactions.validTill", { date: format(new Date(txn.expiresAt), "d MMM") })}
+          </p>
+        )}
       </div>
     </Card>
   );

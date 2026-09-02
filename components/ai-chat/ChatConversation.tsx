@@ -146,10 +146,18 @@ function renderMessageContent(content: string) {
  * the bubble. Only applied once a message has finished streaming (checked by
  * the caller) so a not-yet-complete "Ask next: Wh" mid-stream doesn't flicker.
  */
-function splitFollowUp(content: string): { text: string; followUp: string | null } {
+function splitFollowUp(content: string): { text: string; followUps: string[] } {
   const match = content.match(/\n *Ask next:\s*(.+?)\s*$/i);
-  if (!match) return { text: content, followUp: null };
-  return { text: content.slice(0, match.index).trimEnd(), followUp: match[1] };
+  if (!match) return { text: content, followUps: [] };
+  // One suggestion line can offer several tappable ANSWERS separated by " | "
+  // (a set of ranges or timeframes) instead of a single open question — see
+  // scholar.ts's OUTPUT_STYLE. Each becomes its own chip; the backend counts a
+  // tap on any of them as the same one free follow-up (isFreeFollowUp).
+  const followUps = match[1]!
+    .split("|")
+    .map((option) => option.trim())
+    .filter(Boolean);
+  return { text: content.slice(0, match.index).trimEnd(), followUps };
 }
 
 /**
@@ -712,8 +720,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               return null;
             }
             const isLastStreaming = streaming && i === messages.length - 1;
-            const { text: assistantText, followUp } =
-              msg.role === "assistant" && !isLastStreaming ? splitFollowUp(msg.content) : { text: msg.content, followUp: null };
+            const { text: assistantText, followUps } =
+              msg.role === "assistant" && !isLastStreaming ? splitFollowUp(msg.content) : { text: msg.content, followUps: [] };
             return (
             <motion.div
               key={msg.id}
@@ -822,21 +830,35 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                   same stored transcript (isFreeFollowUp in astro.routes.ts), so an
                   older, already-superseded chip further back in the conversation
                   is intentionally left at full price if it's still tapped. */}
-              {followUp && (() => {
+              {followUps.length > 0 && (() => {
                 const isFreeTap = i === messages.length - 1;
+                const single = followUps.length === 1;
                 return (
-                  <button
-                    onClick={() => sendMessage(followUp, { isFree: isFreeTap })}
-                    disabled={streaming}
-                    className="ml-9 mt-1.5 max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
-                  >
-                    {followUp}
-                    {isFreeTap && (
-                      <span className="ml-1.5 text-[10px] font-semibold text-green-500">
+                  <div className="ml-9 mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {followUps.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => sendMessage(option, { isFree: isFreeTap })}
+                        disabled={streaming}
+                        className="max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
+                      >
+                        {option}
+                        {isFreeTap && single && (
+                          <span className="ml-1.5 text-[10px] font-semibold text-green-500">
+                            · {t("aiChatPage.freeFollowUp")}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                    {/* With several options the badge goes once on the row rather than
+                        on every chip — five copies of "· Free" reads as noise and
+                        pushes each range onto its own line. */}
+                    {isFreeTap && !single && (
+                      <span className="text-[10px] font-semibold text-green-500">
                         · {t("aiChatPage.freeFollowUp")}
                       </span>
                     )}
-                  </button>
+                  </div>
                 );
               })()}
             </motion.div>

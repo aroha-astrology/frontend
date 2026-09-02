@@ -263,6 +263,10 @@ export interface AdminUserDemographicsResponse {
   ageBrackets: AdminDemographicsBucket[];
   gender: AdminDemographicsBucket[];
   relationshipStatus: AdminDemographicsBucket[];
+  /** Self-reported in chat, one tap, only when a money question needed a scale to read
+   *  against — so "Not Asked" is by far the largest bucket and that is expected. */
+  incomeBrackets: AdminDemographicsBucket[];
+  familyIncomeBrackets: AdminDemographicsBucket[];
 }
 
 

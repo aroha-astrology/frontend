@@ -118,11 +118,14 @@ function ShlokaDetail({ slug }: { slug: string }) {
             </Card>
 
             <Card className="p-5 space-y-4">
+              {/* Meaning hidden for now. To restore: uncomment this block and put
+                  back `pt-3 border-t border-gold/10` on the whenToChant div below.
               <div>
                 <h2 className="text-sm font-display text-gold mb-1">{t("shlokas.meaning")}</h2>
                 <p className="text-sm text-foreground/90 leading-relaxed">{pick(shloka.meaning, lang)}</p>
               </div>
-              <div className="pt-3 border-t border-gold/10">
+              */}
+              <div>
                 <h2 className="text-sm font-display text-gold mb-1">{t("shlokas.whenToChant")}</h2>
                 <p className="text-sm text-foreground/90 leading-relaxed">{pick(shloka.whenToChant, lang)}</p>
               </div>

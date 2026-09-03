@@ -193,6 +193,13 @@ export interface ReportHistoryResponse {
   reports: ReportHistoryEntry[];
 }
 
+export interface RateReportResponse {
+  id: string;
+  /** Non-null only when the rating was under 3 stars — 100% of what was paid
+   * for this report, already credited to the wallet. */
+  refundedPaise: number | null;
+}
+
 export const reportsApi = {
   /** The 10-report catalogue for the currently active profile. */
   catalogue: () => request<ReportCatalogueResponse>("/v1/reports", { auth: true }),
@@ -219,4 +226,13 @@ export const reportsApi = {
 
   /** The user's own past reports across every report type, newest first — powers "My Reports". */
   history: () => request<ReportHistoryResponse>("/v1/reports/history", { auth: true }),
+
+  /**
+   * Rate a finished report. A rating under 3 stars auto-refunds 100% of what
+   * was paid for it — reflected in `refundedPaise`. Throws ApiError: 404 if
+   * the report doesn't belong to the caller or isn't ready yet, 409 if it's
+   * already been rated.
+   */
+  rate: (id: string, body: { rating: number; comment?: string }) =>
+    request<RateReportResponse>(`/v1/reports/${id}/rating`, { method: "POST", body, auth: true }),
 };

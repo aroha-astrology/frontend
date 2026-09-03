@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -26,6 +26,9 @@ import {
 } from "@/lib/report-score-facts";
 import { formatPeriodMonth, formatDateKey, addOneYear, YEARLY_REPORT_KEYS } from "@/lib/reports-logic";
 import { maybeRequestReview, markReportGeneratedForReview } from "@/lib/app-review";
+import { useDismissOnBackPress } from "@/providers/back-handler-provider";
+import ReportRatingSheet from "@/components/reports/ReportRatingSheet";
+import { hasRatedReport } from "@/lib/report-rating";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
  * type except match_report, whose ids (life-area names like "wealth"/"health") are ambiguous
@@ -65,6 +68,49 @@ export default function ReportDetailPage() {
   }, [state, data]);
 
   const ready = state === "ready" && !!data;
+
+  // A report becomes "armed" once the user has scrolled a couple of times —
+  // a proxy for having actually engaged with the content, not just tapped in
+  // and bounced. While armed, going back (hardware button or the on-screen
+  // arrow below) opens the rating sheet instead of navigating; the sheet's
+  // own onClose then performs the real router.back().
+  const ARM_AFTER_SCROLLS = 2;
+  const [scrollCount, setScrollCount] = useState(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+
+  useEffect(() => {
+    if (!ready) return;
+    let n = 0;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        n += 1;
+        setScrollCount(n);
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [ready]);
+
+  const armed = ready && scrollCount >= ARM_AFTER_SCROLLS && !hasRatedReport(id);
+
+  useDismissOnBackPress(armed && !showRatingModal, () => setShowRatingModal(true));
+
+  const attemptBack = () => {
+    if (armed && !showRatingModal) {
+      setShowRatingModal(true);
+      return;
+    }
+    router.back();
+  };
+
+  const closeRatingModal = () => {
+    setShowRatingModal(false);
+    router.back();
+  };
 
   // The report tour explains the gauges, bands and verdict cards, which have no
   // legend anywhere else. Gated on `ready` because ReportGeneratingSheet can
@@ -167,7 +213,7 @@ export default function ReportDetailPage() {
           <div data-tour="report-header">
           <ReportHero
             title={title}
-            onBack={() => router.back()}
+            onBack={attemptBack}
             artSrc={designed.artSrc}
             subtitleKey={designed.subtitleKey}
             validUntilLabel={validUntilLabel}
@@ -175,7 +221,7 @@ export default function ReportDetailPage() {
           </div>
         ) : (
           <div className="flex items-center gap-3" data-tour="report-header">
-            <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
+            <IconButton onClick={attemptBack} aria-label={t("common.back")}>
               <ArrowLeft size={18} />
             </IconButton>
             <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
@@ -283,6 +329,8 @@ export default function ReportDetailPage() {
             )}
           </>
         )}
+
+        {showRatingModal && <ReportRatingSheet reportId={id} onClose={closeRatingModal} />}
       </div>
     </main>
   );

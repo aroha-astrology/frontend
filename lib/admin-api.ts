@@ -192,6 +192,27 @@ export interface AdminReportGenerationsResponse {
   limit: number;
 }
 
+// ─── Report ratings ─────────────────────────────────────────────────────────
+
+export interface AdminReportRatingRow {
+  id: string;
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  reportKey: string;
+  rating: number;
+  comment: string | null;
+  refundedPaise: number | null;
+  createdAt: string;
+}
+
+export interface AdminReportRatingsResponse {
+  ratings: AdminReportRatingRow[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
 // ─── Groups ────────────────────────────────────────────────────────────────
 
 export interface AdminGroupRow {
@@ -500,6 +521,15 @@ export const adminApi = {
       body: { reportKey },
       auth: true,
     }),
+
+  /** Every report rating across all users, newest first, optionally filtered to one report key. */
+  listReportRatings: (params: { reportKey?: string; offset?: number; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.reportKey) qs.set("reportKey", params.reportKey);
+    qs.set("offset", String(params.offset ?? 0));
+    qs.set("limit", String(params.limit ?? 50));
+    return request<AdminReportRatingsResponse>(`/v1/admin/report-ratings?${qs.toString()}`, { auth: true });
+  },
 
   /** All referral relationships — who referred whom, grouped by referrer, sorted by count desc. */
   listReferrals: () => request<AdminReferralsResponse>("/v1/admin/referrals", { auth: true }),

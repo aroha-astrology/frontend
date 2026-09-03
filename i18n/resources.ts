@@ -1951,6 +1951,11 @@ export const resources = {
         thanks: "Thank you for your feedback!",
         starLabel: "Rate {{n}} out of 5",
       },
+      reportRating: {
+        title: "Rate this report",
+        prompt: "How was this report?",
+        refunded: "We're sorry to hear that — {{amount}} has been added to your wallet.",
+      },
       paymentHistory: {
         title: "Payment History",
         empty: "No transactions yet.",
@@ -3956,6 +3961,11 @@ export const resources = {
         submit: "भेजें",
         thanks: "आपकी प्रतिक्रिया के लिए धन्यवाद!",
         starLabel: "5 में से {{n}} रेट करें",
+      },
+      reportRating: {
+        title: "इस रिपोर्ट को रेट करें",
+        prompt: "यह रिपोर्ट कैसी थी?",
+        refunded: "यह सुनकर खेद है — {{amount}} आपके वॉलेट में जोड़ दिया गया है।",
       },
       paymentHistory: {
         title: "भुगतान इतिहास",
@@ -6205,6 +6215,11 @@ export const resources = {
         thanks: "আপনার মতামতের জন্য ধন্যবাদ!",
         starLabel: "৫-এর মধ্যে {{n}} রেট করুন",
       },
+      reportRating: {
+        title: "এই রিপোর্টটি রেট করুন",
+        prompt: "এই রিপোর্টটি কেমন ছিল?",
+        refunded: "এটা শুনে দুঃখিত — {{amount}} আপনার ওয়ালেটে যোগ করা হয়েছে।",
+      },
       paymentHistory: {
         title: "পেমেন্ট ইতিহাস",
         empty: "এখনও কোনো লেনদেন হয়নি।",
@@ -8452,6 +8467,11 @@ export const resources = {
         thanks: "तुमच्या अभिप्रायाबद्दल धन्यवाद!",
         starLabel: "5 पैकी {{n}} रेट करा",
       },
+      reportRating: {
+        title: "या अहवालाला रेट करा",
+        prompt: "हा अहवाल कसा होता?",
+        refunded: "हे ऐकून वाईट वाटले — {{amount}} तुमच्या वॉलेटमध्ये जमा करण्यात आले आहे.",
+      },
       paymentHistory: {
         title: "पेमेंट इतिहास",
         empty: "अजून कोणताही व्यवहार झालेला नाही.",
@@ -10695,6 +10715,11 @@ export const resources = {
         submit: "పంపండి",
         thanks: "మీ అభిప్రాయానికి ధన్యవాదాలు!",
         starLabel: "5లో {{n}} రేట్ చేయండి",
+      },
+      reportRating: {
+        title: "ఈ నివేదికను రేట్ చేయండి",
+        prompt: "ఈ నివేదిక ఎలా ఉంది?",
+        refunded: "ఇది వినడానికి చింతిస్తున్నాము — {{amount}} మీ వాలెట్‌కు జోడించబడింది.",
       },
       paymentHistory: {
         title: "చెల్లింపు చరిత్ర",
@@ -12944,6 +12969,11 @@ export const resources = {
         thanks: "உங்கள் கருத்துக்கு நன்றி!",
         starLabel: "5-இல் {{n}} மதிப்பிடுங்கள்",
       },
+      reportRating: {
+        title: "இந்த அறிக்கையை மதிப்பிடுங்கள்",
+        prompt: "இந்த அறிக்கை எப்படி இருந்தது?",
+        refunded: "இதைக் கேட்டு வருந்துகிறோம் — {{amount}} உங்கள் வாலட்டில் சேர்க்கப்பட்டுள்ளது.",
+      },
       paymentHistory: {
         title: "கட்டண வரலாறு",
         empty: "இதுவரை எந்த பரிவர்த்தனையும் இல்லை.",
@@ -15188,6 +15218,11 @@ export const resources = {
         submit: "મોકલો",
         thanks: "તમારા અભિપ્રાય બદલ આભાર!",
         starLabel: "5માંથી {{n}} રેટ કરો",
+      },
+      reportRating: {
+        title: "આ રિપોર્ટને રેટ કરો",
+        prompt: "આ રિપોર્ટ કેવો રહ્યો?",
+        refunded: "આ સાંભળીને દુઃખ થયું — {{amount}} તમારા વૉલેટમાં ઉમેરવામાં આવ્યા છે.",
       },
       paymentHistory: {
         title: "ચુકવણી ઇતિહાસ",

@@ -43,7 +43,7 @@ export default function MoonBackground({
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
         className="absolute -top-[80px] -left-[160px] w-[460px] h-[460px] transition-opacity duration-300"
         style={{
-          opacity: isLight ? 0.16 : 0.7,
+          opacity: isLight ? 0.08 : 0.7,
         }}
       >
         {/* Atmospheric halo that bleeds into the night sky */}

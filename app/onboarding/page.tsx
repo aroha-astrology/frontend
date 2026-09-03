@@ -299,15 +299,24 @@ function OnboardingPageInner() {
   // Records the corrected answer and snaps back to wherever the edit was
   // started from — the confirm screen, or mid-conversation — instead of
   // walking forward through the rest of the wizard.
-  const finishEdit = (ans: Partial<Answers>) => {
+  const finishEdit = async (ans: Partial<Answers>) => {
     setAnswers((a) => ({ ...a, ...ans }));
     setEditingField(null);
     const resume = editResumeRef.current;
     editResumeRef.current = null;
-    if (resume) {
-      setStep(resume.step);
-      if (resume.showConfirm) setShowConfirm(true);
+    if (!resume) return;
+    // The window-picker step only makes sense while the exact time is
+    // unknown. Typing a real clock time here (ans.timeWindow cleared to "")
+    // supersedes it, so resuming there would just re-ask "which part of the
+    // day" a second time — continue on to the place question instead, same
+    // target the non-edit typed-time path advances to.
+    if (resume.step === TIME_WINDOW_STEP && ans.timeWindow === "") {
+      await botSay(Q[4]);
+      setStep(5);
+      return;
     }
+    setStep(resume.step);
+    if (resume.showConfirm) setShowConfirm(true);
   };
 
   // ── Step questions (resolved at render time so i18next re-renders on lang change)

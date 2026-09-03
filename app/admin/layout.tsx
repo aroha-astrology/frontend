@@ -50,6 +50,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin/referrals", label: "Referrals" },
   { href: "/admin/gift-campaigns", label: "Gift Campaigns" },
   { href: "/admin/report-generations", label: "Report Generations" },
+  { href: "/admin/report-ratings", label: "Report Ratings" },
   { href: "/admin/tickets", label: "Tickets" },
   { href: "/admin/deletion-requests", label: "Deletion Requests" },
 ];

@@ -493,6 +493,7 @@ export const resources = {
           numerology: "Reveal your life path numbers",
           name_change: "Fix your name's numerology",
           remedies: "Get personalized Lal Kitab remedies",
+          gemstone: "Find the gemstones suited to your chart",
         },
         taglines: {
           marriage: "Ketu delaying your marriage?",
@@ -509,6 +510,7 @@ export const resources = {
           numerology: "Your luckiest numbers, revealed",
           name_change: "Is your name working against you?",
           remedies: "Simple remedies for planetary doshas",
+          gemstone: "Wearing the wrong stone could work against you",
         },
       },
       vastu: {
@@ -2842,6 +2844,7 @@ export const resources = {
           numerology: "अपने जीवन पथ अंक जानें",
           name_change: "अपने नाम की अंकशास्त्र संबंधी खामियां ठीक करें",
           remedies: "व्यक्तिगत लाल किताब उपाय पाएं",
+          gemstone: "अपनी कुंडली के लिए उपयुक्त रत्न जानें",
         },
         taglines: {
           marriage: "क्या केतु आपकी शादी में देरी कर रहा है?",
@@ -2858,6 +2861,7 @@ export const resources = {
           numerology: "अपने सबसे भाग्यशाली अंक जानें",
           name_change: "क्या आपका नाम आपके खिलाफ काम कर रहा है?",
           remedies: "ग्रह दोषों के लिए सरल उपाय",
+          gemstone: "गलत रत्न पहनना आपके खिलाफ काम कर सकता है",
         },
       },
       vastu: {
@@ -5093,6 +5097,7 @@ export const resources = {
           numerology: "আপনার লাইফ পাথ নম্বর জানুন",
           name_change: "আপনার নামের সংখ্যাতত্ত্ব ঠিক করুন",
           remedies: "ব্যক্তিগত লাল কিতাব প্রতিকার পান",
+          gemstone: "আপনার কুণ্ডলীর জন্য উপযুক্ত রত্ন জানুন",
         },
         taglines: {
           marriage: "কেতু কি আপনার বিয়েতে দেরি করাচ্ছে?",
@@ -5109,6 +5114,7 @@ export const resources = {
           numerology: "আপনার সবচেয়ে ভাগ্যবান সংখ্যা জানুন",
           name_change: "আপনার নাম কি আপনার বিরুদ্ধে কাজ করছে?",
           remedies: "গ্রহ দোষের সহজ প্রতিকার",
+          gemstone: "ভুল রত্ন পরা আপনার বিরুদ্ধে কাজ করতে পারে",
         },
       },
       vastu: {
@@ -7346,6 +7352,7 @@ export const resources = {
           numerology: "तुमचे लाइफ पाथ नंबर जाणून घ्या",
           name_change: "तुमच्या नावाची अंकशास्त्र दुरुस्त करा",
           remedies: "वैयक्तिक लाल किताब उपाय मिळवा",
+          gemstone: "तुमच्या कुंडलीसाठी योग्य रत्न जाणून घ्या",
         },
         taglines: {
           marriage: "केतू तुमच्या लग्नात उशीर करतोय का?",
@@ -7362,6 +7369,7 @@ export const resources = {
           numerology: "तुमचे सर्वात भाग्यवान अंक जाणून घ्या",
           name_change: "तुमचं नाव तुमच्या विरोधात काम करतंय का?",
           remedies: "ग्रह दोषांसाठी सोपे उपाय",
+          gemstone: "चुकीचं रत्न घातल्यास ते तुमच्या विरोधात काम करू शकतं",
         },
       },
       vastu: {
@@ -9600,6 +9608,7 @@ export const resources = {
           numerology: "మీ లైఫ్ పాత్ నంబర్లను తెలుసుకోండి",
           name_change: "మీ పేరు సంఖ్యాశాస్త్రాన్ని సరిచేసుకోండి",
           remedies: "వ్యక్తిగతీకరించిన లాల్ కితాబ్ నివారణలు పొందండి",
+          gemstone: "మీ జాతకానికి సరిపోయే రత్నాలను తెలుసుకోండి",
         },
         taglines: {
           marriage: "కేతువు మీ వివాహాన్ని ఆలస్యం చేస్తోందా?",
@@ -9616,6 +9625,7 @@ export const resources = {
           numerology: "మీ అదృష్ట సంఖ్యలను తెలుసుకోండి",
           name_change: "మీ పేరు మీకు వ్యతిరేకంగా పనిచేస్తోందా?",
           remedies: "గ్రహ దోషాలకు సులభమైన నివారణలు",
+          gemstone: "తప్పు రత్నం ధరించడం మీకు వ్యతిరేకంగా పనిచేయవచ్చు",
         },
       },
       vastu: {
@@ -11850,6 +11860,7 @@ export const resources = {
           numerology: "உங்கள் லைஃப் பாத் எண்களை அறியுங்கள்",
           name_change: "உங்கள் பெயரின் எண் கணிதத்தை சரிசெய்யுங்கள்",
           remedies: "தனிப்பயன் லால் கிதாப் பரிகாரங்களைப் பெறுங்கள்",
+          gemstone: "உங்கள் ஜாதகத்திற்கு ஏற்ற ரத்தினங்களை அறியுங்கள்",
         },
         taglines: {
           marriage: "கேது உங்கள் திருமணத்தை தாமதப்படுத்துகிறதா?",
@@ -11866,6 +11877,7 @@ export const resources = {
           numerology: "உங்கள் அதிர்ஷ்ட எண்களை அறியுங்கள்",
           name_change: "உங்கள் பெயர் உங்களுக்கு எதிராக செயல்படுகிறதா?",
           remedies: "கிரக தோஷங்களுக்கான எளிய பரிகாரங்கள்",
+          gemstone: "தவறான கல்லை அணிவது உங்களுக்கு எதிராக வேலை செய்யலாம்",
         },
       },
       vastu: {
@@ -14105,6 +14117,7 @@ export const resources = {
           numerology: "તમારા લાઇફ પાથ નંબર જાણો",
           name_change: "તમારા નામની અંકશાસ્ત્ર ખામી સુધારો",
           remedies: "વ્યક્તિગત લાલ કિતાબ ઉપાયો મેળવો",
+          gemstone: "તમારી કુંડળી માટે યોગ્ય રત્નો જાણો",
         },
         taglines: {
           marriage: "શું કેતુ તમારા લગ્નમાં વિલંબ કરી રહ્યો છે?",
@@ -14121,6 +14134,7 @@ export const resources = {
           numerology: "તમારા સૌથી ભાગ્યશાળી નંબર જાણો",
           name_change: "શું તમારું નામ તમારી વિરુદ્ધ કામ કરી રહ્યું છે?",
           remedies: "ગ્રહ દોષો માટે સરળ ઉપાયો",
+          gemstone: "ખોટું રત્ન પહેરવું તમારી વિરુદ્ધ કામ કરી શકે છે",
         },
       },
       vastu: {

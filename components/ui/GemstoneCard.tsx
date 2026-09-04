@@ -323,6 +323,12 @@ export default function GemstoneCard() {
   // a visually distinct block, even though gemstone isn't a ReportCatalogueEntry
   // and has its own unlock/weight-prompt/generating flow underneath.
   const price = <span className="text-sm font-semibold text-gold">{formatRupees(UNLOCK_COST_PAISE)}</span>;
+  // Same static marketing-copy keys other report cards read (reports.descriptions/taglines.<key>)
+  // — reused here rather than a new kundli.gemstone.* pair since it's the same "one-line what is
+  // this" + "green curiosity-hook banner" shape, just keyed under "gemstone" instead of a
+  // ReportCatalogueEntry key.
+  const description = t("reports.descriptions.gemstone", "");
+  const tagline = t("reports.taglines.gemstone", "");
 
   let ctaNode: React.ReactNode;
   if (showLocked) {
@@ -381,9 +387,14 @@ export default function GemstoneCard() {
             </span>
           </div>
 
-          {!showLocked && state === "ready" && data?.intro && (
-            <p className="text-xs text-muted mt-1.5 leading-relaxed line-clamp-2">{data.intro}</p>
-          )}
+          {/* Real personalized intro once unlocked+ready beats the generic marketing
+              description; before that (locked, or still loading/generating/failed) the
+              description fills the same slot, matching every other report card. */}
+          {(!showLocked && state === "ready" && data?.intro) || description ? (
+            <p className="text-xs text-muted mt-1.5 leading-relaxed line-clamp-2">
+              {!showLocked && state === "ready" && data?.intro ? data.intro : description}
+            </p>
+          ) : null}
 
           <div className="flex items-center justify-between gap-3 mt-2">
             {price}
@@ -391,6 +402,13 @@ export default function GemstoneCard() {
           </div>
         </div>
       </div>
+
+      {tagline && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
+          <p className="text-[11px] text-emerald-400 leading-snug">{tagline}</p>
+        </div>
+      )}
 
       {unlockError && <p className="text-[11px] text-red-400">{unlockError}</p>}
       {showWeightSheet && (

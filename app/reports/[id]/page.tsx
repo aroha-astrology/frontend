@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Star } from "lucide-react";
 import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
 import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
@@ -77,6 +77,10 @@ export default function ReportDetailPage() {
   const ARM_AFTER_SCROLLS = 2;
   const [scrollCount, setScrollCount] = useState(0);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  // Whether closing the rating sheet should complete a back-navigation it interrupted —
+  // true when opened by the scroll+back trigger, false when opened by the visible
+  // "Rate this report" button below, which isn't a substitute for leaving the page.
+  const [ratingModalBacks, setRatingModalBacks] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -97,11 +101,16 @@ export default function ReportDetailPage() {
 
   const armed = ready && scrollCount >= ARM_AFTER_SCROLLS && !hasRatedReport(id);
 
-  useDismissOnBackPress(armed && !showRatingModal, () => setShowRatingModal(true));
+  const openRatingModalForBack = () => {
+    setRatingModalBacks(true);
+    setShowRatingModal(true);
+  };
+
+  useDismissOnBackPress(armed && !showRatingModal, openRatingModalForBack);
 
   const attemptBack = () => {
     if (armed && !showRatingModal) {
-      setShowRatingModal(true);
+      openRatingModalForBack();
       return;
     }
     router.back();
@@ -109,7 +118,7 @@ export default function ReportDetailPage() {
 
   const closeRatingModal = () => {
     setShowRatingModal(false);
-    router.back();
+    if (ratingModalBacks) router.back();
   };
 
   // The report tour explains the gauges, bands and verdict cards, which have no
@@ -328,6 +337,17 @@ export default function ReportDetailPage() {
               </div>
             )}
           </>
+        )}
+
+        {ready && !hasRatedReport(id) && !showRatingModal && (
+          <button
+            type="button"
+            onClick={() => setShowRatingModal(true)} // standalone open — ratingModalBacks stays false
+            className="mx-auto flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 text-xs font-semibold text-gold"
+          >
+            <Star size={14} className="fill-gold" />
+            {t("reportRating.title")}
+          </button>
         )}
 
         {showRatingModal && <ReportRatingSheet reportId={id} onClose={closeRatingModal} />}

@@ -57,6 +57,12 @@ function ReportsCatalogue() {
   }, [reports, user?.features]);
 
   const activeList = tab === "oneTime" ? oneTime : monthly;
+  // Gemstone recommendations are a separate credit-gated unlock, not part of the reportsApi
+  // catalogue, so they're dropped in between the sorted cards rather than reshaped into a
+  // ReportCatalogueEntry. Slotted right before the first Coming Soon card so it groups with
+  // the other available/purchasable content instead of trailing below the placeholders.
+  const firstComingSoonIndex = activeList.findIndex((entry) => !isAvailable(entry));
+  const gemstoneIndex = firstComingSoonIndex === -1 ? activeList.length : firstComingSoonIndex;
 
   const handlePurchased = (rows: PurchaseReportResultRow[]) => {
     setPurchasingEntry(null);
@@ -98,7 +104,7 @@ function ReportsCatalogue() {
           <p className="text-xs text-muted text-center py-10">{t("reports.empty")}</p>
         ) : (
           <div className="flex flex-col gap-3" data-tour="reports-list">
-            {activeList.map((entry) => (
+            {activeList.slice(0, gemstoneIndex).map((entry) => (
               <ReportCard
                 key={entry.key}
                 entry={entry}
@@ -108,16 +114,23 @@ function ReportsCatalogue() {
                 generatedCount={stats?.[entry.key]}
               />
             ))}
-          </div>
-        )}
 
-        {/* Gemstone recommendations — a separate credit-gated unlock, not part of the
-            reportsApi catalogue, so it's dropped in verbatim rather than reshaped into a
-            ReportCatalogueEntry it doesn't have data for. One-time tab only (there's no
-            monthly variant). */}
-        {tab === "oneTime" && (
-          <div className="mt-4" data-tour="reports-gemstone">
-            <GemstoneCard />
+            {tab === "oneTime" && (
+              <div data-tour="reports-gemstone">
+                <GemstoneCard />
+              </div>
+            )}
+
+            {activeList.slice(gemstoneIndex).map((entry) => (
+              <ReportCard
+                key={entry.key}
+                entry={entry}
+                comingSoon={!isAvailable(entry)}
+                onBuy={() => setPurchasingEntry(entry)}
+                onAddMonths={() => setPurchasingEntry(entry)}
+                generatedCount={stats?.[entry.key]}
+              />
+            ))}
           </div>
         )}
       </div>

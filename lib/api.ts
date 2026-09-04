@@ -132,6 +132,8 @@ export interface FeatureState {
   enabled: boolean;
   /** Server-resolved price in paise for a paid feature, or null when the feature has no price (e.g. a nav tab). */
   pricePaise: number | null;
+  /** Admin-set "strikethrough" MRP for the discount treatment, or null when no discount is configured — see DiscountPrice.tsx. */
+  originalPricePaise: number | null;
 }
 
 export interface Notification {

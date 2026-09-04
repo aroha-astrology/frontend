@@ -3,17 +3,17 @@ import { resolveFeature, OPEN_FEATURE_STATE } from "./useFeature";
 
 describe("resolveFeature", () => {
   it("returns the exact entry when the key is present", () => {
-    const features = { "nav.vastu": { enabled: false, pricePaise: null } };
-    expect(resolveFeature(features, "nav.vastu")).toEqual({ enabled: false, pricePaise: null });
+    const features = { "nav.vastu": { enabled: false, pricePaise: null, originalPricePaise: null } };
+    expect(resolveFeature(features, "nav.vastu")).toEqual({ enabled: false, pricePaise: null, originalPricePaise: null });
   });
 
   it("returns a price when the entry carries one", () => {
-    const features = { "paid.gemstone": { enabled: true, pricePaise: 12345 } };
-    expect(resolveFeature(features, "paid.gemstone")).toEqual({ enabled: true, pricePaise: 12345 });
+    const features = { "paid.gemstone": { enabled: true, pricePaise: 12345, originalPricePaise: null } };
+    expect(resolveFeature(features, "paid.gemstone")).toEqual({ enabled: true, pricePaise: 12345, originalPricePaise: null });
   });
 
   it("fails open (enabled, no price) when the key is absent from an otherwise-populated map", () => {
-    const features = { "nav.vastu": { enabled: false, pricePaise: null } };
+    const features = { "nav.vastu": { enabled: false, pricePaise: null, originalPricePaise: null } };
     expect(resolveFeature(features, "reports.marriage")).toEqual(OPEN_FEATURE_STATE);
   });
 

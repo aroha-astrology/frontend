@@ -4,7 +4,7 @@ import type { FeatureState } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 
 /** Returned for any feature key with no entry in `features` — see the doc comment below. */
-export const OPEN_FEATURE_STATE: FeatureState = { enabled: true, pricePaise: null };
+export const OPEN_FEATURE_STATE: FeatureState = { enabled: true, pricePaise: null, originalPricePaise: null };
 
 /**
  * Pure lookup, split out from the `useFeature` hook below so it's testable

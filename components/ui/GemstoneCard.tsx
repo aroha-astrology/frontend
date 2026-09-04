@@ -11,6 +11,7 @@ import { api, type GemstoneItem, type GemstoneStrength } from "@/lib/api";
 import { useGemstone } from "@/hooks/useGemstone";
 import { useFeature } from "@/hooks/useFeature";
 import { purgeUserCache } from "@/lib/cache";
+import DiscountPrice from "@/components/reports/DiscountPrice";
 
 import { formatRupees } from "@/lib/format";
 
@@ -276,7 +277,8 @@ export default function GemstoneCard() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, refresh } = useAuth();
-  const UNLOCK_COST_PAISE = useFeature("paid.gemstone").pricePaise ?? 10000;
+  const gemstoneFeature = useFeature("paid.gemstone");
+  const UNLOCK_COST_PAISE = gemstoneFeature.pricePaise ?? 10000;
   const credits = user?.walletBalancePaise ?? 0;
   const unlocked = user?.gemstoneUnlocked ?? false;
   const [unlocking, setUnlocking] = useState(false);
@@ -322,7 +324,13 @@ export default function GemstoneCard() {
   // below that list on /reports and should read as one more row in it, not
   // a visually distinct block, even though gemstone isn't a ReportCatalogueEntry
   // and has its own unlock/weight-prompt/generating flow underneath.
-  const price = <span className="text-sm font-semibold text-gold">{formatRupees(UNLOCK_COST_PAISE)}</span>;
+  const price = (
+    <DiscountPrice
+      pricePaise={UNLOCK_COST_PAISE}
+      originalPricePaise={gemstoneFeature.originalPricePaise}
+      priceLabel={formatRupees(UNLOCK_COST_PAISE)}
+    />
+  );
   // Same static marketing-copy keys other report cards read (reports.descriptions/taglines.<key>)
   // — reused here rather than a new kundli.gemstone.* pair since it's the same "one-line what is
   // this" + "green curiosity-hook banner" shape, just keyed under "gemstone" instead of a

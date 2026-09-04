@@ -15,7 +15,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { splitReportsByType, sortUnlockedFirst } from "@/lib/reports-logic";
+import { splitReportsByType, sortUnlockedFirst, sortNewFirst } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 
 type Tab = "oneTime" | "monthly";
@@ -46,7 +46,7 @@ function ReportsCatalogue() {
   const { oneTime, monthly } = useMemo(() => {
     if (!reports) return { oneTime: [] as ReportCatalogueEntry[], monthly: [] as ReportCatalogueEntry[] };
     const { oneTime, monthly } = splitReportsByType(reports);
-    return { oneTime: sortUnlockedFirst(oneTime), monthly: sortUnlockedFirst(monthly) };
+    return { oneTime: sortNewFirst(sortUnlockedFirst(oneTime)), monthly: sortNewFirst(sortUnlockedFirst(monthly)) };
   }, [reports]);
 
   const isAvailable = (entry: ReportCatalogueEntry) =>

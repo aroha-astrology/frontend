@@ -13,6 +13,7 @@ import {
   filterVisibleReports,
   computeDiscount,
   sortUnlockedFirst,
+  sortNewFirst,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -316,6 +317,26 @@ describe("sortUnlockedFirst", () => {
       { key: "past_month_only", isMonthly: true, purchases: [purchase("p2", "ready", "2020-01")] },
     ];
     expect(sortUnlockedFirst(reports).map((r) => r.key)).toEqual(["this_month", "past_month_only"]);
+  });
+});
+
+describe("sortNewFirst", () => {
+  it("moves newly-enabled entries before older ones", () => {
+    const reports = [
+      { key: "old1", isNew: false },
+      { key: "new1", isNew: true },
+      { key: "old2", isNew: false },
+      { key: "new2", isNew: true },
+    ];
+    expect(sortNewFirst(reports).map((r) => r.key)).toEqual(["new1", "new2", "old1", "old2"]);
+  });
+
+  it("preserves relative order within each group (stable sort)", () => {
+    const reports = [
+      { key: "a", isNew: false },
+      { key: "b", isNew: false },
+    ];
+    expect(sortNewFirst(reports).map((r) => r.key)).toEqual(["a", "b"]);
   });
 });
 

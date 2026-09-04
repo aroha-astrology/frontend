@@ -20,6 +20,7 @@ import {
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import { HUE_GRADIENT } from "./ReportThemeCard";
 import DiscountPrice from "./DiscountPrice";
+import NewBadge from "@/components/ui/NewBadge";
 
 interface ReportCardProps {
   entry: ReportCatalogueEntry;
@@ -95,7 +96,8 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
     const monthState = monthlyCardState(entry.purchases);
     const month = formatMonthName(currentMonthKey());
     return (
-      <Card className="p-4">
+      <Card className="p-4 relative">
+        {entry.isNew && <NewBadge className="absolute top-2 right-2 z-10" />}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
@@ -157,7 +159,8 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
   const hasGeneratedCount = typeof generatedCount === "number" && Number.isFinite(generatedCount) && generatedCount > 0;
 
   return (
-    <Card className="p-4 flex flex-col gap-3">
+    <Card className="p-4 flex flex-col gap-3 relative">
+      {entry.isNew && <NewBadge className="absolute top-2 right-2 z-10" />}
       <div className="flex items-start gap-3">
         <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
         <div className="min-w-0 flex-1">

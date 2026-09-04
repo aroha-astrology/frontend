@@ -12,6 +12,7 @@ import { getReportTheme, type ReportHue } from "@/lib/report-theme";
 import { deriveOneTimeCardState, monthlyCardState, currentMonthKey, formatMonthName } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry } from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
+import NewBadge from "@/components/ui/NewBadge";
 
 /**
  * Literal Tailwind gradient class per hue — deliberately kept here (under
@@ -221,10 +222,11 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
       transition={{ delay: index * 0.05 }}
       onClick={cardOnClick}
       className={cn(
-        "min-w-[160px] max-w-[160px] p-0 flex-shrink-0 overflow-hidden border-gold/10 hover:border-gold/30 transition-transform",
+        "min-w-[160px] max-w-[160px] p-0 flex-shrink-0 overflow-hidden border-gold/10 hover:border-gold/30 transition-transform relative",
         tappable && "cursor-pointer active:scale-95",
       )}
     >
+      {entry.isNew && <NewBadge className="absolute top-2 right-2 z-10" />}
       <ReportVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
       <div className="p-3 flex flex-col gap-2">
         <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 break-words min-h-[2rem]">{label}</p>

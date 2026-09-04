@@ -9,7 +9,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { filterVisibleReports } from "@/lib/reports-logic";
+import { filterVisibleReports, sortNewFirst } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 
 /** Sized for ReportThemeCard's fixed 160px card — a distinct shape from HoroscopeSlider's SkeletonCard (gradient header band + stacked text/CTA), not a reuse of it. */
@@ -47,7 +47,7 @@ export default function ReportsSlider() {
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
   const visible = reports
-    ? filterVisibleReports(reports, (key) => resolveFeature(user?.features, key).enabled)
+    ? sortNewFirst(filterVisibleReports(reports, (key) => resolveFeature(user?.features, key).enabled))
     : null;
 
   const handlePurchased = (rows: PurchaseReportResultRow[]) => {

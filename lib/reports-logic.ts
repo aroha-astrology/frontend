@@ -252,6 +252,21 @@ export function sortUnlockedFirst<T extends PurchasableReport>(reports: readonly
   return [...reports].sort((a, b) => Number(isLocked(a)) - Number(isLocked(b)));
 }
 
+/** Minimal shape sortNewFirst needs. */
+interface NewnessReport {
+  isNew: boolean;
+}
+
+/**
+ * Reorders a catalogue list so recently-enabled ("New") entries sort before everything else —
+ * including unlocked/purchased ones — preserving relative order within each group (stable
+ * sort). Applied AFTER sortUnlockedFirst (see app/reports/page.tsx) so isNew is the primary
+ * sort key and unlocked-first ordering survives as the tiebreaker within each isNew group.
+ */
+export function sortNewFirst<T extends NewnessReport>(reports: readonly T[]): T[] {
+  return [...reports].sort((a, b) => Number(!a.isNew) - Number(!b.isNew));
+}
+
 /** Minimal shape filterVisibleReports needs. */
 interface VisibilityReport {
   key: string;

@@ -37,6 +37,8 @@ export interface ReportCatalogueEntry {
   isYearly: boolean;
   requiresPartner: boolean;
   enabled: boolean;
+  /** Shows the "New" badge — an admin enabled this report within the last 14 days. */
+  isNew: boolean;
   /** Server-resolved price in paise — NEVER hardcode a report's price client-side. */
   pricePaise: number;
   /** "Strikethrough" MRP for the marketing discount treatment (₹149 ~~₹499~~

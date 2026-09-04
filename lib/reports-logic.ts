@@ -267,6 +267,18 @@ export function sortNewFirst<T extends NewnessReport>(reports: readonly T[]): T[
   return [...reports].sort((a, b) => Number(!a.isNew) - Number(!b.isNew));
 }
 
+/**
+ * Reorders a catalogue list so coming-soon entries (feature not yet enabled) always sort last —
+ * below both New and unlocked/purchasable reports. This is the outermost/primary sort key (see
+ * app/reports/page.tsx), applied AFTER sortNewFirst and sortUnlockedFirst so their ordering
+ * survives as the tiebreaker within each comingSoon group. Takes a predicate rather than a field
+ * because "coming soon" depends on the viewer's feature flags (isAvailable), not a catalogue
+ * property.
+ */
+export function sortComingSoonLast<T>(reports: readonly T[], isComingSoon: (report: T) => boolean): T[] {
+  return [...reports].sort((a, b) => Number(isComingSoon(a)) - Number(isComingSoon(b)));
+}
+
 /** Minimal shape filterVisibleReports needs. */
 interface VisibilityReport {
   key: string;

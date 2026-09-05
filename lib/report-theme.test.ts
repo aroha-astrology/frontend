@@ -13,6 +13,7 @@ import {
   Hash,
   PenLine,
   Flame,
+  Sprout,
 } from "lucide-react";
 import { REPORT_THEME, getReportTheme } from "./report-theme";
 
@@ -30,10 +31,11 @@ const EXPECTED_ICONS: Record<string, unknown> = {
   numerology: Hash,
   name_change: PenLine,
   remedies: Flame,
+  progeny: Sprout,
 };
 
 describe("REPORT_THEME", () => {
-  it("has exactly the 13 catalogue report keys, no more, no fewer", () => {
+  it("has exactly the 14 catalogue report keys, no more, no fewer", () => {
     expect(Object.keys(REPORT_THEME).sort()).toEqual(Object.keys(EXPECTED_ICONS).sort());
   });
 

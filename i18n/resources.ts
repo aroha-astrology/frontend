@@ -124,6 +124,7 @@ export const resources = {
           numerology: "Numerology Report",
           name_change: "Name Change Report",
           remedies: "Remedies Report",
+          progeny: "Progeny Report",
         },
         purchase: {
           confirmSpend: "Spend {{cost}} to unlock this report?",
@@ -287,6 +288,15 @@ export const resources = {
             donts: "Don'ts",
             remedies: "Classical Remedies",
           },
+          progeny_promise: "Your Progeny Promise",
+          saptamsa_reading: "The Saptamsha (D7) Reading",
+          reproductive_capacity: "Reproductive Capacity, Classically Read",
+          couple_synthesis: "Together, What The Charts Show",
+          child_sequence: "The Child Sequence",
+          progeny_timing: "When The Timing Supports It",
+          obstructions: "Obstructions To Hold Carefully",
+          progeny_remedies: "Classical Remedies",
+          progeny_outlook: "The Honest Outlook",
         },
         lifeContext: {
           title: "Life Context Right Now",
@@ -473,6 +483,15 @@ export const resources = {
             "Which remedies should I start with first?",
             "How long before these remedies typically show an effect?",
           ],
+          progeny: [
+            "Will we have children, and what does each chart say about it?",
+            "What does my D7 (Saptamsha) chart reveal about my children?",
+            "How many children does the chart classically support, and in what order?",
+            "Is our timing for children supported by our current dasha periods?",
+            "What classical remedies and mantras support healthy progeny?",
+            "What obstructions should we be mindful of, and how do we work through them?",
+            "If I'm 35 or older, what does my chart say about the children I already have?",
+          ],
         },
         // Catalogue-card marketing copy — descriptions is a one-line "what is this" (matches
         // labels/covers precedent, all 14 report keys). taglines is the green curiosity-hook
@@ -494,6 +513,7 @@ export const resources = {
           name_change: "Fix your name's numerology",
           remedies: "Get personalized Lal Kitab remedies",
           gemstone: "Find the gemstones suited to your chart",
+          progeny: "Classical readings on children, timing and blessings",
         },
         taglines: {
           marriage: "Ketu delaying your marriage?",
@@ -511,6 +531,7 @@ export const resources = {
           name_change: "Is your name working against you?",
           remedies: "Simple remedies for planetary doshas",
           gemstone: "Wearing the wrong stone could work against you",
+          progeny: "What does your chart say about children?",
         },
       },
       vastu: {
@@ -744,6 +765,18 @@ export const resources = {
         spouse: { title: "Your Likely Partner" },
         decade: { title: "Marriage Quality by Decade" },
         remedies: { title: "Remedies" },
+      },
+      progenyReport: {
+        subtitle: "Classical readings on children, timing and blessings for you and your spouse",
+        outlook: { title: "Together, What The Charts Show", band: { strongconvergence: "Strong convergence", moderateconvergence: "Moderate convergence", mixed: "Mixed", conflict: "Worth a closer look" }, note: "How closely your chart and your spouse's chart independently point toward the same classical reading." },
+        capacity: { title: "Progeny Promise", mother: "Mother's Chart", father: "Father's Chart", band: { strong: "Strong", moderate: "Moderate", mixed: "Mixed", weak: "Needs Support" }, sphuta: { beeja: "Beeja Sphuta", kshetra: "Kshetra Sphuta" }, strength: { strong: "strong", moderate: "moderate", weak: "weak" }, chidraNote: "This chart's Putra Tithi falls on a traditionally obstructive tithi — a classical caution, not a diagnosis.", disclaimer: "Beeja and Kshetra Sphuta are astrological reproductive-capacity indicators from classical texts, not a medical or fertility test." },
+        sequence: { title: "The Child Sequence", child: "Child {{index}}", tendency: { male: "Leans male", female: "Leans female", inconclusive: "Inconclusive" }, confidence: { low: "low confidence", moderate: "moderate confidence" }, disclaimer: "A classical tendency read from the D7 chart, not a determined sex — shown as counts, never a verdict." },
+        childrenCard: { title: "For 35+: What The Chart Shows", intro: "Since you're 35 or older, here's how your chart classically reads the children you likely already have — not a prediction, a reflection of your own D7 (Saptamsha) chart, supporting about {{count}} of the classical child positions checked." },
+        timing: { title: "When The Timing Supports It", strongPeriod: "Strong period for children" },
+        analysis: { title: "The Full Reading" },
+        strengths: "What's Going For You",
+        cautions: "What To Hold Carefully",
+        mantras: { title: "Classical Remedies & Mantras", provenance: { vedic: "Vedic", upanishadic: "Upanishadic", traditional: "Traditional", tantric: "Tantric" }, prajatantu: { title: "Prajatantu — The Thread of Progeny", meaning: "\"Do not let the thread of progeny be cut.\" From the Taittiriya Upanishad's teacher's parting charge — held as an intention, not counted as japa." }, "garbham-dhehi": { title: "Garbham Dhehi — Invoking the Conception", meaning: "An invocation to Sinivali and the Ashvins to grant the child — a near-identical verse shared by the Rigveda and the Brihadaranyaka Upanishad." }, "santana-gopala": { title: "Santana Gopala Mantra", meaning: "A prayer to Bala Krishna, son of Devaki, for the blessing of a child — the most widely chanted progeny mantra in living practice." }, "brihaspati-bija": { title: "Brihaspati Bija Mantra", meaning: "A salutation to Jupiter (Brihaspati), the classical significator of children — chanted when Jupiter itself needs strengthening in this chart." } },
       },
       reportScores: {
         label: {
@@ -2482,6 +2515,7 @@ export const resources = {
           numerology: "अंक ज्योतिष रिपोर्ट",
           name_change: "नाम परिवर्तन रिपोर्ट",
           remedies: "उपाय रिपोर्ट",
+          progeny: "संतान रिपोर्ट",
         },
         purchase: {
           confirmSpend: "इस रिपोर्ट को अनलॉक करने के लिए {{cost}} खर्च करें?",
@@ -2642,6 +2676,15 @@ export const resources = {
             donts: "क्या न करें",
             remedies: "पारंपरिक उपाय",
           },
+          progeny_promise: "आपकी संतान क्षमता",
+          saptamsa_reading: "सप्तमांश (D7) विश्लेषण",
+          reproductive_capacity: "पारंपरिक प्रजनन क्षमता",
+          couple_synthesis: "दोनों कुंडलियाँ क्या कहती हैं",
+          child_sequence: "संतान क्रम",
+          progeny_timing: "अनुकूल समय",
+          obstructions: "ध्यान रखने योग्य बाधाएँ",
+          progeny_remedies: "पारंपरिक उपाय",
+          progeny_outlook: "ईमानदार निष्कर्ष",
         },
         lifeContext: {
           title: "अभी आपका जीवन संदर्भ",
@@ -2828,6 +2871,15 @@ export const resources = {
             "मुझे सबसे पहले कौन-से उपाय शुरू करने चाहिए?",
             "इन उपायों का असर दिखने में आमतौर पर कितना समय लगता है?",
           ],
+          progeny: [
+            "क्या हमें संतान होगी, और हर कुंडली इस बारे में क्या कहती है?",
+            "मेरी D7 (सप्तमांश) कुंडली मेरी संतान के बारे में क्या दर्शाती है?",
+            "कुंडली के अनुसार कितनी संतानें संभव हैं, और किस क्रम में?",
+            "क्या हमारी वर्तमान दशा संतान के लिए अनुकूल समय दर्शाती है?",
+            "स्वस्थ संतान के लिए कौन-से पारंपरिक उपाय और मंत्र सहायक हैं?",
+            "किन बाधाओं का ध्यान रखना चाहिए, और उन्हें कैसे दूर करें?",
+            "यदि मेरी आयु 35 वर्ष या अधिक है, तो कुंडली मेरी मौजूदा संतान के बारे में क्या कहती है?",
+          ],
         },
         descriptions: {
           marriage: "अपनी शादी की नियति जानें",
@@ -2845,6 +2897,7 @@ export const resources = {
           name_change: "अपने नाम की अंकशास्त्र संबंधी खामियां ठीक करें",
           remedies: "व्यक्तिगत लाल किताब उपाय पाएं",
           gemstone: "अपनी कुंडली के लिए उपयुक्त रत्न जानें",
+          progeny: "संतान संबंधी शास्त्रीय संकेत जानें",
         },
         taglines: {
           marriage: "क्या केतु आपकी शादी में देरी कर रहा है?",
@@ -2862,6 +2915,7 @@ export const resources = {
           name_change: "क्या आपका नाम आपके खिलाफ काम कर रहा है?",
           remedies: "ग्रह दोषों के लिए सरल उपाय",
           gemstone: "गलत रत्न पहनना आपके खिलाफ काम कर सकता है",
+          progeny: "आपकी संतान के बारे में कुंडली क्या कहती है?",
         },
       },
       vastu: {
@@ -3391,6 +3445,18 @@ export const resources = {
         spouse: { title: "आपका संभावित जीवनसाथी" },
         decade: { title: "दशक अनुसार वैवाहिक गुणवत्ता" },
         remedies: { title: "उपाय" },
+      },
+      progenyReport: {
+        subtitle: "आपके और आपके जीवनसाथी के लिए संतान, समय और आशीर्वाद पर पारंपरिक विश्लेषण",
+        outlook: { title: "दोनों कुंडलियाँ क्या कहती हैं", band: { strongconvergence: "प्रबल सामंजस्य", moderateconvergence: "मध्यम सामंजस्य", mixed: "मिश्रित", conflict: "गहराई से देखने योग्य" }, note: "आपकी और आपके जीवनसाथी की कुंडली स्वतंत्र रूप से एक ही पारंपरिक निष्कर्ष की ओर कितना इशारा करती हैं।" },
+        capacity: { title: "संतान क्षमता", mother: "माता की कुंडली", father: "पिता की कुंडली", band: { strong: "प्रबल", moderate: "मध्यम", mixed: "मिश्रित", weak: "सहयोग आवश्यक" }, sphuta: { beeja: "बीज स्फुट", kshetra: "क्षेत्र स्फुट" }, strength: { strong: "प्रबल", moderate: "मध्यम", weak: "कमज़ोर" }, chidraNote: "इस कुंडली की पुत्र तिथि परंपरागत रूप से बाधाकारी तिथि पर आती है — यह एक पारंपरिक सावधानी है, निदान नहीं।", disclaimer: "बीज और क्षेत्र स्फुट शास्त्रीय ग्रंथों पर आधारित ज्योतिषीय प्रजनन-क्षमता संकेतक हैं, न कि कोई चिकित्सीय या प्रजनन परीक्षण।" },
+        sequence: { title: "संतान क्रम", child: "संतान {{index}}", tendency: { male: "पुत्र की ओर झुकाव", female: "पुत्री की ओर झुकाव", inconclusive: "अनिर्णीत" }, confidence: { low: "कम विश्वसनीयता", moderate: "मध्यम विश्वसनीयता" }, disclaimer: "D7 कुंडली से पढ़ा गया एक पारंपरिक रुझान है, निश्चित लिंग नहीं — केवल संकेतों के रूप में, निर्णय के रूप में नहीं।" },
+        childrenCard: { title: "35+ के लिए: कुंडली क्या दर्शाती है", intro: "चूँकि आपकी आयु 35 वर्ष या अधिक है, यहाँ बताया गया है कि आपकी कुंडली पारंपरिक रूप से आपकी मौजूदा संतान को कैसे पढ़ती है — यह भविष्यवाणी नहीं, बल्कि आपकी अपनी D7 (सप्तमांश) कुंडली का प्रतिबिंब है, जो जाँची गई शास्त्रीय संतान-स्थितियों में से लगभग {{count}} का समर्थन करती है।" },
+        timing: { title: "अनुकूल समय", strongPeriod: "संतान के लिए अनुकूल अवधि" },
+        analysis: { title: "संपूर्ण विश्लेषण" },
+        strengths: "आपके पक्ष में क्या है",
+        cautions: "किन बातों का ध्यान रखें",
+        mantras: { title: "पारंपरिक उपाय और मंत्र", provenance: { vedic: "वैदिक", upanishadic: "औपनिषदिक", traditional: "पारंपरिक", tantric: "तांत्रिक" }, prajatantu: { title: "प्रजातन्तु — संतान की अविच्छिन्न कड़ी", meaning: "\"संतान की कड़ी को मत तोड़ो।\" तैत्तिरीय उपनिषद के गुरु के अंतिम उपदेश से — यह एक संकल्प के रूप में रखा जाता है, जप के रूप में गिना नहीं जाता।" }, "garbham-dhehi": { title: "गर्भं धेहि — गर्भधारण का आह्वान", meaning: "सिनीवाली और अश्विनी कुमारों से संतान प्रदान करने की प्रार्थना — यह श्लोक ऋग्वेद और बृहदारण्यक उपनिषद दोनों में लगभग समान रूप से मिलता है।" }, "santana-gopala": { title: "संतान गोपाल मंत्र", meaning: "देवकी-पुत्र बाल कृष्ण से संतान के आशीर्वाद की प्रार्थना — वर्तमान अभ्यास में सबसे अधिक जपा जाने वाला संतान मंत्र।" }, "brihaspati-bija": { title: "बृहस्पति बीज मंत्र", meaning: "गुरु (बृहस्पति) को नमन — संतान के शास्त्रीय कारक ग्रह — जब कुंडली में गुरु को बल की आवश्यकता हो तब जपा जाता है।" } },
       },
       reportScores: {
         label: {
@@ -4738,6 +4804,7 @@ export const resources = {
           numerology: "সংখ্যাতত্ত্ব রিপোর্ট",
           name_change: "নাম পরিবর্তন রিপোর্ট",
           remedies: "প্রতিকার রিপোর্ট",
+          progeny: "সন্তান রিপোর্ট",
         },
         purchase: {
           confirmSpend: "এই রিপোর্ট আনলক করতে {{cost}} খরচ করবেন?",
@@ -4898,6 +4965,15 @@ export const resources = {
             donts: "যা করবেন না",
             remedies: "শাস্ত্রীয় প্রতিকার",
           },
+          progeny_promise: "আপনার সন্তান সম্ভাবনা",
+          saptamsa_reading: "সপ্তমাংশ (D7) বিশ্লেষণ",
+          reproductive_capacity: "শাস্ত্রীয় প্রজনন ক্ষমতা",
+          couple_synthesis: "দুই কুণ্ডলী একসাথে কী বলছে",
+          child_sequence: "সন্তান ক্রম",
+          progeny_timing: "উপযুক্ত সময়",
+          obstructions: "মনে রাখার মতো বাধা",
+          progeny_remedies: "শাস্ত্রীয় প্রতিকার",
+          progeny_outlook: "সৎ উপসংহার",
         },
         lifeContext: {
           title: "এখন আপনার জীবন প্রেক্ষাপট",
@@ -5081,6 +5157,15 @@ export const resources = {
             "আমার প্রথমে কোন প্রতিকারগুলো শুরু করা উচিত?",
             "এই প্রতিকারগুলোর প্রভাব দেখতে সাধারণত কত সময় লাগে?",
           ],
+          progeny: [
+            "আমাদের সন্তান হবে কি, এবং প্রতিটি কুণ্ডলী এ বিষয়ে কী বলে?",
+            "আমার D7 (সপ্তমাংশ) কুণ্ডলী আমার সন্তান সম্পর্কে কী প্রকাশ করে?",
+            "কুণ্ডলী অনুযায়ী কতজন সন্তান সম্ভব, এবং কোন ক্রমে?",
+            "আমাদের বর্তমান দশা কি সন্তানের জন্য উপযুক্ত সময় দেখাচ্ছে?",
+            "সুস্থ সন্তানের জন্য কোন শাস্ত্রীয় প্রতিকার ও মন্ত্র সহায়ক?",
+            "কোন বাধাগুলো মনে রাখা উচিত, এবং কীভাবে সেগুলো কাটিয়ে উঠবেন?",
+            "আমার বয়স ৩৫ বা তার বেশি হলে, কুণ্ডলী আমার বর্তমান সন্তান সম্পর্কে কী বলে?",
+          ],
         },
         descriptions: {
           marriage: "আপনার বিবাহের নিয়তি জানুন",
@@ -5098,6 +5183,7 @@ export const resources = {
           name_change: "আপনার নামের সংখ্যাতত্ত্ব ঠিক করুন",
           remedies: "ব্যক্তিগত লাল কিতাব প্রতিকার পান",
           gemstone: "আপনার কুণ্ডলীর জন্য উপযুক্ত রত্ন জানুন",
+          progeny: "সন্তান সম্পর্কিত শাস্ত্রীয় ইঙ্গিত জানুন",
         },
         taglines: {
           marriage: "কেতু কি আপনার বিয়েতে দেরি করাচ্ছে?",
@@ -5115,6 +5201,7 @@ export const resources = {
           name_change: "আপনার নাম কি আপনার বিরুদ্ধে কাজ করছে?",
           remedies: "গ্রহ দোষের সহজ প্রতিকার",
           gemstone: "ভুল রত্ন পরা আপনার বিরুদ্ধে কাজ করতে পারে",
+          progeny: "আপনার সন্তান সম্পর্কে কুণ্ডলী কী বলে?",
         },
       },
       vastu: {
@@ -5642,6 +5729,18 @@ export const resources = {
         spouse: { title: "আপনার সম্ভাব্য জীবনসঙ্গী" },
         decade: { title: "দশক অনুযায়ী বৈবাহিক গুণমান" },
         remedies: { title: "প্রতিকার" },
+      },
+      progenyReport: {
+        subtitle: "আপনার ও আপনার জীবনসঙ্গীর জন্য সন্তান, সময় ও আশীর্বাদ সম্পর্কিত শাস্ত্রীয় বিশ্লেষণ",
+        outlook: { title: "দুই কুণ্ডলী একসাথে কী বলছে", band: { strongconvergence: "দৃঢ় মিল", moderateconvergence: "মাঝারি মিল", mixed: "মিশ্র", conflict: "গভীরভাবে দেখার মতো" }, note: "আপনার এবং আপনার জীবনসঙ্গীর কুণ্ডলী স্বতন্ত্রভাবে একই শাস্ত্রীয় সিদ্ধান্তের দিকে কতটা ইঙ্গিত করছে।" },
+        capacity: { title: "সন্তান সম্ভাবনা", mother: "মায়ের কুণ্ডলী", father: "বাবার কুণ্ডলী", band: { strong: "দৃঢ়", moderate: "মাঝারি", mixed: "মিশ্র", weak: "সহায়তা প্রয়োজন" }, sphuta: { beeja: "বীজ স্ফুট", kshetra: "ক্ষেত্র স্ফুট" }, strength: { strong: "দৃঢ়", moderate: "মাঝারি", weak: "দুর্বল" }, chidraNote: "এই কুণ্ডলীর পুত্র তিথি প্রথাগতভাবে বাধাদায়ক তিথিতে পড়েছে — এটি একটি শাস্ত্রীয় সতর্কতা, রোগনির্ণয় নয়।", disclaimer: "বীজ ও ক্ষেত্র স্ফুট শাস্ত্রীয় গ্রন্থ থেকে নেওয়া জ্যোতিষ প্রজনন-ক্ষমতা নির্দেশক, কোনো চিকিৎসা বা উর্বরতা পরীক্ষা নয়।" },
+        sequence: { title: "সন্তান ক্রম", child: "সন্তান {{index}}", tendency: { male: "পুত্রের দিকে ঝোঁক", female: "কন্যার দিকে ঝোঁক", inconclusive: "অনির্ধারিত" }, confidence: { low: "কম আস্থা", moderate: "মাঝারি আস্থা" }, disclaimer: "D7 কুণ্ডলী থেকে পড়া একটি শাস্ত্রীয় প্রবণতা, নির্ধারিত লিঙ্গ নয় — শুধু সংকেত হিসেবে দেখানো হয়েছে, সিদ্ধান্ত হিসেবে নয়।" },
+        childrenCard: { title: "৩৫+ বয়সের জন্য: কুণ্ডলী কী দেখায়", intro: "আপনার বয়স ৩৫ বা তার বেশি হওয়ায়, এখানে দেখানো হলো আপনার কুণ্ডলী শাস্ত্রীয়ভাবে আপনার বর্তমান সন্তানদের কীভাবে পড়ে — এটি ভবিষ্যদ্বাণী নয়, বরং আপনার নিজের D7 (সপ্তমাংশ) কুণ্ডলীর প্রতিফলন, যা পরীক্ষা করা শাস্ত্রীয় সন্তান-অবস্থানগুলোর প্রায় {{count}}টিকে সমর্থন করে।" },
+        timing: { title: "উপযুক্ত সময়", strongPeriod: "সন্তানের জন্য শক্তিশালী সময়কাল" },
+        analysis: { title: "সম্পূর্ণ বিশ্লেষণ" },
+        strengths: "আপনার পক্ষে যা আছে",
+        cautions: "যা নিয়ে সতর্ক থাকবেন",
+        mantras: { title: "শাস্ত্রীয় প্রতিকার ও মন্ত্র", provenance: { vedic: "বৈদিক", upanishadic: "ঔপনিষদিক", traditional: "প্রথাগত", tantric: "তান্ত্রিক" }, prajatantu: { title: "প্রজাতন্তু — সন্তানের অবিচ্ছিন্ন ধারা", meaning: "\"সন্তানের ধারা ছিন্ন করো না।\" তৈত্তিরীয় উপনিষদের গুরুর শেষ উপদেশ থেকে — এটি একটি সংকল্প হিসেবে রাখা হয়, জপ হিসেবে গোনা হয় না।" }, "garbham-dhehi": { title: "গর্ভং ধেহি — গর্ভধারণের আহ্বান", meaning: "সিনীবালী ও অশ্বিনীকুমারদের কাছে সন্তান দানের প্রার্থনা — এই শ্লোকটি ঋগ্বেদ এবং বৃহদারণ্যক উপনিষদ উভয়েই প্রায় একই রূপে পাওয়া যায়।" }, "santana-gopala": { title: "সন্তান গোপাল মন্ত্র", meaning: "দেবকী-পুত্র বাল কৃষ্ণের কাছে সন্তানের আশীর্বাদের প্রার্থনা — বর্তমান চর্চায় সবচেয়ে বেশি জপ করা সন্তান মন্ত্র।" }, "brihaspati-bija": { title: "বৃহস্পতি বীজ মন্ত্র", meaning: "গুরু (বৃহস্পতি), সন্তানের শাস্ত্রীয় কারক গ্রহকে প্রণাম — যখন কুণ্ডলীতে বৃহস্পতির বল বৃদ্ধির প্রয়োজন হয় তখন জপ করা হয়।" } },
       },
       reportScores: {
         label: {
@@ -6993,6 +7092,7 @@ export const resources = {
           numerology: "अंकशास्त्र अहवाल",
           name_change: "नाव बदल अहवाल",
           remedies: "उपाय अहवाल",
+          progeny: "संतती अहवाल",
         },
         purchase: {
           confirmSpend: "हा अहवाल अनलॉक करण्यासाठी {{cost}} खर्च करायचे?",
@@ -7153,6 +7253,15 @@ export const resources = {
             donts: "काय करू नये",
             remedies: "पारंपरिक उपाय",
           },
+          progeny_promise: "तुमची संतती क्षमता",
+          saptamsa_reading: "सप्तमांश (D7) विश्लेषण",
+          reproductive_capacity: "शास्त्रीय प्रजनन क्षमता",
+          couple_synthesis: "दोन्ही कुंडल्या एकत्र काय सांगतात",
+          child_sequence: "संतती क्रम",
+          progeny_timing: "अनुकूल वेळ",
+          obstructions: "लक्षात ठेवण्याजोगे अडथळे",
+          progeny_remedies: "शास्त्रीय उपाय",
+          progeny_outlook: "प्रामाणिक निष्कर्ष",
         },
         lifeContext: {
           title: "आत्ताचा तुमचा जीवन संदर्भ",
@@ -7336,6 +7445,15 @@ export const resources = {
             "मी सर्वप्रथम कोणते उपाय सुरू करावेत?",
             "या उपायांचा परिणाम दिसायला साधारण किती वेळ लागतो?",
           ],
+          progeny: [
+            "आम्हाला संतती होईल का, आणि प्रत्येक कुंडली याबद्दल काय सांगते?",
+            "माझी D7 (सप्तमांश) कुंडली माझ्या संततीबद्दल काय दर्शवते?",
+            "कुंडलीनुसार किती संतती शक्य आहे, आणि कोणत्या क्रमाने?",
+            "आमची सध्याची दशा संततीसाठी अनुकूल वेळ दर्शवते का?",
+            "निरोगी संततीसाठी कोणते शास्त्रीय उपाय आणि मंत्र सहाय्यक आहेत?",
+            "कोणत्या अडथळ्यांकडे लक्ष द्यावे, आणि त्यावर कशी मात करावी?",
+            "माझे वय ३५ किंवा त्याहून अधिक असल्यास, कुंडली माझ्या सध्याच्या संततीबद्दल काय सांगते?",
+          ],
         },
         descriptions: {
           marriage: "तुमचं लग्नाचं भविष्य जाणून घ्या",
@@ -7353,6 +7471,7 @@ export const resources = {
           name_change: "तुमच्या नावाची अंकशास्त्र दुरुस्त करा",
           remedies: "वैयक्तिक लाल किताब उपाय मिळवा",
           gemstone: "तुमच्या कुंडलीसाठी योग्य रत्न जाणून घ्या",
+          progeny: "संततीबद्दलचे शास्त्रीय संकेत जाणून घ्या",
         },
         taglines: {
           marriage: "केतू तुमच्या लग्नात उशीर करतोय का?",
@@ -7370,6 +7489,7 @@ export const resources = {
           name_change: "तुमचं नाव तुमच्या विरोधात काम करतंय का?",
           remedies: "ग्रह दोषांसाठी सोपे उपाय",
           gemstone: "चुकीचं रत्न घातल्यास ते तुमच्या विरोधात काम करू शकतं",
+          progeny: "तुमच्या संततीबद्दल कुंडली काय सांगते?",
         },
       },
       vastu: {
@@ -7897,6 +8017,18 @@ export const resources = {
         spouse: { title: "तुमचा संभाव्य जोडीदार" },
         decade: { title: "दशकानुसार वैवाहिक गुणवत्ता" },
         remedies: { title: "उपाय" },
+      },
+      progenyReport: {
+        subtitle: "तुमच्यासाठी आणि तुमच्या जोडीदारासाठी संतती, वेळ आणि आशीर्वादाबद्दलचे शास्त्रीय विश्लेषण",
+        outlook: { title: "दोन्ही कुंडल्या एकत्र काय सांगतात", band: { strongconvergence: "प्रबळ सुसंगती", moderateconvergence: "मध्यम सुसंगती", mixed: "संमिश्र", conflict: "बारकाईने पाहण्यासारखे" }, note: "तुमची आणि तुमच्या जोडीदाराची कुंडली स्वतंत्रपणे एकाच शास्त्रीय निष्कर्षाकडे किती जवळून निर्देश करते." },
+        capacity: { title: "संतती क्षमता", mother: "आईची कुंडली", father: "वडिलांची कुंडली", band: { strong: "प्रबळ", moderate: "मध्यम", mixed: "संमिश्र", weak: "सहाय्य आवश्यक" }, sphuta: { beeja: "बीज स्फुट", kshetra: "क्षेत्र स्फुट" }, strength: { strong: "प्रबळ", moderate: "मध्यम", weak: "कमकुवत" }, chidraNote: "या कुंडलीची पुत्र तिथी पारंपरिकरित्या अडथळादायक तिथीवर येते — हा एक शास्त्रीय इशारा आहे, निदान नाही.", disclaimer: "बीज आणि क्षेत्र स्फुट ही शास्त्रीय ग्रंथांवर आधारित ज्योतिषीय प्रजनन-क्षमता निर्देशक आहेत, वैद्यकीय किंवा प्रजनन चाचणी नाही." },
+        sequence: { title: "संतती क्रम", child: "संतती {{index}}", tendency: { male: "मुलाकडे कल", female: "मुलीकडे कल", inconclusive: "अनिर्णीत" }, confidence: { low: "कमी विश्वासार्हता", moderate: "मध्यम विश्वासार्हता" }, disclaimer: "D7 कुंडलीतून वाचलेला हा एक शास्त्रीय कल आहे, निश्चित लिंग नाही — केवळ संकेत म्हणून दाखवले आहे, निर्णय म्हणून नाही." },
+        childrenCard: { title: "35+ साठी: कुंडली काय दर्शवते", intro: "तुमचे वय 35 किंवा त्याहून अधिक असल्याने, तुमची कुंडली शास्त्रीयदृष्ट्या तुमच्या सध्याच्या संततीला कशी वाचते ते येथे दिले आहे — ही भविष्यवाणी नाही, तर तुमच्या स्वतःच्या D7 (सप्तमांश) कुंडलीचे प्रतिबिंब आहे, जे तपासलेल्या शास्त्रीय संतती-स्थानांपैकी सुमारे {{count}} ला समर्थन देते." },
+        timing: { title: "अनुकूल वेळ", strongPeriod: "संततीसाठी अनुकूल कालावधी" },
+        analysis: { title: "संपूर्ण विश्लेषण" },
+        strengths: "तुमच्या बाजूने काय आहे",
+        cautions: "कशाची काळजी घ्यावी",
+        mantras: { title: "शास्त्रीय उपाय आणि मंत्र", provenance: { vedic: "वैदिक", upanishadic: "औपनिषदिक", traditional: "पारंपरिक", tantric: "तांत्रिक" }, prajatantu: { title: "प्रजातंतू — संततीची अखंड साखळी", meaning: "\"संततीची साखळी तोडू नकोस.\" तैत्तिरीय उपनिषदातील गुरूंच्या अंतिम उपदेशातून — हा एक संकल्प म्हणून ठेवला जातो, जप म्हणून मोजला जात नाही." }, "garbham-dhehi": { title: "गर्भं धेहि — गर्भधारणेचे आवाहन", meaning: "सिनीवाली आणि अश्विनीकुमारांना संतती देण्याची प्रार्थना — हा श्लोक ऋग्वेद आणि बृहदारण्यक उपनिषद या दोन्हीमध्ये जवळजवळ सारखाच आढळतो." }, "santana-gopala": { title: "संतान गोपाल मंत्र", meaning: "देवकीपुत्र बाल कृष्णाकडे संततीच्या आशीर्वादाची प्रार्थना — सध्याच्या प्रथेत सर्वाधिक जपला जाणारा संतती मंत्र." }, "brihaspati-bija": { title: "बृहस्पती बीज मंत्र", meaning: "गुरु (बृहस्पती), संततीचा शास्त्रीय कारक ग्रह, यांना नमन — जेव्हा कुंडलीत गुरूला बळाची गरज असते तेव्हा जपला जातो." } },
       },
       reportScores: {
         label: {
@@ -9249,6 +9381,7 @@ export const resources = {
           numerology: "సంఖ్యాశాస్త్ర నివేదిక",
           name_change: "పేరు మార్పు నివేదిక",
           remedies: "పరిహారాల నివేదిక",
+          progeny: "సంతాన నివేదిక",
         },
         purchase: {
           confirmSpend: "ఈ నివేదికను అన్‌లాక్ చేయడానికి {{cost}} ఖర్చు చేయాలా?",
@@ -9409,6 +9542,15 @@ export const resources = {
             donts: "చేయకూడనివి",
             remedies: "శాస్త్రీయ పరిహారాలు",
           },
+          progeny_promise: "మీ సంతాన సామర్థ్యం",
+          saptamsa_reading: "సప్తమాంశ (D7) విశ్లేషణ",
+          reproductive_capacity: "శాస్త్రీయ ప్రజనన సామర్థ్యం",
+          couple_synthesis: "రెండు జాతకాలు కలిపి ఏమి చెబుతున్నాయి",
+          child_sequence: "సంతాన క్రమం",
+          progeny_timing: "అనుకూల సమయం",
+          obstructions: "గమనించవలసిన అడ్డంకులు",
+          progeny_remedies: "శాస్త్రీయ నివారణలు",
+          progeny_outlook: "నిజాయితీ గల ముగింపు",
         },
         lifeContext: {
           title: "ఇప్పుడు మీ జీవిత సందర్భం",
@@ -9592,6 +9734,15 @@ export const resources = {
             "నేను ముందుగా ఏ పరిహారాలతో మొదలుపెట్టాలి?",
             "ఈ పరిహారాలు సాధారణంగా ప్రభావం చూపడానికి ఎంత సమయం పడుతుంది?",
           ],
+          progeny: [
+            "మాకు సంతానం కలుగుతుందా, ప్రతి జాతకం దీని గురించి ఏమి చెబుతుంది?",
+            "నా D7 (సప్తమాంశ) జాతకం నా సంతానం గురించి ఏమి వెల్లడిస్తుంది?",
+            "జాతకం ప్రకారం ఎంతమంది సంతానం సాధ్యం, ఏ క్రమంలో?",
+            "మా ప్రస్తుత దశ సంతానానికి అనుకూలమైన సమయాన్ని చూపిస్తుందా?",
+            "ఆరోగ్యకరమైన సంతానానికి ఏ శాస్త్రీయ నివారణలు, మంత్రాలు సహాయపడతాయి?",
+            "ఏ అడ్డంకుల గురించి జాగ్రత్తగా ఉండాలి, వాటిని ఎలా అధిగమించాలి?",
+            "నా వయస్సు 35 లేదా అంతకంటే ఎక్కువ అయితే, నా ప్రస్తుత సంతానం గురించి జాతకం ఏమి చెబుతుంది?",
+          ],
         },
         descriptions: {
           marriage: "మీ వివాహ విధిని తెలుసుకోండి",
@@ -9609,6 +9760,7 @@ export const resources = {
           name_change: "మీ పేరు సంఖ్యాశాస్త్రాన్ని సరిచేసుకోండి",
           remedies: "వ్యక్తిగతీకరించిన లాల్ కితాబ్ నివారణలు పొందండి",
           gemstone: "మీ జాతకానికి సరిపోయే రత్నాలను తెలుసుకోండి",
+          progeny: "సంతానానికి సంబంధించిన శాస్త్రీయ సూచనలు తెలుసుకోండి",
         },
         taglines: {
           marriage: "కేతువు మీ వివాహాన్ని ఆలస్యం చేస్తోందా?",
@@ -9626,6 +9778,7 @@ export const resources = {
           name_change: "మీ పేరు మీకు వ్యతిరేకంగా పనిచేస్తోందా?",
           remedies: "గ్రహ దోషాలకు సులభమైన నివారణలు",
           gemstone: "తప్పు రత్నం ధరించడం మీకు వ్యతిరేకంగా పనిచేయవచ్చు",
+          progeny: "మీ సంతానం గురించి జాతకం ఏమి చెబుతుంది?",
         },
       },
       vastu: {
@@ -10149,6 +10302,18 @@ export const resources = {
         spouse: { title: "మీ సంభావ్య జీవిత భాగస్వామి" },
         decade: { title: "దశాబ్దం వారీగా వైవాహిక నాణ్యత" },
         remedies: { title: "పరిహారాలు" },
+      },
+      progenyReport: {
+        subtitle: "మీ కోసం మరియు మీ జీవిత భాగస్వామి కోసం సంతానం, సమయం మరియు ఆశీర్వాదాలపై శాస్త్రీయ విశ్లేషణ",
+        outlook: { title: "రెండు జాతకాలు కలిపి ఏమి చెబుతున్నాయి", band: { strongconvergence: "బలమైన సారూప్యత", moderateconvergence: "మధ్యస్థ సారూప్యత", mixed: "మిశ్రమం", conflict: "నిశితంగా పరిశీలించదగినది" }, note: "మీ మరియు మీ జీవిత భాగస్వామి జాతకం స్వతంత్రంగా ఒకే శాస్త్రీయ ముగింపును ఎంత దగ్గరగా సూచిస్తున్నాయో." },
+        capacity: { title: "సంతాన సామర్థ్యం", mother: "తల్లి జాతకం", father: "తండ్రి జాతకం", band: { strong: "బలమైన", moderate: "మధ్యస్థ", mixed: "మిశ్రమం", weak: "మద్దతు అవసరం" }, sphuta: { beeja: "బీజ స్ఫుట", kshetra: "క్షేత్ర స్ఫుట" }, strength: { strong: "బలమైన", moderate: "మధ్యస్థ", weak: "బలహీనమైన" }, chidraNote: "ఈ జాతకంలో పుత్ర తిథి సాంప్రదాయకంగా అడ్డంకి కలిగించే తిథిపై పడుతుంది — ఇది ఒక శాస్త్రీయ జాగ్రత్త, రోగనిర్ధారణ కాదు.", disclaimer: "బీజ మరియు క్షేత్ర స్ఫుట శాస్త్రీయ గ్రంథాల నుండి తీసుకున్న జ్యోతిష ప్రజనన-సామర్థ్య సూచికలు, ఇవి వైద్య లేదా సంతానోత్పత్తి పరీక్ష కాదు." },
+        sequence: { title: "సంతాన క్రమం", child: "సంతానం {{index}}", tendency: { male: "మగబిడ్డ వైపు మొగ్గు", female: "ఆడబిడ్డ వైపు మొగ్గు", inconclusive: "నిర్ధారణ కాలేదు" }, confidence: { low: "తక్కువ విశ్వసనీయత", moderate: "మధ్యస్థ విశ్వసనీయత" }, disclaimer: "D7 జాతకం నుండి చదివిన శాస్త్రీయ ధోరణి ఇది, నిర్ధారించిన లింగం కాదు — సూచనలుగా మాత్రమే చూపబడింది, తీర్పుగా కాదు." },
+        childrenCard: { title: "35+ వారి కోసం: జాతకం ఏమి చూపిస్తుంది", intro: "మీ వయస్సు 35 లేదా అంతకంటే ఎక్కువ కావడంతో, మీ జాతకం మీ ప్రస్తుత సంతానాన్ని శాస్త్రీయంగా ఎలా చదువుతుందో ఇక్కడ ఉంది — ఇది భవిష్యవాణి కాదు, ఇది మీ స్వంత D7 (సప్తమాంశ) జాతకం యొక్క ప్రతిబింబం, ఇది పరిశీలించిన శాస్త్రీయ సంతాన-స్థానాలలో సుమారు {{count}}కు మద్దతు ఇస్తుంది." },
+        timing: { title: "అనుకూల సమయం", strongPeriod: "సంతానానికి బలమైన కాలం" },
+        analysis: { title: "పూర్తి విశ్లేషణ" },
+        strengths: "మీకు అనుకూలంగా ఉన్నవి",
+        cautions: "జాగ్రత్తగా ఉండవలసినవి",
+        mantras: { title: "శాస్త్రీయ నివారణలు మరియు మంత్రాలు", provenance: { vedic: "వైదిక", upanishadic: "ఔపనిషదిక", traditional: "సాంప్రదాయ", tantric: "తాంత్రిక" }, prajatantu: { title: "ప్రజాతంతు — సంతాన అవిచ్ఛిన్న శృంఖల", meaning: "\"సంతాన శృంఖలను తెంచవద్దు.\" తైత్తిరీయ ఉపనిషత్తులోని గురువు తుది ఉపదేశం నుండి — ఇది ఒక సంకల్పంగా ఉంచబడుతుంది, జపంగా లెక్కించబడదు." }, "garbham-dhehi": { title: "గర్భం ధేహి — గర్భధారణకు ఆహ్వానం", meaning: "సినీవాలి మరియు అశ్వినీ కుమారులకు సంతానం ప్రసాదించమని చేసే ప్రార్థన — ఈ శ్లోకం ఋగ్వేదం మరియు బృహదారణ్యక ఉపనిషత్తు రెండింటిలోనూ దాదాపు ఒకే విధంగా కనిపిస్తుంది." }, "santana-gopala": { title: "సంతాన గోపాల మంత్రం", meaning: "దేవకీ పుత్రుడైన బాల కృష్ణుడిని సంతానం కోసం వేడుకునే ప్రార్థన — ప్రస్తుత ఆచరణలో అత్యధికంగా జపించే సంతాన మంత్రం." }, "brihaspati-bija": { title: "బృహస్పతి బీజ మంత్రం", meaning: "గురు (బృహస్పతి), సంతానానికి శాస్త్రీయ కారక గ్రహానికి నమస్కారం — జాతకంలో గురుడికి బలం అవసరమైనప్పుడు జపించబడుతుంది." } },
       },
       reportScores: {
         label: {
@@ -11501,6 +11666,7 @@ export const resources = {
           numerology: "எண் கணித அறிக்கை",
           name_change: "பெயர் மாற்ற அறிக்கை",
           remedies: "பரிகார அறிக்கை",
+          progeny: "சந்ததி அறிக்கை",
         },
         purchase: {
           confirmSpend: "இந்த அறிக்கையைத் திறக்க {{cost}} செலவிடவா?",
@@ -11661,6 +11827,15 @@ export const resources = {
             donts: "செய்யக்கூடாதவை",
             remedies: "பாரம்பரிய பரிகாரங்கள்",
           },
+          progeny_promise: "உங்கள் சந்ததி ஆற்றல்",
+          saptamsa_reading: "சப்தமாம்சம் (D7) விளக்கம்",
+          reproductive_capacity: "சாஸ்திர இனப்பெருக்க ஆற்றல்",
+          couple_synthesis: "இரு ஜாதகங்களும் இணைந்து சொல்வது",
+          child_sequence: "குழந்தை வரிசை",
+          progeny_timing: "ஏற்ற நேரம்",
+          obstructions: "கவனிக்க வேண்டிய தடைகள்",
+          progeny_remedies: "சாஸ்திர பரிகாரங்கள்",
+          progeny_outlook: "நேர்மையான முடிவுரை",
         },
         lifeContext: {
           title: "இப்போது உங்கள் வாழ்க்கை சூழல்",
@@ -11844,6 +12019,15 @@ export const resources = {
             "நான் முதலில் எந்த பரிகாரங்களை தொடங்க வேண்டும்?",
             "இந்த பரிகாரங்கள் பொதுவாக பலனைக் காட்ட எவ்வளவு காலம் ஆகும்?",
           ],
+          progeny: [
+            "எங்களுக்கு குழந்தைகள் பிறப்பார்களா, ஒவ்வொரு ஜாதகமும் இது பற்றி என்ன சொல்கிறது?",
+            "எனது D7 (சப்தமாம்சம்) ஜாதகம் எனது குழந்தைகளைப் பற்றி என்ன வெளிப்படுத்துகிறது?",
+            "ஜாதகத்தின்படி எத்தனை குழந்தைகள் சாத்தியம், எந்த வரிசையில்?",
+            "எங்கள் தற்போதைய தசை குழந்தைகளுக்கு ஏற்ற நேரத்தை காட்டுகிறதா?",
+            "ஆரோக்கியமான குழந்தைகளுக்கு எந்த சாஸ்திர பரிகாரங்களும் மந்திரங்களும் உதவும்?",
+            "எந்த தடைகளை கவனத்தில் கொள்ள வேண்டும், அவற்றை எப்படி சமாளிப்பது?",
+            "எனக்கு 35 வயது அல்லது அதற்கு மேல் இருந்தால், எனது தற்போதைய குழந்தைகளைப் பற்றி ஜாதகம் என்ன சொல்கிறது?",
+          ],
         },
         descriptions: {
           marriage: "உங்கள் திருமண விதியை அறியுங்கள்",
@@ -11861,6 +12045,7 @@ export const resources = {
           name_change: "உங்கள் பெயரின் எண் கணிதத்தை சரிசெய்யுங்கள்",
           remedies: "தனிப்பயன் லால் கிதாப் பரிகாரங்களைப் பெறுங்கள்",
           gemstone: "உங்கள் ஜாதகத்திற்கு ஏற்ற ரத்தினங்களை அறியுங்கள்",
+          progeny: "குழந்தை பேறு பற்றிய சாஸ்திர குறிப்புகளை அறியுங்கள்",
         },
         taglines: {
           marriage: "கேது உங்கள் திருமணத்தை தாமதப்படுத்துகிறதா?",
@@ -11878,6 +12063,7 @@ export const resources = {
           name_change: "உங்கள் பெயர் உங்களுக்கு எதிராக செயல்படுகிறதா?",
           remedies: "கிரக தோஷங்களுக்கான எளிய பரிகாரங்கள்",
           gemstone: "தவறான கல்லை அணிவது உங்களுக்கு எதிராக வேலை செய்யலாம்",
+          progeny: "உங்கள் குழந்தைகள் பற்றி ஜாதகம் என்ன சொல்கிறது?",
         },
       },
       vastu: {
@@ -12405,6 +12591,18 @@ export const resources = {
         spouse: { title: "உங்கள் சாத்தியமான துணை" },
         decade: { title: "தசாப்தம் வாரியாக திருமண தரம்" },
         remedies: { title: "பரிகாரங்கள்" },
+      },
+      progenyReport: {
+        subtitle: "உங்களுக்கும் உங்கள் துணைவருக்கும் குழந்தைகள், நேரம் மற்றும் ஆசீர்வாதங்கள் குறித்த சாஸ்திர பகுப்பாய்வு",
+        outlook: { title: "இரு ஜாதகங்களும் இணைந்து சொல்வது", band: { strongconvergence: "வலுவான ஒற்றுமை", moderateconvergence: "மிதமான ஒற்றுமை", mixed: "கலப்பு", conflict: "கூர்ந்து கவனிக்க வேண்டியது" }, note: "உங்கள் மற்றும் உங்கள் துணைவரின் ஜாதகம் தனித்தனியாக ஒரே சாஸ்திர முடிவை எவ்வளவு நெருக்கமாக சுட்டிக்காட்டுகிறது." },
+        capacity: { title: "சந்ததி ஆற்றல்", mother: "தாயின் ஜாதகம்", father: "தந்தையின் ஜாதகம்", band: { strong: "வலுவான", moderate: "மிதமான", mixed: "கலப்பு", weak: "ஆதரவு தேவை" }, sphuta: { beeja: "பீஜ ஸ்புடம்", kshetra: "க்ஷேத்ர ஸ்புடம்" }, strength: { strong: "வலுவான", moderate: "மிதமான", weak: "பலவீனமான" }, chidraNote: "இந்த ஜாதகத்தின் புத்திர திதி பாரம்பரியமாக தடையான திதியில் விழுகிறது — இது ஒரு சாஸ்திர எச்சரிக்கை, நோய் கண்டறிதல் அல்ல.", disclaimer: "பீஜ மற்றும் க்ஷேத்ர ஸ்புடம் ஆகியவை சாஸ்திர நூல்களை அடிப்படையாகக் கொண்ட ஜோதிட இனப்பெருக்க-ஆற்றல் குறிகாட்டிகள், இவை மருத்துவ அல்லது கருவுறுதிறன் பரிசோதனை அல்ல." },
+        sequence: { title: "குழந்தை வரிசை", child: "குழந்தை {{index}}", tendency: { male: "ஆண் பிள்ளை நோக்கிய சாய்வு", female: "பெண் பிள்ளை நோக்கிய சாய்வு", inconclusive: "தீர்மானிக்கப்படவில்லை" }, confidence: { low: "குறைந்த நம்பகத்தன்மை", moderate: "மிதமான நம்பகத்தன்மை" }, disclaimer: "D7 ஜாதகத்தில் இருந்து படிக்கப்பட்ட ஒரு சாஸ்திர போக்கு இது, உறுதி செய்யப்பட்ட பாலினம் அல்ல — இது ஒரு குறிப்பாக மட்டுமே காட்டப்படுகிறது, தீர்ப்பாக அல்ல." },
+        childrenCard: { title: "35+ வயதுடையவர்களுக்கு: ஜாதகம் என்ன காட்டுகிறது", intro: "உங்கள் வயது 35 அல்லது அதற்கு மேல் இருப்பதால், உங்கள் ஜாதகம் உங்கள் தற்போதைய குழந்தைகளை சாஸ்திரப்படி எவ்வாறு படிக்கிறது என்பது இங்கே — இது ஒரு கணிப்பு அல்ல, இது உங்கள் சொந்த D7 (சப்தமாம்சம்) ஜாதகத்தின் பிரதிபலிப்பு, இது சோதிக்கப்பட்ட சாஸ்திர குழந்தை-நிலைகளில் தோராயமாக {{count}} ஐ ஆதரிக்கிறது." },
+        timing: { title: "ஏற்ற நேரம்", strongPeriod: "குழந்தைகளுக்கு வலுவான காலம்" },
+        analysis: { title: "முழு பகுப்பாய்வு" },
+        strengths: "உங்களுக்கு சாதகமானவை",
+        cautions: "கவனமாக இருக்க வேண்டியவை",
+        mantras: { title: "சாஸ்திர பரிகாரங்களும் மந்திரங்களும்", provenance: { vedic: "வேத", upanishadic: "உபநிடத", traditional: "பாரம்பரிய", tantric: "தாந்த்ரிக" }, prajatantu: { title: "பிரஜாதந்து — சந்ததியின் தொடர்ச்சி", meaning: "\"சந்ததியின் தொடர்ச்சியை துண்டிக்காதே.\" தைத்திரிய உபநிடதத்தின் குருவின் இறுதி உபதேசத்திலிருந்து — இது ஒரு சங்கல்பமாக வைக்கப்படுகிறது, ஜபமாக எண்ணப்படுவதில்லை." }, "garbham-dhehi": { title: "கர்ப்பம் தேஹி — கருத்தரிப்பை வேண்டுதல்", meaning: "சினீவாலி மற்றும் அஸ்வினி குமாரர்களிடம் குழந்தை அருளும்படி வேண்டும் மந்திரம் — இந்த வரி ரிக் வேதத்திலும் பிருஹதாரண்யக உபநிடதத்திலும் கிட்டத்தட்ட ஒரே வடிவில் காணப்படுகிறது." }, "santana-gopala": { title: "சந்தான கோபால மந்திரம்", meaning: "தேவகியின் மகன் பால கிருஷ்ணனிடம் குழந்தை அருளுமாறு வேண்டும் பிரார்த்தனை — தற்போதைய நடைமுறையில் அதிகம் ஜபிக்கப்படும் சந்ததி மந்திரம்." }, "brihaspati-bija": { title: "பிருஹஸ்பதி பீஜ மந்திரம்", meaning: "குரு (பிருஹஸ்பதி), சந்ததியின் சாஸ்திர காரகனுக்கு வணக்கம் — ஜாதகத்தில் குருவுக்கு பலம் தேவைப்படும்போது ஜபிக்கப்படுகிறது." } },
       },
       reportScores: {
         label: {
@@ -13759,6 +13957,7 @@ export const resources = {
           numerology: "અંકશાસ્ત્ર અહેવાલ",
           name_change: "નામ પરિવર્તન અહેવાલ",
           remedies: "ઉપાયો અહેવાલ",
+          progeny: "સન્તાન અહેવાલ",
         },
         purchase: {
           confirmSpend: "આ અહેવાલ અનલૉક કરવા માટે {{cost}} ખર્ચ કરવો છે?",
@@ -13918,6 +14117,15 @@ export const resources = {
             donts: "શું ન કરવું",
             remedies: "પરંપરાગત ઉપાયો",
           },
+          progeny_promise: "તમારી સંતાન ક્ષમતા",
+          saptamsa_reading: "સપ્તમાંશ (D7) વિશ્લેષણ",
+          reproductive_capacity: "શાસ્ત્રીય પ્રજનન ક્ષમતા",
+          couple_synthesis: "બંને કુંડળી સાથે મળીને શું કહે છે",
+          child_sequence: "સંતાન ક્રમ",
+          progeny_timing: "અનુકૂળ સમય",
+          obstructions: "ધ્યાનમાં રાખવા જેવા અવરોધો",
+          progeny_remedies: "શાસ્ત્રીય ઉપાયો",
+          progeny_outlook: "પ્રામાણિક નિષ્કર્ષ",
         },
         lifeContext: {
           title: "અત્યારે તમારો જીવન સંદર્ભ",
@@ -14101,6 +14309,15 @@ export const resources = {
             "મારે સૌ પ્રથમ કયા ઉપાયોથી શરૂઆત કરવી જોઈએ?",
             "આ ઉપાયોની અસર દેખાવામાં સામાન્ય રીતે કેટલો સમય લાગે છે?",
           ],
+          progeny: [
+            "અમને સંતાન થશે કે નહીં, અને દરેક કુંડળી આ વિશે શું કહે છે?",
+            "મારી D7 (સપ્તમાંશ) કુંડળી મારા સંતાન વિશે શું દર્શાવે છે?",
+            "કુંડળી પ્રમાણે કેટલા સંતાન શક્ય છે, અને કયા ક્રમમાં?",
+            "અમારી હાલની દશા સંતાન માટે અનુકૂળ સમય દર્શાવે છે?",
+            "તંદુરસ્ત સંતાન માટે કયા શાસ્ત્રીય ઉપાયો અને મંત્રો સહાયક છે?",
+            "કયા અવરોધો પર ધ્યાન આપવું જોઈએ, અને તેમને કેવી રીતે દૂર કરવા?",
+            "જો મારી ઉંમર 35 કે તેથી વધુ હોય, તો કુંડળી મારા હાલના સંતાન વિશે શું કહે છે?",
+          ],
         },
         descriptions: {
           marriage: "તમારું લગ્ન ભાગ્ય જાણો",
@@ -14118,6 +14335,7 @@ export const resources = {
           name_change: "તમારા નામની અંકશાસ્ત્ર ખામી સુધારો",
           remedies: "વ્યક્તિગત લાલ કિતાબ ઉપાયો મેળવો",
           gemstone: "તમારી કુંડળી માટે યોગ્ય રત્નો જાણો",
+          progeny: "સંતાન અંગેના શાસ્ત્રીય સંકેતો જાણો",
         },
         taglines: {
           marriage: "શું કેતુ તમારા લગ્નમાં વિલંબ કરી રહ્યો છે?",
@@ -14135,6 +14353,7 @@ export const resources = {
           name_change: "શું તમારું નામ તમારી વિરુદ્ધ કામ કરી રહ્યું છે?",
           remedies: "ગ્રહ દોષો માટે સરળ ઉપાયો",
           gemstone: "ખોટું રત્ન પહેરવું તમારી વિરુદ્ધ કામ કરી શકે છે",
+          progeny: "તમારા સંતાન વિશે કુંડળી શું કહે છે?",
         },
       },
       vastu: {
@@ -14658,6 +14877,18 @@ export const resources = {
         spouse: { title: "તમારો સંભવિત જીવનસાથી" },
         decade: { title: "દાયકા પ્રમાણે વૈવાહિક ગુણવત્તા" },
         remedies: { title: "ઉપાયો" },
+      },
+      progenyReport: {
+        subtitle: "તમારા અને તમારા જીવનસાથી માટે સંતાન, સમય અને આશીર્વાદ પરનું શાસ્ત્રીય વિશ્લેષણ",
+        outlook: { title: "બંને કુંડળી સાથે મળીને શું કહે છે", band: { strongconvergence: "મજબૂત સુસંગતતા", moderateconvergence: "મધ્યમ સુસંગતતા", mixed: "મિશ્ર", conflict: "ઊંડાણથી જોવા જેવું" }, note: "તમારી અને તમારા જીવનસાથીની કુંડળી સ્વતંત્ર રીતે એક જ શાસ્ત્રીય નિષ્કર્ષ તરફ કેટલી નજીકથી ઈશારો કરે છે." },
+        capacity: { title: "સંતાન ક્ષમતા", mother: "માતાની કુંડળી", father: "પિતાની કુંડળી", band: { strong: "મજબૂત", moderate: "મધ્યમ", mixed: "મિશ્ર", weak: "સહાયની જરૂર" }, sphuta: { beeja: "બીજ સ્ફુટ", kshetra: "ક્ષેત્ર સ્ફુટ" }, strength: { strong: "મજબૂત", moderate: "મધ્યમ", weak: "નબળું" }, chidraNote: "આ કુંડળીની પુત્ર તિથિ પરંપરાગત રીતે અવરોધક તિથિ પર આવે છે — આ એક શાસ્ત્રીય સાવચેતી છે, નિદાન નથી.", disclaimer: "બીજ અને ક્ષેત્ર સ્ફુટ શાસ્ત્રીય ગ્રંથો પર આધારિત જ્યોતિષીય પ્રજનન-ક્ષમતા સૂચકો છે, તબીબી કે પ્રજનન પરીક્ષણ નથી." },
+        sequence: { title: "સંતાન ક્રમ", child: "સંતાન {{index}}", tendency: { male: "પુત્ર તરફ ઝુકાવ", female: "પુત્રી તરફ ઝુકાવ", inconclusive: "અનિર્ણિત" }, confidence: { low: "ઓછો વિશ્વાસ", moderate: "મધ્યમ વિશ્વાસ" }, disclaimer: "D7 કુંડળીમાંથી વાંચેલું આ એક શાસ્ત્રીય વલણ છે, નિશ્ચિત લિંગ નથી — માત્ર સંકેત તરીકે દર્શાવેલ છે, ચુકાદા તરીકે નહીં." },
+        childrenCard: { title: "35+ માટે: કુંડળી શું દર્શાવે છે", intro: "તમારી ઉંમર 35 કે તેથી વધુ હોવાથી, અહીં બતાવ્યું છે કે તમારી કુંડળી શાસ્ત્રીય રીતે તમારા હાલના સંતાનોને કેવી રીતે વાંચે છે — આ ભવિષ્યવાણી નથી, પરંતુ તમારી પોતાની D7 (સપ્તમાંશ) કુંડળીનું પ્રતિબિંબ છે, જે ચકાસેલ શાસ્ત્રીય સંતાન-સ્થાનોમાંથી લગભગ {{count}} ને સમર્થન આપે છે." },
+        timing: { title: "અનુકૂળ સમય", strongPeriod: "સંતાન માટે મજબૂત સમયગાળો" },
+        analysis: { title: "સંપૂર્ણ વિશ્લેષણ" },
+        strengths: "તમારા પક્ષે શું છે",
+        cautions: "શું ધ્યાનમાં રાખવું",
+        mantras: { title: "શાસ્ત્રીય ઉપાયો અને મંત્રો", provenance: { vedic: "વૈદિક", upanishadic: "ઔપનિષદિક", traditional: "પરંપરાગત", tantric: "તાંત્રિક" }, prajatantu: { title: "પ્રજાતંતુ — સંતાનની અતૂટ કડી", meaning: "\"સંતાનની કડી તોડશો નહીં.\" તૈત્તિરીય ઉપનિષદના ગુરુના અંતિમ ઉપદેશમાંથી — આ એક સંકલ્પ તરીકે રાખવામાં આવે છે, જાપ તરીકે ગણાતું નથી." }, "garbham-dhehi": { title: "ગર્ભં ધેહિ — ગર્ભધારણનું આહ્વાન", meaning: "સિનીવાલી અને અશ્વિનીકુમારોને સંતાન આપવાની પ્રાર્થના — આ શ્લોક ઋગ્વેદ અને બૃહદારણ્યક ઉપનિષદ બંનેમાં લગભગ સરખા સ્વરૂપે જોવા મળે છે." }, "santana-gopala": { title: "સંતાન ગોપાલ મંત્ર", meaning: "દેવકી-પુત્ર બાલ કૃષ્ણને સંતાનના આશીર્વાદ માટેની પ્રાર્થના — વર્તમાન પ્રથામાં સૌથી વધુ જપાતો સંતાન મંત્ર." }, "brihaspati-bija": { title: "બૃહસ્પતિ બીજ મંત્ર", meaning: "ગુરુ (બૃહસ્પતિ), સંતાનના શાસ્ત્રીય કારક ગ્રહને નમન — જ્યારે કુંડળીમાં ગુરુને બળની જરૂર હોય ત્યારે જપાય છે." } },
       },
       reportScores: {
         label: {

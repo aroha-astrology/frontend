@@ -29,7 +29,8 @@
   "sheets": {
     "_doc": "Default `sheet` above is the Marriage sheet (1024x1536). A section may override it with its own `sheet`; coordinates are always absolute pixels in THAT sheet.",
     "allReports": "C:\\Users\\subir\\Downloads\\ChatGPT Image Aug 12, 2026, 10_44_02 PM.png",
-    "spiritual": "C:/Users/subir/Downloads/ChatGPT Image Aug 23, 2026, 06_44_36 PM.png"
+    "spiritual": "C:/Users/subir/Downloads/ChatGPT Image Aug 23, 2026, 06_44_36 PM.png",
+    "progeny": "C:\\Users\\subir\\Downloads\\ChatGPT Image Sep 5, 2026, 10_22_59 AM.png"
   },
   "outDir": "public",
   "sections": [
@@ -371,6 +372,66 @@
       ],
       "outputs": [
         "shlokas/lotus"
+      ]
+    },
+    {
+      "_note": "Progeny report hero: Yashoda holding baby Krishna, panel (row1,col2) of a fresh 6x3 Bal-Krishna/Yashoda sheet (1536x1024, landscape -- unlike the other sheets, which are 1024x1536 portrait). Columns/rows are a near-uniform 256x341 grid but individual panels' own artwork bleeds a few px past the nominal cell boundary in places (confirmed by eye, not just luminance detection -- a naive 256px-grid crop pulled in a strip of the neighbouring panel on two of these four crops), so each rect below was hand-verified against a rendered preview rather than trusted from the grid math alone.",
+      "name": "progeny-yashoda",
+      "sheet": "progeny",
+      "rect": [
+        266,
+        10,
+        502,
+        331
+      ],
+      "alpha": null,
+      "outputs": [
+        "progeny/yashoda"
+      ]
+    },
+    {
+      "_note": "Progeny catalogue-card thumbnail (public/reports/<key>.png, the underscored-key list-thumbnail set -- a separate asset from the hero, same convention as every other report): baby Krishna with the butter pot, panel (row1,col3).",
+      "name": "progeny-butter",
+      "sheet": "progeny",
+      "rect": [
+        522,
+        10,
+        758,
+        331
+      ],
+      "alpha": null,
+      "outputs": [
+        "reports/progeny"
+      ]
+    },
+    {
+      "_note": "The 35+ retrospective ChildrenCard's header image: two children watching the sunset over a river, panel (row2,col5). Needed a rect ~35px right of the naive grid boundary (x=1024) -- the true gutter for this row sits closer to x=1055.",
+      "name": "progeny-children",
+      "sheet": "progeny",
+      "rect": [
+        1060,
+        355,
+        1296,
+        668
+      ],
+      "alpha": null,
+      "outputs": [
+        "progeny/children"
+      ]
+    },
+    {
+      "_note": "ProgenyMantraCard's header image: baby Krishna holding a lotus, panel (row3,col2). Same rightward-shift correction as progeny-children -- this row's col1/col2 gutter also sits further right than the naive 256px grid boundary.",
+      "name": "progeny-lotus",
+      "sheet": "progeny",
+      "rect": [
+        296,
+        700,
+        512,
+        1010
+      ],
+      "alpha": null,
+      "outputs": [
+        "progeny/lotus"
       ]
     }
   ]

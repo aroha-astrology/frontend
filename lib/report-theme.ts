@@ -37,6 +37,7 @@ import {
   Hash,
   PenLine,
   Flame,
+  Sprout,
 } from "lucide-react";
 
 /**
@@ -60,6 +61,7 @@ export type ReportHue =
   | "indigo"
   | "lime"
   | "orange"
+  | "pink"
   | "gold";
 
 export interface ReportTheme {
@@ -90,6 +92,7 @@ export const REPORT_THEME: Record<string, ReportTheme> = {
   numerology: { icon: Hash, hue: "indigo" },
   name_change: { icon: PenLine, hue: "lime" },
   remedies: { icon: Flame, hue: "orange" },
+  progeny: { icon: Sprout, hue: "pink" },
 };
 
 /** Neutral gold-toned fallback for any catalogue key this client build doesn't have a theme for yet. */

@@ -3,13 +3,19 @@
 import { useTranslation } from "react-i18next";
 import {
   Activity,
+  Baby,
   CalendarHeart,
+  Compass,
   FileText,
   Flame,
   Globe,
+  Grid3x3,
+  Heart,
   Home,
   Layers,
+  Leaf,
   Scale,
+  ShieldAlert,
   Sparkles,
   TrendingUp,
   UserRound,
@@ -38,6 +44,15 @@ const ICONS: Record<string, LucideIcon> = {
   Activity,
   Flame,
   Layers,
+  // Added for the Progeny report (see lib/progeny-report-view.ts's SECTION_ICON) — ShieldAlert
+  // also closes a pre-existing gap: wealth's own SECTION_ICON has named "ShieldAlert" for its
+  // guard_against section since that screen shipped, silently falling back to FileText until now.
+  ShieldAlert,
+  Grid3x3,
+  Leaf,
+  Heart,
+  Baby,
+  Compass,
 };
 
 /** The first section is the summary the reader wants immediately; everything else opens

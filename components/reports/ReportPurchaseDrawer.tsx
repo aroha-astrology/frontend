@@ -55,13 +55,20 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   // It used to be gated on the account's relationshipStatus === "married", which hid it from most
   // buyers: that column is only ever written by onboarding step 7 and no screen can change it
   // afterwards, so a null / "prefer_not_to_say" / pre-onboarding account could never see it.
-  const mode: "simple" | "kundli_milan" | "monthly" | "marriage_spouse" = entry.requiresPartner
-    ? "kundli_milan"
-    : entry.key === "marriage"
+  //
+  // progeny also takes marriage_spouse (the name/place/consent form, not the plainer
+  // kundli_milan one) because the user asked for spouse details "just like marriage report" —
+  // but unlike marriage, entry.requiresPartner is true for progeny, which is what makes the
+  // section shown unconditionally and mandatory below (see the JSX guard and
+  // validateSpouseFields, both keyed off entry.requiresPartner) rather than optional.
+  const mode: "simple" | "kundli_milan" | "monthly" | "marriage_spouse" =
+    entry.key === "marriage" || entry.key === "progeny"
       ? "marriage_spouse"
-      : entry.isMonthly
-        ? "monthly"
-        : "simple";
+      : entry.requiresPartner
+        ? "kundli_milan"
+        : entry.isMonthly
+          ? "monthly"
+          : "simple";
 
   // ── Kundli Milan partner form ─────────────────────────────────────────
   const [partnerDob, setPartnerDob] = useState("");
@@ -133,9 +140,12 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
         : true;
   const insufficient = canSubmit && balancePaise < costPaise;
 
-  /** Validate spouse fields when user is married and attempting to proceed. Returns true if ok. */
+  /** Validate spouse fields when required (progeny) or when the user is married and attempting
+   * to proceed (marriage's optional section). Returns true if ok. */
   const validateSpouseFields = (): boolean => {
-    if (mode !== "marriage_spouse" || answers["isMarried"] !== "yes") return true;
+    if (mode !== "marriage_spouse" || (!entry.requiresPartner && answers["isMarried"] !== "yes")) {
+      return true;
+    }
     const errs: typeof spouseFieldErrors = {};
     if (!spouseDob) errs.dob = t("reports.purchase.spouseErrorDob");
     if (!resolvedSpousePlace) errs.place = t("reports.purchase.spouseErrorPlace");
@@ -333,8 +343,10 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </div>
         )}
 
-        {/* ── Marriage: spouse details — only if user answered "Yes, I'm married" ── */}
-        {mode === "marriage_spouse" && answers["isMarried"] === "yes" && (
+        {/* ── Spouse details — required for progeny, or for marriage only after "Yes, I'm
+             married" ── */}
+        {mode === "marriage_spouse" &&
+          (entry.requiresPartner || answers["isMarried"] === "yes") && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">{t("reports.purchase.spouseTitle")}</p>
             <p className="text-[11px] text-muted leading-relaxed">{t("reports.purchase.spouseHint")}</p>

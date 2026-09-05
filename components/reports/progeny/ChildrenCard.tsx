@@ -4,15 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Users } from "lucide-react";
 import Card from "@/components/ui/Card";
-import StatusPill from "@/components/ui/StatusPill";
-import type { PillTone } from "@/components/ui/StatusPill";
-import type { ChildrenCardView, Tendency } from "@/lib/progeny-report-view";
-
-const TENDENCY_TONE: Record<Tendency, PillTone> = {
-  male: "neutral",
-  female: "neutral",
-  inconclusive: "muted",
-};
+import TendencyPill from "./TendencyPill";
+import type { ChildrenCardView } from "@/lib/progeny-report-view";
 
 /**
  * The age-gated (35+) retrospective card -- see jyotish-backend's progeny.ts
@@ -50,15 +43,11 @@ export default function ChildrenCard({ card }: { card: ChildrenCardView | null }
         </p>
         <div className="flex flex-col gap-2">
           {card.sequence.map((slot) => (
-            <div key={slot.index} className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-foreground">
+            <div key={slot.index} className="flex items-center justify-between gap-3">
+              <span className="whitespace-nowrap text-xs font-medium text-foreground">
                 {t("progenyReport.sequence.child", { index: slot.index })}
               </span>
-              <StatusPill tone={TENDENCY_TONE[slot.tendency]}>
-                {t(`progenyReport.sequence.tendency.${slot.tendency}`)}
-                {" · "}
-                {t(`progenyReport.sequence.confidence.${slot.confidence}`)}
-              </StatusPill>
+              <TendencyPill tendency={slot.tendency} confidence={slot.confidence} />
             </div>
           ))}
         </div>

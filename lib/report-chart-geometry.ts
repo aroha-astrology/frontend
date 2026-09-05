@@ -159,6 +159,98 @@ export function windowBarRect(
   return { xPct, widthPct };
 }
 
+// ─── Timing windows curve (RankedWindow[]) ──────────────────────────────────
+
+/**
+ * Peak height (0-1) each confidence level reaches on the curve. Same
+ * HIGH > MEDIUM > LOW ordering the level pill already states in words, so the
+ * curve's height never encodes anything its label doesn't.
+ */
+const LEVEL_PEAK: Record<RankedWindow["level"], number> = { HIGH: 1, MEDIUM: 0.68, LOW: 0.38 };
+
+/**
+ * Minimum half-width, as a % of the timeline, for one window's hump. Report
+ * windows are often a couple of months inside a domain spanning decades (a
+ * near-term window plus one in 2055), which is exactly the case the Gantt bars
+ * failed at: the true share of the axis is a sub-pixel spike. Widening the hump
+ * costs date precision the legend rows underneath still carry exactly.
+ */
+const MIN_HALF_PCT = 5;
+
+/**
+ * The first and last windows sit at exactly 0% and 100% of the timeline — they
+ * ARE its ends — so their humps would be sliced in half by the chart's edges.
+ * Every window's midpoint is squeezed into [INSET, 100 - INSET] so both end
+ * humps render whole.
+ */
+const EDGE_INSET_PCT = 12;
+const INSET_SCALE = (100 - 2 * EDGE_INSET_PCT) / 100;
+
+interface Bump {
+  mid: number;
+  spread: number;
+  peak: number;
+}
+
+function windowBumps(windows: RankedWindow[], domain: TimelineDomain): Bump[] {
+  return windows.map((w) => {
+    const a = dateToXPct(w.startDate, domain);
+    const b = dateToXPct(w.endDate, domain);
+    return {
+      mid: EDGE_INSET_PCT + ((a + b) / 2) * INSET_SCALE,
+      spread: Math.max(Math.abs(b - a) / 2, MIN_HALF_PCT) * 1.8 * INSET_SCALE,
+      peak: LEVEL_PEAK[w.level],
+    };
+  });
+}
+
+/** Raised cosine: `peak` at the window's midpoint, smoothly 0 at +/- `spread`. */
+function bumpAt(bump: Bump, xPct: number): number {
+  const d = Math.abs(xPct - bump.mid) / bump.spread;
+  if (d >= 1) return 0;
+  return bump.peak * Math.cos((Math.PI / 2) * d) ** 2;
+}
+
+export interface WindowCurve {
+  /** Evenly sampled curve points, left to right, in the caller's viewBox units. */
+  points: ChartPoint[];
+  /** One marker per window, at its own midpoint on that curve. */
+  peaks: (ChartPoint & { window: RankedWindow })[];
+}
+
+/**
+ * One favourability curve over the shared date axis: every window contributes a
+ * smooth hump centred on its own midpoint, peaking by confidence level, and the
+ * curve takes the MAX of them at each sample (not the sum — two overlapping
+ * MEDIUM windows are not a HIGH one).
+ *
+ * Replaces the per-window Gantt bars for the headline timing card: with windows
+ * decades apart on one axis the bars degenerated into invisible slivers, whereas
+ * a curve reads as "when the chart supports this" at a glance and still names
+ * each peak through the legend rows the component renders beneath it.
+ */
+export function buildWindowCurve(
+  windows: RankedWindow[],
+  domain: TimelineDomain,
+  width: number,
+  height: number,
+  samples = 120
+): WindowCurve {
+  const bumps = windowBumps(windows, domain);
+  const valueAt = (xPct: number) => bumps.reduce((max, b) => Math.max(max, bumpAt(b, xPct)), 0);
+  const points: ChartPoint[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const xPct = (i / samples) * 100;
+    points.push({ x: (xPct / 100) * width, y: scoreToY(valueAt(xPct) * 100, height) });
+  }
+  const peaks = windows.map((w, i) => ({
+    x: (bumps[i].mid / 100) * width,
+    y: scoreToY(valueAt(bumps[i].mid) * 100, height),
+    window: w,
+  }));
+  return { points, peaks };
+}
+
 // ─── Age-band confidence heat strip (AgeBand[]) ─────────────────────────────
 
 export interface AgeSegment {

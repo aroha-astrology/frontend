@@ -10,9 +10,11 @@ import {
   computeTimelineDomain,
   dateToXPct,
   windowBarRect,
+  buildWindowCurve,
   computeAgeBandSegments,
   formatAgeRange,
 } from "./report-chart-geometry";
+import type { RankedWindow } from "./report-score-facts";
 
 describe("computeTraitBars", () => {
   it("sorts traits by score descending", () => {
@@ -297,5 +299,45 @@ describe("formatAgeRange", () => {
 
   it("formats a same-age band as a single number", () => {
     expect(formatAgeRange({ startAge: 40, endAge: 40 })).toBe("40");
+  });
+});
+
+describe("buildWindowCurve", () => {
+  const domain = { startMs: new Date("2027-01-01").getTime(), endMs: new Date("2055-01-01").getTime() };
+  const windows: RankedWindow[] = [
+    { startDate: "2027-09-12", endDate: "2027-11-05", level: "MEDIUM", score: 8, dashaLevel: "antardasha", reasoning: [] },
+    { startDate: "2054-11-10", endDate: "2054-12-10", level: "HIGH", score: 6, dashaLevel: "antardasha", reasoning: [] },
+  ];
+
+  it("returns one peak marker per window, each at its own midpoint", () => {
+    const { peaks } = buildWindowCurve(windows, domain, 300, 60);
+    expect(peaks).toHaveLength(2);
+    expect(peaks[0].x).toBeLessThan(peaks[1].x);
+    expect(peaks.map((p) => p.window.level)).toEqual(["MEDIUM", "HIGH"]);
+  });
+
+  it("insets the end windows so their humps aren't sliced by the chart edges", () => {
+    const { peaks } = buildWindowCurve(windows, domain, 300, 60);
+    expect(peaks[0].x).toBeGreaterThan(0);
+    expect(peaks[peaks.length - 1].x).toBeLessThan(300);
+  });
+
+  it("gives a HIGH window a taller peak than a MEDIUM one (smaller y = higher)", () => {
+    const { peaks } = buildWindowCurve(windows, domain, 300, 60);
+    expect(peaks[1].y).toBeLessThan(peaks[0].y);
+  });
+
+  it("raises a two-month window inside a 28-year domain well clear of the baseline", () => {
+    // The exact failure the Gantt bars had: this window is ~0.5% of the axis.
+    const { peaks } = buildWindowCurve(windows, domain, 300, 60);
+    expect(peaks[0].y).toBeLessThan(60 * 0.5);
+  });
+
+  it("samples a continuous curve that returns to the baseline between distant windows", () => {
+    const { points } = buildWindowCurve(windows, domain, 300, 60, 120);
+    expect(points).toHaveLength(121);
+    expect(points[0].x).toBe(0);
+    expect(points[points.length - 1].x).toBe(300);
+    expect(Math.max(...points.map((p) => p.y))).toBe(60);
   });
 });

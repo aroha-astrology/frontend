@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
 import StatusPill from "@/components/ui/StatusPill";
-import TimingWindowsGantt from "./TimingWindowsGantt";
+import TimingWindowsCurve from "./TimingWindowsCurve";
 import { formatWindowDate, filterInformativeReasoning } from "./TimingWindowsCard";
 import type { RankedWindow } from "@/lib/report-score-facts";
 import type { PillTone } from "@/components/ui/StatusPill";
@@ -18,10 +18,10 @@ const LEVEL_TONE: Record<RankedWindow["level"], PillTone> = {
 
 /**
  * The headline window for a report: exact dates, confidence, the backend's plain-English
- * one-liner, and the shared-axis Gantt of every ranked window beneath it.
+ * one-liner, and the shared-axis curve of every ranked window beneath it.
  *
  * `windows` arrives pre-sorted from the backend, so `top` is simply the first — the
- * Gantt still shows all of them so a near-term window is never hidden behind the
+ * curve still shows all of them so a near-term window is never hidden behind the
  * highest-scoring one.
  *
  * Falls back to the filtered `reasoning` bullets when `summary` is absent, exactly as
@@ -75,7 +75,7 @@ export default function TopWindowCard({ windows, titleKey, labelKey }: TopWindow
 
         {windows.length > 1 && (
           <div className="pt-1 border-t border-gold/10">
-            <TimingWindowsGantt windows={windows} />
+            <TimingWindowsCurve windows={windows} />
           </div>
         )}
       </Card>

@@ -3,23 +3,17 @@
 import { useTranslation } from "react-i18next";
 import { Baby, ShieldAlert } from "lucide-react";
 import Card from "@/components/ui/Card";
-import StatusPill from "@/components/ui/StatusPill";
-import type { PillTone } from "@/components/ui/StatusPill";
-import type { ChildSlotView, Tendency } from "@/lib/progeny-report-view";
-
-/** Never a verdict -- a tendency reads as a lean, not an answer, so it takes the same neutral
- * tone regardless of which way it leans (see TiltGauge's LEAN_TONE for the same reasoning). */
-const TENDENCY_TONE: Record<Tendency, PillTone> = {
-  male: "neutral",
-  female: "neutral",
-  inconclusive: "muted",
-};
+import TendencyPill from "./TendencyPill";
+import type { ChildSlotView } from "@/lib/progeny-report-view";
 
 /**
- * The classical D7 child sequence, one chip per slot -- sex shown ONLY as a tendency+confidence
+ * The classical D7 child sequence, one row per slot -- sex shown ONLY as a tendency+confidence
  * pill (never "Boy"/"Girl" flatly), per this report's core framing rule. An obstruction score of
  * 2+ (node/Saturn/Mars) surfaces a small caution icon -- a modifier to hold in mind, never a
  * "this child will not happen" claim.
+ *
+ * The label column is `whitespace-nowrap`: "Child 3" wrapping mid-row was the visible symptom of
+ * the over-wide combined pill this card used to render (see TendencyPill).
  */
 export default function ChildSequenceCard({ slots }: { slots: ChildSlotView[] }) {
   const { t } = useTranslation();
@@ -35,24 +29,18 @@ export default function ChildSequenceCard({ slots }: { slots: ChildSlotView[] })
         {slots.map((slot) => (
           <div
             key={slot.index}
-            className="flex items-center justify-between gap-2 rounded-2xl border border-border bg-muted/5 p-3"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/5 p-3"
           >
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-foreground">
+              <p className="flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-foreground">
                 {t("progenyReport.sequence.child", { index: slot.index })}
+                {slot.obstructionScore >= 2 && (
+                  <ShieldAlert size={12} className="shrink-0 text-amber-400" aria-hidden />
+                )}
               </p>
-              <p className="text-[11px] text-muted">{slot.sign}</p>
+              <p className="truncate text-[11px] text-muted">{slot.sign}</p>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {slot.obstructionScore >= 2 && (
-                <ShieldAlert size={13} className="text-amber-400" aria-hidden />
-              )}
-              <StatusPill tone={TENDENCY_TONE[slot.tendency]}>
-                {t(`progenyReport.sequence.tendency.${slot.tendency}`)}
-                {" · "}
-                {t(`progenyReport.sequence.confidence.${slot.confidence}`)}
-              </StatusPill>
-            </div>
+            <TendencyPill tendency={slot.tendency} confidence={slot.confidence} />
           </div>
         ))}
       </div>

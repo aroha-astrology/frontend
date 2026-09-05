@@ -118,7 +118,7 @@ export default function ProgenyMantraCard({
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative h-20 w-full bg-muted/10">
+      <div className="relative h-36 w-full bg-muted/10">
         {!imgError && (
           // eslint-disable-next-line @next/next/no-img-element
           <img

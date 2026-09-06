@@ -213,6 +213,16 @@ export interface AdminReportRatingsResponse {
   limit: number;
 }
 
+export interface AdminNextReportVoteRow {
+  reportKey: string;
+  label: string;
+  count: number;
+}
+
+export interface AdminNextReportVotesResponse {
+  votes: AdminNextReportVoteRow[];
+}
+
 // ─── Groups ────────────────────────────────────────────────────────────────
 
 export interface AdminGroupRow {
@@ -530,6 +540,10 @@ export const adminApi = {
     qs.set("limit", String(params.limit ?? 50));
     return request<AdminReportRatingsResponse>(`/v1/admin/report-ratings?${qs.toString()}`, { auth: true });
   },
+
+  /** Vote counts for "which report should we prepare next", most-requested first. */
+  getNextReportVotes: () =>
+    request<AdminNextReportVotesResponse>("/v1/admin/next-report-votes", { auth: true }),
 
   /** All referral relationships — who referred whom, grouped by referrer, sorted by count desc. */
   listReferrals: () => request<AdminReferralsResponse>("/v1/admin/referrals", { auth: true }),

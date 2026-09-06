@@ -237,4 +237,13 @@ export const reportsApi = {
    */
   rate: (id: string, body: { rating: number; comment?: string }) =>
     request<RateReportResponse>(`/v1/reports/${id}/rating`, { method: "POST", body, auth: true }),
+
+  /** One-time vote for "which report should we prepare next?" — idempotent,
+   * `alreadyVoted: true` on a repeat call rather than an error. */
+  voteNextReport: (reportKey: string) =>
+    request<{ alreadyVoted: boolean }>("/v1/reports/next-vote", {
+      method: "POST",
+      body: { reportKey },
+      auth: true,
+    }),
 };

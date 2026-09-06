@@ -72,6 +72,9 @@ export interface User {
   termsVersion: string | null;
   /** Wallet balance in paise, spendable for unlocking kundli house details (POST /v1/me/unlock-house). */
   walletBalancePaise: number;
+  /** The report key the user voted for on "what should we prepare next?", or null if
+   * never asked / still pending. Account-level, not profile-scoped. */
+  nextReportVote: string | null;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */

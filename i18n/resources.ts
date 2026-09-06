@@ -1992,6 +1992,11 @@ export const resources = {
         prompt: "How was this report?",
         refunded: "We're sorry to hear that — {{amount}} has been added to your wallet.",
       },
+      nextReportVote: {
+        title: "Pick your next report",
+        prompt: "Which one should we prepare for you next?",
+        success: "Got it — we'll have it ready for you soon.",
+      },
       paymentHistory: {
         title: "Payment History",
         empty: "No transactions yet.",
@@ -4038,6 +4043,11 @@ export const resources = {
         title: "इस रिपोर्ट को रेट करें",
         prompt: "यह रिपोर्ट कैसी थी?",
         refunded: "यह सुनकर खेद है — {{amount}} आपके वॉलेट में जोड़ दिया गया है।",
+      },
+      nextReportVote: {
+        title: "अपनी अगली रिपोर्ट चुनें",
+        prompt: "हम आपके लिए आगे कौन सी रिपोर्ट तैयार करें?",
+        success: "समझ गए — हम इसे जल्द ही आपके लिए तैयार करेंगे।",
       },
       paymentHistory: {
         title: "भुगतान इतिहास",
@@ -6328,6 +6338,11 @@ export const resources = {
         prompt: "এই রিপোর্টটি কেমন ছিল?",
         refunded: "এটা শুনে দুঃখিত — {{amount}} আপনার ওয়ালেটে যোগ করা হয়েছে।",
       },
+      nextReportVote: {
+        title: "আপনার পরবর্তী রিপোর্ট বেছে নিন",
+        prompt: "আমরা এরপর আপনার জন্য কোন রিপোর্টটি তৈরি করব?",
+        success: "বুঝেছি — আমরা শীঘ্রই এটি আপনার জন্য প্রস্তুত করব।",
+      },
       paymentHistory: {
         title: "পেমেন্ট ইতিহাস",
         empty: "এখনও কোনো লেনদেন হয়নি।",
@@ -8616,6 +8631,11 @@ export const resources = {
         prompt: "हा अहवाल कसा होता?",
         refunded: "हे ऐकून वाईट वाटले — {{amount}} तुमच्या वॉलेटमध्ये जमा करण्यात आले आहे.",
       },
+      nextReportVote: {
+        title: "तुमचा पुढील अहवाल निवडा",
+        prompt: "आम्ही तुमच्यासाठी पुढे कोणता अहवाल तयार करावा?",
+        success: "समजले — आम्ही लवकरच तो तुमच्यासाठी तयार करू.",
+      },
       paymentHistory: {
         title: "पेमेंट इतिहास",
         empty: "अजून कोणताही व्यवहार झालेला नाही.",
@@ -10900,6 +10920,11 @@ export const resources = {
         title: "ఈ నివేదికను రేట్ చేయండి",
         prompt: "ఈ నివేదిక ఎలా ఉంది?",
         refunded: "ఇది వినడానికి చింతిస్తున్నాము — {{amount}} మీ వాలెట్‌కు జోడించబడింది.",
+      },
+      nextReportVote: {
+        title: "మీ తదుపరి నివేదికను ఎంచుకోండి",
+        prompt: "మేము మీ కోసం తర్వాత ఏ నివేదికను సిద్ధం చేయాలి?",
+        success: "అర్థమైంది — మేము దీన్ని త్వరలో మీ కోసం సిద్ధం చేస్తాము.",
       },
       paymentHistory: {
         title: "చెల్లింపు చరిత్ర",
@@ -13190,6 +13215,11 @@ export const resources = {
         prompt: "இந்த அறிக்கை எப்படி இருந்தது?",
         refunded: "இதைக் கேட்டு வருந்துகிறோம் — {{amount}} உங்கள் வாலட்டில் சேர்க்கப்பட்டுள்ளது.",
       },
+      nextReportVote: {
+        title: "உங்கள் அடுத்த அறிக்கையைத் தேர்ந்தெடுக்கவும்",
+        prompt: "அடுத்து உங்களுக்காக நாங்கள் எந்த அறிக்கையைத் தயார் செய்ய வேண்டும்?",
+        success: "சரி — இதை விரைவில் உங்களுக்காகத் தயார் செய்கிறோம்.",
+      },
       paymentHistory: {
         title: "கட்டண வரலாறு",
         empty: "இதுவரை எந்த பரிவர்த்தனையும் இல்லை.",
@@ -15475,6 +15505,11 @@ export const resources = {
         title: "આ રિપોર્ટને રેટ કરો",
         prompt: "આ રિપોર્ટ કેવો રહ્યો?",
         refunded: "આ સાંભળીને દુઃખ થયું — {{amount}} તમારા વૉલેટમાં ઉમેરવામાં આવ્યા છે.",
+      },
+      nextReportVote: {
+        title: "તમારો આગલો રિપોર્ટ પસંદ કરો",
+        prompt: "અમે તમારા માટે આગળ કયો રિપોર્ટ તૈયાર કરીએ?",
+        success: "સમજાઈ ગયું — અમે તેને જલ્દી તમારા માટે તૈયાર કરીશું.",
       },
       paymentHistory: {
         title: "ચુકવણી ઇતિહાસ",

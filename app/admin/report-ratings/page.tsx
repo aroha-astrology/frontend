@@ -4,10 +4,11 @@
 // this page stays plain hardcoded English. Do NOT add admin.* i18n keys here.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { adminApi, type AdminReportRatingRow } from "@/lib/admin-api";
+import { adminApi, type AdminReportRatingRow, type AdminNextReportVoteRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import ErrorRetry from "@/components/admin/ErrorRetry";
+import Card from "@/components/ui/Card";
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
@@ -21,12 +22,51 @@ function formatDateTime(iso: string): string {
   });
 }
 
+function NextReportVotesCard({ votes }: { votes: AdminNextReportVoteRow[] }) {
+  if (votes.length === 0) {
+    return (
+      <Card className="p-4 mb-4">
+        <h2 className="text-sm font-semibold text-gold mb-1">Next Report Requests</h2>
+        <p className="text-xs text-muted">No votes yet.</p>
+      </Card>
+    );
+  }
+  const max = votes[0].count;
+  return (
+    <Card className="p-4 mb-4">
+      <h2 className="text-sm font-semibold text-gold mb-3">Next Report Requests</h2>
+      <div className="space-y-2">
+        {votes.map((v) => (
+          <div key={v.reportKey} className="flex items-center gap-3">
+            <span className="text-xs text-foreground w-32 shrink-0 truncate">{v.label}</span>
+            <div className="flex-1 h-2 rounded-full bg-surface overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600"
+                style={{ width: `${(v.count / max) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted w-8 text-right shrink-0">{v.count}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function AdminReportRatingsPage() {
   const [rows, setRows] = useState<AdminReportRatingRow[] | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterKey, setFilterKey] = useState<string>("");
+  const [nextReportVotes, setNextReportVotes] = useState<AdminNextReportVoteRow[] | null>(null);
+
+  useEffect(() => {
+    adminApi
+      .getNextReportVotes()
+      .then((res) => setNextReportVotes(res.votes))
+      .catch(() => setNextReportVotes([]));
+  }, []);
 
   const fetchRows = useCallback((reportKey: string) => {
     setLoading(true);
@@ -61,6 +101,8 @@ export default function AdminReportRatingsPage() {
     <div>
       <h1 className="text-xl font-semibold text-gold mb-1">Report Ratings</h1>
       <p className="text-sm text-muted mb-4">Every rating a user has left on a report — a rating under 3 stars auto-refunds 100% of the price paid, shown in the Refunded column.</p>
+
+      {nextReportVotes && <NextReportVotesCard votes={nextReportVotes} />}
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <select

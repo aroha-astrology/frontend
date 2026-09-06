@@ -18,16 +18,19 @@ import PlanetStrengthCard from "@/components/reports/PlanetStrengthCard";
 import { DESIGNED_SCREENS } from "@/components/reports/designed-screens";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { useTour, useTourReady } from "@/providers/tour-provider";
+import { useAuth } from "@/providers/auth-provider";
 import {
   humanizeKey,
   isPlanetStrengthArray,
   isReportHeader,
   isReportVerdict,
 } from "@/lib/report-score-facts";
-import { formatPeriodMonth, formatDateKey, addOneYear, YEARLY_REPORT_KEYS } from "@/lib/reports-logic";
+import { formatPeriodMonth, formatDateKey, addOneYear, YEARLY_REPORT_KEYS, isReportLocked } from "@/lib/reports-logic";
 import { maybeRequestReview, markReportGeneratedForReview } from "@/lib/app-review";
+import { reportsApi } from "@/lib/reports-api";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import ReportRatingSheet from "@/components/reports/ReportRatingSheet";
+import NextReportSheet from "@/components/reports/NextReportSheet";
 import { hasRatedReport } from "@/lib/report-rating";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
@@ -55,6 +58,7 @@ export default function ReportDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { state, data, failedError, retry } = useReport(id, i18n.language);
+  const { user } = useAuth();
 
   // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (200s) — long enough that a
   // user idly scrolls the page while it's essentially empty. PageTransition only resets scroll
@@ -82,6 +86,14 @@ export default function ReportDetailPage() {
   // "Rate this report" button below, which isn't a substitute for leaving the page.
   const [ratingModalBacks, setRatingModalBacks] = useState(false);
 
+  // Prefetched eagerly (not lazily inside attemptBack) because hardware back on
+  // native goes through the separate useDismissOnBackPress stack hook below, which
+  // needs a synchronous boolean to decide whether to offer this — a fetch kicked off
+  // only inside attemptBack would never even run on that path when `armed` is false.
+  const [upcomingReportKeys, setUpcomingReportKeys] = useState<string[]>([]);
+  const [nextReportVoteSubmitted, setNextReportVoteSubmitted] = useState(false);
+  const [showNextReportModal, setShowNextReportModal] = useState(false);
+
   useEffect(() => {
     if (!ready) return;
     let n = 0;
@@ -99,6 +111,20 @@ export default function ReportDetailPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [ready]);
 
+  useEffect(() => {
+    if (!ready || !user || user.nextReportVote) return;
+    let cancelled = false;
+    reportsApi
+      .catalogue()
+      .then(({ reports }) => {
+        if (!cancelled) setUpcomingReportKeys(reports.filter(isReportLocked).map((r) => r.key));
+      })
+      .catch(() => {}); // fail open — the prompt simply never offers if this fails
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, user]);
+
   const armed = ready && scrollCount >= ARM_AFTER_SCROLLS && !hasRatedReport(id);
 
   const openRatingModalForBack = () => {
@@ -106,11 +132,23 @@ export default function ReportDetailPage() {
     setShowRatingModal(true);
   };
 
-  useDismissOnBackPress(armed && !showRatingModal, openRatingModalForBack);
+  const offerNextReportVote =
+    !nextReportVoteSubmitted && !!user && !user.nextReportVote && upcomingReportKeys.length > 0;
+  const openNextReportModalForBack = () => setShowNextReportModal(true);
+
+  // Mutually exclusive with the rating sheet, on EITHER exit path — rating wins if both are due.
+  useDismissOnBackPress(
+    (armed || offerNextReportVote) && !showRatingModal && !showNextReportModal,
+    () => (armed ? openRatingModalForBack() : openNextReportModalForBack()),
+  );
 
   const attemptBack = () => {
     if (armed && !showRatingModal) {
       openRatingModalForBack();
+      return;
+    }
+    if (offerNextReportVote && !showNextReportModal) {
+      openNextReportModalForBack();
       return;
     }
     router.back();
@@ -119,6 +157,15 @@ export default function ReportDetailPage() {
   const closeRatingModal = () => {
     setShowRatingModal(false);
     if (ratingModalBacks) router.back();
+  };
+
+  const closeNextReportModal = () => {
+    setShowNextReportModal(false);
+    // Instant local gate, same reasoning as hasRatedReport's localStorage check for the
+    // rating sheet: closes the small window before a refresh() round-trip lands
+    // user.nextReportVote, during which a second back-tap could otherwise reopen this.
+    setNextReportVoteSubmitted(true);
+    router.back();
   };
 
   // The report tour explains the gauges, bands and verdict cards, which have no
@@ -351,6 +398,10 @@ export default function ReportDetailPage() {
         )}
 
         {showRatingModal && <ReportRatingSheet reportId={id} onClose={closeRatingModal} />}
+
+        {showNextReportModal && (
+          <NextReportSheet reportKeys={upcomingReportKeys} onClose={closeNextReportModal} />
+        )}
       </div>
     </main>
   );

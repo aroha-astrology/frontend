@@ -14,6 +14,7 @@ import {
   computeDiscount,
   sortUnlockedFirst,
   sortNewFirst,
+  isReportLocked,
   type ReportPurchase,
 } from "./reports-logic";
 
@@ -276,6 +277,34 @@ describe("filterVisibleReports", () => {
       return true;
     });
     expect(seen).toEqual(["reports.marriage", "reports.true_love"]);
+  });
+});
+
+describe("isReportLocked", () => {
+  it("is true for a report with no purchases", () => {
+    expect(isReportLocked({ key: "a", isMonthly: false, purchases: [] })).toBe(true);
+  });
+
+  it("is false for a one-time report with a ready purchase", () => {
+    expect(
+      isReportLocked({ key: "a", isMonthly: false, purchases: [purchase("p1", "ready")] }),
+    ).toBe(false);
+  });
+
+  it("is false for a one-time report with only a failed attempt (still retryable, not locked)", () => {
+    expect(
+      isReportLocked({ key: "a", isMonthly: false, purchases: [purchase("p1", "failed")] }),
+    ).toBe(false);
+  });
+
+  it("is true for a monthly report whose only purchase is a past month", () => {
+    expect(
+      isReportLocked({
+        key: "a",
+        isMonthly: true,
+        purchases: [purchase("p1", "ready", "2000-01")],
+      }),
+    ).toBe(true);
   });
 });
 

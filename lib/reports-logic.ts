@@ -240,16 +240,21 @@ interface PurchasableReport {
  * always matches what each card renders right now — an expired yearly
  * report sorts as locked (renewable), not permanently unlocked.
  */
+/** Whether a catalogue entry has never been purchased (or, for a monthly/yearly entry, has no
+ * currently-active purchase) — shared by sortUnlockedFirst (list ordering) and the next-report
+ * vote prompt (app/reports/[id]/page.tsx), which needs the same "still locked" definition to
+ * decide which report keys it's allowed to offer. */
+export function isReportLocked<T extends PurchasableReport>(r: T): boolean {
+  const state = r.isMonthly
+    ? monthlyCardState(r.purchases)
+    : r.isYearly
+      ? yearlyCardState(r.purchases)
+      : deriveOneTimeCardState(r.purchases);
+  return state.state === "none";
+}
+
 export function sortUnlockedFirst<T extends PurchasableReport>(reports: readonly T[]): T[] {
-  const isLocked = (r: T) => {
-    const state = r.isMonthly
-      ? monthlyCardState(r.purchases)
-      : r.isYearly
-        ? yearlyCardState(r.purchases)
-        : deriveOneTimeCardState(r.purchases);
-    return state.state === "none";
-  };
-  return [...reports].sort((a, b) => Number(isLocked(a)) - Number(isLocked(b)));
+  return [...reports].sort((a, b) => Number(isReportLocked(a)) - Number(isReportLocked(b)));
 }
 
 /** Minimal shape sortNewFirst needs. */

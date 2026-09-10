@@ -834,30 +834,32 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 const isFreeTap = i === messages.length - 1;
                 const single = followUps.length === 1;
                 return (
-                  <div className="ml-9 mt-1.5 flex flex-wrap items-center gap-1.5">
-                    {followUps.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => sendMessage(option, { isFree: isFreeTap })}
-                        disabled={streaming}
-                        className="max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
-                      >
-                        {option}
-                        {isFreeTap && single && (
-                          <span className="ml-1.5 text-[10px] font-semibold text-green-500">
-                            · {t("aiChatPage.freeFollowUp")}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                    {/* With several options the badge goes once on the row rather than
-                        on every chip — five copies of "· Free" reads as noise and
-                        pushes each range onto its own line. */}
+                  <div className="ml-9 mt-1.5">
+                    {/* With several options the badge is a label ABOVE the row —
+                        appending it after the last chip read as if only that one
+                        option were free, when a tap on any of them is. */}
                     {isFreeTap && !single && (
-                      <span className="text-[10px] font-semibold text-green-500">
-                        · {t("aiChatPage.freeFollowUp")}
-                      </span>
+                      <div className="mb-1 text-[10px] font-semibold text-green-500">
+                        {t("aiChatPage.freeFollowUpGroup")}
+                      </div>
                     )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {followUps.map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => sendMessage(option, { isFree: isFreeTap })}
+                          disabled={streaming}
+                          className="max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
+                        >
+                          {option}
+                          {isFreeTap && single && (
+                            <span className="ml-1.5 text-[10px] font-semibold text-green-500">
+                              · {t("aiChatPage.freeFollowUp")}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 );
               })()}

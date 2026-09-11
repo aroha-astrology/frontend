@@ -57,7 +57,7 @@ export default function PushNotificationListener() {
               const { token } = await FirebaseMessaging.getToken();
               const platform = Capacitor.getPlatform();
               if (token && (platform === "android" || platform === "ios")) {
-                await api.registerDeviceToken({ token, platform, deviceId: getDeviceId() });
+                await api.registerDeviceToken({ token, platform, deviceId: getDeviceId(), pushEnabled: true });
                 markPushRefreshed(userId);
               }
             }

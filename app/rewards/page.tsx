@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import FeatureGuard from "@/components/FeatureGuard";
 import DailyRewardLadder from "@/components/rewards/DailyRewardLadder";
+import PermissionRewards from "@/components/rewards/PermissionRewards";
 
 function RewardsContent() {
   const { t } = useTranslation();
@@ -24,6 +25,8 @@ function RewardsContent() {
         </div>
 
         <DailyRewardLadder />
+
+        <PermissionRewards />
 
         <p className="text-xs text-muted text-center px-4">{t("rewards.pageSubtitle")}</p>
       </div>

@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { MapPin, Bell } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Bell, Gift } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { api } from "@/lib/api";
-import { getDeviceId, markPushRefreshed } from "@/lib/device-id";
+import { useLocationRewardClaim } from "@/hooks/useLocationRewardClaim";
+import { useFeature } from "@/hooks/useFeature";
+import { requestPushPermission } from "@/lib/push-permission";
+import { formatRupees } from "@/lib/format";
+import {
+  LOCATION_REWARD_REASON,
+  NOTIFICATIONS_REWARD_REASON,
+  PERMISSION_REWARD_FALLBACK_PAISE,
+} from "@/lib/rewards";
 
 // v2's ASKED_KEY permanently suppressed this prompt after the first ask —
 // meaning a user who tapped "Not now" (or hit a technical failure) had no
@@ -40,6 +48,26 @@ export default function PermissionsPrompt() {
   const [busy, setBusy] = useState(false);
   const [deniedState, setDeniedState] = useState(false);
   const [platform, setPlatform] = useState<string | null>(null);
+  const notifFeature = useFeature("rewards.notificationsGrant");
+  const locationFeature = useFeature("rewards.locationGrant");
+
+  // Pays the location half once the OS reports the grant — the notification
+  // half is credited server-side when the token registers. Without this, the
+  // banner below would promise money the modal never delivers.
+  useLocationRewardClaim(geo.status);
+
+  // What is still unclaimed and actually payable, so the banner never quotes an
+  // amount this user cannot get: a disabled flag contributes nothing, and iOS
+  // contributes no location half (it cannot raise the prompt at all — no
+  // NSLocationWhenInUseUsageDescription in the native Info.plist).
+  const unclaimed = (reason: string) => !(user?.claimedCampaigns?.includes(reason) ?? false);
+  const rewardPaise =
+    (notifFeature.enabled && unclaimed(NOTIFICATIONS_REWARD_REASON)
+      ? (notifFeature.pricePaise ?? PERMISSION_REWARD_FALLBACK_PAISE)
+      : 0) +
+    (locationFeature.enabled && platform !== "ios" && unclaimed(LOCATION_REWARD_REASON)
+      ? (locationFeature.pricePaise ?? PERMISSION_REWARD_FALLBACK_PAISE)
+      : 0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -114,60 +142,16 @@ export default function PermissionsPrompt() {
     let permanent = false;
     let deniedNow = false;
     try {
-      // Request notification permission (a native Android runtime-permission
-      // dialog) fully to completion before touching geolocation. Android can
-      // only have one requestPermissions() call in flight per Activity at a
-      // time — firing geo.request() first (its getCurrentPosition() call
-      // triggers the WebView's own native location-permission dialog) used
-      // to race with FirebaseMessaging.requestPermissions() below, which
-      // made Android silently reject the second call ("Can request only one
-      // set of permissions at a time"), so the notification dialog never
-      // appeared and requestPermissions() resolved to "prompt" instead of a
-      // real answer.
-      let Capacitor: typeof import("@capacitor/core").Capacitor;
-      let FirebaseMessaging: typeof import("@capacitor-firebase/messaging").FirebaseMessaging;
-      try {
-        ({ Capacitor } = await import("@capacitor/core"));
-        ({ FirebaseMessaging } = await import("@capacitor-firebase/messaging"));
-      } catch (err) {
-        console.error("[PermissionsPrompt] plugin import failed", err);
-        return;
-      }
-      const currentPlatform = Capacitor.getPlatform();
-
-      let perm;
-      try {
-        perm = await FirebaseMessaging.requestPermissions();
-        console.log("[PermissionsPrompt] requestPermissions ->", perm.receive);
-      } catch (err) {
-        console.error("[PermissionsPrompt] requestPermissions() threw", err);
-        return;
-      }
-
-      if (perm.receive === "granted") {
-        try {
-          const { token } = await FirebaseMessaging.getToken();
-          console.log("[PermissionsPrompt] getToken ->", token ? `${token.slice(0, 12)}...` : "(empty)");
-          if (token && (currentPlatform === "android" || currentPlatform === "ios")) {
-            await api.registerDeviceToken({ token, platform: currentPlatform, deviceId: getDeviceId() });
-            console.log("[PermissionsPrompt] registerDeviceToken -> ok");
-            markPushRefreshed(user?.id ?? ""); // Just registered — don't let the next launch re-fetch the token.
-            permanent = true; // Reached full success — a real, permanent decision.
-          }
-        } catch (err) {
-          console.error("[PermissionsPrompt] getToken/registerDeviceToken failed", err);
-          // Leave `permanent` false — technical failure, not a user decision, so retry next launch.
-        }
-      } else if (perm.receive === "denied") {
-        // Explicit OS-level decline — respect it, don't re-request via the
-        // native permission dialog. It still gets re-surfaced (as the
-        // settings-redirect variant) on every subsequent login, since a user
-        // can change their mind via Settings.
-        permanent = true;
-        deniedNow = true;
-      }
-      // Any other status (e.g. "prompt"/"prompt-with-rationale") falls through
-      // with permanent=false, so this counts as inconclusive, not declined.
+      // Runs the notification dialog fully to completion before geolocation is
+      // touched — see requestPushPermission for why they cannot overlap on
+      // Android. "inconclusive" (a soft OS answer, or any technical failure)
+      // leaves `permanent` false so a fresh attempt runs next launch; only a
+      // real grant or a real OS decline is recorded as a decision.
+      const outcome = await requestPushPermission(user?.id ?? "");
+      permanent = outcome !== "inconclusive";
+      // An explicit decline still gets re-surfaced (as the settings-redirect
+      // variant) on every subsequent login, since a user can change their mind.
+      deniedNow = outcome === "denied";
 
       // Only now, once the notification permission dialog has fully
       // resolved, request location — see the note above about why these
@@ -261,6 +245,17 @@ export default function PermissionsPrompt() {
                   </div>
                 </div>
 
+                {rewardPaise > 0 && (
+                  <div className="flex items-center gap-2 mb-4 rounded-xl border border-gold/30 bg-gold/10 px-3 py-2.5">
+                    <span className="text-gold shrink-0">
+                      <Gift size={16} />
+                    </span>
+                    <p className="text-xs text-gold leading-relaxed">
+                      {t("permissions.rewardBanner", { amount: formatRupees(rewardPaise) })}
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <button
                     onClick={dismiss}
@@ -274,9 +269,21 @@ export default function PermissionsPrompt() {
                     disabled={busy}
                     className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold disabled:opacity-50 transition-opacity"
                   >
-                    {t("permissions.enable")}
+                    {rewardPaise > 0
+                      ? t("permissions.claimCta", { amount: formatRupees(rewardPaise) })
+                      : t("permissions.enable")}
                   </button>
                 </div>
+
+                {rewardPaise > 0 && (
+                  <Link
+                    href="/rewards"
+                    onClick={dismiss}
+                    className="block text-center text-xs text-muted hover:text-gold mt-3 transition-colors"
+                  >
+                    {t("permissions.seeRewards")}
+                  </Link>
+                )}
               </>
             )}
           </motion.div>

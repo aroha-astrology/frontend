@@ -1118,6 +1118,21 @@ export const api = {
     }),
 
   /**
+   * Claims the one-time reward for granting location permission. `claimed:
+   * false` means it was already claimed, or the `rewards.locationGrant` flag
+   * is off — neither is an error. Safe to call whenever the OS reports the
+   * grant: the backend dedupes on a ledger reason, so repeat calls are free.
+   *
+   * There is no notification equivalent — that reward is granted server-side
+   * when the FCM token registers, since the token itself proves the grant.
+   */
+  claimLocationReward: () =>
+    request<{ claimed: boolean; walletBalancePaise: number }>("/v1/rewards/location-granted", {
+      method: "POST",
+      auth: true,
+    }),
+
+  /**
    * Spend wallet balance to unlock the full gemstone report (whole report, one-time).
    * `weightKg` (20-300) is captured here and used server-side to compute a recommended
    * gemstone carat weight (see GemstoneReportReady.recommendedCarats) — stored for reuse

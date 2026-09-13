@@ -12,24 +12,20 @@ const BAND_COLOR: Record<LoveBand, string> = {
   average: "#a1a1aa",
 };
 
-/** A sibling of marriage's BigScoreRing, sized down so two fit side by side — this report
- * scores romance and partnership separately, and showing only one would hide the more
- * interesting case where they disagree. */
+/** Romance and partnership are read separately, and showing only one would hide the more
+ * interesting case where they disagree. Band word only — reports show no numeric scores. */
 function Dial({ dial, labelKey }: { dial: Dial; labelKey: string }) {
   const { t } = useTranslation();
+  const color = BAND_COLOR[dial.band];
   return (
-    <div className="flex-1 flex flex-col items-center gap-1.5">
-      <div
-        className="h-[62px] w-[62px] rounded-full grid place-items-center"
-        style={{
-          background: `conic-gradient(${BAND_COLOR[dial.band]} ${dial.score * 3.6}deg, rgba(120,120,120,0.18) 0deg)`,
-        }}
-      >
-        <div className="h-[50px] w-[50px] rounded-full bg-card grid place-items-center">
-          <span className="text-base font-bold text-foreground leading-none">{dial.score}</span>
-        </div>
-      </div>
+    <div className="flex-1 flex flex-col items-center gap-1.5 rounded-xl border border-gold/10 px-2 py-2.5">
       <span className="text-[11px] text-muted text-center leading-tight">{t(labelKey)}</span>
+      <span
+        className="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize"
+        style={{ color, borderColor: `${color}55`, background: `${color}1a` }}
+      >
+        {t(`trueLoveReport.band.${dial.band}`, { defaultValue: dial.band })}
+      </span>
     </div>
   );
 }

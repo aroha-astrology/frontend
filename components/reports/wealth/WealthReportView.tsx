@@ -57,7 +57,6 @@ export default function WealthReportView({ data }: { data: ReportReady }) {
       {isReportHeader(scores.header) && <ReportHeaderCard header={scores.header} />}
 
       <WealthScoreCard
-        score={view.score}
         band={view.band}
         pattern={view.pattern}
         significators={view.significators}

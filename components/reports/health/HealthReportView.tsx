@@ -41,7 +41,6 @@ export default function HealthReportView({ data }: { data: ReportReady }) {
       {isReportHeader(scores.header) && <ReportHeaderCard header={scores.header} />}
 
       <MonthOutlookCard
-        score={view.score}
         tone={view.tone}
         mahadashaLord={view.mahadashaLord}
         antardashaLord={view.antardashaLord}

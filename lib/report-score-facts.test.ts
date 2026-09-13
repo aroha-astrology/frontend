@@ -67,16 +67,15 @@ describe("buildScoreFacts", () => {
     expect(buildScoreFacts("not an object" as unknown as Record<string, unknown>)).toEqual([]);
   });
 
-  it("renders a plain 0-100 number as a ring fact with max 100", () => {
-    const facts = buildScoreFacts({ marriageScore: 78 });
-    expect(facts).toEqual([
-      { key: "marriageScore", label: "Marriage Score", type: "ring", value: 78, max: 100, pct: 78 },
-    ]);
+  it("never renders a numeric score (reports show no scores)", () => {
+    expect(buildScoreFacts({ marriageScore: 78 })).toEqual([]);
+    expect(buildScoreFacts({ gunaMilanScore: 27 })).toEqual([]);
+    expect(buildScoreFacts({ spendingVsSavingTilt: 6 })).toEqual([]);
   });
 
-  it("uses max 36 for a guna/koota/milan-named score", () => {
-    const facts = buildScoreFacts({ gunaMilanScore: 27 });
-    expect(facts[0]).toMatchObject({ type: "ring", max: 36, value: 27, pct: 75 });
+  it("renders a non-score number as a raw fact", () => {
+    const facts = buildScoreFacts({ venusHouse: 7 });
+    expect(facts[0]).toMatchObject({ key: "venusHouse", type: "raw", value: "7" });
   });
 
   it("renders a short string enum as a badge with humanized value", () => {
@@ -133,9 +132,9 @@ describe("buildScoreFacts", () => {
     );
   });
 
-  it("does not crash on an out-of-range number and falls back to a raw fact", () => {
-    const facts = buildScoreFacts({ weirdScore: 500 });
-    expect(facts).toEqual([{ key: "weirdScore", label: "Weird Score", type: "raw", value: "500" }]);
+  it("does not crash on a large non-score number and falls back to a raw fact", () => {
+    const facts = buildScoreFacts({ weirdCount: 500 });
+    expect(facts).toEqual([{ key: "weirdCount", label: "Weird Count", type: "raw", value: "500" }]);
   });
 
   it("skips null/undefined/empty-string values rather than rendering an empty fact", () => {
@@ -150,8 +149,9 @@ describe("buildScoreFacts", () => {
       manglik: { isManglik: true, cancelled: true },
       timingWindows: ["2027-01", "2027-06"],
     });
-    expect(facts).toHaveLength(4);
-    expect(facts.map((f) => f.key)).toEqual(["marriageScore", "band", "manglik", "timingWindows"]);
+    // marriageScore is dropped — reports show no numeric scores.
+    expect(facts).toHaveLength(3);
+    expect(facts.map((f) => f.key)).toEqual(["band", "manglik", "timingWindows"]);
   });
 
   it("preserves the original scores object's key order", () => {
@@ -400,9 +400,8 @@ describe("no regression on pre-existing generic classification", () => {
     expect(facts[0].type).toBe("nested");
   });
 
-  it("a plain number still classifies as 'ring'", () => {
-    const facts = buildScoreFacts({ marriageScore: 78 });
-    expect(facts[0].type).toBe("ring");
+  it("a score-named number is dropped, not rendered", () => {
+    expect(buildScoreFacts({ marriageScore: 78 })).toEqual([]);
   });
 
   it("a boolean still classifies as 'boolean'", () => {
@@ -541,9 +540,9 @@ describe("header/verdict are excluded from the generic facts grid", () => {
   });
 
   it("buildScoreFacts never renders header or verdict — they're rendered separately by the page", () => {
-    const facts = buildScoreFacts({ header: sampleHeader, verdict: sampleVerdict, marriageScore: 64 });
+    const facts = buildScoreFacts({ header: sampleHeader, verdict: sampleVerdict, band: "steady" });
     expect(facts).toHaveLength(1);
-    expect(facts[0].key).toBe("marriageScore");
+    expect(facts[0].key).toBe("band");
   });
 
   it("buildScoreFacts never renders currentName or variants — name_change now renders both via NameSuggestionCard", () => {
@@ -566,9 +565,9 @@ describe("header/verdict are excluded from the generic facts grid", () => {
       ashtakavargaSummary: [
         "Ashtakavarga (raw Sarvashtakavarga bindu count per house): H1:28, H2:31. Structurally weak (<25 bindus): House 3.",
       ],
-      marriageScore: 64,
+      band: "steady",
     });
-    expect(facts.map((f) => f.key)).toEqual(["marriageScore"]);
+    expect(facts.map((f) => f.key)).toEqual(["band"]);
   });
 });
 
@@ -600,10 +599,10 @@ describe("planetCondition is grounding prose and must never reach the page", () 
 
   it("drops planetCondition entirely from the rendered facts", () => {
     const facts = buildScoreFacts({
-      marriageScore: 64,
+      band: "steady",
       planetCondition: ["Retrograde at birth: Jupiter, Venus.", REAL_LEAKED_LINE],
     });
-    expect(facts.map((f) => f.key)).toEqual(["marriageScore"]);
+    expect(facts.map((f) => f.key)).toEqual(["band"]);
   });
 
   it("never renders the model-directed instruction text anywhere in the fact list", () => {

@@ -2,7 +2,6 @@
 
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
-import { ScoreRing } from "./ReportScoreFacts";
 import { formatWindowDate } from "./TimingWindowsCard";
 import type { LifeContextValue, LifeContextDomain } from "@/lib/report-score-facts";
 
@@ -16,7 +15,6 @@ function DomainRow({ domain }: { domain: LifeContextDomain }) {
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface/40 p-3">
-      <ScoreRing value={domain.score} max={100} pct={domain.score} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-foreground">

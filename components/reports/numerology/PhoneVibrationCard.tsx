@@ -2,7 +2,6 @@
 
 import { useTranslation } from "react-i18next";
 import Card from "@/components/ui/Card";
-import { ScoreRing } from "../ReportScoreFacts";
 import type { MobileNumberAnalysisValue } from "@/lib/report-score-facts";
 
 /** Same emerald/amber/red/muted convention as StatusPill.tsx's PILL_TONE_STYLES, inlined
@@ -16,9 +15,9 @@ const VERDICT_TONE: Record<MobileNumberAnalysisValue["verdict"], string> = {
 };
 
 /**
- * The current phone number's vibration + harmony reading — masked number, the numeral its
- * digits reduce to, a harmony ring (reuses ReportScoreFacts' own ScoreRing meter, scaled from
- * the 1-10 harmony score), and a verdict pill. `maskedNumber` is the ONLY representation of
+ * The current phone number's vibration reading — masked number, the numeral its digits reduce
+ * to, and a verdict pill (the 1-10 harmony score is not shown; reports show no numeric
+ * scores). `maskedNumber` is the ONLY representation of
  * the reader's number this component (or its data) ever sees — see
  * MobileNumberAnalysisValue's own doc comment.
  */
@@ -52,7 +51,6 @@ export default function PhoneVibrationCard({ analysis }: { analysis: MobileNumbe
             {analysis.vibration}
           </span>
         </div>
-        <ScoreRing value={analysis.harmony} max={10} pct={Math.round(analysis.harmony * 10)} />
       </div>
     </Card>
   );

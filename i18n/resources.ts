@@ -162,6 +162,7 @@ export const resources = {
         facts: {
           level: { high: "High", medium: "Medium", low: "Low", none: "Not Indicated" },
           tone: { favorable: "Favorable", mixed: "Mixed", challenging: "Challenging" },
+          lifeArc: { chapters: "{{count}} chapters", show: "Show chapters", hide: "Hide chapters" },
           positivesTitle: "What's Going For You",
           cautionsTitle: "What To Hold Carefully",
           emptyStateWindows: "No specific timing window stood out in this chart for this reading.",
@@ -2568,6 +2569,7 @@ export const resources = {
         facts: {
           level: { high: "उच्च", medium: "मध्यम", low: "निम्न", none: "संकेतित नहीं" },
           tone: { favorable: "अनुकूल", mixed: "मिश्रित", challenging: "चुनौतीपूर्ण" },
+          lifeArc: { chapters: "{{count}} चरण", show: "चरण देखें", hide: "चरण छिपाएँ" },
           positivesTitle: "आपके पक्ष में क्या है",
           cautionsTitle: "किन बातों का ध्यान रखें",
           emptyStateWindows: "इस कुंडली में इस विषय के लिए कोई विशेष समय-सीमा सामने नहीं आई।",

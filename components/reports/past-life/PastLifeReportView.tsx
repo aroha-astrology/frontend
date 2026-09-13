@@ -54,7 +54,7 @@ export default function PastLifeReportView({ data }: { data: ReportReady }) {
           <h2 className="mb-2 font-display text-base text-gold">
             {t("pastLifeReport.lifeSoFar.title")}
           </h2>
-          <DecadeArcCard bands={scores.lifeSoFar} />
+          <DecadeArcCard bands={scores.lifeSoFar} collapsible />
         </section>
       )}
 

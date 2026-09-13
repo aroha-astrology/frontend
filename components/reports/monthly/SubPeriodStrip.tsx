@@ -68,9 +68,6 @@ export default function SubPeriodStrip({
                 {t(`monthlyReport.subPeriod.${s.standout}`)}
               </span>
             )}
-            <span className="text-xs font-semibold text-foreground/80 tabular-nums shrink-0">
-              {s.score}
-            </span>
           </div>
         ))}
       </Card>

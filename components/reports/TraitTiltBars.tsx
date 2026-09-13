@@ -38,10 +38,8 @@ export default function TraitTiltBars({ traits }: { traits: { label: string; sco
     <div className="flex flex-col gap-2.5">
       {bars.map((bar, i) => (
         <div key={`${bar.label}-${i}`} className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] text-foreground/80 truncate">{bar.label}</span>
-            <span className="text-[10px] tabular-nums text-muted shrink-0">{bar.score}/10</span>
-          </div>
+          {/* Label only — the bar length shows the tilt; no "x/10" (reports show no numeric scores). */}
+          <span className="text-[11px] text-foreground/80 truncate">{bar.label}</span>
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}
@@ -52,7 +50,7 @@ export default function TraitTiltBars({ traits }: { traits: { label: string; sco
                 already carries the accessible name — no new English copy to
                 translate (dataviz skill: direct labels + native tooltip are
                 a mouse-hover nicety here, not the accessibility channel). */}
-            <title>{`${bar.label} ${bar.score}/10`}</title>
+            <title>{bar.label}</title>
             <rect x={0} y={BAR_Y} width={VIEW_W} height={BAR_H} rx={BAR_H / 2} fill="var(--border)" opacity={0.5} />
             {bar.pct > 0 && (
               <path

@@ -75,7 +75,6 @@ function PurchasePlanCard({ plan, onDelete }: { plan: PurchasePlan; onDelete: (i
       {plan.status === "done" && isAnalysis(plan.analysis) && expanded && (
         <div className="space-y-3 pt-3 mt-3 border-t border-gold/10 animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-display text-gold">{plan.analysis.overallScore}</span>
             <span className="text-xs text-foreground">{plan.analysis.overallVerdict}</span>
           </div>
           <ul className="text-[11px] text-muted space-y-0.5 list-disc list-inside">
@@ -93,7 +92,7 @@ function PurchasePlanCard({ plan, onDelete }: { plan: PurchasePlan; onDelete: (i
                 {label} · {d.date}
               </p>
               <p className="text-xs text-foreground mb-1.5">
-                {d.verdict} ({d.score}/100)
+                {d.verdict}
               </p>
               {d.highlights.length > 0 && (
                 <p className="text-[10px] text-emerald-400 mb-0.5">✓ {d.highlights.join(" · ")}</p>

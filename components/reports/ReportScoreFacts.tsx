@@ -157,8 +157,6 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
             <div key={f.key} className="rounded-2xl border border-gold/15 bg-card p-3 flex flex-col gap-1.5 min-w-0">
               <span className="text-[10px] uppercase tracking-wider text-muted break-words">{labelFor(f)}</span>
 
-              {f.type === "ring" && <ScoreRing value={f.value} max={f.max} pct={f.pct} />}
-
               {f.type === "badge" && <span className="text-sm font-semibold text-gold break-words">{f.value}</span>}
 
               {f.type === "boolean" && (
@@ -241,25 +239,6 @@ export default function ReportScoreFacts({ scores }: { scores: Record<string, un
           )}
         </div>
       ))}
-    </div>
-  );
-}
-
-export function ScoreRing({ value, max, pct }: { value: number; max: number; pct: number }) {
-  const color = pct >= 66 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#ef4444";
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        className="w-10 h-10 rounded-full grid place-items-center shrink-0"
-        style={{ background: `conic-gradient(${color} ${pct * 3.6}deg, rgba(120,120,120,0.18) 0deg)` }}
-      >
-        <div className="w-7 h-7 rounded-full bg-card grid place-items-center">
-          <span className="text-[9px] font-bold text-foreground">{pct}%</span>
-        </div>
-      </div>
-      <span className="text-sm font-semibold text-foreground">
-        {value}/{max}
-      </span>
     </div>
   );
 }

@@ -15,7 +15,6 @@ const BAND_COLOR: Record<WealthBand, string> = {
 };
 
 export interface WealthScoreCardProps {
-  score: number | null;
   band: WealthBand | null;
   pattern: WealthPattern | null;
   /** The three significators this report scores: 2nd lord, 11th lord, Jupiter. */
@@ -34,7 +33,6 @@ export interface WealthScoreCardProps {
  * than showing none.
  */
 export default function WealthScoreCard({
-  score,
   band,
   pattern,
   significators,
@@ -53,18 +51,13 @@ export default function WealthScoreCard({
           {headline && <p className="text-[11px] leading-snug text-muted mt-1.5">{headline}</p>}
         </div>
 
-        {score !== null && band && (
-          <div
-            className="h-[68px] w-[68px] shrink-0 rounded-full grid place-items-center"
-            style={{
-              background: `conic-gradient(${BAND_COLOR[band]} ${score * 3.6}deg, rgba(120,120,120,0.18) 0deg)`,
-            }}
+        {band && (
+          <span
+            className="shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold capitalize"
+            style={{ color: BAND_COLOR[band], borderColor: `${BAND_COLOR[band]}55`, background: `${BAND_COLOR[band]}1a` }}
           >
-            <div className="h-[56px] w-[56px] rounded-full bg-card grid place-items-center leading-none">
-              <span className="text-lg font-bold text-foreground">{score}</span>
-              <span className="text-[9px] text-muted mt-0.5">/100</span>
-            </div>
-          </div>
+            {t(`wealthReport.band.${band}`, { defaultValue: band })}
+          </span>
         )}
       </div>
 

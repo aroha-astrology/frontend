@@ -131,11 +131,9 @@ export function humanizeValue(value: string): string {
   return titleCase(toWords(value));
 }
 
-function scoreMaxFor(key: string): number {
-  const k = key.toLowerCase();
-  if (k.includes("guna") || k.includes("milan") || k.includes("koota") || k.includes("kuta")) return 36;
-  return 100;
-}
+/** Numeric keys that carry a score, percentage or tilt — never rendered (reports show no numeric
+ * scores; the band/tone words carry the reading). */
+const SCORE_LIKE_KEY_RE = /score|pct|percent|tilt|harmony|rating/i;
 
 /** Numerology's core digits (1-9, occasionally 11/22) are an IDENTITY number, not a score out of
  * some max — rendering them as a 0-100 ring ("5%") falsely implies a progress/strength reading
@@ -284,6 +282,20 @@ export interface DecadeBand {
   label: string;
   startDate: string;
   endDate: string;
+  /** Internal only — shapes the chart line, never displayed. */
+  score: number;
+  tone: "challenging" | "mixed" | "favorable";
+  /** Life So Far only: the lived Antardashas of this chapter. Absent on older reports. */
+  subPeriods?: DecadeSubPeriod[];
+}
+
+/** One Antardasha inside a Life So Far chapter, e.g. "Age 7–8 · Venus–Sun". */
+export interface DecadeSubPeriod {
+  label: string;
+  lord: string;
+  startDate: string;
+  endDate: string;
+  /** Internal only — shapes the chart line, never displayed. */
   score: number;
   tone: "challenging" | "mixed" | "favorable";
 }
@@ -960,10 +972,9 @@ export function buildScoreFact(key: string, value: unknown): ScoreFact | null {
     if (NUMEROLOGY_DIGIT_KEYS.has(key)) {
       return { key, label, type: "badge", value: String(value) };
     }
-    const max = scoreMaxFor(key);
-    if (value >= 0 && value <= max) {
-      return { key, label, type: "ring", value, max, pct: Math.round((value / max) * 100) };
-    }
+    // Scores, percentages and tilts are never shown to the reader (product decision: no
+    // numeric scores in any report) — the report's own band/tone words carry the reading.
+    if (SCORE_LIKE_KEY_RE.test(key)) return null;
     return { key, label, type: "raw", value: String(value) };
   }
 

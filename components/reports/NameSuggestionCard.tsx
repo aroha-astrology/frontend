@@ -4,15 +4,14 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { diffNameParts } from "@/lib/name-diff";
 import Checklist from "@/components/reports/blocks/Checklist";
-import { ScoreRing } from "@/components/reports/ReportScoreFacts";
 import type { ReportSectionItem } from "@/lib/reports-api";
 
 /**
  * One ranked/scored suggested name, or one before->after spelling variant — see
  * ReportSectionItem. Distinguished by `note`: variants carry the exact edit description, plain
- * suggested names don't. Reuses this app's existing Checklist (✓-prefixed bullets) and ScoreRing
- * (the same conic-gradient meter ReportScoreFacts already renders) rather than inventing new
- * primitives — see components/reports/blocks/index.ts's "presentation-only, reuse" convention.
+ * suggested names don't. Reuses this app's existing Checklist (✓-prefixed bullets) rather than
+ * inventing new primitives. The match score is not shown (reports show no numeric scores) — the
+ * rank and "best match" badge carry the ordering.
  */
 export default function NameSuggestionCard({
   item,
@@ -53,16 +52,13 @@ export default function NameSuggestionCard({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {item.badge && (
+      {item.badge && (
+        <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center rounded-full border border-gold/25 bg-gold/10 px-2 py-0.5 text-[11px] font-medium text-gold">
             {item.badge}
           </span>
-        )}
-        {typeof item.score === "number" && !isVariant && (
-          <ScoreRing value={item.score} max={100} pct={item.score} />
-        )}
-      </div>
+        </div>
+      )}
 
       {isVariant && item.note && <p className="text-xs italic text-foreground/70">{item.note}</p>}
 

@@ -82,24 +82,14 @@ export default function GunaKootaBreakdown({ entries, showSummary = true }: Guna
       {showSummary && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gold font-display">
-                {t("compatibilityPage.gunasScore", { total: totalScore, max: maxTotal })}
-              </h2>
-              <p className={`${verdictColor} text-sm font-medium mt-0.5`}>
-                {verdictLabel} {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
-              </p>
-            </div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={`${verdictColor} text-xl font-bold font-display`}
+            >
+              {verdictLabel} {pct >= 50 && redFlags.length === 0 ? "✓" : ""}
+            </motion.p>
             <div className="text-4xl">💍</div>
-          </div>
-
-          <div className="h-3 rounded-full" style={{ background: "var(--secondary)" }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="h-3 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
-            />
           </div>
         </div>
       )}
@@ -118,8 +108,14 @@ export default function GunaKootaBreakdown({ entries, showSummary = true }: Guna
                 <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                   {info ? t(info.labelKey) : koota.name}
                 </span>
-                <span className={`text-sm font-bold shrink-0 ${koota.score === 0 ? "text-red-400" : "text-gold"}`}>
-                  {koota.score}/{koota.maxScore}
+                {/* Match status as a symbol, never the points — reports show no numeric scores. */}
+                <span
+                  className={`text-sm font-bold shrink-0 ${
+                    koota.score === 0 ? "text-red-400" : koota.score >= koota.maxScore ? "text-emerald-400" : "text-gold"
+                  }`}
+                  aria-hidden
+                >
+                  {koota.score === 0 ? "✕" : koota.score >= koota.maxScore ? "✓" : "◐"}
                 </span>
               </div>
               {meaning && (

@@ -10,6 +10,7 @@ import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api } from "@/lib/api";
+import { istToday } from "@/lib/period-expiry";
 import DailyRewardLadder from "@/components/rewards/DailyRewardLadder";
 
 /**
@@ -30,10 +31,12 @@ export default function DailyRewardModal() {
   const [dismissed, setDismissed] = useState(false);
   const [claimedToday, setClaimedToday] = useState<boolean | null>(null);
 
-  // Client-local calendar date — an approximation of the server's IST day, good
-  // enough for a "don't nag twice today" guard (the server's own idempotency on
-  // claim is the real source of truth, see rewards.service.ts).
-  const todayKey = `aroha:dailyReward:${new Date().toISOString().slice(0, 10)}`;
+  // The IST calendar day, same as the server's reward day (rewards.service.ts).
+  // This used to be the UTC date, which rolled over at 5:30 AM IST — so the
+  // popup stayed hidden after midnight until then, right when a new day's
+  // reward was already claimable. The server's claim idempotency is still the
+  // real source of truth; this only stops nagging twice in one day.
+  const todayKey = `aroha:dailyReward:${istToday()}`;
 
   const eligible =
     rewardsEnabled && permissionsResolved && !!user?.profileCompletedAt && !user?.activeClaimableCampaign;

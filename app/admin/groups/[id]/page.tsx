@@ -11,7 +11,8 @@ import {
   type AdminUserRow,
 } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
-import { groupFeaturesByGroup } from "@/lib/admin-format";
+import { filterFeaturesForBoard, groupFeaturesByGroup, isNewFeature } from "@/lib/admin-format";
+import Switch from "@/components/ui/Switch";
 import ErrorRetry from "@/components/admin/ErrorRetry";
 import FeatureGroupSection from "@/components/admin/FeatureGroupSection";
 import FeatureRow from "@/components/admin/FeatureRow";
@@ -116,6 +117,7 @@ export default function AdminGroupDetailPage() {
   const [group, setGroup] = useState<AdminGroupRow | null>(null);
   const [members, setMembers] = useState<AdminGroupMemberRow[] | null>(null);
   const [features, setFeatures] = useState<AdminGroupFeatureRow[] | null>(null);
+  const [newOnly, setNewOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -292,14 +294,21 @@ export default function AdminGroupDetailPage() {
           Inherit (muted) means this group follows the global switch. On/Off (colored) is an explicit override for
           just this group's members.
         </p>
+        {features?.some(isNewFeature) && (
+          <label className="mb-3 flex items-center gap-2 text-xs text-muted">
+            <Switch checked={newOnly} onChange={setNewOnly} aria-label="Show new features only" />
+            New features only ({features.filter(isNewFeature).length}) — switch one On here to try it with just this group.
+          </label>
+        )}
         {features &&
-          groupFeaturesByGroup(features).map(({ group: groupKey, items }) => (
+          groupFeaturesByGroup(filterFeaturesForBoard(features, newOnly)).map(({ group: groupKey, items }) => (
             <FeatureGroupSection key={groupKey} group={groupKey}>
               {items.map((row) => (
                 <FeatureRow
                   key={row.key}
                   label={row.label}
                   featureKey={row.key}
+                  isNew={isNewFeature(row)}
                   error={featureErrors[row.key]}
                   priceEditor={
                     // Always shown for a model-picker key, same as the main Features page —

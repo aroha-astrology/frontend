@@ -261,6 +261,8 @@ export interface AdminGroupFeatureRow {
   model: string | null;
   /** Non-empty ONLY for a model-picker key. */
   modelOptions: string[];
+  /** Registry tag: `"new"` marks a roadmap feature (NEW badge + filter). Absent on older backends. */
+  tag?: string | null;
 }
 
 export interface UpdateAdminGroupFeatureBody {

@@ -23,6 +23,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import ListRow from "@/components/ui/ListRow";
 import BirthTimeRectifyCard from "@/components/ui/BirthTimeRectifyCard";
 import FeedbackSheet from "@/components/FeedbackSheet";
+import NotificationSettings from "@/components/settings/NotificationSettings";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { isNativeAndroid } from "@/lib/play-billing";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -188,6 +189,10 @@ export default function SettingsPage() {
         </div>
 
         {feedbackOpen && <FeedbackSheet onClose={() => setFeedbackOpen(false)} />}
+
+        {/* Notifications — which optional pushes to get, and quiet hours */}
+        <SectionLabel>{t("settings.notifications")}</SectionLabel>
+        <NotificationSettings />
 
         {/* Profiles */}
         {profiles !== null && (

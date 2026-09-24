@@ -27,6 +27,24 @@ export interface PlaceOfBirth {
   tz: string;
 }
 
+/** Per-category push toggle (Settings → Notifications). Missing = on. */
+export interface NotificationChannelPrefs {
+  push?: boolean;
+}
+
+export interface NotificationPrefs {
+  dailyHoroscope?: NotificationChannelPrefs;
+  transitAlerts?: NotificationChannelPrefs;
+  muhurta?: NotificationChannelPrefs;
+  marketing?: NotificationChannelPrefs;
+}
+
+/** Do-not-disturb window, "HH:mm" in the user's own timezone; null = off. */
+export interface QuietHours {
+  start: string;
+  end: string;
+}
+
 export interface User {
   id: string;
   firebaseUid: string;
@@ -45,6 +63,9 @@ export interface User {
    *  real clock time is free and does not consume the one lifetime birth-detail edit. */
   canSetExactBirthTime: boolean;
   profileCompletedAt: string | null;
+  /** Settings → Notifications; null until the user first changes them. */
+  notificationPrefs?: NotificationPrefs | null;
+  quietHours?: QuietHours | null;
   /**
    * This account was erased once and the same person has signed back in. Their
    * phone number is deliberately kept on the account shell, so they land on the
@@ -216,6 +237,9 @@ export interface UpdateMeBody {
   tourCompleted?: string;
   /** Clears `toursCompleted` so every tour runs again (Settings -> "Show me around again"). */
   resetTours?: boolean;
+  /** Replaces the whole prefs object — send the merged value, not a partial one. */
+  notificationPrefs?: NotificationPrefs;
+  quietHours?: QuietHours | null;
 }
 
 // ─── Profiles (multi-profile) ─────────────────────────────────────────────────

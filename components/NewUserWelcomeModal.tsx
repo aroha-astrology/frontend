@@ -6,6 +6,9 @@ import { useTranslation } from "react-i18next";
 import { PartyPopper } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { useFeature } from "@/hooks/useFeature";
+import { api } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 const WELCOME_SHOWN_KEY = "aroha:welcomeShown";
 
@@ -15,9 +18,14 @@ const WELCOME_SHOWN_KEY = "aroha:welcomeShown";
  */
 export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => void }) {
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
-  
+  // The body promises a first daily reward — only true while rewards are on.
+  // With them on, the button claims Day 1 right here (DailyRewardModal then
+  // sees claimedToday and stays away); with them off, the copy drops the promise.
+  const { enabled: rewardsEnabled } = useFeature("nav.rewards");
+  const [claiming, setClaiming] = useState(false);
+
   const [visible, setVisible] = useState(false);
   /** Set once this modal has decided whether to show, so the decision (and the caller's
    * `onDismiss` gate) fires exactly once per mount. */
@@ -76,6 +84,20 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
     onDismissRef.current?.();
   };
 
+  const claimAndDismiss = async () => {
+    setClaiming(true);
+    try {
+      await api.claimDailyReward();
+      track("welcome_reward_claimed");
+      await refresh();
+    } catch {
+      // Already claimed, flag flipped off meanwhile, or offline — the daily
+      // popup and /rewards still offer it, so never trap the user here.
+    }
+    setClaiming(false);
+    dismiss();
+  };
+
   return (
     <AnimatePresence>
       {visible && (
@@ -104,17 +126,15 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
             </h2>
             
             <p className="text-sm text-foreground/80 leading-relaxed mb-6">
-              {t(
-                "rewards.welcomeBody",
-                "Your cosmic journey begins now. We've unlocked your first daily reward to get you started!"
-              )}
+              {rewardsEnabled ? t("rewards.welcomeBody") : t("rewards.welcomeBodyNoReward")}
             </p>
-            
+
             <button
-              onClick={dismiss}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold active:scale-[0.98] transition-transform"
+              onClick={rewardsEnabled ? claimAndDismiss : dismiss}
+              disabled={claiming}
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold active:scale-[0.98] transition-transform disabled:opacity-60"
             >
-              {t("rewards.welcomeButton", "Start Exploring")}
+              {rewardsEnabled ? t("rewards.welcomeClaimButton") : t("rewards.welcomeButton")}
             </button>
           </motion.div>
         </motion.div>

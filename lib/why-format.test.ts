@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectKey, formatUntil, whyFactorText } from "./why-format";
+import { effectKey, formatUntil, weekdayName, whyFactorText } from "./why-format";
 
 /** A fake t() that shows exactly which keys and values it was asked for. */
 const t = (key: string, vars?: Record<string, unknown>) =>
@@ -24,6 +24,16 @@ describe("whyFactorText", () => {
     expect(whyFactorText(t, { kind: "nakshatra", effect: 0, textKey: "why.tara", params: { tara: 4 } }, "en")).toBe(
       "why.tara(taraName=why.taras.4)",
     );
+  });
+
+  it("names the nakshatra and the weekday for Decision / Find My Date factors", () => {
+    expect(
+      whyFactorText(t, { kind: "panchang", effect: 1, textKey: "decide.why.nakshatraGood", params: { nakshatra: "PurvaPhalguni" } }, "en"),
+    ).toBe("decide.why.nakshatraGood(nakshatraName=nakshatraNames.purvaphalguni)");
+    expect(
+      whyFactorText(t, { kind: "panchang", effect: 1, textKey: "decide.why.weekdayGood", params: { weekday: 4 } }, "en"),
+    ).toBe("decide.why.weekdayGood(weekdayName=Thursday)");
+    expect(weekdayName(0, "hi")).toBe("रविवार");
   });
 });
 

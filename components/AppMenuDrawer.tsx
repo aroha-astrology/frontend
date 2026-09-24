@@ -22,6 +22,8 @@ import {
   LogOut,
   ShieldCheck,
   CalendarDays,
+  CalendarSearch,
+  Scale,
   GanttChart,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
@@ -53,6 +55,8 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
   const { enabled: calendarEnabled } = useNewFeature("nav.calendar");
   const { enabled: timelineEnabled } = useNewFeature("nav.lifeTimeline");
+  const { enabled: decisionsEnabled } = useNewFeature("nav.decisions");
+  const { enabled: findDateEnabled } = useNewFeature("panchang.findMyDate");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -265,6 +269,22 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<GanttChart size={16} />}
                     label={t("timeline.menu")}
                     href="/timeline"
+                    onClick={onClose}
+                  />
+                )}
+                {decisionsEnabled && (
+                  <ListRow
+                    icon={<Scale size={16} />}
+                    label={t("decide.menu")}
+                    href="/decide"
+                    onClick={onClose}
+                  />
+                )}
+                {findDateEnabled && (
+                  <ListRow
+                    icon={<CalendarSearch size={16} />}
+                    label={t("findDate.menu")}
+                    href="/find-date"
                     onClick={onClose}
                   />
                 )}

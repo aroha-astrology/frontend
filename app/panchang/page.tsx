@@ -15,6 +15,7 @@ import TithiHero from "@/components/panchang/TithiHero";
 import SunMoonTimings from "@/components/panchang/SunMoonTimings";
 import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import AuspiciousDays from "@/components/panchang/AuspiciousDays";
+import FindMyDateCard from "@/components/decide/FindMyDateCard";
 import { REGION_META, REGION_OPTIONS, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
@@ -371,6 +372,8 @@ export default function PanchangPage() {
               lat={source === "mine" ? geo.coords?.lat : undefined}
               lon={source === "mine" ? geo.coords?.lon : undefined}
             />
+
+            <FindMyDateCard />
 
             {/* Hora — kept as an accordion, out of scope for this redesign */}
             {data.hora && (

@@ -29,7 +29,20 @@ export function whyFactorText(t: Translate, factor: WhyFactor, lang: string): st
   if (p.until != null) vars.until = formatUntil(String(p.until), lang);
   if (p.tara != null) vars.taraName = t(`why.taras.${p.tara}`);
   if (p.starLord != null) vars.starLord = t(`planetNames.${String(p.starLord).toLowerCase()}`);
+  if (p.nakshatra != null) vars.nakshatraName = t(`nakshatraNames.${String(p.nakshatra).toLowerCase()}`);
+  if (p.weekday != null) vars.weekdayName = weekdayName(Number(p.weekday), lang);
   return t(factor.textKey, vars);
+}
+
+/** 0 = Sunday … 6 = Saturday, as a weekday name in `lang` ("गुरुवार"). */
+export function weekdayName(weekday: number, lang: string): string {
+  // 2023-01-01 was a Sunday.
+  const d = new Date(Date.UTC(2023, 0, 1 + weekday));
+  try {
+    return new Intl.DateTimeFormat(lang, { weekday: "long", timeZone: "UTC" }).format(d);
+  } catch {
+    return new Intl.DateTimeFormat("en", { weekday: "long", timeZone: "UTC" }).format(d);
+  }
 }
 
 /** The label a factor's direction gets: helps, holds back, or just context. */

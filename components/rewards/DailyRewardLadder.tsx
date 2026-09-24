@@ -10,6 +10,7 @@ import { formatRupees } from "@/lib/format";
 import Card from "@/components/ui/Card";
 import RewardCoin from "@/components/rewards/RewardCoin";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 type ClaimStatus = "idle" | "claiming" | "error";
 
@@ -41,6 +42,7 @@ export default function DailyRewardLadder() {
     setStatus("claiming");
     try {
       await api.claimDailyReward();
+      track("daily_reward_claimed", { day: state?.currentDay ?? null });
       await refresh();
       load();
       setStatus("idle");

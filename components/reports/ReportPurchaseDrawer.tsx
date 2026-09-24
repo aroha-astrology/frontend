@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
@@ -202,7 +203,9 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
         Object.entries(answers).filter(([id, v]) => visibleAnswerIds.has(id) && v.trim() !== ""),
       );
       if (Object.keys(filteredAnswers).length > 0) body.answers = filteredAnswers;
+      track("report_purchase_started", { report: entry.key, costPaise });
       const res = await reportsApi.purchase(body);
+      track("report_purchased", { report: entry.key, costPaise });
       await refresh();
       onPurchased(res.reports);
     } catch (err) {

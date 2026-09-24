@@ -12,6 +12,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
 import WalletBalance from "@/components/ui/WalletBalance";
 import { api, ApiError, type TopUpAmount, type CouponValidation } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
 import { maybeRequestReview } from "@/lib/app-review";
 
@@ -155,6 +156,7 @@ export default function PaymentPage() {
     const code = couponApplied ? couponResult?.code : undefined;
     setPaying(true);
     setPayError(null);
+    track("topup_started", { amountPaise: selectedAmount.amountPaise, method, coupon: Boolean(code) });
     try {
       if (method === "google_play") {
         await api.checkout(selectedAmount.id, code);
@@ -202,6 +204,7 @@ export default function PaymentPage() {
       }
 
       await refreshUser();
+      track("topup_succeeded", { amountPaise: selectedAmount.amountPaise, method, coupon: Boolean(code) });
       setSuccess({ walletBalancePaise: selectedAmount.amountPaise });
     } catch (err) {
       const isUserCancelled =

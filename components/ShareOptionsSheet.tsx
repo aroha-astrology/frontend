@@ -7,6 +7,7 @@ import { MessageSquare, Copy, Share2, X, Check } from "lucide-react";
 import Image from "next/image";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { buildReferralShareLinks } from "@/lib/referral";
+import { track } from "@/lib/analytics";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -43,11 +44,13 @@ export default function ShareOptionsSheet({
   useDismissOnBackPress(open, onClose);
 
   const openAndClose = (url: string) => {
+    track("referral_share_clicked", { channel: url.startsWith("https://wa.me") ? "whatsapp" : url.startsWith("https://t.me") ? "telegram" : "sms" });
     window.location.href = url;
     onClose();
   };
 
   const copyLink = () => {
+    track("referral_share_clicked", { channel: "copy" });
     navigator.clipboard.writeText(links.text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
@@ -57,6 +60,7 @@ export default function ShareOptionsSheet({
   const shareMore = async () => {
     try {
       await navigator.share({ title: "Aroha Astrology", text: links.text });
+      track("referral_share_clicked", { channel: "system" });
       onClose();
     } catch {
       // Dismissed the native picker — leave the sheet open so they can try another option.

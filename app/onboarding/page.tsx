@@ -31,6 +31,7 @@ import {
   clearPendingUtmSource,
 } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
+import { track } from "@/lib/analytics";
 import { useFeature } from "@/hooks/useFeature";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 
@@ -274,6 +275,8 @@ function OnboardingPageInner() {
   // default `s + 1` — used by new-profile mode to detour through
   // RELATIONSHIP_STEP without renumbering any of the existing steps.
   const advance = async (ans: Partial<Answers>, userText: string, nextQ: string, nextStep?: number, editStep?: number) => {
+    // Fields answered, not step numbers — the step sequence has fractional detours.
+    track("onboarding_step_completed", { fields: Object.keys(ans).join(","), edit: editStep !== undefined });
     setAnswers((a) => ({ ...a, ...ans }));
     userSay(userText, editStep);
     await botSay(nextQ);
@@ -589,6 +592,7 @@ function OnboardingPageInner() {
       };
 
       await api.updateMe(body);
+      track("onboarding_completed", { referred: Boolean(body.referredByCode), source: body.referralSource ?? null });
       await refresh();
       clearPendingReferralCode();
       clearPendingUtmSource();

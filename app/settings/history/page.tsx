@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText, Award, Hand, Phone } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText, Award, Hand, Phone, Clock } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
@@ -40,6 +40,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "daily_reward": return <Award size={16} />;
     case "palm_reading": return <Hand size={16} />;
     case "voice_call": return <Phone size={16} />;
+    case "birth_time_check": return <Clock size={16} />;
     case "admin_adjustment": return <Gift size={16} />;
   }
 }
@@ -57,6 +58,7 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "daily_reward": return t("paymentHistory.dailyReward");
     case "palm_reading": return t("paymentHistory.palmReading");
     case "voice_call": return t("paymentHistory.voiceCall");
+    case "birth_time_check": return t("paymentHistory.birthTimeCheck");
     // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
     // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
     case "admin_adjustment":

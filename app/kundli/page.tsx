@@ -20,6 +20,7 @@ import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
 import VargaChartTabs from "@/components/ui/VargaChartTabs";
 import ChartCarousel from "@/components/ui/ChartCarousel";
 import GemstoneCard from "@/components/ui/GemstoneCard";
+import BirthTimeConfidenceCard from "@/components/birth-time/BirthTimeConfidenceCard";
 import { computeDivisionalCharts } from "@/lib/divisional-charts";
 import { zodiacSignLabel } from "@/data/zodiac";
 import { useFeature } from "@/hooks/useFeature";
@@ -548,6 +549,9 @@ export default function KundliPage() {
                 <div data-tour="kundli-yogadosha">
                   <YogaDoshaSection yogas={yogas} doshas={doshas} mode={viewMode} />
                 </div>
+
+                {/* Birth Time Confidence — how much the chart above can be trusted (ships off) */}
+                <BirthTimeConfidenceCard />
                 
                 {/* Unlock Drawer */}
                 <HouseUnlockDrawer

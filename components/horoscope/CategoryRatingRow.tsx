@@ -3,6 +3,7 @@
 import { Star, Sparkles, HeartPulse, Briefcase, Heart, Wallet, GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Category, CategoryReading } from "./types";
+import WhyButton, { HOROSCOPE_CATEGORY_AREA } from "@/components/why/WhyButton";
 
 export const CATEGORY_ICON: Record<Category, React.ReactNode> = {
   overall: <Sparkles size={16} />,
@@ -16,9 +17,12 @@ export const CATEGORY_ICON: Record<Category, React.ReactNode> = {
 export default function CategoryRatingRow({
   category,
   reading,
+  date,
 }: {
   category: Category;
   reading: CategoryReading;
+  /** The reading's own date, so "Why?" explains that day rather than today. */
+  date?: string;
 }) {
   const { t } = useTranslation();
 
@@ -28,6 +32,9 @@ export default function CategoryRatingRow({
         <div className="flex items-center gap-2 text-foreground text-sm font-semibold">
           <span className="text-gold">{CATEGORY_ICON[category]}</span>
           {t(`horoscope.category.${category}`)}
+          {HOROSCOPE_CATEGORY_AREA[category] && (
+            <WhyButton area={HOROSCOPE_CATEGORY_AREA[category]} date={date} />
+          )}
         </div>
         <div className="flex gap-0.5">
           {[...Array(5)].map((_, i) => (

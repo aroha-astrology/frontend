@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 import Card from "@/components/ui/Card";
 import { usePersonalizedHoroscope } from "@/hooks/usePersonalizedHoroscope";
 import PersonalizedDetailModal from "@/components/horoscope/PersonalizedDetailModal";
+import WhyButton from "@/components/why/WhyButton";
 import { QUALITY_BADGE_KEYS } from "@/components/horoscope/types";
 import CategoryHookRotator from "@/components/home/CategoryHookRotator";
 import PersonalizedProgress from "@/components/horoscope/PersonalizedProgress";
@@ -84,7 +85,8 @@ export default function TodayReading() {
 
         <CategoryHookRotator categories={data.structured.categories} />
 
-        <div className="flex justify-end mt-3">
+        <div className="flex items-center justify-end gap-3 mt-3">
+          <WhyButton area="overall" date={data.forDate} />
           <button
             onClick={() => {
               // __loaded guard: posthog is never init'd when analytics consent is declined.

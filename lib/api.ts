@@ -673,7 +673,8 @@ export type TransactionKind =
   | "report_unlock"
   | "daily_reward"
   | "palm_reading"
-  | "voice_call";
+  | "voice_call"
+  | "birth_time_check";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

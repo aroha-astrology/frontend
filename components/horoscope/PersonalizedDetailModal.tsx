@@ -44,7 +44,12 @@ export default function PersonalizedDetailModal({
       {s ? (
         <div className="space-y-2.5">
           {CATEGORY_ORDER.map((category) => (
-            <CategoryRatingRow key={category} category={category} reading={s.categories[category]} />
+            <CategoryRatingRow
+              key={category}
+              category={category}
+              reading={s.categories[category]}
+              date={data.period === "daily" || data.period === "tomorrow" ? data.forDate : undefined}
+            />
           ))}
 
           <div className="flex gap-3 pt-1">

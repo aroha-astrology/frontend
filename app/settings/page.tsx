@@ -22,6 +22,7 @@ import Card from "@/components/ui/Card";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import ListRow from "@/components/ui/ListRow";
 import BirthTimeRectifyCard from "@/components/ui/BirthTimeRectifyCard";
+import BirthTimeConfidenceCard from "@/components/birth-time/BirthTimeConfidenceCard";
 import FeedbackSheet from "@/components/FeedbackSheet";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import { PLAY_STORE_URL } from "@/lib/app-review";
@@ -216,6 +217,7 @@ export default function SettingsPage() {
         {/* Birth-time rectification. Lives in settings rather than a reading
             surface because it is a correction to the user's own data, and it
             deliberately only SUGGESTS — nothing is applied automatically. */}
+        <BirthTimeConfidenceCard className="mb-6" />
         <BirthTimeRectifyCard className="mb-6" />
 
         {/* Legal */}

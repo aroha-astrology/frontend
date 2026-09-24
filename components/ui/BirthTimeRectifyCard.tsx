@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFeature } from '@/hooks/useFeature';
+import { useFeature, useNewFeature } from '@/hooks/useFeature';
 import {
   rectifyBirthTime,
   type RectifyDomain,
@@ -25,7 +25,7 @@ import {
 
 // Grouped for the dropdown so 19 options stay scannable rather than one flat
 // list. Group labels are translated as a unit; option labels individually.
-const DOMAIN_GROUPS: { group: string; options: RectifyDomain[] }[] = [
+export const DOMAIN_GROUPS: { group: string; options: RectifyDomain[] }[] = [
   {
     group: 'career',
     options: ['job_started', 'promotion', 'job_loss', 'business_started', 'retirement'],
@@ -41,7 +41,7 @@ const DOMAIN_GROUPS: { group: string; options: RectifyDomain[] }[] = [
 ];
 
 /** The server refuses to suggest a time below this many dated events. */
-const MIN_EVENTS = 3;
+export const MIN_EVENTS = 3;
 
 export default function BirthTimeRectifyCard({ className = '' }: { className?: string }) {
   const { t } = useTranslation();
@@ -51,6 +51,8 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
   // `enabled === false` from the backend is what actually hides this, not a
   // missing/unknown key.
   const { enabled } = useFeature('home.birthTimeRectify');
+  // The Birth Time Confidence card supersedes this one wherever both are on.
+  const { enabled: confidenceCardOn } = useNewFeature('home.birthTimeConfidence');
   const [events, setEvents] = useState<RectifyEvent[]>([{ date: '', domain: 'job_started' }]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RectifySuggestion | null>(null);
@@ -78,7 +80,7 @@ export default function BirthTimeRectifyCard({ className = '' }: { className?: s
     }
   }
 
-  if (!enabled) return null;
+  if (!enabled || confidenceCardOn) return null;
 
   return (
     <div className={`rounded-2xl border border-gold/10 bg-white/5 p-5 ${className}`}>

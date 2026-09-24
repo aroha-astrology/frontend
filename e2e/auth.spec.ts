@@ -1,31 +1,27 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Auth Guard', () => {
-  test('redirects unauthenticated user from / to /sign-in', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForURL('**/sign-in', { timeout: 10_000 });
-    expect(page.url()).toContain('/sign-in');
+test.describe("Signed out", () => {
+  for (const path of ["/", "/kundli", "/ai-chat", "/settings"]) {
+    test(`redirects ${path} to /sign-in`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForURL("**/sign-in");
+    });
+  }
+
+  test("sign-in shows the phone form and branding", async ({ page }) => {
+    await page.goto("/sign-in");
+    await expect(page.locator('input[type="tel"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: /Send OTP/ })).toBeVisible();
+    await expect(page.getByText("AROHA").first()).toBeVisible();
   });
 
-  test('redirects unauthenticated user from /kundli to /sign-in', async ({ page }) => {
-    await page.goto('/kundli');
-    await page.waitForURL('**/sign-in', { timeout: 10_000 });
-    expect(page.url()).toContain('/sign-in');
+  test("sign-up page is reachable without signing in", async ({ page }) => {
+    await page.goto("/sign-up");
+    await expect(page.getByRole("button", { name: /Send OTP/ })).toBeVisible();
   });
 
-  test('redirects unauthenticated user from /ai-chat to /sign-in', async ({ page }) => {
-    await page.goto('/ai-chat');
-    await page.waitForURL('**/sign-in', { timeout: 10_000 });
-    expect(page.url()).toContain('/sign-in');
-  });
-
-  test('sign-in page is accessible without auth', async ({ page }) => {
-    await page.goto('/sign-in');
-    await expect(page.locator('text=Send OTP')).toBeVisible({ timeout: 10_000 });
-  });
-
-  test('sign-up page is accessible without auth', async ({ page }) => {
-    await page.goto('/sign-up');
-    await expect(page.locator('text=Send OTP')).toBeVisible({ timeout: 10_000 });
+  test("legal pages are readable before signing in", async ({ page }) => {
+    await page.goto("/legal/terms");
+    await expect(page).toHaveURL(/\/legal\/terms/);
   });
 });

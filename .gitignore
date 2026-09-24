@@ -47,3 +47,6 @@ next-env.d.ts
 # one-off ops scripts — del_reports.sh carries a live DB URL, never commit it
 del_reports.sh
 run.ps1
+
+# firebase emulator
+firebase-debug.log

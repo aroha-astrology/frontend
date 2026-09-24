@@ -7,7 +7,7 @@
 // throw `auth/invalid-api-key` while building.
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { connectAuthEmulator, getAuth, signInWithCustomToken, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_AUTH_API_KEY,
@@ -39,10 +39,39 @@ if (
 
 let authInstance: Auth | null = null;
 
+/**
+ * E2E only (frontend/e2e, playwright.config.ts): set at BUILD time to point
+ * auth at the local Firebase Auth emulator. Never set on Vercel, so the whole
+ * branch below is dead code in real builds.
+ */
+const AUTH_EMULATOR_HOST = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
+
+/** An unsigned custom token — the Auth emulator accepts these, real Firebase never does. */
+function unsignedEmulatorToken(uid: string): string {
+  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const now = Math.floor(Date.now() / 1000);
+  return `${b64({ alg: "none", typ: "JWT" })}.${b64({
+    iss: "e2e@demo-aroha.iam.gserviceaccount.com",
+    sub: "e2e@demo-aroha.iam.gserviceaccount.com",
+    aud: "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+    iat: now,
+    exp: now + 3600,
+    uid,
+  })}.`;
+}
+
 /** Get the Firebase Auth instance, initialising the app on first call. */
 export function getFirebaseAuth(): Auth {
   if (authInstance) return authInstance;
   const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
   authInstance = getAuth(app);
+  if (AUTH_EMULATOR_HOST) {
+    const auth = authInstance;
+    connectAuthEmulator(auth, `http://${AUTH_EMULATOR_HOST}`, { disableWarnings: true });
+    // Lets a Playwright test sign in without the phone-OTP UI.
+    (window as unknown as { __arohaE2E?: unknown }).__arohaE2E = {
+      signIn: (uid: string) => signInWithCustomToken(auth, unsignedEmulatorToken(uid)).then(() => undefined),
+    };
+  }
   return authInstance;
 }

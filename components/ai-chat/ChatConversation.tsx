@@ -195,6 +195,11 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   /** Matches astro.routes.ts's chatMessageCostPaise — the backend resolves the same 'paid.chat' feature price and charges that, so this estimate and the actual debit can't drift. 2000 is only the fallback for the fail-open case. */
   const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
   const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
+  /** One free answer-tap per account per 3 days (claimFreeFollowUp in the backend's
+   * users.repo.ts). Refreshed after every send via refresh(), so it flips off right
+   * after the free tap is spent. The server re-checks atomically; this only drives the badge. */
+  const freeFollowUpAvailable =
+    !user?.nextFreeFollowUpAt || new Date(user.nextFreeFollowUpAt).getTime() <= Date.now();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
@@ -468,9 +473,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     // Out of credits: still show the message as sent (rather than silently
     // dropping it, which reads as the app being broken) but reply with a
     // canned recharge prompt instead of spending a real request on the LLM.
-    // Skipped when this is the model's own suggested follow-up (opts.isFree)
-    // — the backend charges nothing for it (see astro.routes.ts's
-    // isFreeFollowUp), so a low balance must never block tapping it.
+    // Skipped when this is the free answer tap (opts.isFree) — the backend
+    // charges nothing for it (see astro.routes.ts's isFreeFollowUp and
+    // claimFreeFollowUp), so a low balance must never block tapping it.
     if (!canAfford && !opts?.isFree) {
       setMessages((prev) => [
         ...prev,
@@ -825,20 +830,21 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 </div>
               )}
               {/* Suggested follow-up — tappable, sends it as the next message. Free
-                  ONLY when it's still the model's own most recent suggestion (the
-                  last message in the array) — the server verifies this against the
-                  same stored transcript (isFreeFollowUp in astro.routes.ts), so an
-                  older, already-superseded chip further back in the conversation
-                  is intentionally left at full price if it's still tapped. */}
+                  ONLY when (a) it's still the model's own most recent suggestion (the
+                  last message in the array), (b) it's a set of ANSWERS to the
+                  astrologer's question about the user (2+ options — that tap yields
+                  a user fact; a single suggested question never does), and (c) the
+                  account's one-per-3-days free tap is unspent. The server verifies
+                  all three (isFreeFollowUp + claimFreeFollowUp in astro.routes.ts). */}
               {followUps.length > 0 && (() => {
-                const isFreeTap = i === messages.length - 1;
                 const single = followUps.length === 1;
+                const isFreeTap = i === messages.length - 1 && !single && freeFollowUpAvailable;
                 return (
                   <div className="ml-9 mt-1.5">
                     {/* With several options the badge is a label ABOVE the row —
                         appending it after the last chip read as if only that one
                         option were free, when a tap on any of them is. */}
-                    {isFreeTap && !single && (
+                    {isFreeTap && (
                       <div className="mb-1 text-[10px] font-semibold text-green-500">
                         {t("aiChatPage.freeFollowUpGroup")}
                       </div>
@@ -852,11 +858,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                           className="max-w-[85%] text-left text-xs text-gold/90 border border-gold/25 rounded-xl px-3 py-2 hover:bg-gold/10 transition-colors disabled:opacity-40"
                         >
                           {option}
-                          {isFreeTap && single && (
-                            <span className="ml-1.5 text-[10px] font-semibold text-green-500">
-                              · {t("aiChatPage.freeFollowUp")}
-                            </span>
-                          )}
                         </button>
                       ))}
                     </div>

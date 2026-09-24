@@ -75,6 +75,10 @@ export interface User {
   /** The report key the user voted for on "what should we prepare next?", or null if
    * never asked / still pending. Account-level, not profile-scoped. */
   nextReportVote: string | null;
+  /** ISO time the free chat follow-up tap (one per 3 days, answers to the
+   * astrologer's own question only) is next usable; null = usable now.
+   * Optional so an older backend without the field reads as "usable". */
+  nextFreeFollowUpAt?: string | null;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */

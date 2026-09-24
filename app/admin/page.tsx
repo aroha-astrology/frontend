@@ -7,6 +7,8 @@ import {
   type AdminOverview,
   type AdminUserRow,
   type AdminRecurringUsersWeek,
+  type AdminRetentionResponse,
+  type AdminRetentionRate,
   type AdminUserDemographicsResponse,
   type AdminDemographicsBucket,
 } from "@/lib/admin-api";
@@ -34,6 +36,11 @@ import CostSplitBar from "@/components/admin/CostSplitBar";
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
+
+const retentionPct = (r: AdminRetentionRate | undefined) =>
+  r?.rate != null ? `${Math.round(r.rate * 100)}%` : "–";
+const retentionCaption = (r: AdminRetentionRate | undefined) =>
+  r ? `${r.retained} of ${r.cohort} new users` : undefined;
 
 const RECURRING_WEEK_LABELS: Record<AdminRecurringUsersWeek["label"], string> = {
   this_week: "This Week",
@@ -205,6 +212,24 @@ function AdminOverviewContent() {
     };
   }, []);
 
+  // Retention: same "always as of now, fetched once" convention — measured up
+  // to the last complete IST day, independent of the DateRangePicker.
+  const [retention, setRetention] = useState<AdminRetentionResponse | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .retention()
+      .then((res) => {
+        if (!cancelled) setRetention(res);
+      })
+      .catch(() => {
+        if (!cancelled) setRetention(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // User demographics: same "always as of now, fetched once" convention as
   // recurringWeeks above — a snapshot of all current users, not scoped to
   // the DateRangePicker/userId.
@@ -291,6 +316,27 @@ function AdminOverviewContent() {
               <KpiTile label="ARPU" value={formatRupees(data.arpuPaise)} />
               <KpiTile label="New Users" value={String(data.newUsers)} />
               <KpiTile label="Active Users" value={String(data.activeUsers)} />
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-foreground mb-1">Retention</h2>
+              <p className="text-[11px] text-muted mb-3">
+                {retention
+                  ? `Up to ${retention.asOfDate} (IST). DN = new users active exactly N days after finishing onboarding.`
+                  : "Loading…"}
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <KpiTile label="DAU" value={retention ? String(retention.dau) : "–"} />
+                <KpiTile label="WAU" value={retention ? String(retention.wau) : "–"} />
+                <KpiTile
+                  label="MAU"
+                  value={retention ? String(retention.mau) : "–"}
+                  caption={retention?.stickiness != null ? `DAU/MAU ${Math.round(retention.stickiness * 100)}%` : undefined}
+                />
+                <KpiTile label="D1" value={retentionPct(retention?.d1)} caption={retentionCaption(retention?.d1)} />
+                <KpiTile label="D7" value={retentionPct(retention?.d7)} caption={retentionCaption(retention?.d7)} />
+                <KpiTile label="D30" value={retentionPct(retention?.d30)} caption={retentionCaption(retention?.d30)} />
+              </div>
             </section>
 
             <section className="mb-8">

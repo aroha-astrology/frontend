@@ -305,6 +305,30 @@ export interface AdminRecurringUsersResponse {
   weeks: AdminRecurringUsersWeek[];
 }
 
+// ─── Retention ─────────────────────────────────────────────────────────────
+
+export interface AdminRetentionRate {
+  /** New users whose day N has fully passed. */
+  cohort: number;
+  /** Of those, active exactly N IST days after onboarding. */
+  retained: number;
+  /** retained / cohort, 0-1; null for an empty cohort. */
+  rate: number | null;
+}
+
+export interface AdminRetentionResponse {
+  /** Last complete IST day the numbers run to (YYYY-MM-DD). */
+  asOfDate: string;
+  dau: number;
+  wau: number;
+  mau: number;
+  /** DAU / MAU. */
+  stickiness: number | null;
+  d1: AdminRetentionRate;
+  d7: AdminRetentionRate;
+  d30: AdminRetentionRate;
+}
+
 // ─── User demographics ─────────────────────────────────────────────────────
 
 export interface AdminDemographicsBucket {
@@ -550,6 +574,8 @@ export const adminApi = {
 
   /** Recurring-user counts + approximate time spent for this week, last week, last week+1, last week+2. */
   recurringUsers: () => request<AdminRecurringUsersResponse>("/v1/admin/recurring-users", { auth: true }),
+  /** DAU/WAU/MAU + D1/D7/D30 retention up to yesterday (IST), from the activity heartbeat. */
+  retention: () => request<AdminRetentionResponse>("/v1/admin/retention", { auth: true }),
 
   /** Age-bracket, gender, and relationship-status breakdown across all current (non-deleted) users. */
   userDemographics: () =>

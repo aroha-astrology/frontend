@@ -1,9 +1,11 @@
 import type { i18n as I18n } from "i18next";
 import { ROADMAP_LANGS, type RoadmapBundle } from "./types";
 import { whyBundle } from "./why";
+import { astroNamesBundle } from "./astro-names";
+import { weatherBundle } from "./weather";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

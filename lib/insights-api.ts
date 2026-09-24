@@ -85,3 +85,24 @@ export const insightsApi = {
   applyBirthTimeCheck: (id: string) =>
     request<BirthTimeCheck>(`/v1/birth-time/check/${id}/apply`, { method: "POST", auth: true }),
 };
+
+/* -------------------------------------------------------------------------- */
+/* Astro Weather (roadmap step 2)                                              */
+/* -------------------------------------------------------------------------- */
+
+export type WeatherAreaKey = "career" | "relationships" | "money" | "energy";
+
+export interface AstroWeather {
+  date: string;
+  header: { moonSign: string; mahadasha: string | null; antardasha: string | null };
+  overall: { score: number; trend: "improving" | "steady" | "declining"; tomorrowScore: number | null };
+  areas: Array<{ key: WeatherAreaKey; area: LifeArea; score: number; source: "horoscope" | "chart" }>;
+  moments: Array<{ kind: "moonSign" | "moonNakshatra"; at: string; time: string; from: string; to: string }>;
+  day: Array<{ start: string; end: string; kind: "good" | "caution"; name: string }>;
+  dayAvailable: boolean;
+  why: WhyFactor[];
+}
+
+export const weatherApi = {
+  get: (date?: string) => request<AstroWeather>(`/v1/astro-weather${date ? `?date=${date}` : ""}`, { auth: true }),
+};

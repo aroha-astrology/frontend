@@ -13,6 +13,8 @@ import VastuCard from "@/components/VastuCard";
 import PalmReadingCard from "@/components/PalmReadingCard";
 import ShlokasCard from "@/components/ShlokasCard";
 import RemediesCard from "@/components/RemediesCard";
+import AstroWeatherCard from "@/components/weather/AstroWeatherCard";
+import YourDayCard from "@/components/weather/YourDayCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -33,6 +35,22 @@ function TodayReadingSection() {
   return (
     <div className="px-5 mt-6">
       <TodayReading />
+    </div>
+  );
+}
+
+function AstroWeatherSection() {
+  return (
+    <div className="px-5 mt-6">
+      <AstroWeatherCard />
+    </div>
+  );
+}
+
+function YourDaySection() {
+  return (
+    <div className="px-5 mt-6">
+      <YourDayCard />
     </div>
   );
 }
@@ -124,11 +142,15 @@ interface HomeSection {
   id: string;
   featureKey: string;
   Component: ComponentType;
+  /** A ship-dark roadmap section: a key missing from /v1/me hides it instead of showing it. */
+  isNew?: true;
 }
 
 /** Order here IS render order — preserves the exact pre-existing sequence. */
 const HOME_SECTIONS: HomeSection[] = [
+  { id: "astroWeather", featureKey: "home.astroWeather", Component: AstroWeatherSection, isNew: true },
   { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
+  { id: "yourDay", featureKey: "home.yourDay", Component: YourDaySection, isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
   { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },
@@ -157,7 +179,11 @@ export default function HomePage() {
   // Resolved once per render (not one useFeature() call per section, which
   // would call a hook from inside a filter callback) — see
   // lib/feature-filter.ts's doc comment for why.
-  const visibleSections = filterByFeature(HOME_SECTIONS, (key) => resolveFeature(user?.features, key).enabled);
+  const newKeys = new Set(HOME_SECTIONS.filter((s) => s.isNew).map((s) => s.featureKey));
+  const visibleSections = filterByFeature(
+    HOME_SECTIONS,
+    (key) => resolveFeature(user?.features, key, { failClosed: newKeys.has(key) }).enabled,
+  );
 
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">

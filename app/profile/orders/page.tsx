@@ -22,6 +22,8 @@ function kindLabel(t: TFunction, txn: Transaction): string {
     case "referral_bonus": return t("transactions.reasonReferralBonus", "Referral Bonus");
     case "report_unlock": return t("transactions.reasonReportUnlock", "Report Unlock");
     case "daily_reward": return t("transactions.reasonDailyReward", "Daily Reward");
+    case "palm_reading": return t("transactions.reasonPalmReading", "Palm Reading");
+    case "voice_call": return t("transactions.reasonVoiceCall", "Voice Call");
     // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
     // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
     case "admin_adjustment":

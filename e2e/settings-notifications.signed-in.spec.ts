@@ -19,6 +19,21 @@ test.describe("Settings → Notifications", () => {
     await expect(offers).toHaveAttribute("aria-checked", "false");
   });
 
+  test("the daily horoscope push can be switched off", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const api = await mockApi(page);
+    await signIn(page, "/settings");
+
+    const daily = page.getByRole("switch", { name: "Daily horoscope" });
+    await expect(daily).toHaveAttribute("aria-checked", "true");
+    await daily.click();
+
+    await expect.poll(() => callsTo(api, "PATCH /v1/me").length).toBe(1);
+    expect(callsTo(api, "PATCH /v1/me")[0]!.body).toEqual({
+      notificationPrefs: { dailyHoroscope: { push: false } },
+    });
+  });
+
   test("quiet hours toggle on to 22:00–07:00 and off to null", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page);

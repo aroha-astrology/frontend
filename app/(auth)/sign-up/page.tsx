@@ -7,10 +7,13 @@ import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
 import AuthMethodPanel from "@/components/auth/AuthMethodPanel";
+import { useSignupBonus } from "@/hooks/useSignupBonus";
+import { formatRupees } from "@/lib/format";
 
 export default function SignUpPage() {
   const { t } = useTranslation();
   const [showFooter, setShowFooter] = useState(true);
+  const bonusPaise = useSignupBonus();
 
   return (
     <main className="relative z-10 flex flex-col items-center px-6 pb-12">
@@ -27,16 +30,18 @@ export default function SignUpPage() {
         </div>
       </motion.div>
 
-      {/* Incentive pill */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.05 }}
-        className="mb-5 flex items-center gap-2 px-4 py-2 rounded-full border border-gold/25 bg-gold/8 text-[12px] text-gold"
-      >
-        <Sparkles size={13} />
-        {t("auth.signupBonus")}
-      </motion.div>
+      {/* Incentive pill — the live admin amount, hidden when the bonus is off */}
+      {bonusPaise != null && bonusPaise > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.05 }}
+          className="mb-5 flex items-center gap-2 px-4 py-2 rounded-full border border-gold/25 bg-gold/8 text-[12px] text-gold"
+        >
+          <Sparkles size={13} />
+          {t("auth.signupBonus", { amount: formatRupees(bonusPaise) })}
+        </motion.div>
+      )}
 
       {/* Card */}
       <motion.div

@@ -176,6 +176,16 @@ export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
  * doesn't know about yet) is appended afterward, in first-seen order, rather
  * than dropped. Groups with zero rows are omitted entirely.
  */
+/** True for a feature the registry tags as part of the current roadmap build (shown with a NEW badge). */
+export function isNewFeature(row: { tag?: string | null }): boolean {
+  return row.tag === "new";
+}
+
+/** The rows the Features board shows: everything, or only NEW-tagged rows when `newOnly` is on. */
+export function filterFeaturesForBoard<T extends { tag?: string | null }>(rows: T[], newOnly: boolean): T[] {
+  return newOnly ? rows.filter(isNewFeature) : rows;
+}
+
 export function groupFeaturesByGroup<T extends { group: string }>(
   items: readonly T[],
 ): { group: string; items: T[] }[] {

@@ -2,18 +2,19 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Orbit, CalendarDays, Gift, BellOff } from "lucide-react";
+import { Sun, Orbit, CalendarDays, Gift, BellOff } from "lucide-react";
 import ListRow from "@/components/ui/ListRow";
 import Switch from "@/components/ui/Switch";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type NotificationPrefs, type QuietHours } from "@/lib/api";
 import { track } from "@/lib/analytics";
 
-type Category = "transitAlerts" | "muhurta" | "marketing";
+type Category = "dailyHoroscope" | "transitAlerts" | "muhurta" | "marketing";
 
 const QUIET_HOURS: QuietHours = { start: "22:00", end: "07:00" };
 
 const ROWS: { category: Category; labelKey: string; icon: ReactNode }[] = [
+  { category: "dailyHoroscope", labelKey: "settings.notifDailyHoroscope", icon: <Sun size={16} /> },
   { category: "transitAlerts", labelKey: "settings.notifPlanetAlerts", icon: <Orbit size={16} /> },
   { category: "muhurta", labelKey: "settings.notifFestivals", icon: <CalendarDays size={16} /> },
   { category: "marketing", labelKey: "settings.notifOffers", icon: <Gift size={16} /> },

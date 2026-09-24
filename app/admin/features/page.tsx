@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminFeatureRow } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
-import { groupFeaturesByGroup, paiseToRupeeInput, validatePriceInput, validateOptionalPriceInput } from "@/lib/admin-format";
+import {
+  filterFeaturesForBoard,
+  groupFeaturesByGroup,
+  isNewFeature,
+  paiseToRupeeInput,
+  validatePriceInput,
+  validateOptionalPriceInput,
+} from "@/lib/admin-format";
 import Switch from "@/components/ui/Switch";
 import ErrorRetry from "@/components/admin/ErrorRetry";
 import FeatureGroupSection from "@/components/admin/FeatureGroupSection";
@@ -24,6 +31,7 @@ export default function AdminFeaturesPage() {
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
   const [originalPriceDrafts, setOriginalPriceDrafts] = useState<Record<string, string>>({});
+  const [newOnly, setNewOnly] = useState(false);
 
   const fetchFeatures = useCallback(() => {
     setLoading(true);
@@ -189,13 +197,21 @@ export default function AdminFeaturesPage() {
       {features && !error && (
         <>
           {features.length === 0 && <p className="text-sm text-muted text-center py-10">No features configured.</p>}
-          {groupFeaturesByGroup(features).map(({ group, items }) => (
+          {features.some(isNewFeature) && (
+            <label className="mb-4 flex items-center gap-2 text-xs text-muted">
+              <Switch checked={newOnly} onChange={setNewOnly} aria-label="Show new features only" />
+              New features only ({features.filter(isNewFeature).length}) — every one ships off; turn it on
+              here, or for one group under Groups, to try it.
+            </label>
+          )}
+          {groupFeaturesByGroup(filterFeaturesForBoard(features, newOnly)).map(({ group, items }) => (
             <FeatureGroupSection key={group} group={group}>
               {items.map((row) => (
                 <FeatureRow
                   key={row.key}
                   label={row.label}
                   featureKey={row.key}
+                  isNew={isNewFeature(row)}
                   error={rowErrors[row.key]}
                   priceEditor={
                     row.modelOptions.length > 0 ? (

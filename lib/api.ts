@@ -629,16 +629,6 @@ export interface TopUpAmount {
   popular?: boolean;
 }
 
-export interface CouponValidation {
-  valid: boolean;
-  code: string;
-  discountType?: "percent" | "flat";
-  discountValue?: number;
-  discountPaise?: number;
-  finalAmountPaise?: number;
-  message?: string;
-}
-
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
 
 export interface Order {
@@ -681,7 +671,9 @@ export type TransactionKind =
   | "referral_bonus"
   | "admin_adjustment"
   | "report_unlock"
-  | "daily_reward";
+  | "daily_reward"
+  | "palm_reading"
+  | "voice_call";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }
@@ -1328,57 +1320,32 @@ export const api = {
   pollKundli: (opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal; language?: string } = {}) =>
     pollKundli(opts),
 
+  /** The wallet bonus a new account starts with (admin `rewards.signupBonus`) — public, for the signed-out sign-in screen. 0 = switched off. */
+  signupBonus: () => request<{ amountPaise: number }>("/v1/public/signup-bonus"),
+
   /** Purchasable top-up amounts. */
   billingTopUpAmounts: () =>
-    request<{ amounts: TopUpAmount[]; razorpayEnabled: boolean }>("/v1/billing/top-up-amounts", {
+    request<{ amounts: TopUpAmount[] }>("/v1/billing/top-up-amounts", {
       auth: true,
     }),
 
-  /** Preview the discount a coupon would apply to a top-up amount, without redeeming it. */
-  validateCoupon: (code: string, packId: string) =>
-    request<CouponValidation>("/v1/billing/coupons/validate", {
-      method: "POST",
-      body: { code, packId },
-      auth: true,
-    }),
-
-  /** Create a pending order for a top-up amount (optionally with a coupon applied). */
-  checkout: (packId: string, couponCode?: string) =>
+  /** Create the pending order a Google Play top-up is matched against. */
+  checkout: (packId: string) =>
     request<Order>("/v1/billing/checkout", {
       method: "POST",
-      body: couponCode ? { packId, couponCode } : { packId },
+      body: { packId },
       auth: true,
     }),
 
   /**
    * Confirm payment for a pending order and grant its value to the wallet.
-   * MOCK — stands in for a real gateway webhook until Razorpay/Stripe is
-   * wired up; always succeeds for a pending order. Caller should `refresh()`
+   * The server always refuses this today (no gateway backs it); top-ups go
+   * through `confirmGooglePlayOrder`. Caller should `refresh()`
    * (useAuth) after to pick up the updated wallet balance.
    */
   confirmOrder: (orderId: string) =>
     request<{ order: Order; walletBalancePaise: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
-      auth: true,
-    }),
-
-  /** Create a pending order plus its Razorpay order — everything checkout.js needs to open the modal. */
-  razorpayCheckout: (packId: string, couponCode?: string) =>
-    request<{ order: Order; razorpayOrderId: string; razorpayKeyId: string }>(
-      "/v1/billing/razorpay/order",
-      { method: "POST", body: couponCode ? { packId, couponCode } : { packId }, auth: true },
-    ),
-
-  /** Hand Razorpay's payment ids back to the server, which verifies the signature before granting. */
-  verifyRazorpayPayment: (params: {
-    orderId: string;
-    razorpayOrderId: string;
-    razorpayPaymentId: string;
-    razorpaySignature: string;
-  }) =>
-    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/razorpay/verify", {
-      method: "POST",
-      body: params,
       auth: true,
     }),
 

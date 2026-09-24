@@ -74,6 +74,8 @@ export interface AdminFeatureRow {
   model: string | null;
   /** Non-empty ONLY for a model-picker key — renders a dropdown of these instead of a price box. */
   modelOptions: string[];
+  /** Registry tag: `"new"` marks a roadmap feature (NEW badge + "New only" filter). Absent on older backends. */
+  tag?: string | null;
 }
 
 export interface UpdateAdminFeatureBody {

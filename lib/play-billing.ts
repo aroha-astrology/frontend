@@ -29,7 +29,7 @@ export async function isNativeAndroid(): Promise<boolean> {
   }
 }
 
-/** True only inside the native iOS build — Apple's IAP rules block Razorpay there. */
+/** True only inside the native iOS build — no in-app top-up exists there yet. */
 export async function isNativeIOS(): Promise<boolean> {
   try {
     const { Capacitor } = await import("@capacitor/core");

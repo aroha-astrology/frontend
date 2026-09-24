@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   ADMIN_DATE_RANGE_PRESETS,
+  filterFeaturesForBoard,
+  isNewFeature,
   buildAdminRangeQuery,
   isValidCustomRange,
   parseRupeeAmount,
@@ -500,5 +502,22 @@ describe("formatModelPricing", () => {
     ]) {
       expect(MODEL_PRICING[model]).toBeDefined();
     }
+  });
+});
+
+describe("new-feature board filter", () => {
+  const rows = [
+    { key: "home.astroWeather", tag: "new" },
+    { key: "nav.home", tag: null },
+    { key: "paid.chat" },
+  ];
+
+  it("recognises only the registry's 'new' tag", () => {
+    expect(rows.map(isNewFeature)).toEqual([true, false, false]);
+  });
+
+  it("shows every row by default and only NEW rows when filtered", () => {
+    expect(filterFeaturesForBoard(rows, false)).toHaveLength(3);
+    expect(filterFeaturesForBoard(rows, true).map((r) => r.key)).toEqual(["home.astroWeather"]);
   });
 });

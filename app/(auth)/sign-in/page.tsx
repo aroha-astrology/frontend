@@ -7,10 +7,13 @@ import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import BrandLogo from "@/components/ui/BrandLogo";
 import AuthMethodPanel from "@/components/auth/AuthMethodPanel";
+import { useSignupBonus } from "@/hooks/useSignupBonus";
+import { formatRupees } from "@/lib/format";
 
 export default function SignInPage() {
   const { t } = useTranslation();
   const [showFooter, setShowFooter] = useState(true);
+  const bonusPaise = useSignupBonus();
 
   return (
     <main className="relative z-10 flex flex-col items-center px-6 pb-12">
@@ -44,10 +47,12 @@ export default function SignInPage() {
                 {t("auth.signUp")}
               </Link>
             </p>
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[12px] text-gold/80">
-              <Sparkles size={12} />
-              {t("auth.newUserBonus")}
-            </p>
+            {bonusPaise != null && bonusPaise > 0 && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[12px] text-gold/80">
+                <Sparkles size={12} />
+                {t("auth.newUserBonus", { amount: formatRupees(bonusPaise) })}
+              </p>
+            )}
           </>
         )}
       </motion.div>

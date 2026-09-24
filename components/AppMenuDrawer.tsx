@@ -22,6 +22,7 @@ import {
   LogOut,
   ShieldCheck,
   CalendarDays,
+  GanttChart,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
@@ -51,6 +52,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { user, signOut } = useAuth();
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
   const { enabled: calendarEnabled } = useNewFeature("nav.calendar");
+  const { enabled: timelineEnabled } = useNewFeature("nav.lifeTimeline");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -255,6 +257,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<CalendarDays size={16} />}
                     label={t("calendar.menu")}
                     href="/calendar"
+                    onClick={onClose}
+                  />
+                )}
+                {timelineEnabled && (
+                  <ListRow
+                    icon={<GanttChart size={16} />}
+                    label={t("timeline.menu")}
+                    href="/timeline"
                     onClick={onClose}
                   />
                 )}

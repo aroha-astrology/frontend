@@ -28,6 +28,7 @@ export function whyFactorText(t: Translate, factor: WhyFactor, lang: string): st
   if (p.sign != null) vars.sign = t(`zodiac.signs.${String(p.sign).toLowerCase()}`);
   if (p.until != null) vars.until = formatUntil(String(p.until), lang);
   if (p.tara != null) vars.taraName = t(`why.taras.${p.tara}`);
+  if (p.starLord != null) vars.starLord = t(`planetNames.${String(p.starLord).toLowerCase()}`);
   return t(factor.textKey, vars);
 }
 

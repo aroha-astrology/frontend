@@ -674,7 +674,8 @@ export type TransactionKind =
   | "daily_reward"
   | "palm_reading"
   | "voice_call"
-  | "birth_time_check";
+  | "birth_time_check"
+  | "life_timeline";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

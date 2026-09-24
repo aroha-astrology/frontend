@@ -146,3 +146,40 @@ export const calendarApi = {
   get: (from?: string, days = 90) =>
     request<CalendarResponse>(`/v1/calendar?days=${days}${from ? `&from=${from}` : ""}`, { auth: true }),
 };
+
+/* -------------------------------------------------------------------------- */
+/* Life Timeline (roadmap step 4)                                              */
+/* -------------------------------------------------------------------------- */
+
+export type TimelineArea = "career" | "relationships" | "money" | "education" | "family" | "business" | "relocation";
+
+export interface UnlockState {
+  unlocked: boolean;
+  via: "purchase" | "pass" | null;
+  pricePaise: number;
+}
+
+export interface TimelineBand {
+  start: string;
+  end: string;
+  score: number;
+  level: "high" | "medium";
+  lords: [string, string];
+  why: WhyFactor[];
+}
+
+export interface TimelineResponse {
+  birthDate: string;
+  today: string;
+  range: { from: string; to: string };
+  full: boolean;
+  unlock: UnlockState;
+  approximateBirthTime: boolean;
+  mahadashas: Array<{ planet: string; start: string; end: string }>;
+  lanes: Array<{ area: TimelineArea; bands: TimelineBand[] }>;
+}
+
+export const timelineApi = {
+  get: () => request<TimelineResponse>("/v1/timeline", { auth: true }),
+  unlock: () => request<UnlockState>("/v1/timeline/unlock", { method: "POST", auth: true }),
+};

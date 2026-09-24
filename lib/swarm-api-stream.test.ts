@@ -165,3 +165,17 @@ describe("streamChat SSE parsing", () => {
     });
   });
 });
+
+describe("streamChat explore frame (Ask Aroha 2.0)", () => {
+  it("surfaces the explore links", async () => {
+    const events = await collect(
+      frame("explore", { area: "career", links: ["timeline", "calendar"] }) +
+        frame("token", { content: "FACTOR: x | y\n" }) +
+        frame("done", { status: "complete" }),
+    );
+    expect(events.find((e) => e.type === "explore")).toEqual({
+      type: "explore",
+      data: { area: "career", links: ["timeline", "calendar"] },
+    });
+  });
+});

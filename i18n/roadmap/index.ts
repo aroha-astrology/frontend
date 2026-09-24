@@ -5,9 +5,10 @@ import { astroNamesBundle } from "./astro-names";
 import { weatherBundle } from "./weather";
 import { calendarBundle } from "./calendar";
 import { timelineBundle } from "./timeline";
+import { askBundle } from "./ask";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

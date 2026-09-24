@@ -16,6 +16,7 @@ import RemediesCard from "@/components/RemediesCard";
 import AstroWeatherCard from "@/components/weather/AstroWeatherCard";
 import YourDayCard from "@/components/weather/YourDayCard";
 import NextWindowCard from "@/components/calendar/NextWindowCard";
+import AskArohaCard from "@/components/ask/AskArohaCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -60,6 +61,14 @@ function NextWindowSection() {
   return (
     <div className="px-5 mt-6">
       <NextWindowCard />
+    </div>
+  );
+}
+
+function AskArohaSection() {
+  return (
+    <div className="px-5 mt-6">
+      <AskArohaCard />
     </div>
   );
 }
@@ -161,6 +170,7 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
   { id: "yourDay", featureKey: "home.yourDay", Component: YourDaySection, isNew: true },
   { id: "nextWindow", featureKey: "home.nextWindow", Component: NextWindowSection, isNew: true },
+  { id: "askAroha", featureKey: "home.askAroha", Component: AskArohaSection, isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
   { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },

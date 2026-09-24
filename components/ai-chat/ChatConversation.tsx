@@ -8,7 +8,10 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
-import { streamChat, sendChatFeedback, SwarmApiError } from "@/lib/swarm-api";
+import { streamChat, sendChatFeedback, SwarmApiError, type ChatExploreEvent } from "@/lib/swarm-api";
+import { isStructuredAnswer, structuredToPlainText, structuredToSpeech } from "@/lib/structured-answer";
+import { speechLangFor } from "@/lib/speech-lang";
+import StructuredAnswer, { ExploreLinks } from "./StructuredAnswer";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { referralPlayStoreUrl } from "@/lib/referral";
 import { track } from "@/lib/analytics";
@@ -21,7 +24,7 @@ import { getTtsBackend } from "@/lib/tts";
 import { LANGUAGES, type LangCode } from "@/providers/language-provider";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { useKundli } from "@/hooks/useKundli";
-import { useFeature } from "@/hooks/useFeature";
+import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 
@@ -40,6 +43,8 @@ interface Message {
   isOutOfCredit?: boolean;
   /** The canned persona-intro bubble, not a real AI reply — no listen/feedback icons on it. */
   isGreeting?: boolean;
+  /** Ask Aroha 2.0 "Explore further" links, sent by the server ahead of the reply. */
+  explore?: ChatExploreEvent["data"];
 }
 
 const THINKING_KEYS = ["aiChatPage.thinking1", "aiChatPage.thinking2", "aiChatPage.thinking3"];
@@ -287,6 +292,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const [voteMap, setVoteMap] = useState<Record<string, "up" | "down">>({});
   const [missingVoiceLang, setMissingVoiceLang] = useState<LangCode | null>(null);
 
+  // Talk to Aroha (chat.voiceMode, ships off): `/ai-chat?voice=1` from the
+  // Home card swaps the composer for one big mic — speak, the question sends
+  // itself, and the reply is read aloud in the voice of its own script.
+  const { enabled: voiceModeOn } = useNewFeature("chat.voiceMode");
+  const [voiceMode, setVoiceMode] = useState(false);
+  useEffect(() => {
+    if (voiceModeOn && new URLSearchParams(window.location.search).get("voice") === "1") setVoiceMode(true);
+  }, [voiceModeOn]);
+
   const handleSpeak = useCallback(async (msg: Message, spokenText: string) => {
     if (!ttsBackend) return;
     if (speakingId === msg.id) {
@@ -295,7 +309,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       return;
     }
 
-    const lang = i18n.language as LangCode;
+    const appLang = i18n.language as LangCode;
+    const lang = voiceModeOn ? speechLangFor(spokenText, appLang) : appLang;
     const hasVoice = await ttsBackend.hasVoiceFor(lang);
     if (!hasVoice) {
       setMissingVoiceLang(lang);
@@ -305,7 +320,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     setSpeakingId(msg.id);
     await ttsBackend.speak(spokenText, lang);
     setSpeakingId((current) => (current === msg.id ? null : current));
-  }, [ttsBackend, speakingId, i18n.language]);
+  }, [ttsBackend, speakingId, i18n.language, voiceModeOn]);
+  // sendMessage reads the reply aloud in voice mode; through a ref so it
+  // doesn't re-create on every speakingId change.
+  const speakRef = useRef(handleSpeak);
+  speakRef.current = handleSpeak;
+  const voiceModeRef = useRef(voiceMode);
+  voiceModeRef.current = voiceMode;
 
   useEffect(() => {
     return () => ttsBackend?.stop();
@@ -318,7 +339,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // as the only way to ask a question in a language that's slow to type on a
   // phone keyboard. Appends onto whatever's already in the box rather than
   // replacing it, so a user can dictate part of a question and type the rest.
-  const handleDictate = useCallback(() => {
+  const listen = useCallback((onTranscript: (transcript: string) => void) => {
     if (!SpeechRecognitionCtor) return;
     if (isListening) {
       recognitionRef.current?.stop();
@@ -330,16 +351,39 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     recognition.maxAlternatives = 1;
     recognition.onresult = (event) => {
       const transcript = event.results?.[0]?.[0]?.transcript ?? "";
-      if (transcript) {
-        setInput((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript));
-      }
+      if (transcript) onTranscript(transcript);
     };
     recognition.onerror = () => setIsListening(false);
     recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
     setIsListening(true);
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
   }, [SpeechRecognitionCtor, isListening, i18n.language]);
+
+  const handleDictate = useCallback(() => {
+    listen((transcript) => setInput((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript)));
+  }, [listen]);
+
+  // Voice mode's mic: the spoken question sends as soon as recognition ends —
+  // the user picked "Talk to Aroha", and the voice panel shows the price.
+  const sendMessageRef = useRef<(text: string) => void>(() => {});
+  const handleVoiceQuestion = useCallback(() => {
+    ttsBackend?.stop();
+    setSpeakingId(null);
+    listen((transcript) => sendMessageRef.current(transcript.trim()));
+  }, [listen, ttsBackend]);
+
+  // Arriving from Home's "Talk to Aroha" starts listening straight away.
+  const voiceAutoStarted = useRef(false);
+  useEffect(() => {
+    if (!voiceMode || voiceAutoStarted.current) return;
+    voiceAutoStarted.current = true;
+    handleVoiceQuestion();
+  }, [voiceMode, handleVoiceQuestion]);
 
   useEffect(() => {
     return () => recognitionRef.current?.stop();
@@ -501,10 +545,11 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     }
 
     // Add user message + empty assistant placeholder in one update
+    const replyId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", content: msg },
-      { id: crypto.randomUUID(), role: "assistant", content: "" },
+      { id: replyId, role: "assistant", content: "" },
     ]);
     setInput("");
     setStreaming(true);
@@ -515,6 +560,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     // block's user_stopped branch below can still read whatever streamed in
     // before the abort — a try-scoped `let` would be out of scope there.
     let fullContent = "";
+    let streamFailed = false;
 
     try {
       const compareProfileIdForThisTurn = pendingCompareProfileIdRef.current;
@@ -544,6 +590,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             return next;
           });
         } else if (event.type === "error") {
+          streamFailed = true;
           setMessages((prev) => {
             const next = [...prev];
             const last = next[next.length - 1];
@@ -565,6 +612,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.set("sessionId", event.data.sessionId);
           window.history.replaceState({}, "", newUrl.toString());
+        } else if (event.type === "explore") {
+          const explore = event.data;
+          setMessages((prev) => prev.map((m) => (m.id === replyId ? { ...m, explore } : m)));
         } else if (event.type === "done") {
           break;
         }
@@ -584,12 +634,19 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           }
           return next;
         });
-      } else if (recordGoodChatReply() === 5) {
-        // Five real answers, EVER (persisted — most sessions are only 1-2
-        // messages, so requiring 5 in one sitting almost never fired) means
-        // the user got what they came for — a milestone worth offering
-        // Google's review card on.
-        void maybeRequestReview();
+      } else {
+        if (voiceModeRef.current && !streamFailed) {
+          const { text: replyText } = splitFollowUp(fullContent);
+          const spoken = isStructuredAnswer(replyText) ? structuredToSpeech(replyText) : replyText;
+          void speakRef.current({ id: replyId, role: "assistant", content: fullContent }, spoken);
+        }
+        if (recordGoodChatReply() === 5) {
+          // Five real answers, EVER (persisted — most sessions are only 1-2
+          // messages, so requiring 5 in one sitting almost never fired) means
+          // the user got what they came for — a milestone worth offering
+          // Google's review card on.
+          void maybeRequestReview();
+        }
       }
     } catch (err) {
       // Pacing rejections are the one failure the user must never be shown,
@@ -649,6 +706,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       refresh().catch(() => {});
     }
   }, [input, streaming, canAfford, t, refresh]);
+  sendMessageRef.current = (text: string) => void sendMessage(text);
 
   const handleStop = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -742,6 +800,10 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             const isLastStreaming = streaming && i === messages.length - 1;
             const { text: assistantText, followUps } =
               msg.role === "assistant" && !isLastStreaming ? splitFollowUp(msg.content) : { text: msg.content, followUps: [] };
+            // Ask Aroha 2.0 replies render as cards; copy, share and listen get plain sentences.
+            const structured = msg.role === "assistant" && !msg.isError && isStructuredAnswer(assistantText);
+            const plainText = structured ? structuredToPlainText(assistantText) : assistantText;
+            const spokenText = structured ? structuredToSpeech(assistantText) : assistantText;
             return (
             <motion.div
               key={msg.id}
@@ -768,7 +830,11 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                       : {}
                   }
                 >
-                  {msg.role === "assistant" ? renderMessageContent(separateQuestions(assistantText)) : msg.content}
+                  {msg.role !== "assistant"
+                    ? msg.content
+                    : structured
+                      ? <StructuredAnswer text={assistantText} />
+                      : renderMessageContent(separateQuestions(assistantText))}
                   {/* Cursor while streaming — only once tokens have actually started
                       arriving. Before that, `msg.content` is still empty and the
                       dedicated typing indicator below is showing instead; without
@@ -797,7 +863,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                 <div className="ml-9 mt-1.5 flex flex-wrap items-center gap-3">
                   {ttsBackend && (
                     <button
-                      onClick={() => handleSpeak(msg, assistantText)}
+                      onClick={() => handleSpeak(msg, spokenText)}
                       aria-label={t(speakingId === msg.id ? "aiChatPage.stopListening" : "aiChatPage.listen")}
                       className="transition-colors"
                       style={{ color: speakingId === msg.id ? "var(--gold, #eab308)" : "var(--text-muted)" }}
@@ -827,7 +893,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                     <span className="text-[10px] text-[var(--text-muted)]">{t("aiChatPage.feedbackThanks")}</span>
                   )}
                   <button
-                    onClick={() => handleCopy(msg, assistantText)}
+                    onClick={() => handleCopy(msg, plainText)}
                     aria-label={t(copiedId === msg.id ? "aiChatPage.copied" : "aiChatPage.copyReply")}
                     className="transition-colors"
                     style={{ color: copiedId === msg.id ? "#22c55e" : "var(--text-muted)" }}
@@ -835,7 +901,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                     {copiedId === msg.id ? <Check size={15} /> : <Copy size={15} />}
                   </button>
                   <button
-                    onClick={() => handleShareReply(assistantText)}
+                    onClick={() => handleShareReply(plainText)}
                     aria-label={t("aiChatPage.shareReply")}
                     className="transition-colors"
                     style={{ color: "var(--text-muted)" }}
@@ -851,6 +917,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                   a user fact; a single suggested question never does), and (c) the
                   account's one-per-3-days free tap is unspent. The server verifies
                   all three (isFreeFollowUp + claimFreeFollowUp in astro.routes.ts). */}
+              {msg.explore && !isLastStreaming && !msg.isError && <ExploreLinks explore={msg.explore} />}
               {followUps.length > 0 && (() => {
                 const single = followUps.length === 1;
                 const isFreeTap = i === messages.length - 1 && !single && freeFollowUpAvailable;
@@ -980,6 +1047,63 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           {/* Voice used to live here as a mic button; it is now a call icon in
               the header. A second mic (dictate) lives inline in the composer
               below — free text-to-speech input, not the paid realtime call. */}
+          {voiceMode && SpeechRecognitionCtor ? (
+            <div className="flex flex-col items-center gap-2" data-testid="voice-panel">
+              <p className="text-[10px] text-[var(--text-muted)]/70">
+                {t("ask.voice.price", { amount: formatRupees(CHAT_MESSAGE_COST_PAISE) })}
+              </p>
+              <button
+                type="button"
+                onClick={
+                  streaming
+                    ? handleStop
+                    : speakingId
+                      ? () => {
+                          ttsBackend?.stop();
+                          setSpeakingId(null);
+                        }
+                      : handleVoiceQuestion
+                }
+                aria-label={t(
+                  streaming ? "aiChatPage.stopGenerating" : speakingId ? "aiChatPage.stopListening" : "aiChatPage.dictate",
+                )}
+                className="h-16 w-16 rounded-full flex items-center justify-center transition-colors"
+                style={{
+                  background: isListening ? "#ef4444" : "var(--gold, #eab308)",
+                  color: isListening ? "#fff" : "#000",
+                }}
+              >
+                {streaming ? (
+                  <Square size={20} fill="currentColor" />
+                ) : speakingId ? (
+                  <VolumeX size={24} />
+                ) : (
+                  <Mic size={26} className={isListening ? "animate-pulse" : ""} />
+                )}
+              </button>
+              <p className="text-xs text-[var(--text-muted)]" aria-live="polite">
+                {t(
+                  isListening
+                    ? "ask.voice.listening"
+                    : streaming
+                      ? "ask.voice.thinking"
+                      : speakingId
+                        ? "ask.voice.speaking"
+                        : "ask.voice.tap",
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  recognitionRef.current?.stop();
+                  setVoiceMode(false);
+                }}
+                className="text-[11px] text-gold underline underline-offset-2"
+              >
+                {t("ask.voice.typeInstead")}
+              </button>
+            </div>
+          ) : (
           <div className="flex gap-3 items-end">
             <div
               data-tour="chat-input"
@@ -1038,6 +1162,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
 

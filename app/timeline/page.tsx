@@ -14,6 +14,7 @@ import NewFeatureGuard from "@/components/NewFeatureGuard";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { useAuth } from "@/providers/auth-provider";
+import { useNewFeature } from "@/hooks/useFeature";
 import { timelineApi, type TimelineArea, type TimelineBand, type TimelineResponse } from "@/lib/insights-api";
 import { ageTicks, chartWidthPx, positionPct, widthPct } from "@/lib/timeline-format";
 import { shortDate } from "@/lib/calendar-format";
@@ -95,6 +96,8 @@ function TimelinePage() {
   const [focus, setFocus] = useState<TimelineArea | "all">("all");
   const [open, setOpen] = useState<{ area: TimelineArea; band: TimelineBand } | null>(null);
   const [unlocking, setUnlocking] = useState(false);
+  // The whole-life unlock has its own switch; with it off the free window stays, without a buy button that would 403.
+  const { enabled: unlockOn } = useNewFeature("paid.lifeTimelineFull");
   const [unlockError, setUnlockError] = useState<"funds" | "error" | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -106,6 +109,14 @@ function TimelinePage() {
   }, []);
 
   useEffect(load, [load]);
+
+  // `/timeline?area=career` (Ask Aroha's "Explore further") opens on that lane.
+  useEffect(() => {
+    if (!data) return;
+    const area = new URLSearchParams(window.location.search).get("area");
+    const lane = data.lanes.find((l) => l.area === area);
+    if (lane) setFocus(lane.area);
+  }, [data]);
 
   // Start with today in view.
   useEffect(() => {
@@ -252,7 +263,7 @@ function TimelinePage() {
             <p className="text-[11px] text-muted">{t("timeline.legend")}</p>
             {data.approximateBirthTime && <p className="text-[11px] text-amber-300/90">{t("timeline.approximate")}</p>}
 
-            {!data.full && (
+            {!data.full && unlockOn && (
               <Card className="p-4 border-gold/20 text-center space-y-2">
                 <p className="flex items-center justify-center gap-2 text-sm text-foreground">
                   <Lock size={14} className="text-gold" />

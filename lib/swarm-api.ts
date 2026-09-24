@@ -159,7 +159,19 @@ export interface ChatSessionIdEvent {
   data: { sessionId: string };
 }
 
-export type ChatStreamEvent = ChatTokenEvent | ChatSummaryEvent | ChatDoneEvent | ChatErrorEvent | ChatSessionIdEvent;
+/** Ask Aroha 2.0: in-app places to explore the question further (only features the user has on). */
+export interface ChatExploreEvent {
+  type: "explore";
+  data: { area: string; links: Array<"timeline" | "calendar" | "weather" | "decide"> };
+}
+
+export type ChatStreamEvent =
+  | ChatTokenEvent
+  | ChatSummaryEvent
+  | ChatDoneEvent
+  | ChatErrorEvent
+  | ChatSessionIdEvent
+  | ChatExploreEvent;
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
@@ -433,6 +445,8 @@ export async function* streamChat(
                 tokenBuffer = "";
               }
               yield { type: "session_id", data: { sessionId: data.sessionId } };
+            } else if (eventType === "explore") {
+              yield { type: "explore", data: { area: data.area ?? "overall", links: Array.isArray(data.links) ? data.links : [] } };
             } else if (eventType === "error") {
               yield { type: "error", data: { message: data.message ?? "Unknown error" } };
             }

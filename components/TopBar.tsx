@@ -10,6 +10,7 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { api } from "@/lib/api";
+import { onForegroundPush } from "@/lib/push-events";
 import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
 import WalletBalance from "@/components/ui/WalletBalance";
@@ -63,6 +64,10 @@ export default function TopBar() {
       .then((data) => setHasUnread(data.some((n) => !n.readAt)))
       .catch(() => {});
   }, [user]);
+
+  // A push that lands while the app is open was also written to the inbox
+  // server-side — light the dot without re-fetching.
+  useEffect(() => onForegroundPush(() => setHasUnread(true)), []);
 
   const hidden =
     HIDDEN_TOPBAR_EXACT_ROUTES.includes(pathname) ||

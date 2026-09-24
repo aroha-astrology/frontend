@@ -23,6 +23,7 @@ import FestivalGiftModal from "@/components/FestivalGiftModal";
 import DailyRewardModal from "@/components/DailyRewardModal";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
+import PushForegroundBanner from "@/components/PushForegroundBanner";
 import ReferralCapture from "@/components/ReferralCapture";
 import GooglePlayPurchaseReconciler from "@/components/GooglePlayPurchaseReconciler";
 
@@ -121,6 +122,7 @@ export default function RootLayout({
                       </TopBarProvider>
                       <BackButtonListener />
                       <PushNotificationListener />
+                      <PushForegroundBanner />
                       <ReferralCapture />
                       <GooglePlayPurchaseReconciler />
                     </BackHandlerProvider>

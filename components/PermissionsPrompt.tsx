@@ -12,6 +12,7 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useLocationRewardClaim } from "@/hooks/useLocationRewardClaim";
 import { useFeature } from "@/hooks/useFeature";
 import { requestPushPermission } from "@/lib/push-permission";
+import { canOpenNotificationSettings, openNotificationSettings } from "@/lib/app-settings";
 import { formatRupees } from "@/lib/format";
 import {
   LOCATION_REWARD_REASON,
@@ -48,6 +49,10 @@ export default function PermissionsPrompt() {
   const [busy, setBusy] = useState(false);
   const [deniedState, setDeniedState] = useState(false);
   const [platform, setPlatform] = useState<string | null>(null);
+  // Android builds with the AppSettings plugin (1.12+) can jump straight to this
+  // app's notification settings — the only way back once Android stops showing
+  // its own dialog after a second decline.
+  const [androidSettings, setAndroidSettings] = useState(false);
   const notifFeature = useFeature("rewards.notificationsGrant");
   const locationFeature = useFeature("rewards.locationGrant");
 
@@ -96,6 +101,7 @@ export default function PermissionsPrompt() {
         }
 
         setDeniedState(window.localStorage.getItem(DENIED_KEY) === "1");
+        setAndroidSettings(await canOpenNotificationSettings());
         setVisible(true);
       } catch {
         // @capacitor/core not resolvable (e.g. plain web build) — never show.
@@ -129,6 +135,28 @@ export default function PermissionsPrompt() {
   const openSettings = () => {
     window.location.href = "app-settings:";
     stampAsked(true);
+  };
+
+  const openAndroidSettings = async () => {
+    // When the user comes back from Settings, register the device right away —
+    // otherwise a freshly-allowed phone gets no pushes until the next cold
+    // start's token refresh. requestPushPermission() shows no dialog when the
+    // OS already says granted (or permanently denied); it just registers.
+    if (!(await openNotificationSettings())) {
+      // The settings screen couldn't open — fall back to re-requesting.
+      void enable();
+      return;
+    }
+    stampAsked(true);
+    try {
+      const { App } = await import("@capacitor/app");
+      const handle = await App.addListener("resume", () => {
+        void handle.remove();
+        void requestPushPermission(user?.id ?? "");
+      });
+    } catch {
+      // No App plugin — the next launch's refresh covers it.
+    }
   };
 
   const enable = async () => {
@@ -211,11 +239,11 @@ export default function PermissionsPrompt() {
                       permanently-declined Android user simply gets an instant
                       "denied" and this same prompt again next login. */}
                   <button
-                    onClick={platform === "ios" ? openSettings : enable}
+                    onClick={platform === "ios" ? openSettings : androidSettings ? openAndroidSettings : enable}
                     disabled={busy}
                     className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm font-bold disabled:opacity-50 transition-opacity"
                   >
-                    {platform === "ios" ? t("permissions.openSettings") : t("permissions.enable")}
+                    {platform === "ios" || androidSettings ? t("permissions.openSettings") : t("permissions.enable")}
                   </button>
                 </div>
               </>

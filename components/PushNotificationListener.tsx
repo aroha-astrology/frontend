@@ -5,11 +5,20 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/lib/api";
 import { getDeviceId, isPushRefreshDue, markPushRefreshed } from "@/lib/device-id";
+import { ANDROID_PUSH_CHANNEL_ID, emitForegroundPush } from "@/lib/push-events";
+import { track } from "@/lib/analytics";
 
 /**
  * Listens for interactions with push notifications (e.g., user taps on a notification).
  * If the notification payload contains a `navigate` field in its data, this will
  * redirect the user to that route within the app.
+ *
+ * Pushes that arrive while the app is OPEN are not shown by Android at all —
+ * they only reach `notificationReceived`. Those are re-emitted as an in-app
+ * event (lib/push-events.ts) for PushForegroundBanner and the Bell dot.
+ *
+ * Also (re)creates the high-importance Android channel every push is posted to
+ * (idempotent) so pushes pop up instead of sitting silently in the shade.
  *
  * Also silently re-registers the device's FCM token, at most once a day, when
  * notification permission is already granted — this is what actually fixes
@@ -34,6 +43,7 @@ export default function PushNotificationListener() {
 
   useEffect(() => {
     let listener: any;
+    let receivedListener: any;
     let cancelled = false;
 
     (async () => {
@@ -45,10 +55,30 @@ export default function PushNotificationListener() {
 
         listener = await FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
           const data = event.notification.data as Record<string, string> | undefined;
+          track("push_opened", { type: data?.type ?? null });
           if (data && data.navigate) {
             routerRef.current.push(data.navigate);
           }
         });
+
+        receivedListener = await FirebaseMessaging.addListener("notificationReceived", (event) => {
+          const n = event.notification;
+          const data = n.data as Record<string, string> | undefined;
+          if (!n.title && !n.body) return;
+          track("push_received_foreground", { type: data?.type ?? null });
+          emitForegroundPush({ title: n.title ?? "", body: n.body ?? "", navigate: data?.navigate, type: data?.type });
+        });
+
+        if (Capacitor.getPlatform() === "android") {
+          // importance 4 = IMPORTANCE_HIGH (heads-up); visibility 1 = public.
+          FirebaseMessaging.createChannel({
+            id: ANDROID_PUSH_CHANNEL_ID,
+            name: "Aroha alerts",
+            description: "Readings, reports and astrology alerts",
+            importance: 4,
+            visibility: 1,
+          }).catch(() => {});
+        }
 
         if (userId && isPushRefreshDue(userId)) {
           try {
@@ -75,6 +105,7 @@ export default function PushNotificationListener() {
     return () => {
       cancelled = true;
       if (listener) listener.remove();
+      if (receivedListener) receivedListener.remove();
     };
   }, [userId]);
 

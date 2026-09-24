@@ -18,6 +18,20 @@ export function capturePendingReferralCode() {
   }
 }
 
+/**
+ * Stash a code that arrived some other way than the URL (the Play install
+ * referrer — lib/install-referrer.ts). Never overwrites one already pending:
+ * an explicit `?ref=` link the user opened wins.
+ */
+export function storePendingReferralCode(code: string) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, code.trim().toUpperCase());
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getPendingReferralCode(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -57,6 +71,16 @@ export function capturePendingUtmSource() {
   }
 }
 
+/** Same as capturePendingUtmSource but for a value that didn't come from the URL; never overwrites. */
+export function storePendingUtmSource(value: string) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!localStorage.getItem(UTM_STORAGE_KEY)) localStorage.setItem(UTM_STORAGE_KEY, value);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getPendingUtmSource(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -73,6 +97,34 @@ export function clearPendingUtmSource() {
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * The Play Store link a referral share sends. Play hands the `referrer` value
+ * back to the app on first launch (Install Referrer API — mobile
+ * InstallReferrerPlugin.java, read by lib/install-referrer.ts), so the new
+ * user's onboarding arrives with the code already filled in instead of
+ * relying on them typing it.
+ */
+export function referralPlayStoreUrl(code: string): string {
+  return `${PLAY_STORE_URL}&referrer=${encodeURIComponent(`utm_source=referral&ref=${code}`)}`;
+}
+
+/**
+ * Pulls the referral code and attribution out of a raw Play install referrer
+ * string (already URL-decoded by Play, e.g. "utm_source=referral&ref=AB12CD").
+ * Organic installs come back as "utm_source=google-play&utm_medium=organic" —
+ * no link brought those, so they record no source.
+ */
+export function parseInstallReferrer(referrer: string): { code: string | null; utmSource: string | null } {
+  const params = new URLSearchParams(referrer);
+  const ref = params.get("ref") ?? params.get("referralCode");
+  const code = ref && /^[A-Za-z0-9_-]{3,32}$/.test(ref.trim()) ? ref.trim().toUpperCase() : null;
+  const source = params.get("utm_source");
+  const organic = params.get("utm_medium") === "organic";
+  const campaign = params.get("utm_campaign");
+  const utmSource = source && !organic ? (campaign ? `${source}/${campaign}` : source) : null;
+  return { code, utmSource };
 }
 
 /**
@@ -99,7 +151,7 @@ export function buildReferralShareText(
 ): string {
   return t("referral.shareMessage", {
     code,
-    url: PLAY_STORE_URL,
+    url: referralPlayStoreUrl(code),
     ...amounts,
     context: festivalTitle ? "festival" : undefined,
     festival: festivalTitle,
@@ -123,7 +175,7 @@ export function buildReferralShareLinks(
   festivalTitle?: string,
 ): ReferralShareLinks {
   const text = buildReferralShareText(t, code, amounts, festivalTitle);
-  const link = PLAY_STORE_URL;
+  const link = referralPlayStoreUrl(code);
   return {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
     telegram: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`,

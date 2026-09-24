@@ -10,6 +10,8 @@ import remarkGfm from "remark-gfm";
 import posthog from "posthog-js";
 import { streamChat, sendChatFeedback, SwarmApiError } from "@/lib/swarm-api";
 import { PLAY_STORE_URL } from "@/lib/app-review";
+import { referralPlayStoreUrl } from "@/lib/referral";
+import { track } from "@/lib/analytics";
 import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
@@ -347,14 +349,18 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // not the Web Share API's generic app picker). Appends the Play Store link
   // so a forwarded reply can turn into an install, the same "share the
   // insight, gain a user" loop the referral program already relies on.
+  // The sharer's own code rides in the link, so that install credits them too.
+  const referralCode = user?.referralCode;
   const handleShareReply = useCallback((text: string) => {
-    const shareText = `${text}\n\n${t("aiChatPage.title")} — ${PLAY_STORE_URL}`;
+    const link = referralCode ? referralPlayStoreUrl(referralCode) : PLAY_STORE_URL;
+    const shareText = `${text}\n\n${t("aiChatPage.title")} — ${link}`;
+    track("referral_share_clicked", { channel: "chat_reply" });
     if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({ text: shareText }).catch(() => {});
     } else {
       window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank");
     }
-  }, [t]);
+  }, [t, referralCode]);
 
   const handleVote = useCallback((msg: Message, questionText: string | undefined, vote: "up" | "down") => {
     if (voteMap[msg.id]) return;
@@ -507,6 +513,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       pendingCompareProfileIdRef.current = undefined;
       const matchReportIdForThisTurn = pendingMatchReportIdRef.current;
       pendingMatchReportIdRef.current = undefined;
+      track("chat_message_sent", { compare: Boolean(compareProfileIdForThisTurn), match: Boolean(matchReportIdForThisTurn) });
       const stream = streamChat(msg, {
         sessionId: sessionIdRef.current,
         chartId,

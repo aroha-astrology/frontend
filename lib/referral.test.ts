@@ -1,5 +1,15 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { capturePendingUtmSource, getPendingUtmSource, clearPendingUtmSource } from "./referral";
+import {
+  capturePendingUtmSource,
+  getPendingUtmSource,
+  clearPendingUtmSource,
+  capturePendingReferralCode,
+  getPendingReferralCode,
+  storePendingReferralCode,
+  storePendingUtmSource,
+  parseInstallReferrer,
+  referralPlayStoreUrl,
+} from "./referral";
 
 const store = new Map<string, string>();
 
@@ -47,5 +57,50 @@ describe("pending UTM source capture", () => {
     capturePendingUtmSource();
     clearPendingUtmSource();
     expect(getPendingUtmSource()).toBeNull();
+  });
+});
+
+describe("referral Play Store link", () => {
+  it("carries the code in Play's referrer parameter, which round-trips through parseInstallReferrer", () => {
+    const url = new URL(referralPlayStoreUrl("AB12CD"));
+    expect(url.searchParams.get("id")).toBe("com.aroha.astrology");
+    const referrer = url.searchParams.get("referrer")!;
+    expect(referrer).toBe("utm_source=referral&ref=AB12CD");
+    expect(parseInstallReferrer(referrer)).toEqual({ code: "AB12CD", utmSource: "referral" });
+  });
+});
+
+describe("parseInstallReferrer", () => {
+  it("records no source for an organic Play install", () => {
+    expect(parseInstallReferrer("utm_source=google-play&utm_medium=organic")).toEqual({ code: null, utmSource: null });
+  });
+
+  it("keeps campaign attribution without a code", () => {
+    expect(parseInstallReferrer("utm_source=instagram&utm_campaign=diwali")).toEqual({
+      code: null,
+      utmSource: "instagram/diwali",
+    });
+  });
+
+  it("uppercases the code and rejects junk", () => {
+    expect(parseInstallReferrer("ref=ab12cd").code).toBe("AB12CD");
+    expect(parseInstallReferrer("ref=<script>").code).toBeNull();
+    expect(parseInstallReferrer("").code).toBeNull();
+  });
+});
+
+describe("store* never overrides a value the URL already captured", () => {
+  it("keeps the ?ref= code over the install referrer's", () => {
+    setUrl("?ref=FROMURL");
+    capturePendingReferralCode();
+    storePendingReferralCode("FROMPLAY");
+    expect(getPendingReferralCode()).toBe("FROMURL");
+  });
+
+  it("stores the install referrer's values when nothing is pending", () => {
+    storePendingReferralCode("fromplay");
+    storePendingUtmSource("referral");
+    expect(getPendingReferralCode()).toBe("FROMPLAY");
+    expect(getPendingUtmSource()).toBe("referral");
   });
 });

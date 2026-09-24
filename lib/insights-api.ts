@@ -106,3 +106,43 @@ export interface AstroWeather {
 export const weatherApi = {
   get: (date?: string) => request<AstroWeather>(`/v1/astro-weather${date ? `?date=${date}` : ""}`, { auth: true }),
 };
+
+/* -------------------------------------------------------------------------- */
+/* Aroha Calendar (roadmap step 3)                                             */
+/* -------------------------------------------------------------------------- */
+
+export type CalendarEventKind =
+  | "ingress"
+  | "retrograde"
+  | "direct"
+  | "dashaChange"
+  | "areaWindow"
+  | "saturnPhase"
+  | "eclipse"
+  | "festival"
+  | "moonSign";
+
+export interface CalendarEvent {
+  id: string;
+  kind: CalendarEventKind;
+  date: string;
+  exactAt?: string;
+  endDate?: string;
+  peakDate?: string;
+  area?: LifeArea;
+  tone: -1 | 0 | 1;
+  weight: number;
+  params: Record<string, string | number>;
+  why: WhyFactor[];
+}
+
+export interface CalendarResponse {
+  from: string;
+  to: string;
+  events: CalendarEvent[];
+}
+
+export const calendarApi = {
+  get: (from?: string, days = 90) =>
+    request<CalendarResponse>(`/v1/calendar?days=${days}${from ? `&from=${from}` : ""}`, { auth: true }),
+};

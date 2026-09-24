@@ -21,9 +21,10 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
-import { useFeature } from "@/hooks/useFeature";
+import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import { useKundli } from "@/hooks/useKundli";
@@ -49,6 +50,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
+  const { enabled: calendarEnabled } = useNewFeature("nav.calendar");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -248,6 +250,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   href="/profile/orders"
                   onClick={onClose}
                 />
+                {calendarEnabled && (
+                  <ListRow
+                    icon={<CalendarDays size={16} />}
+                    label={t("calendar.menu")}
+                    href="/calendar"
+                    onClick={onClose}
+                  />
+                )}
                 {rewardsEnabled && (
                   <ListRow
                     icon={<Gift size={16} />}

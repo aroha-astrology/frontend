@@ -217,6 +217,14 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // purely to personalize the opening greeting, no extra LLM call involved.
   const { kundli } = useKundli();
   const [input, setInput] = useState("");
+  // `/ai-chat?q=…` (Calendar, Timeline, Decisions "Ask Aroha") pre-fills the
+  // box. It never auto-sends: every question is a paid message, so the user
+  // presses send themselves. Read from window, not useSearchParams, so this
+  // page needs no Suspense boundary for static rendering.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setInput(q.slice(0, 500));
+  }, []);
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
   // Scroll target for new messages — the messages pane itself (see the

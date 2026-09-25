@@ -32,7 +32,7 @@ import {
 } from "@/lib/referral";
 import { LEGAL_VERSION } from "@/lib/legal-content";
 import { track } from "@/lib/analytics";
-import { useFeature } from "@/hooks/useFeature";
+import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -231,6 +231,7 @@ function OnboardingPageInner() {
   const { refresh, refreshProfiles, user } = useAuth();
   /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
   const PROFILE_CREATION_COST_PAISE = useFeature("paid.profileCreation").pricePaise ?? 20000;
+  const { enabled: bondsOn } = useNewFeature("nav.bonds");
 
   const msgId = useRef(0);
 
@@ -429,6 +430,8 @@ function OnboardingPageInner() {
     { key: "sibling", label: t("profileSwitcher.relationship.sibling") },
     { key: "friend", label: t("profileSwitcher.relationship.friend") },
     { key: "other", label: t("profileSwitcher.relationship.other") },
+    // Aroha Bonds (nav.bonds, ships off) is what gives a business partner a reading.
+    ...(bondsOn ? [{ key: "business_partner" as const, label: t("profileSwitcher.relationship.business_partner") }] : []),
   ];
 
   const handleRelationship = async (key: string, label: string) => {

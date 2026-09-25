@@ -31,6 +31,7 @@ export function whyFactorText(t: Translate, factor: WhyFactor, lang: string): st
   if (p.starLord != null) vars.starLord = t(`planetNames.${String(p.starLord).toLowerCase()}`);
   if (p.nakshatra != null) vars.nakshatraName = t(`nakshatraNames.${String(p.nakshatra).toLowerCase()}`);
   if (p.weekday != null) vars.weekdayName = weekdayName(Number(p.weekday), lang);
+  if (p.name != null) vars.name = String(p.name);
   return t(factor.textKey, vars);
 }
 

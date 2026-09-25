@@ -28,6 +28,7 @@ export const RELATIONSHIP_KEYS: Record<ProfileRelationship, string> = {
   sibling: "profileSwitcher.relationship.sibling",
   friend: "profileSwitcher.relationship.friend",
   other: "profileSwitcher.relationship.other",
+  business_partner: "profileSwitcher.relationship.business_partner",
 };
 
 /**

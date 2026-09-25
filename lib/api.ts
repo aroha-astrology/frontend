@@ -252,7 +252,8 @@ export type ProfileRelationship =
   | "parent"
   | "sibling"
   | "friend"
-  | "other";
+  | "other"
+  | "business_partner";
 
 /** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
 export interface Profile {
@@ -677,7 +678,8 @@ export type TransactionKind =
   | "birth_time_check"
   | "life_timeline"
   | "decision_window"
-  | "find_my_date";
+  | "find_my_date"
+  | "bond_insight";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

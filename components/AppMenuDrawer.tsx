@@ -24,6 +24,7 @@ import {
   CalendarDays,
   CalendarSearch,
   Scale,
+  HeartHandshake,
   GanttChart,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
@@ -57,6 +58,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: timelineEnabled } = useNewFeature("nav.lifeTimeline");
   const { enabled: decisionsEnabled } = useNewFeature("nav.decisions");
   const { enabled: findDateEnabled } = useNewFeature("panchang.findMyDate");
+  const { enabled: bondsEnabled } = useNewFeature("nav.bonds");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -285,6 +287,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<CalendarSearch size={16} />}
                     label={t("findDate.menu")}
                     href="/find-date"
+                    onClick={onClose}
+                  />
+                )}
+                {bondsEnabled && (
+                  <ListRow
+                    icon={<HeartHandshake size={16} />}
+                    label={t("bonds.menu")}
+                    href="/bonds"
                     onClick={onClose}
                   />
                 )}

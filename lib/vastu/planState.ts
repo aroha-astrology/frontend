@@ -240,9 +240,11 @@ export function samplePlan(): Plan {
     rooms: [
       add("puja_room", 8, 0, 4, 3),
       add("living", 0, 0, 5, 4, [{ id: uid(), kind: "door", wall: "top", t: 0.5 }]),
-      add("kitchen", 8.5, 8.5, 3.5, 3.5),
+      add("kitchen", 8.5, 8.5, 3.5, 3.5, [{ id: uid(), kind: "window", wall: "right", t: 0.5 }]),
       add("master_bed", 0, 8, 4.5, 4),
-      add("bathroom", 0, 4.5, 3, 3),
+      // The demo keeps one deliberate mistake (an East bathroom) to try Fix this on.
+      add("bathroom", 9, 4, 3, 3.5),
+      add("store", 5, 9, 3, 3),
     ].filter((r) => getRoomType(r.type)),
   };
 }

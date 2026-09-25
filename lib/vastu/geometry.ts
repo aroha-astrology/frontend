@@ -9,7 +9,7 @@ import type { Dir8, Zone, Room, Plan, Wall, Pt } from "./types";
 import { DIR8_CW } from "./data";
 
 /** Fraction of the plot half-diagonal within which a room counts as central. */
-const BRAHMASTHAN_RADIUS_FRAC = 0.12;
+export const BRAHMASTHAN_RADIUS_FRAC = 0.12;
 
 export function roomCentroid(room: Room): Pt {
   return { x: room.x + room.w / 2, y: room.y + room.h / 2 };
@@ -278,4 +278,10 @@ export function polygonSelfIntersects(plot: Pt[]): boolean {
     }
   }
   return false;
+}
+
+/** Radius (plot units) within which a room centre counts as on the Brahmasthan. */
+export function brahmasthanRadius(plan: Plan): number {
+  const bb = bbox(plan.plot);
+  return (Math.hypot(bb.w, bb.h) / 2) * BRAHMASTHAN_RADIUS_FRAC;
 }

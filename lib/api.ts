@@ -1348,6 +1348,8 @@ export const api = {
     body: { name?: string; layout?: Record<string, unknown>; overallScore?: number | null; archived?: boolean },
   ) => request<VastuHome>(`/v1/vastu/homes/${id}`, { method: "PATCH", body, auth: true }),
 
+  vastuHomeDelete: (id: string) => request<void>(`/v1/vastu/homes/${id}`, { method: "DELETE", auth: true }),
+
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as
    * `getKundli()`. 202 here means another regenerate run is already active.

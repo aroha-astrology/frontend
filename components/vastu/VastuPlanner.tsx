@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
-import { DoorOpen, AppWindow, Copy, Trash2, Maximize2, X, Cloud, CloudOff, Loader2, AlertTriangle } from "lucide-react";
-import Card from "@/components/ui/Card";
+import { Maximize2, X, AlertTriangle, Loader2, RotateCcw, Box, Square, Sparkles } from "lucide-react";
+import type { CameraMode } from "./three/VastuScene3D";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api, type VastuPlan } from "@/lib/api";
@@ -12,14 +13,39 @@ import { getRoomType } from "@/lib/vastu/data";
 import { analyzePlan } from "@/lib/vastu/analysis";
 import { buildRoomLayout, fixtureFacing, plotSummary, bbox, roomDirection } from "@/lib/vastu/geometry";
 import { validatePlan } from "@/lib/vastu/validation";
+import { scoreBreakdown } from "@/lib/vastu/breakdown";
+import { explainRoom } from "@/lib/vastu/explain";
+import { applyChange, suggestFixes, type FixSuggestion } from "@/lib/vastu/fixes";
+import { historyReducer, initialHistory } from "@/lib/vastu/history";
+import { templatePlan, type TemplateId } from "@/lib/vastu/templates";
 import type { Plan } from "@/lib/vastu/types";
-import { planReducer, initialPlan, samplePlan, normalizePlan } from "./planState";
+import { initialPlan, normalizePlan, samplePlan, uid } from "@/lib/vastu/planState";
 import PlanCanvas from "./PlanCanvas";
-import RoomPalette from "./RoomPalette";
-import Toolbar from "./Toolbar";
 import AnalysisPanel, { type VastuAiResult } from "./AnalysisPanel";
 import { useCompass } from "./useCompass";
-import { useHomeSync, type SaveStatus } from "./useHomeSync";
+import { useHomeSync } from "./useHomeSync";
+import { StudioHeader, ViewSwitcher, Dock, RoomBar, type StudioView } from "./studio/StudioChrome";
+import { RATING_SYMBOL } from "./studio/ui";
+import LiveAnalysis from "./studio/LiveAnalysis";
+import RoomSheet from "./studio/RoomSheet";
+import NorthSheet from "./studio/NorthSheet";
+import PlotSheet from "./studio/PlotSheet";
+import WhySheet from "./studio/WhySheet";
+import ScoreSheet from "./studio/ScoreSheet";
+import StartSheet from "./studio/StartSheet";
+import HomeSheet from "./studio/HomeSheet";
+import FixBar from "./studio/FixBar";
+import ProfileSwitchTrigger from "@/components/ui/ProfileSwitchTrigger";
+
+// Three.js only loads when someone opens 3D — the 2D editor never pays for it.
+const VastuScene3D = dynamic(() => import("./three/VastuScene3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="aspect-square w-full flex items-center justify-center text-gold">
+      <Loader2 className="animate-spin" size={22} />
+    </div>
+  ),
+});
 
 /** The usual wait ("up to 2 min") — past this the panel says the report is still being written. */
 const SLOW_AFTER_MS = 150_000;
@@ -47,20 +73,32 @@ function buildPayload(plan: Plan, language: string, homeId?: string) {
   };
 }
 
+type SheetId = "room" | "north" | "plot" | "score" | "homes" | "start" | null;
+
 export default function VastuPlanner() {
   const { t, i18n } = useTranslation();
   const { user, profiles, activeProfile, refresh } = useAuth();
   const paidVastu = useFeature("paid.vastu");
   const CREDIT_COST_PAISE = paidVastu.pricePaise ?? 5000;
-  const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
+  const [history, dispatch] = useReducer(historyReducer, undefined, () => initialHistory(initialPlan()));
+  const plan = history.present;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [view, setView] = useState<StudioView>("2d");
+  const [sheet, setSheet] = useState<SheetId>(null);
+  const [whyId, setWhyId] = useState<string | null>(null);
+  const [focus, setFocus] = useState<{ roomId: string; nonce: number } | null>(null);
+  const [cam, setCam] = useState<CameraMode>("iso");
+  const [vastu3d, setVastu3d] = useState(false);
+  const [camReset, setCamReset] = useState(0);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
 
   // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
   const [compassHint, setCompassHint] = useState<string | null>(null);
   const onAlign = useCallback(async () => {
     setCompassHint(null);
+    dispatch({ type: "beginGesture" });
     const status = await compass.start();
     if (status === "unsupported") setCompassHint(t("vastu.compass.unavailable"));
     else if (status === "denied") setCompassHint(t("vastu.compass.permissionDenied"));
@@ -70,9 +108,13 @@ export default function VastuPlanner() {
       dispatch({ type: "setNorthOffset", deg: compass.heading });
     }
   }, [compass.state, compass.heading]);
-  const onLock = useCallback(() => compass.lock(), [compass]);
+  const onLock = useCallback(() => {
+    compass.lock();
+    dispatch({ type: "endGesture" });
+  }, [compass]);
   const onRecalibrate = useCallback(() => {
     setCompassHint(null);
+    dispatch({ type: "beginGesture" });
     compass.recalibrate();
   }, [compass]);
   const onRotate = useCallback((deg: number) => {
@@ -83,11 +125,15 @@ export default function VastuPlanner() {
   // ── Live analysis (offline, free) ──────────────────────────────────────────
   const analysis = useMemo(() => analyzePlan(plan), [plan]);
   const validation = useMemo(() => validatePlan(plan), [plan]);
+  const breakdown = useMemo(() => scoreBreakdown(plan, analysis), [plan, analysis]);
+  const ratingById = useMemo(() => Object.fromEntries(analysis.rooms.map((r) => [r.roomId, r])), [analysis]);
+  const labelForType = useCallback((type: string) => t(getRoomType(type)?.labelKey ?? type, getRoomType(type)?.label ?? type), [t]);
+  const colorForType = useCallback((type: string) => getRoomType(type)?.color ?? "#94a3b8", []);
 
   // ── Saved to the account, per profile (device draft + server copy) ─────────
   // Scope waits for the profile list, so a plan is never saved under the wrong profile.
   const scope = user && profiles !== null ? `${user.id}:${activeProfile?.id ?? "primary"}` : null;
-  const { status: saveStatus, home } = useHomeSync({
+  const homesSync = useHomeSync({
     scope,
     signedIn: !!user,
     plan,
@@ -95,11 +141,85 @@ export default function VastuPlanner() {
     dispatch,
     defaultName: t("vastu.home.defaultName"),
   });
-  const ratingById = useMemo(() => Object.fromEntries(analysis.rooms.map((r) => [r.roomId, r])), [analysis]);
-  const labelForType = useCallback((type: string) => t(getRoomType(type)?.labelKey ?? type, getRoomType(type)?.label ?? type), [t]);
-  const colorForType = useCallback((type: string) => getRoomType(type)?.color ?? "#94a3b8", []);
+  const { status: saveStatus, home } = homesSync;
+  useEffect(() => {
+    if (homesSync.needsStart) setSheet("start");
+  }, [homesSync.needsStart]);
 
-  // ── AI report (5 credits) + follow-up ──────────────────────────────────────
+  const startWith = useCallback((tpl: TemplateId | "demo") => {
+    const p = tpl === "demo" ? samplePlan() : templatePlan(tpl, uid);
+    const name = homesSync.homes.length === 0 ? t("vastu.home.defaultName") : t("vastu.homes.newName", "Home {{n}}", { n: homesSync.homes.length + 1 });
+    void homesSync.createHome(name, p, analyzePlan(p).overallScore);
+    setSelectedId(null);
+    setSheet(null);
+    setView("2d");
+  }, [homesSync, t]);
+
+  // ── Undo / redo (buttons + Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z / Ctrl+Y) ───────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const k = e.key.toLowerCase();
+      if (k === "z" && !e.shiftKey) {
+        e.preventDefault();
+        dispatch({ type: "undo" });
+      } else if ((k === "z" && e.shiftKey) || k === "y") {
+        e.preventDefault();
+        dispatch({ type: "redo" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // A deleted/undone room can't stay selected.
+  useEffect(() => {
+    if (selectedId && !plan.rooms.some((r) => r.id === selectedId)) setSelectedId(null);
+  }, [plan.rooms, selectedId]);
+
+  // ── Show me / Why? / Fix this ──────────────────────────────────────────────
+  const [fix, setFix] = useState<{ roomId: string; suggestions: FixSuggestion[]; choice: number } | null>(null);
+  const scrollToCanvas = useCallback(() => {
+    canvasRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+  const showMe = useCallback((roomId: string) => {
+    setWhyId(null);
+    setSelectedId(roomId);
+    setView("vastu");
+    setFocus({ roomId, nonce: Date.now() });
+    scrollToCanvas();
+  }, [scrollToCanvas]);
+  const startFix = useCallback((roomId: string) => {
+    setWhyId(null);
+    setSelectedId(roomId);
+    setView("vastu");
+    setFix({ roomId, suggestions: suggestFixes(plan, roomId), choice: 0 });
+    setFocus(null);
+    scrollToCanvas();
+  }, [plan, scrollToCanvas]);
+  const applyFix = useCallback(() => {
+    if (!fix) return;
+    const s = fix.suggestions[fix.choice];
+    if (s) dispatch({ type: "replace", plan: applyChange(plan, s.change) });
+    setFix(null);
+  }, [fix, plan]);
+  // Any edit while previewing makes the preview stale.
+  const fixPlanRef = useRef(plan);
+  useEffect(() => {
+    if (fix && fixPlanRef.current !== plan) setFix(null);
+    fixPlanRef.current = plan;
+  }, [plan, fix]);
+  const fixChange = fix?.suggestions[fix.choice]?.change;
+  const fixRoom = fix ? plan.rooms.find((r) => r.id === fix.roomId) : undefined;
+  const ghost = fixChange?.kind === "move" && fixRoom ? { roomId: fixRoom.id, x: fixChange.x, y: fixChange.y, w: fixRoom.w, h: fixRoom.h } : null;
+  const fixable = useCallback((roomId: string) => ratingById[roomId]?.ratingKey !== "ideal", [ratingById]);
+
+  const whyRoom = whyId ? plan.rooms.find((r) => r.id === whyId) : undefined;
+  const explanation = useMemo(() => (whyRoom ? explainRoom(whyRoom, plan) : null), [whyRoom, plan]);
+
+  // ── AI report (paid) + follow-up ──────────────────────────────────────────
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<VastuAiResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -119,30 +239,30 @@ export default function VastuPlanner() {
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   /** Layout of the history report being viewed, for "Open this plan". */
   const [viewedLayout, setViewedLayout] = useState<Plan | null>(null);
-  const [history, setHistory] = useState<VastuPlan[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(true);
+  const [reports, setReports] = useState<VastuPlan[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
   const [asking, setAsking] = useState(false);
   const [askError, setAskError] = useState<string | null>(null);
 
-  const loadHistory = useCallback(async () => {
+  const loadReports = useCallback(async () => {
     if (!user) {
-      setHistoryLoading(false);
+      setReportsLoading(false);
       return;
     }
-    setHistoryLoading(true);
+    setReportsLoading(true);
     try {
       const { plans } = await api.vastuList(i18n.language);
-      setHistory(plans);
+      setReports(plans);
     } catch {
       /* best-effort */
     } finally {
-      setHistoryLoading(false);
+      setReportsLoading(false);
     }
   }, [user, i18n.language]);
 
   useEffect(() => {
-    void loadHistory();
-  }, [loadHistory]);
+    void loadReports();
+  }, [loadReports]);
 
   // A generated report or in-flight AI state belongs to whichever profile was
   // active when it was created — clear it on switch so a stale report from a
@@ -156,6 +276,8 @@ export default function VastuPlanner() {
     setAiError(null);
     setAiNotice(null);
     setAskError(null);
+    setSelectedId(null);
+    setFix(null);
     // Stop waiting on the old profile's report (it still lands in that profile's history).
     trackedPlanRef.current = null;
     setAiLoading(false);
@@ -164,23 +286,25 @@ export default function VastuPlanner() {
 
   // A plan still queued/processing (e.g. one that outlasted the wait below) lands in
   // history on its own — check back while any is unfinished.
-  const historyPending = history.some((p) => p.status === "pending" || p.status === "processing");
+  const reportsPending = reports.some((p) => p.status === "pending" || p.status === "processing");
   useEffect(() => {
-    if (!historyPending || aiLoading) return;
-    const id = setTimeout(() => void loadHistory(), 15_000);
+    if (!reportsPending || aiLoading) return;
+    const id = setTimeout(() => void loadReports(), 15_000);
     return () => clearTimeout(id);
-  }, [historyPending, aiLoading, history, loadHistory]);
+  }, [reportsPending, aiLoading, reports, loadReports]);
 
   /**
    * Wait for one report to finish. Used right after buying and to pick up a report that was
    * still being written when the page was left or reloaded — the charge already happened
    * server-side, so this never implies failure just because the wait ends.
    */
+  const [aiStartedAt, setAiStartedAt] = useState<number | null>(null);
   const waitForPlan = useCallback(async (planId: string, generationProfileId: string | null, startedAt: number) => {
     trackedPlanRef.current = planId;
     setActivePlanId(planId);
     setViewedLayout(null);
     setAiLoading(true);
+    setAiStartedAt(startedAt);
     setAiSlow(false);
     try {
       const deadline = startedAt + WAIT_MS;
@@ -199,14 +323,14 @@ export default function VastuPlanner() {
           if (activeProfileIdRef.current === generationProfileId) {
             setAiResult(p.analysis as VastuAiResult);
           }
-          void loadHistory();
+          void loadReports();
           void refresh();
           return;
         }
         if (p?.status === "error") {
           // Charged at the start and refunded by the server on failure.
           setAiError(t("vastu.analysis.failedRefunded"));
-          void loadHistory();
+          void loadReports();
           void refresh();
           return;
         }
@@ -214,14 +338,14 @@ export default function VastuPlanner() {
       }
       // Still working on the server: it will show up in the history list.
       setAiNotice(t("vastu.analysis.stillWorking"));
-      void loadHistory();
+      void loadReports();
     } finally {
       if (trackedPlanRef.current === planId) {
         setAiLoading(false);
         setAiSlow(false);
       }
     }
-  }, [t, i18n.language, loadHistory, refresh]);
+  }, [t, i18n.language, loadReports, refresh]);
 
   const onGenerate = useCallback(async () => {
     const generationProfileId = activeProfileIdRef.current;
@@ -232,6 +356,7 @@ export default function VastuPlanner() {
     setActivePlanId(null);
     setViewedLayout(null);
     setAiLoading(true);
+    setAiStartedAt(Date.now());
     let planId: string;
     try {
       ({ planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language, home?.id)));
@@ -250,7 +375,7 @@ export default function VastuPlanner() {
   // instead of leaving the user unsure whether they paid for nothing.
   useEffect(() => {
     if (aiLoading) return;
-    const newest = history[0];
+    const newest = reports[0];
     if (!newest || (newest.status !== "pending" && newest.status !== "processing")) return;
     if (trackedPlanRef.current === newest.id) return;
     const startedAt = Date.parse(newest.createdAt);
@@ -259,7 +384,7 @@ export default function VastuPlanner() {
     setAiNotice(null);
     setAiResult(null);
     void waitForPlan(newest.id, activeProfileIdRef.current, startedAt);
-  }, [history, aiLoading, waitForPlan]);
+  }, [reports, aiLoading, waitForPlan]);
 
   const onAsk = useCallback(async (question: string) => {
     if (!activePlanId) return;
@@ -296,15 +421,16 @@ export default function VastuPlanner() {
 
   const onOpenPlan = useCallback(() => {
     if (!viewedLayout) return;
-    dispatch({ type: "load", plan: viewedLayout });
+    dispatch({ type: "replace", plan: viewedLayout });
     setSelectedId(null);
     setViewedLayout(null);
-  }, [viewedLayout]);
+    scrollToCanvas();
+  }, [viewedLayout, scrollToCanvas]);
 
   const onDeleteHistory = useCallback(async (p: VastuPlan) => {
     try {
       await api.vastuDelete(p.id);
-      setHistory((h) => h.filter((x) => x.id !== p.id));
+      setReports((h) => h.filter((x) => x.id !== p.id));
       if (activePlanId === p.id) {
         setAiResult(null);
         setActivePlanId(null);
@@ -315,43 +441,112 @@ export default function VastuPlanner() {
     }
   }, [activePlanId, t]);
 
+  /** "Show on plan" from a report room card: find that room by id or type. */
+  const onShowReportRoom = useCallback((key: string) => {
+    const room = plan.rooms.find((r) => r.id === key) ?? plan.rooms.find((r) => r.type === key);
+    if (room) showMe(room.id);
+  }, [plan.rooms, showMe]);
+
   const selectedRoom = plan.rooms.find((r) => r.id === selectedId) ?? null;
+  const selectedRating = selectedRoom ? ratingById[selectedRoom.id] : undefined;
+  const badgeLabel = selectedRating ? `${selectedRating.zone} · ${RATING_SYMBOL[selectedRating.ratingKey]} ${t(`vastu.rating.${selectedRating.ratingKey}`)}` : null;
+  const bb = bbox(plan.plot);
+  const lensOn = view === "vastu";
 
-  const editor = (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 text-[11px]">
-        <span className="font-semibold text-foreground truncate">{home?.name ?? t("vastu.home.defaultName")}</span>
-        <SaveBadge status={saveStatus} />
-      </div>
-      <Toolbar
-        northOffsetDeg={plan.northOffsetDeg}
-        onRotate={onRotate}
-        compassState={compass.state}
-        onAlign={onAlign}
-        onLock={onLock}
-        onRecalibrate={onRecalibrate}
-        sides={plan.plot.length}
-        onSides={(n) => dispatch({ type: "setSides", sides: n })}
-        widthU={Math.round(bbox(plan.plot).w)}
-        heightU={Math.round(bbox(plan.plot).h)}
-        onScale={(w, h) => dispatch({ type: "scalePlot", widthU: w, heightU: h })}
-        onReset={() => {
-          dispatch({ type: "load", plan: samplePlan() });
-          setSelectedId(null);
-          setAiResult(null);
-          setActivePlanId(null);
-          setViewedLayout(null);
-        }}
-      />
+  const bar = fix && fixRoom ? (
+    <FixBar
+      roomLabel={labelForType(fixRoom.type)}
+      emoji={getRoomType(fixRoom.type)?.emoji ?? ""}
+      suggestions={fix.suggestions}
+      choice={fix.choice}
+      onChoose={(i) => setFix((f) => (f ? { ...f, choice: i } : f))}
+      onApply={applyFix}
+      onCancel={() => setFix(null)}
+    />
+  ) : selectedRoom ? (
+    <RoomBar
+      emoji={getRoomType(selectedRoom.type)?.emoji ?? ""}
+      label={labelForType(selectedRoom.type)}
+      rating={selectedRating}
+      onDoor={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "door" })}
+      onWindow={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "window" })}
+      onWhy={() => setWhyId(selectedRoom.id)}
+      onFix={selectedRating && selectedRating.ratingKey !== "ideal" ? () => startFix(selectedRoom.id) : undefined}
+      onDuplicate={() => dispatch({ type: "duplicateRoom", id: selectedRoom.id })}
+      onDelete={() => {
+        dispatch({ type: "deleteRoom", id: selectedRoom.id });
+        setSelectedId(null);
+      }}
+      onClose={() => setSelectedId(null)}
+    />
+  ) : (
+    <Dock
+      onAdd={() => setSheet("room")}
+      onNorth={() => setSheet("north")}
+      onPlot={() => setSheet("plot")}
+      onUndo={() => dispatch({ type: "undo" })}
+      onRedo={() => dispatch({ type: "redo" })}
+      canUndo={history.past.length > 0}
+      canRedo={history.future.length > 0}
+    />
+  );
 
-      <div className="relative rounded-2xl bg-surface/40 border border-gold/10 p-2" data-tour="vastu-canvas">
+  const canvas = (
+    <div ref={canvasRef} className="relative rounded-[28px] border border-gold/15 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(223,181,100,0.07),transparent_60%)] bg-card overflow-hidden" data-tour="vastu-canvas">
+      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between gap-2 pointer-events-none">
+        <div className="pointer-events-auto">
+          <ViewSwitcher
+            view={view}
+            onChange={(v) => {
+              if (v === "3d") setVastu3d(view === "vastu");
+              setView(v);
+              setFocus(null);
+              setFix(null);
+            }}
+            has3d
+          />
+        </div>
         <button
           onClick={() => setFullscreen((f) => !f)}
           aria-label={t(fullscreen ? "vastu.toolbar.collapse" : "vastu.toolbar.expand")}
-          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-card/80 border border-gold/25 text-gold flex items-center justify-center backdrop-blur"
+          className="pointer-events-auto w-9 h-9 rounded-full bg-background/70 border border-gold/20 text-gold flex items-center justify-center backdrop-blur"
         >
-          {fullscreen ? <X size={16} /> : <Maximize2 size={16} />}
+          {fullscreen ? <X size={16} /> : <Maximize2 size={15} />}
         </button>
+      </div>
+      {view === "3d" ? (
+        <div className="relative pt-12">
+          <div className="aspect-square w-full" data-testid="vastu-3d">
+            <VastuScene3D
+              plan={plan}
+              ratingById={ratingById}
+              labelForType={labelForType}
+              colorForType={colorForType}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              vastu={vastu3d}
+              cameraMode={cam}
+              resetNonce={camReset}
+            />
+          </div>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5">
+            <Chip3D active={cam === "iso"} onClick={() => setCam("iso")} icon={<Box size={13} />} label={t("vastu.three.iso", "3D")} />
+            <Chip3D active={cam === "top"} onClick={() => setCam("top")} icon={<Square size={13} />} label={t("vastu.three.top", "Top")} />
+            <Chip3D active={vastu3d} onClick={() => setVastu3d((v) => !v)} icon={<Sparkles size={13} />} label={t("vastu.three.vastu", "Vastu")} testId="vastu-3d-toggle" />
+            <button
+              onClick={() => {
+                setSelectedId(null);
+                setCamReset((n) => n + 1);
+              }}
+              aria-label={t("vastu.three.reset", "Reset view")}
+              className="ml-auto w-9 h-9 rounded-full bg-background/75 border border-gold/20 text-gold flex items-center justify-center backdrop-blur"
+            >
+              <RotateCcw size={15} />
+            </button>
+          </div>
+        </div>
+      ) : (
+      <div className="pt-10 px-1 pb-1">
         <PlanCanvas
           plan={plan}
           ratingById={ratingById}
@@ -359,109 +554,145 @@ export default function VastuPlanner() {
           labelForType={labelForType}
           colorForType={colorForType}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={(id) => {
+            setSelectedId(id);
+            if (fix && id !== fix.roomId) setFix(null);
+          }}
           dispatch={dispatch}
           locked={compass.state === "locked"}
+          lens={lensOn}
+          focus={focus}
+          badgeLabel={badgeLabel}
+          ghost={ghost}
         />
       </div>
-
-      <ValidationNotes plotInvalid={validation.plotInvalid} outside={validation.outsideCount} overlap={validation.overlapCount} />
-
-      {selectedRoom ? (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-foreground flex items-center gap-1">
-            {getRoomType(selectedRoom.type)?.emoji} {labelForType(selectedRoom.type)}
-          </span>
-          <div className="flex items-center gap-1.5 ml-auto">
-            <ActionBtn icon={<DoorOpen size={14} />} label={t("vastu.fixture.addDoor")} onClick={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "door" })} />
-            <ActionBtn icon={<AppWindow size={14} />} label={t("vastu.fixture.addWindow")} onClick={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "window" })} />
-            <ActionBtn icon={<Copy size={14} />} label={t("vastu.block.duplicate")} onClick={() => dispatch({ type: "duplicateRoom", id: selectedRoom.id })} />
-            <ActionBtn icon={<Trash2 size={14} />} label={t("vastu.block.delete")} danger onClick={() => { dispatch({ type: "deleteRoom", id: selectedRoom.id }); setSelectedId(null); }} />
-          </div>
-        </div>
-      ) : null}
-
-      {(compassHint || compass.state === "reading") && (
-        <p className="text-[11px] text-amber-400">
-          {compassHint ?? t("vastu.compass.locking")}
+      )}
+      {lensOn && (
+        <p className="px-4 pb-3 -mt-1 text-[11px] text-muted" data-testid="vastu-lens-caption">
+          {selectedRoom
+            ? t("vastu.studio.lensForRoom", "Green is where a {{room}} belongs; red is where to avoid.", { room: labelForType(selectedRoom.type) })
+            : t("vastu.studio.lensHint", "Tap a room to see where it belongs.")}
         </p>
       )}
-
-      <div>
-        <p className="text-[11px] text-muted mb-1.5">{t("vastu.palette.hint")}</p>
-        <div data-tour="vastu-palette">
-          <RoomPalette onAdd={(type) => dispatch({ type: "addRoom", roomType: type })} />
-        </div>
-      </div>
     </div>
   );
 
+  const notes = (
+    <>
+      <ValidationNotes plotInvalid={validation.plotInvalid} outside={validation.outsideCount} overlap={validation.overlapCount} />
+      {(compassHint || compass.state === "reading") && !sheet && (
+        <p className="text-[11px] text-amber-400">{compassHint ?? t("vastu.compass.locking")}</p>
+      )}
+    </>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
+      <StudioHeader homeName={home?.name ?? t("vastu.home.defaultName")} status={saveStatus} onHomes={() => setSheet("homes")} right={<ProfileSwitchTrigger className="mb-5" />} />
+
       {fullscreen ? (
         // Sits above the nav bar (z-50), so pb clears the system bar, not the nav.
-        <div className="fixed inset-0 z-[80] bg-background overflow-y-auto px-3 pt-3 pb-[calc(6rem+var(--sab))]">{editor}</div>
+        <div className="fixed inset-0 z-[80] bg-background overflow-y-auto px-3 pt-[calc(0.75rem+var(--sat))] pb-[calc(1.5rem+var(--sab))] flex flex-col gap-3">
+          {canvas}
+          {bar}
+          {notes}
+        </div>
       ) : (
-        <Card className="p-4">{editor}</Card>
+        <>
+          {canvas}
+          {bar}
+          {notes}
+        </>
       )}
 
       <div data-tour="vastu-analysis">
+        <LiveAnalysis
+          analysis={analysis}
+          breakdown={breakdown}
+          onShowMe={showMe}
+          onWhy={(id) => setWhyId(id)}
+          onFix={startFix}
+          fixable={fixable}
+          onScore={() => setSheet("score")}
+        />
+      </div>
+
       <AnalysisPanel
-        analysis={analysis}
         reportEnabled={paidVastu.enabled}
         reportReady={validation.reportReady}
+        hasRooms={plan.rooms.length > 0}
         balancePaise={user?.walletBalancePaise ?? 0}
         costPaise={CREDIT_COST_PAISE}
         aiLoading={aiLoading}
+        aiStartedAt={aiStartedAt}
         aiResult={aiResult}
         aiError={aiError}
         aiSlow={aiSlow}
         aiNotice={aiNotice}
         onGenerate={onGenerate}
-        history={history}
-        historyLoading={historyLoading}
+        history={reports}
+        historyLoading={reportsLoading}
         profileName={activeProfile?.displayName?.trim() || t("profileSwitcher.unnamed")}
         onViewHistory={(p) => void onViewHistory(p)}
         onDeleteHistory={(p) => void onDeleteHistory(p)}
         onOpenPlan={viewedLayout ? onOpenPlan : undefined}
+        onShowRoom={viewedLayout ? undefined : onShowReportRoom}
         canAsk={!!activePlanId}
         onAsk={onAsk}
         asking={asking}
         askError={askError}
       />
-      </div>
+
+      <RoomSheet open={sheet === "room"} onClose={() => setSheet(null)} onAdd={(type) => dispatch({ type: "addRoom", roomType: type })} />
+      <NorthSheet
+        open={sheet === "north"}
+        onClose={() => setSheet(null)}
+        deg={plan.northOffsetDeg}
+        onRotate={onRotate}
+        onRotateStart={() => dispatch({ type: "beginGesture" })}
+        compassState={compass.state}
+        onAlign={() => void onAlign()}
+        onLock={onLock}
+        onRecalibrate={onRecalibrate}
+        hint={compassHint}
+      />
+      <PlotSheet
+        open={sheet === "plot"}
+        onClose={() => setSheet(null)}
+        sides={plan.plot.length}
+        onSides={(n) => dispatch({ type: "setSides", sides: n })}
+        widthU={Math.round(bb.w)}
+        heightU={Math.round(bb.h)}
+        onScale={(w, h) => dispatch({ type: "scalePlot", widthU: w, heightU: h })}
+        onStartOver={() => setSheet("start")}
+      />
+      <ScoreSheet open={sheet === "score"} onClose={() => setSheet(null)} score={analysis.overallScore} hasRooms={analysis.rooms.length > 0} breakdown={breakdown} />
+      <StartSheet open={sheet === "start"} onClose={() => setSheet(null)} onPick={startWith} canClose={!homesSync.needsStart} />
+      <HomeSheet
+        open={sheet === "homes"}
+        onClose={() => setSheet(null)}
+        homes={homesSync.homes}
+        currentId={home?.id ?? null}
+        onSelect={(id) => {
+          setSelectedId(null);
+          setFix(null);
+          homesSync.selectHome(id);
+        }}
+        onNew={() => setSheet("start")}
+        onDuplicate={() => {
+          const name = t("vastu.homes.copyName", "{{name}} (copy)", { name: home?.name ?? t("vastu.home.defaultName") });
+          void homesSync.createHome(name, { ...plan, rooms: plan.rooms.map((r) => ({ ...r, id: uid(), fixtures: r.fixtures.map((f) => ({ ...f, id: uid() })) })) }, analysis.overallScore);
+        }}
+        onRename={(id, name) => void homesSync.renameHome(id, name)}
+        onDelete={(id) => void homesSync.deleteHome(id)}
+      />
+      <WhySheet
+        explanation={explanation}
+        onClose={() => setWhyId(null)}
+        onShowMe={whyId ? () => showMe(whyId) : undefined}
+        onFix={whyId && explanation && explanation.ratingKey !== "ideal" ? () => startFix(whyId) : undefined}
+      />
     </div>
-  );
-}
-
-function ActionBtn({ icon, label, onClick, danger }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className={"flex items-center gap-1 rounded-lg border px-2.5 py-2 text-[11px] font-medium transition-colors " + (danger ? "border-red-500/25 text-red-400 hover:bg-red-500/10" : "border-gold/20 text-muted hover:text-gold hover:border-gold/40")}
-    >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
-    </button>
-  );
-}
-
-function SaveBadge({ status }: { status: SaveStatus }) {
-  const { t } = useTranslation();
-  if (status === "idle") return null;
-  const map = {
-    saving: { icon: <Loader2 size={11} className="animate-spin" />, cls: "text-muted", key: "vastu.save.saving" },
-    saved: { icon: <Cloud size={11} />, cls: "text-emerald-400", key: "vastu.save.saved" },
-    offline: { icon: <CloudOff size={11} />, cls: "text-amber-400", key: "vastu.save.offline" },
-    error: { icon: <CloudOff size={11} />, cls: "text-red-400", key: "vastu.save.error" },
-  } as const;
-  const m = map[status];
-  return (
-    <span className={`ml-auto flex items-center gap-1 ${m.cls}`} role="status" data-testid="vastu-save-status">
-      {m.icon} {t(m.key)}
-    </span>
   );
 }
 
@@ -479,5 +710,18 @@ function ValidationNotes({ plotInvalid, outside, overlap }: { plotInvalid: boole
         <p className="flex items-center gap-1.5 text-[11px] text-amber-400"><AlertTriangle size={12} /> {t("vastu.validation.overlap")}</p>
       )}
     </div>
+  );
+}
+
+function Chip3D({ active, onClick, icon, label, testId }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; testId?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      data-testid={testId}
+      className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold backdrop-blur transition-colors ${active ? "bg-gold text-[#1a0e00]" : "bg-background/75 border border-gold/20 text-foreground/85"}`}
+    >
+      {icon} {label}
+    </button>
   );
 }

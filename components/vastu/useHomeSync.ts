@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, type VastuHome } from "@/lib/api";
 import type { Plan } from "@/lib/vastu/types";
-import type { PlanAction } from "./planState";
-import { normalizePlan, samplePlan } from "./planState";
+import type { StudioAction } from "@/lib/vastu/history";
+import { normalizePlan } from "@/lib/vastu/planState";
 
 /**
  * Keeps the planner's plan saved: instantly on the device (per account +
@@ -13,9 +13,13 @@ import { normalizePlan, samplePlan } from "./planState";
  *
  * On load the newer copy wins: a device draft with unsynced edits newer than
  * the server's copy is kept and pushed up; otherwise the server copy loads.
+ * A profile with no homes and no draft gets `needsStart` so the page can ask
+ * how to begin (draw / template / upload) instead of inventing a plan.
  */
 
 export type SaveStatus = "idle" | "saving" | "saved" | "offline" | "error";
+
+export type HomeSummary = Pick<VastuHome, "id" | "name" | "overallScore" | "updatedAt">;
 
 interface LocalDraft {
   plan: Plan;
@@ -62,6 +66,8 @@ function isOffline(e: unknown) {
   return e instanceof ApiError && e.status === 0;
 }
 
+const summary = (h: VastuHome): HomeSummary => ({ id: h.id, name: h.name, overallScore: h.overallScore, updatedAt: h.updatedAt });
+
 export function useHomeSync({
   scope,
   signedIn,
@@ -75,16 +81,20 @@ export function useHomeSync({
   signedIn: boolean;
   plan: Plan;
   score: number;
-  dispatch: React.Dispatch<PlanAction>;
+  dispatch: React.Dispatch<StudioAction>;
   /** Name for a profile's first saved home. */
   defaultName: string;
 }) {
   const [status, setStatus] = useState<SaveStatus>("idle");
-  const [home, setHome] = useState<Pick<VastuHome, "id" | "name"> | null>(null);
+  const [homes, setHomes] = useState<HomeSummary[]>([]);
+  const [homeId, setHomeId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [needsStart, setNeedsStart] = useState(false);
 
   const homeIdRef = useRef<string | null>(null);
   const scopeRef = useRef<string | null>(null);
+  /** Full server copies from the last list load, for switching homes without a refetch. */
+  const layoutsRef = useRef<Map<string, Plan>>(new Map());
   /** The next plan change came from loading, not from the user — don't mark it dirty. */
   const skipNextRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,20 +105,37 @@ export function useHomeSync({
   const defaultNameRef = useRef(defaultName);
   defaultNameRef.current = defaultName;
 
+  const setCurrent = useCallback((id: string | null) => {
+    homeIdRef.current = id;
+    setHomeId(id);
+  }, []);
+
+  const loadPlan = useCallback(
+    (p: Plan) => {
+      skipNextRef.current = true;
+      dispatch({ type: "load", plan: p });
+    },
+    [dispatch],
+  );
+
   const push = useCallback(async () => {
     const job = pendingRef.current;
     pendingRef.current = null;
     if (!job) return;
     if (scopeRef.current === job.scope) setStatus("saving");
     try {
-      await api.vastuHomeUpdate(job.homeId, {
+      const saved = await api.vastuHomeUpdate(job.homeId, {
         layout: job.plan as unknown as Record<string, unknown>,
         overallScore: job.score,
       });
+      layoutsRef.current.set(saved.id, job.plan);
       // Only clear the dirty flag if nothing newer was drafted meanwhile.
       const d = readDraft(job.scope);
       if (d && JSON.stringify(d.plan) === JSON.stringify(job.plan)) writeDraft(job.scope, { ...d, dirty: false });
-      if (scopeRef.current === job.scope && !pendingRef.current) setStatus("saved");
+      if (scopeRef.current === job.scope) {
+        setHomes((hs) => hs.map((h) => (h.id === saved.id ? summary(saved) : h)));
+        if (!pendingRef.current) setStatus("saved");
+      }
     } catch (e) {
       if (scopeRef.current === job.scope) setStatus(isOffline(e) ? "offline" : "error");
     }
@@ -120,59 +147,77 @@ export function useHomeSync({
     void push();
   }, [push]);
 
+  const createOnServer = useCallback(
+    async (name: string, p: Plan, sc: number): Promise<VastuHome> => {
+      const created = await api.vastuHomeCreate({
+        name,
+        layout: p as unknown as Record<string, unknown>,
+        overallScore: sc,
+      });
+      layoutsRef.current.set(created.id, p);
+      setHomes((hs) => [summary(created), ...hs]);
+      return created;
+    },
+    [],
+  );
+
   // ── Load when the account/profile becomes known or changes ────────────────
   useEffect(() => {
     if (!scope) return;
     let cancelled = false;
     scopeRef.current = scope;
-    homeIdRef.current = null;
-    setHome(null);
+    setCurrent(null);
+    setHomes([]);
+    layoutsRef.current = new Map();
     setReady(false);
+    setNeedsStart(false);
     setStatus("idle");
 
     const local = readDraft(scope);
-    skipNextRef.current = true;
-    dispatch({ type: "load", plan: local?.plan ?? samplePlan() });
+    if (local) loadPlan(local.plan);
     homeIdRef.current = local?.homeId ?? null;
     setReady(true);
 
-    if (!signedIn) return;
+    if (!signedIn) {
+      if (!local) setNeedsStart(true);
+      return;
+    }
 
     void (async () => {
       try {
-        const { homes } = await api.vastuHomesList();
+        const { homes: list } = await api.vastuHomesList();
         if (cancelled) return;
-        const server = (local?.homeId && homes.find((h) => h.id === local.homeId)) || homes[0];
+        for (const h of list) layoutsRef.current.set(h.id, normalizePlan(h.layout));
+        setHomes(list.map(summary));
+        const server = (local?.homeId && list.find((h) => h.id === local.homeId)) || list[0];
         if (server) {
-          homeIdRef.current = server.id;
-          setHome({ id: server.id, name: server.name });
+          setCurrent(server.id);
           const localNewer =
             local?.dirty && local.homeId === server.id && local.updatedAt > Date.parse(server.updatedAt);
           if (localNewer) {
             pendingRef.current = { homeId: server.id, plan: latest.current.plan, score: latest.current.score, scope };
             flush();
           } else {
-            const plan = normalizePlan(server.layout);
-            skipNextRef.current = true;
-            dispatch({ type: "load", plan });
-            writeDraft(scope, { plan, homeId: server.id, dirty: false, updatedAt: Date.parse(server.updatedAt) });
+            const p = layoutsRef.current.get(server.id)!;
+            loadPlan(p);
+            writeDraft(scope, { plan: p, homeId: server.id, dirty: false, updatedAt: Date.parse(server.updatedAt) });
             setStatus("saved");
           }
-        } else {
+        } else if (local) {
+          // A device draft that never reached the account (e.g. from before homes existed).
           setStatus("saving");
-          const created = await api.vastuHomeCreate({
-            name: defaultNameRef.current,
-            layout: latest.current.plan as unknown as Record<string, unknown>,
-            overallScore: latest.current.score,
-          });
+          const created = await createOnServer(defaultNameRef.current, latest.current.plan, latest.current.score);
           if (cancelled) return;
-          homeIdRef.current = created.id;
-          setHome({ id: created.id, name: created.name });
+          setCurrent(created.id);
           writeDraft(scope, { plan: latest.current.plan, homeId: created.id, dirty: false, updatedAt: Date.now() });
           setStatus("saved");
+        } else {
+          setNeedsStart(true);
         }
       } catch (e) {
-        if (!cancelled) setStatus(isOffline(e) ? "offline" : "error");
+        if (cancelled) return;
+        setStatus(isOffline(e) ? "offline" : "error");
+        if (!local) setNeedsStart(true);
       }
     })();
 
@@ -181,7 +226,7 @@ export function useHomeSync({
       // Switching profile mid-pause: save what was typed for the old one now.
       flush();
     };
-  }, [scope, signedIn, dispatch, flush]);
+  }, [scope, signedIn, loadPlan, setCurrent, createOnServer, flush]);
 
   // ── Save on every edit ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -192,9 +237,9 @@ export function useHomeSync({
       return;
     }
     writeDraft(scope, { plan, homeId: homeIdRef.current, dirty: true, updatedAt: Date.now() });
-    const homeId = homeIdRef.current;
-    if (!signedIn || !homeId) return;
-    pendingRef.current = { homeId, plan, score, scope };
+    const id = homeIdRef.current;
+    if (!signedIn || !id) return;
+    pendingRef.current = { homeId: id, plan, score, scope };
     setStatus("saving");
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -221,11 +266,11 @@ export function useHomeSync({
   useEffect(() => {
     const onOnline = () => {
       const scope = scopeRef.current;
-      const homeId = homeIdRef.current;
-      if (!scope || !homeId) return;
+      const id = homeIdRef.current;
+      if (!scope || !id) return;
       const d = readDraft(scope);
       if (d?.dirty) {
-        pendingRef.current = { homeId, plan: d.plan, score: latest.current.score, scope };
+        pendingRef.current = { homeId: id, plan: d.plan, score: latest.current.score, scope };
         flush();
       }
     };
@@ -233,5 +278,103 @@ export function useHomeSync({
     return () => window.removeEventListener("online", onOnline);
   }, [flush]);
 
-  return { status, home, ready };
+  // ── Home management ────────────────────────────────────────────────────────
+
+  /** Open another saved home (saves the current one first). */
+  const selectHome = useCallback(
+    (id: string) => {
+      const scope = scopeRef.current;
+      const p = layoutsRef.current.get(id);
+      if (!scope || !p || id === homeIdRef.current) return;
+      flush();
+      setCurrent(id);
+      loadPlan(p);
+      writeDraft(scope, { plan: p, homeId: id, dirty: false, updatedAt: Date.now() });
+      setStatus("saved");
+    },
+    [flush, loadPlan, setCurrent],
+  );
+
+  /** Start a new home from `p` and switch to it. */
+  const createHome = useCallback(
+    async (name: string, p: Plan, sc: number) => {
+      const scope = scopeRef.current;
+      if (!scope) return;
+      flush();
+      setNeedsStart(false);
+      setCurrent(null);
+      loadPlan(p);
+      writeDraft(scope, { plan: p, homeId: null, dirty: true, updatedAt: Date.now() });
+      if (!signedIn) return;
+      setStatus("saving");
+      try {
+        const created = await createOnServer(name, p, sc);
+        if (scopeRef.current !== scope) return;
+        setCurrent(created.id);
+        writeDraft(scope, { plan: latest.current.plan, homeId: created.id, dirty: false, updatedAt: Date.now() });
+        // Edits made while the create was in flight follow it up.
+        if (JSON.stringify(latest.current.plan) !== JSON.stringify(p)) {
+          pendingRef.current = { homeId: created.id, plan: latest.current.plan, score: latest.current.score, scope };
+          flush();
+        } else {
+          setStatus("saved");
+        }
+      } catch (e) {
+        setStatus(isOffline(e) ? "offline" : "error");
+      }
+    },
+    [signedIn, flush, loadPlan, setCurrent, createOnServer],
+  );
+
+  const renameHome = useCallback(async (id: string, name: string) => {
+    setHomes((hs) => hs.map((h) => (h.id === id ? { ...h, name } : h)));
+    try {
+      await api.vastuHomeUpdate(id, { name });
+    } catch (e) {
+      setStatus(isOffline(e) ? "offline" : "error");
+    }
+  }, []);
+
+  /** Delete a home; the current one falls back to the next, or to the start choice. */
+  const deleteHome = useCallback(
+    async (id: string) => {
+      try {
+        await api.vastuHomeDelete(id);
+      } catch (e) {
+        setStatus(isOffline(e) ? "offline" : "error");
+        return false;
+      }
+      layoutsRef.current.delete(id);
+      const rest = homes.filter((h) => h.id !== id);
+      setHomes(rest);
+      if (id === homeIdRef.current) {
+        pendingRef.current = null;
+        const next = rest[0];
+        const scope = scopeRef.current;
+        if (next && scope) {
+          const p = layoutsRef.current.get(next.id);
+          if (p) {
+            setCurrent(next.id);
+            loadPlan(p);
+            writeDraft(scope, { plan: p, homeId: next.id, dirty: false, updatedAt: Date.now() });
+          }
+        } else {
+          setCurrent(null);
+          if (scope) {
+            try {
+              localStorage.removeItem(draftKey(scope));
+            } catch {
+              /* ignore */
+            }
+          }
+          setNeedsStart(true);
+        }
+      }
+      return true;
+    },
+    [homes, loadPlan, setCurrent],
+  );
+
+  const home = homes.find((h) => h.id === homeId) ?? null;
+  return { status, home, homes, ready, needsStart, selectHome, createHome, renameHome, deleteHome };
 }

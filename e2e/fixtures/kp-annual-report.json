@@ -1,0 +1,1690 @@
+{
+ "status": "ready",
+ "reportKey": "kp_annual",
+ "periodMonth": "2026-09-25",
+ "isPreview": false,
+ "scores": {
+  "engine": {
+   "ruleset": "kp-classical-2026.09",
+   "ayanamsa": "krishnamurti",
+   "houseSystem": "placidus",
+   "highLatitude": false,
+   "dashaYearDays": 365.25
+  },
+  "window": {
+   "start": "2026-09-25",
+   "end": "2027-09-25"
+  },
+  "header": {
+   "name": "Priya",
+   "dob": "1988-02-20",
+   "lagnaSign": "Capricorn",
+   "moonSign": "Pisces",
+   "moonNakshatra": "Uttara Bhadrapada",
+   "currentMahadasha": "Venus",
+   "currentAntardasha": "Moon",
+   "dashaEndsOn": "2027-07-13"
+  },
+  "ascendant": {
+   "longitude": 298.93,
+   "sign": "Capricorn",
+   "signLord": "Saturn",
+   "nakshatra": "Dhanishtha",
+   "starLord": "Mars",
+   "subLord": "Saturn",
+   "subSubLord": "Venus"
+  },
+  "moon": {
+   "longitude": 340.0752,
+   "sign": "Pisces",
+   "signLord": "Jupiter",
+   "nakshatra": "Uttara Bhadrapada",
+   "starLord": "Saturn",
+   "subLord": "Venus",
+   "subSubLord": "Mercury"
+  },
+  "cusps": [
+   {
+    "house": 1,
+    "longitude": 298.93,
+    "sign": "Capricorn",
+    "signLord": "Saturn",
+    "nakshatra": "Dhanishtha",
+    "starLord": "Mars",
+    "subLord": "Saturn",
+    "subSubLord": "Venus",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 2,
+    "longitude": 334.3045,
+    "sign": "Pisces",
+    "signLord": "Jupiter",
+    "nakshatra": "Uttara Bhadrapada",
+    "starLord": "Saturn",
+    "subLord": "Saturn",
+    "subSubLord": "Venus",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 3,
+    "longitude": 7.6902,
+    "sign": "Aries",
+    "signLord": "Mars",
+    "nakshatra": "Ashwini",
+    "starLord": "Ketu",
+    "subLord": "Jupiter",
+    "subSubLord": "Jupiter",
+    "nearSubBoundary": true
+   },
+   {
+    "house": 4,
+    "longitude": 36.7739,
+    "sign": "Taurus",
+    "signLord": "Venus",
+    "nakshatra": "Krittika",
+    "starLord": "Sun",
+    "subLord": "Mercury",
+    "subSubLord": "Saturn",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 5,
+    "longitude": 62.9901,
+    "sign": "Gemini",
+    "signLord": "Mercury",
+    "nakshatra": "Mrigashira",
+    "starLord": "Mars",
+    "subLord": "Venus",
+    "subSubLord": "Venus",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 6,
+    "longitude": 89.2847,
+    "sign": "Gemini",
+    "signLord": "Mercury",
+    "nakshatra": "Punarvasu",
+    "starLord": "Jupiter",
+    "subLord": "Sun",
+    "subSubLord": "Mercury",
+    "nearSubBoundary": true
+   },
+   {
+    "house": 7,
+    "longitude": 118.93,
+    "sign": "Cancer",
+    "signLord": "Moon",
+    "nakshatra": "Ashlesha",
+    "starLord": "Mercury",
+    "subLord": "Saturn",
+    "subSubLord": "Venus",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 8,
+    "longitude": 154.3045,
+    "sign": "Virgo",
+    "signLord": "Mercury",
+    "nakshatra": "Uttara Phalguni",
+    "starLord": "Sun",
+    "subLord": "Saturn",
+    "subSubLord": "Moon",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 9,
+    "longitude": 187.6902,
+    "sign": "Libra",
+    "signLord": "Venus",
+    "nakshatra": "Swati",
+    "starLord": "Rahu",
+    "subLord": "Rahu",
+    "subSubLord": "Mercury",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 10,
+    "longitude": 216.7739,
+    "sign": "Scorpio",
+    "signLord": "Mars",
+    "nakshatra": "Anuradha",
+    "starLord": "Saturn",
+    "subLord": "Mercury",
+    "subSubLord": "Rahu",
+    "nearSubBoundary": false
+   },
+   {
+    "house": 11,
+    "longitude": 242.9901,
+    "sign": "Sagittarius",
+    "signLord": "Jupiter",
+    "nakshatra": "Mula",
+    "starLord": "Ketu",
+    "subLord": "Venus",
+    "subSubLord": "Ketu",
+    "nearSubBoundary": true
+   },
+   {
+    "house": 12,
+    "longitude": 269.2847,
+    "sign": "Sagittarius",
+    "signLord": "Jupiter",
+    "nakshatra": "Uttara Ashadha",
+    "starLord": "Sun",
+    "subLord": "Rahu",
+    "subSubLord": "Rahu",
+    "nearSubBoundary": true
+   }
+  ],
+  "planets": [
+   {
+    "planet": "Sun",
+    "longitude": 306.9924,
+    "sign": "Aquarius",
+    "signLord": "Saturn",
+    "nakshatra": "Shatabhisha",
+    "starLord": "Rahu",
+    "subLord": "Rahu",
+    "subSubLord": "Jupiter",
+    "house": 1,
+    "retrograde": false,
+    "signifies": [
+     1
+    ]
+   },
+   {
+    "planet": "Moon",
+    "longitude": 340.0752,
+    "sign": "Pisces",
+    "signLord": "Jupiter",
+    "nakshatra": "Uttara Bhadrapada",
+    "starLord": "Saturn",
+    "subLord": "Venus",
+    "subSubLord": "Mercury",
+    "house": 2,
+    "retrograde": false,
+    "signifies": [
+     1,
+     2,
+     11
+    ]
+   },
+   {
+    "planet": "Mars",
+    "longitude": 244.7862,
+    "sign": "Sagittarius",
+    "signLord": "Jupiter",
+    "nakshatra": "Mula",
+    "starLord": "Ketu",
+    "subLord": "Mars",
+    "subSubLord": "Mars",
+    "house": 11,
+    "retrograde": false,
+    "signifies": [
+     7,
+     11
+    ]
+   },
+   {
+    "planet": "Mercury",
+    "longitude": 289.905,
+    "sign": "Capricorn",
+    "signLord": "Saturn",
+    "nakshatra": "Shravana",
+    "starLord": "Moon",
+    "subLord": "Ketu",
+    "subSubLord": "Moon",
+    "house": 12,
+    "retrograde": true,
+    "signifies": [
+     2,
+     7,
+     12
+    ]
+   },
+   {
+    "planet": "Jupiter",
+    "longitude": 2.9459,
+    "sign": "Aries",
+    "signLord": "Mars",
+    "nakshatra": "Ashwini",
+    "starLord": "Ketu",
+    "subLord": "Venus",
+    "subSubLord": "Ketu",
+    "house": 2,
+    "retrograde": false,
+    "signifies": [
+     2,
+     7
+    ]
+   },
+   {
+    "planet": "Venus",
+    "longitude": 348.7452,
+    "sign": "Pisces",
+    "signLord": "Jupiter",
+    "nakshatra": "Revati",
+    "starLord": "Mercury",
+    "subLord": "Ketu",
+    "subSubLord": "Sun",
+    "house": 2,
+    "retrograde": false,
+    "signifies": [
+     2,
+     5,
+     6,
+     8,
+     12
+    ]
+   },
+   {
+    "planet": "Saturn",
+    "longitude": 246.8917,
+    "sign": "Sagittarius",
+    "signLord": "Jupiter",
+    "nakshatra": "Mula",
+    "starLord": "Ketu",
+    "subLord": "Rahu",
+    "subSubLord": "Venus",
+    "house": 11,
+    "retrograde": false,
+    "signifies": [
+     7,
+     11
+    ]
+   },
+   {
+    "planet": "Rahu",
+    "longitude": 330.9239,
+    "sign": "Pisces",
+    "signLord": "Jupiter",
+    "nakshatra": "Purva Bhadrapada",
+    "starLord": "Jupiter",
+    "subLord": "Mars",
+    "subSubLord": "Saturn",
+    "house": 1,
+    "retrograde": false,
+    "signifies": [
+     1,
+     2,
+     11,
+     12
+    ]
+   },
+   {
+    "planet": "Ketu",
+    "longitude": 150.9239,
+    "sign": "Virgo",
+    "signLord": "Mercury",
+    "nakshatra": "Uttara Phalguni",
+    "starLord": "Sun",
+    "subLord": "Rahu",
+    "subSubLord": "Sun",
+    "house": 7,
+    "retrograde": false,
+    "signifies": [
+     1,
+     7
+    ]
+   }
+  ],
+  "sensitiveCusps": [
+   3,
+   6,
+   11,
+   12
+  ],
+  "areas": [
+   {
+    "key": "career",
+    "houses": [
+     2,
+     6,
+     10
+    ],
+    "principalCusp": 10,
+    "cuspSubLord": "Mercury",
+    "cuspSubLordStar": "Moon",
+    "cuspSubLordSignifies": [
+     2,
+     7,
+     12
+    ],
+    "matchedHouses": [
+     2
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": false,
+    "source": "KSK_READER_III",
+    "peakMonths": [
+     5,
+     6,
+     7,
+     8
+    ],
+    "activeMonths": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     9,
+     10,
+     11
+    ],
+    "bestWindow": {
+     "start": "2027-02-25",
+     "end": "2027-06-25",
+     "lords": [
+      "Moon",
+      "Venus"
+     ]
+    }
+   },
+   {
+    "key": "money",
+    "houses": [
+     2,
+     6,
+     11
+    ],
+    "principalCusp": 11,
+    "cuspSubLord": "Venus",
+    "cuspSubLordStar": "Mercury",
+    "cuspSubLordSignifies": [
+     2,
+     5,
+     6,
+     8,
+     12
+    ],
+    "matchedHouses": [
+     2,
+     6
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": true,
+    "source": "KP_STANDARD",
+    "peakMonths": [
+     5,
+     6,
+     7,
+     8
+    ],
+    "activeMonths": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     9,
+     10,
+     11
+    ],
+    "bestWindow": {
+     "start": "2027-02-25",
+     "end": "2027-06-25",
+     "lords": [
+      "Moon",
+      "Venus"
+     ]
+    }
+   },
+   {
+    "key": "love",
+    "houses": [
+     2,
+     7,
+     11
+    ],
+    "principalCusp": 7,
+    "cuspSubLord": "Saturn",
+    "cuspSubLordStar": "Ketu",
+    "cuspSubLordSignifies": [
+     7,
+     11
+    ],
+    "matchedHouses": [
+     7,
+     11
+    ],
+    "promise": "strong",
+    "cuspNearBoundary": false,
+    "source": "KSK_READER_III",
+    "peakMonths": [
+     0,
+     1,
+     2,
+     3,
+     10,
+     11
+    ],
+    "activeMonths": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "bestWindow": {
+     "start": "2026-09-25",
+     "end": "2027-01-25",
+     "lords": [
+      "Moon",
+      "Saturn",
+      "Mercury"
+     ]
+    }
+   },
+   {
+    "key": "health",
+    "houses": [
+     1,
+     5,
+     11
+    ],
+    "principalCusp": 1,
+    "cuspSubLord": "Saturn",
+    "cuspSubLordStar": "Ketu",
+    "cuspSubLordSignifies": [
+     7,
+     11
+    ],
+    "matchedHouses": [
+     11
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": false,
+    "source": "KP_STANDARD",
+    "peakMonths": [
+     0,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11
+    ],
+    "activeMonths": [
+     1,
+     2,
+     3
+    ],
+    "bestWindow": {
+     "start": "2027-01-25",
+     "end": "2027-09-25",
+     "lords": [
+      "Moon",
+      "Ketu",
+      "Venus",
+      "Sun",
+      "Mars",
+      "Rahu"
+     ]
+    }
+   },
+   {
+    "key": "home",
+    "houses": [
+     4,
+     11,
+     12
+    ],
+    "principalCusp": 4,
+    "cuspSubLord": "Mercury",
+    "cuspSubLordStar": "Moon",
+    "cuspSubLordSignifies": [
+     2,
+     7,
+     12
+    ],
+    "matchedHouses": [
+     12
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": false,
+    "source": "KP_STANDARD",
+    "peakMonths": [
+     10,
+     11
+    ],
+    "activeMonths": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "bestWindow": {
+     "start": "2027-07-25",
+     "end": "2027-09-25",
+     "lords": [
+      "Mars",
+      "Rahu"
+     ]
+    }
+   },
+   {
+    "key": "travel",
+    "houses": [
+     3,
+     9,
+     12
+    ],
+    "principalCusp": 12,
+    "cuspSubLord": "Rahu",
+    "cuspSubLordStar": "Jupiter",
+    "cuspSubLordSignifies": [
+     1,
+     2,
+     11,
+     12
+    ],
+    "matchedHouses": [
+     12
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": true,
+    "source": "KSK_READER_III",
+    "peakMonths": [],
+    "activeMonths": [
+     1,
+     2,
+     3,
+     5,
+     6,
+     7,
+     8,
+     10,
+     11
+    ],
+    "bestWindow": {
+     "start": "2027-02-25",
+     "end": "2027-06-25",
+     "lords": [
+      "Venus"
+     ]
+    }
+   },
+   {
+    "key": "learning",
+    "houses": [
+     4,
+     9,
+     11
+    ],
+    "principalCusp": 9,
+    "cuspSubLord": "Rahu",
+    "cuspSubLordStar": "Jupiter",
+    "cuspSubLordSignifies": [
+     1,
+     2,
+     11,
+     12
+    ],
+    "matchedHouses": [
+     11
+    ],
+    "promise": "steady",
+    "cuspNearBoundary": false,
+    "source": "KP_STANDARD",
+    "peakMonths": [
+     0,
+     10,
+     11
+    ],
+    "activeMonths": [
+     1,
+     2,
+     3,
+     4,
+     9
+    ],
+    "bestWindow": {
+     "start": "2027-07-25",
+     "end": "2027-09-25",
+     "lords": [
+      "Mars",
+      "Rahu"
+     ]
+    }
+   },
+   {
+    "key": "family",
+    "houses": [
+     2,
+     5,
+     11
+    ],
+    "principalCusp": 5,
+    "cuspSubLord": "Venus",
+    "cuspSubLordStar": "Mercury",
+    "cuspSubLordSignifies": [
+     2,
+     5,
+     6,
+     8,
+     12
+    ],
+    "matchedHouses": [
+     2,
+     5
+    ],
+    "promise": "strong",
+    "cuspNearBoundary": false,
+    "source": "KP_STANDARD",
+    "peakMonths": [
+     5,
+     6,
+     7,
+     8
+    ],
+    "activeMonths": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     9,
+     10,
+     11
+    ],
+    "bestWindow": {
+     "start": "2027-02-25",
+     "end": "2027-06-25",
+     "lords": [
+      "Moon",
+      "Venus"
+     ]
+    }
+   }
+  ],
+  "months": [
+   {
+    "index": 0,
+    "start": "2026-09-25",
+    "end": "2026-10-25",
+    "mid": "2026-10-10",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Saturn"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "peak",
+     "home": "active",
+     "travel": "quiet",
+     "learning": "peak",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Jupiter",
+      "natalHouse": 6,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Revati",
+      "starLord": "Mercury",
+      "subLord": "Mercury",
+      "natalHouse": 2,
+      "retrograde": true
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Aquarius",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Venus",
+      "natalHouse": 1,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Sun",
+      "natalHouse": 7,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 1,
+    "start": "2026-10-25",
+    "end": "2026-11-25",
+    "mid": "2026-11-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Mercury"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "active",
+     "home": "active",
+     "travel": "active",
+     "learning": "active",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Uttara Bhadrapada",
+      "starLord": "Saturn",
+      "subLord": "Rahu",
+      "natalHouse": 2,
+      "retrograde": true
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Aquarius",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Mercury",
+      "natalHouse": 1,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 2,
+    "start": "2026-11-25",
+    "end": "2026-12-25",
+    "mid": "2026-12-10",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Mercury"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "active",
+     "home": "active",
+     "travel": "active",
+     "learning": "active",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Uttara Bhadrapada",
+      "starLord": "Saturn",
+      "subLord": "Rahu",
+      "natalHouse": 2,
+      "retrograde": true
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Saturn",
+      "natalHouse": 1,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Saturn",
+      "natalHouse": 7,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 3,
+    "start": "2026-12-25",
+    "end": "2027-01-25",
+    "mid": "2027-01-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Mercury"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "active",
+     "home": "active",
+     "travel": "active",
+     "learning": "active",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": true
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Uttara Bhadrapada",
+      "starLord": "Saturn",
+      "subLord": "Rahu",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Saturn",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Saturn",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "start": "2027-01-25",
+    "end": "2027-02-25",
+    "mid": "2027-02-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Ketu"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "quiet",
+     "learning": "active",
+     "family": "active"
+    },
+    "focus": "health",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Saturn",
+      "natalHouse": 6,
+      "retrograde": true
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Revati",
+      "starLord": "Mercury",
+      "subLord": "Mercury",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Jupiter",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Jupiter",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 5,
+    "start": "2027-02-25",
+    "end": "2027-03-25",
+    "mid": "2027-03-11",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Venus"
+    },
+    "tones": {
+     "career": "peak",
+     "money": "peak",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "active",
+     "learning": "quiet",
+     "family": "peak"
+    },
+    "focus": "money",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Rahu",
+      "natalHouse": 6,
+      "retrograde": true
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Revati",
+      "starLord": "Mercury",
+      "subLord": "Venus",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Rahu",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Rahu",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 6,
+    "start": "2027-03-25",
+    "end": "2027-04-25",
+    "mid": "2027-04-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Venus"
+    },
+    "tones": {
+     "career": "peak",
+     "money": "peak",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "active",
+     "learning": "quiet",
+     "family": "peak"
+    },
+    "focus": "money",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Moon",
+      "natalHouse": 6,
+      "retrograde": true
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Revati",
+      "starLord": "Mercury",
+      "subLord": "Mars",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Dhanishtha",
+      "starLord": "Mars",
+      "subLord": "Mars",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Mars",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 7,
+    "start": "2027-04-25",
+    "end": "2027-05-25",
+    "mid": "2027-05-10",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Venus"
+    },
+    "tones": {
+     "career": "peak",
+     "money": "peak",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "active",
+     "learning": "quiet",
+     "family": "peak"
+    },
+    "focus": "money",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Mars",
+      "natalHouse": 6,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Pisces",
+      "nakshatra": "Revati",
+      "starLord": "Mercury",
+      "subLord": "Jupiter",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Shravana",
+      "starLord": "Moon",
+      "subLord": "Venus",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Sun",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 8,
+    "start": "2027-05-25",
+    "end": "2027-06-25",
+    "mid": "2027-06-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Venus"
+    },
+    "tones": {
+     "career": "peak",
+     "money": "peak",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "active",
+     "learning": "quiet",
+     "family": "peak"
+    },
+    "focus": "money",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Jupiter",
+      "natalHouse": 6,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Aries",
+      "nakshatra": "Ashwini",
+      "starLord": "Ketu",
+      "subLord": "Ketu",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Shravana",
+      "starLord": "Moon",
+      "subLord": "Ketu",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Venus",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 9,
+    "start": "2027-06-25",
+    "end": "2027-07-25",
+    "mid": "2027-07-10",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Moon",
+     "pd": "Sun"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "active",
+     "health": "peak",
+     "home": "active",
+     "travel": "quiet",
+     "learning": "active",
+     "family": "active"
+    },
+    "focus": "health",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Aries",
+      "nakshatra": "Ashwini",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Shravana",
+      "starLord": "Moon",
+      "subLord": "Mercury",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Ketu",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 10,
+    "start": "2027-07-25",
+    "end": "2027-08-25",
+    "mid": "2027-08-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Mars",
+     "pd": "Rahu"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "peak",
+     "home": "peak",
+     "travel": "active",
+     "learning": "peak",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Magha",
+      "starLord": "Ketu",
+      "subLord": "Jupiter",
+      "natalHouse": 7,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Aries",
+      "nakshatra": "Ashwini",
+      "starLord": "Ketu",
+      "subLord": "Moon",
+      "natalHouse": 2,
+      "retrograde": false
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Shravana",
+      "starLord": "Moon",
+      "subLord": "Saturn",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "starLord": "Mercury",
+      "subLord": "Mercury",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   },
+   {
+    "index": 11,
+    "start": "2027-08-25",
+    "end": "2027-09-25",
+    "mid": "2027-09-09",
+    "dasha": {
+     "md": "Venus",
+     "ad": "Mars",
+     "pd": "Rahu"
+    },
+    "tones": {
+     "career": "active",
+     "money": "active",
+     "love": "peak",
+     "health": "peak",
+     "home": "peak",
+     "travel": "active",
+     "learning": "peak",
+     "family": "active"
+    },
+    "focus": "love",
+    "care": null,
+    "transits": [
+     {
+      "planet": "Jupiter",
+      "sign": "Leo",
+      "nakshatra": "Purva Phalguni",
+      "starLord": "Venus",
+      "subLord": "Venus",
+      "natalHouse": 7,
+      "retrograde": false
+     },
+     {
+      "planet": "Saturn",
+      "sign": "Aries",
+      "nakshatra": "Ashwini",
+      "starLord": "Ketu",
+      "subLord": "Venus",
+      "natalHouse": 2,
+      "retrograde": true
+     },
+     {
+      "planet": "Rahu",
+      "sign": "Capricorn",
+      "nakshatra": "Shravana",
+      "starLord": "Moon",
+      "subLord": "Jupiter",
+      "natalHouse": 12,
+      "retrograde": false
+     },
+     {
+      "planet": "Ketu",
+      "sign": "Cancer",
+      "nakshatra": "Pushya",
+      "starLord": "Saturn",
+      "subLord": "Jupiter",
+      "natalHouse": 6,
+      "retrograde": false
+     }
+    ]
+   }
+  ],
+  "dashaNow": {
+   "md": "Venus",
+   "ad": "Moon",
+   "pd": "Saturn",
+   "adEnds": "2027-07-13"
+  },
+  "dashaShifts": [
+   {
+    "date": "2027-07-13",
+    "ad": "Mars",
+    "md": "Venus"
+   }
+  ],
+  "rulingPlanets": [
+   {
+    "planet": "Venus",
+    "role": "DAY_LORD"
+   },
+   {
+    "planet": "Jupiter",
+    "role": "MOON_STAR_LORD"
+   },
+   {
+    "planet": "Saturn",
+    "role": "MOON_SIGN_LORD"
+   },
+   {
+    "planet": "Jupiter",
+    "role": "ASC_SIGN_LORD"
+   },
+   {
+    "planet": "Ketu",
+    "role": "ASC_STAR_LORD"
+   }
+  ],
+  "questions": [
+   {
+    "index": 0,
+    "question": "Will I get a better job this year?",
+    "topic": "career",
+    "houses": [
+     2,
+     6,
+     10
+    ],
+    "principalCusp": 10,
+    "cuspSubLord": "Mercury",
+    "cuspSubLordSignifies": [
+     2,
+     7,
+     12
+    ],
+    "promise": "steady",
+    "peakMonths": [
+     5,
+     6,
+     7,
+     8
+    ],
+    "activeMonths": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     9,
+     10,
+     11
+    ],
+    "bestWindow": {
+     "start": "2027-02-25",
+     "end": "2027-06-25",
+     "lords": [
+      "Moon",
+      "Venus"
+     ]
+    }
+   },
+   {
+    "index": 1,
+    "question": "When is a good time for marriage?",
+    "topic": "love",
+    "houses": [
+     2,
+     7,
+     11
+    ],
+    "principalCusp": 7,
+    "cuspSubLord": "Saturn",
+    "cuspSubLordSignifies": [
+     7,
+     11
+    ],
+    "promise": "strong",
+    "peakMonths": [
+     0,
+     1,
+     2,
+     3,
+     10,
+     11
+    ],
+    "activeMonths": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "bestWindow": {
+     "start": "2026-09-25",
+     "end": "2027-01-25",
+     "lords": [
+      "Moon",
+      "Saturn",
+      "Mercury"
+     ]
+    }
+   }
+  ],
+  "verdict": {
+   "headline": "A patient first half, then a confident push — love leads, career follows.",
+   "nextStep": "Mark March to June in your calendar for career moves.",
+   "bullets": [
+    "Love and family are strongly promised; October to January is warm.",
+    "Push at work from March to June.",
+    "Keep a spending buffer in the festival season."
+   ]
+  }
+ },
+ "sections": [
+  {
+   "heading": "Your Year At A Glance",
+   "hook": "A year that rewards patience, then opens doors.",
+   "paragraphs": [
+    "This year moves in two clear chapters. Until spring you are laying groundwork — conversations, planning, small wins at work. From March the pace picks up and the effort starts showing.",
+    "Love and family carry the strongest promise in your chart, and the first months of the year are warm for them."
+   ],
+   "id": "year_at_a_glance"
+  },
+  {
+   "heading": "Your KP Blueprint",
+   "hook": "Your sub lords favour relationships and steady growth.",
+   "paragraphs": [
+    "In KP, each house cusp has a sub lord — the planet that decides whether that part of life delivers. Your 7th cusp sub lord, Saturn, connects to marriage and gains, which is why love reads as strongly promised.",
+    "A few cusps sit close to a boundary, so those readings depend on your birth time being accurate."
+   ],
+   "id": "kp_blueprint"
+  },
+  {
+   "heading": "The Planetary Period You Are In",
+   "hook": "Venus sets a gentle, social tone.",
+   "paragraphs": [
+    "You are running Venus dasha with Moon bhukti — a period that brings people, family events and emotional clarity.",
+    "In July the bhukti shifts to Mars, bringing more drive and decisiveness."
+   ],
+   "id": "dasha_story"
+  },
+  {
+   "heading": "Big Transits This Year",
+   "hook": "Jupiter and Saturn change gear mid-year.",
+   "paragraphs": [
+    "Jupiter moves between Cancer and Leo, lighting up different parts of your chart. Saturn moves into Aries around June, a nudge to restructure routines."
+   ],
+   "id": "transit_triggers"
+  },
+  {
+   "heading": "Career & Money",
+   "hook": "March to June is your window to push.",
+   "paragraphs": [
+    "From March to June both the bhukti and antara lords support career and income. That is the time to ask for the raise or make the switch.",
+    "Keep a buffer for festival-season spending in October."
+   ],
+   "id": "career_money"
+  },
+  {
+   "heading": "Love, Marriage & Family",
+   "hook": "The warmest months come first.",
+   "paragraphs": [
+    "October to January is the warmest stretch for relationships and marriage talks. Families come together easily now — use it."
+   ],
+   "id": "love_family"
+  },
+  {
+   "heading": "Health & Energy",
+   "hook": "Regular routines keep your energy high.",
+   "paragraphs": [
+    "Energy runs well for most of the year. Keep sleep and walks regular, and book a routine check-up in the quieter months."
+   ],
+   "id": "health_wellbeing"
+  },
+  {
+   "heading": "Home, Travel & Learning",
+   "hook": "Property plans firm up late in the year.",
+   "paragraphs": [
+    "August and September suit home and property plans. Trips are best planned for spring."
+   ],
+   "id": "home_travel_learning"
+  },
+  {
+   "heading": "Month By Month",
+   "hook": "Twelve months, twelve small nudges.",
+   "paragraphs": [
+    "Oct 2026: Start the conversations that matter.",
+    "Nov 2026: Family time brings clarity.",
+    "Dec 2026: Say yes to invitations.",
+    "Jan 2027: Plan, do not rush.",
+    "Feb 2027: Rest and reset.",
+    "Mar 2027: Push for growth at work.",
+    "Apr 2027: Ask for what you are worth.",
+    "May 2027: Money decisions go well.",
+    "Jun 2027: Finish what you started.",
+    "Jul 2027: A fresh burst of drive.",
+    "Aug 2027: Home plans take shape.",
+    "Sept 2027: Close the year with gratitude."
+   ],
+   "id": "month_by_month"
+  },
+  {
+   "heading": "Simple Remedies & Rituals",
+   "hook": "Small acts, steady grace.",
+   "paragraphs": [
+    "Honour Friday with white flowers for Venus, and light a lamp on Saturdays."
+   ],
+   "id": "guidance_remedies"
+  },
+  {
+   "heading": "A Note For Your Year",
+   "hook": "Your effort shapes how these promises land.",
+   "paragraphs": [
+    "The chart shows the doors; you choose which to walk through."
+   ],
+   "id": "closing_note"
+  },
+  {
+   "heading": "Answers To Your Questions",
+   "hook": "Your questions, read the KP way.",
+   "paragraphs": [
+    "Yes — the chart supports a better role, and March to June is when it is most likely to come through. Update your CV in February.",
+    "The warmest window is October to January. Let families meet during the festival season."
+   ],
+   "id": "your_questions"
+  }
+ ]
+}

@@ -202,7 +202,25 @@ export interface RateReportResponse {
   refundedPaise: number | null;
 }
 
+/** One question's verdict from POST /v1/reports/questions/check. */
+export interface QuestionCheckResult {
+  index: number;
+  allowed: boolean;
+  topic: "death" | "suicide" | null;
+  /** Reader-facing line — a helpline for self-harm, a gentle refusal for death. */
+  message: string;
+}
+
 export const reportsApi = {
+  /** Screens the KP Year Ahead report's own questions before checkout (the purchase route
+   * enforces the same policy, so this is a UX nicety, never the only guard). */
+  checkQuestions: (questions: string[], language?: string) =>
+    request<{ allowed: boolean; results: QuestionCheckResult[] }>("/v1/reports/questions/check", {
+      method: "POST",
+      body: { questions, ...(language ? { language } : {}) },
+      auth: true,
+    }),
+
   /** The 10-report catalogue for the currently active profile. */
   catalogue: () => request<ReportCatalogueResponse>("/v1/reports", { auth: true }),
 

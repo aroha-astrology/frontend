@@ -14,6 +14,7 @@ import {
   PenLine,
   Flame,
   Sprout,
+  Orbit,
 } from "lucide-react";
 import { REPORT_THEME, getReportTheme } from "./report-theme";
 
@@ -32,10 +33,11 @@ const EXPECTED_ICONS: Record<string, unknown> = {
   name_change: PenLine,
   remedies: Flame,
   progeny: Sprout,
+  kp_annual: Orbit,
 };
 
 describe("REPORT_THEME", () => {
-  it("has exactly the 14 catalogue report keys, no more, no fewer", () => {
+  it("has exactly the 15 catalogue report keys, no more, no fewer", () => {
     expect(Object.keys(REPORT_THEME).sort()).toEqual(Object.keys(EXPECTED_ICONS).sort());
   });
 

@@ -31,6 +31,12 @@ export interface ReportQuestion {
   showIf?: { questionId: string; value: string };
 }
 
+/** The KP Year Ahead report lets the reader ask up to three questions of their own; they are
+ * screened on the server (death / self-harm questions are refused before checkout) and answered
+ * in the report. Rendered by KpQuestionsStep, not the generic question list below. */
+export const KP_QUESTION_IDS = ["question1", "question2", "question3"] as const;
+export const KP_QUESTION_MAX_CHARS = 240;
+
 export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   baby_name: [
     {

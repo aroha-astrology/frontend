@@ -11,6 +11,7 @@ import PastLifeReportView from "./past-life/PastLifeReportView";
 import NumerologyReportView from "./numerology/NumerologyReportView";
 import BabyNameReportView from "./baby-name/BabyNameReportView";
 import ProgenyReportView from "./progeny/ProgenyReportView";
+import KpAnnualReportView from "./kp-annual/KpAnnualReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
@@ -109,5 +110,10 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: ProgenyReportView,
     artSrc: "/progeny/yashoda.png",
     subtitleKey: "progenyReport.subtitle",
+  },
+  kp_annual: {
+    View: KpAnnualReportView,
+    artSrc: "/kp-annual/wheel.png",
+    subtitleKey: "kpAnnualReport.subtitle",
   },
 };

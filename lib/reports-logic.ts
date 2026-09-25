@@ -23,6 +23,7 @@ export const YEARLY_REPORT_KEYS: ReadonlySet<string> = new Set([
   "wealth",
   "true_love",
   "numerology",
+  "kp_annual",
 ]);
 
 /** Minimal shape splitReportsByType needs — any richer catalogue entry type satisfies this. */

@@ -18,8 +18,14 @@ import {
   type PurchaseReportBody,
   type PurchaseReportResultRow,
 } from "@/lib/reports-api";
-import { REPORT_QUESTIONS } from "@/lib/report-questions";
+import { REPORT_QUESTIONS, type KP_QUESTION_IDS } from "@/lib/report-questions";
+import type { QuestionCheckResult } from "@/lib/reports-api";
 import DiscountPrice from "./DiscountPrice";
+import KpQuestionsStep, {
+  EMPTY_KP_QUESTIONS,
+  filledKpQuestions,
+  type KpQuestions,
+} from "./kp-annual/KpQuestionsStep";
 
 interface ReportPurchaseDrawerProps {
   entry: ReportCatalogueEntry;
@@ -46,7 +52,7 @@ interface ReportPurchaseDrawerProps {
  *     duplicate purchase through a refund.
  */
 export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, generatedCount }: ReportPurchaseDrawerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, activeProfile, refresh } = useAuth();
 
   const label = t(`reports.labels.${entry.key}`, entry.label);
@@ -120,6 +126,43 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const visibleQuestions = questions.filter(
     (q) => !q.showIf || answers[q.showIf.questionId] === q.showIf.value,
   );
+
+  // ── KP Year Ahead: the reader's own questions, screened before checkout ─
+  const isKp = entry.key === "kp_annual";
+  const [kpQuestions, setKpQuestions] = useState<KpQuestions>(EMPTY_KP_QUESTIONS);
+  const [kpBlocked, setKpBlocked] = useState<
+    Partial<Record<(typeof KP_QUESTION_IDS)[number], QuestionCheckResult>>
+  >({});
+  const [checkingQuestions, setCheckingQuestions] = useState(false);
+
+  /** Runs the server's content-policy check on the typed questions. True when every question
+   * may be asked (or none were typed); otherwise marks the refused ones and returns false. */
+  const screenKpQuestions = async (): Promise<boolean> => {
+    const filled = filledKpQuestions(kpQuestions);
+    setKpBlocked({});
+    if (filled.length === 0) return true;
+    setCheckingQuestions(true);
+    try {
+      const res = await reportsApi.checkQuestions(
+        filled.map((q) => q.text),
+        i18n.language,
+      );
+      if (res.allowed) return true;
+      const next: typeof kpBlocked = {};
+      for (const r of res.results) {
+        const q = filled[r.index];
+        if (q && !r.allowed) next[q.id] = r;
+      }
+      setKpBlocked(next);
+      return false;
+    } catch {
+      // The purchase route enforces the same policy, so a failed pre-check never lets a
+      // refused question through — it just defers the message to checkout.
+      return true;
+    } finally {
+      setCheckingQuestions(false);
+    }
+  };
 
   // ── Monthly: current month only, no picker ────────────────────────────
   // A `failed` row is deliberately NOT treated as already-purchased: the backend
@@ -202,6 +245,9 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       const filteredAnswers = Object.fromEntries(
         Object.entries(answers).filter(([id, v]) => visibleAnswerIds.has(id) && v.trim() !== ""),
       );
+      if (isKp) {
+        for (const q of filledKpQuestions(kpQuestions)) filteredAnswers[q.id] = q.text;
+      }
       if (Object.keys(filteredAnswers).length > 0) body.answers = filteredAnswers;
       track("report_purchase_started", { report: entry.key, costPaise });
       const res = await reportsApi.purchase(body);
@@ -211,6 +257,8 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setErrorMsg(t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) }));
+      } else if (err instanceof ApiError && err.status === 400 && err.message === "QUESTION_NOT_ALLOWED") {
+        setErrorMsg(t("kpAnnualReport.ask.deathBlocked"));
       } else if (err instanceof ApiError && err.status === 403) {
         setErrorMsg(t("reports.purchase.disabledError"));
       } else {
@@ -294,6 +342,18 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               </div>
             ))}
           </div>
+        )}
+
+        {/* ── KP Year Ahead: ask your own questions ── */}
+        {isKp && (
+          <KpQuestionsStep
+            value={kpQuestions}
+            onChange={(next) => {
+              setKpQuestions(next);
+              if (Object.keys(kpBlocked).length > 0) setKpBlocked({});
+            }}
+            blocked={kpBlocked}
+          />
         )}
 
         {/* ── Kundli Milan partner form ── */}
@@ -543,13 +603,17 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
+                  disabled={checkingQuestions}
+                  onClick={async () => {
                     if (!validateSpouseFields()) return;
+                    if (isKp && !(await screenKpQuestions())) return;
                     setConfirming(true);
                   }}
-                  className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
+                  className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-60"
                 >
-                  {t("reports.buy")} · {formatRupees(costPaise)}
+                  {checkingQuestions
+                    ? t("kpAnnualReport.ask.checking")
+                    : `${t("reports.buy")} · ${formatRupees(costPaise)}`}
                 </button>
               )}
             </div>

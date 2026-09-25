@@ -125,6 +125,7 @@ export const resources = {
           name_change: "Name Change Report",
           remedies: "Remedies Report",
           progeny: "Progeny Report",
+          kp_annual: "KP Year Ahead Report",
         },
         purchase: {
           confirmSpend: "Spend {{cost}} to unlock this report?",
@@ -299,6 +300,18 @@ export const resources = {
           obstructions: "Obstructions To Hold Carefully",
           progeny_remedies: "Classical Remedies",
           progeny_outlook: "The Honest Outlook",
+          year_at_a_glance: "Your Year At A Glance",
+          kp_blueprint: "Your KP Blueprint",
+          dasha_story: "The Planetary Period You Are In",
+          transit_triggers: "Big Transits This Year",
+          career_money: "Career & Money",
+          love_family: "Love, Marriage & Family",
+          health_wellbeing: "Health & Energy",
+          home_travel_learning: "Home, Travel & Learning",
+          month_by_month: "Month By Month",
+          guidance_remedies: "Simple Remedies & Rituals",
+          closing_note: "A Note For Your Year",
+          your_questions: "Answers To Your Questions",
         },
         lifeContext: {
           title: "Life Context Right Now",
@@ -494,6 +507,15 @@ export const resources = {
             "What obstructions should we be mindful of, and how do we work through them?",
             "If I'm 35 or older, what does my chart say about the children I already have?",
           ],
+          kp_annual: [
+            "Your next 12 months, from today to the same day next year",
+            "Krishnamurti Paddhati (KP): Placidus cusps, sub lords and significators",
+            "Career, money, love, health, home, travel, studies and family — what the year promises",
+            "A month-by-month guide with the best windows named",
+            "Your planetary periods (dasha, bhukti, antara) and the big transits",
+            "Ask up to 3 questions of your own — answered in the report",
+            "Simple remedies tied to your Ruling Planets"
+          ],
         },
         // Catalogue-card marketing copy — descriptions is a one-line "what is this" (matches
         // labels/covers precedent, all 14 report keys). taglines is the green curiosity-hook
@@ -516,6 +538,7 @@ export const resources = {
           remedies: "Get personalized Lal Kitab remedies",
           gemstone: "Find the gemstones suited to your chart",
           progeny: "Classical readings on children, timing and blessings",
+          kp_annual: "Your next 12 months, the KP way",
         },
         taglines: {
           marriage: "Ketu delaying your marriage?",
@@ -534,6 +557,7 @@ export const resources = {
           remedies: "Simple remedies for planetary doshas",
           gemstone: "Wearing the wrong stone could work against you",
           progeny: "What does your chart say about children?",
+          kp_annual: "Ask your own questions — answered by KP",
         },
       },
       vastu: {
@@ -768,6 +792,123 @@ export const resources = {
         spouse: { title: "Your Likely Partner" },
         decade: { title: "Marriage Quality by Decade" },
         remedies: { title: "Remedies" },
+      },
+      kpAnnualReport: {
+        "subtitle": "Your next 12 months, read the Krishnamurti Paddhati way",
+        "glance": {
+          "eyebrow": "Your year ahead",
+          "window": "{{start}} to {{end}}",
+          "leans": "Where your year leans",
+          "method": "Read with KP: Krishnamurti ayanamsa, Placidus house cusps, cuspal sub lords, Vimshottari dasha–bhukti–antara and slow-planet transits.",
+          "methodEqual": "Read with KP: Krishnamurti ayanamsa and cuspal sub lords. Your birthplace is too far north or south for Placidus houses, so equal houses from your Ascendant were used."
+        },
+        "area": {
+          "career": "Career & work",
+          "money": "Money & gains",
+          "love": "Love & marriage",
+          "health": "Health & energy",
+          "home": "Home & property",
+          "travel": "Travel & abroad",
+          "learning": "Studies & exams",
+          "family": "Family & children",
+          "general": "Your wishes & direction"
+        },
+        "promise": {
+          "strong": "Strongly promised",
+          "steady": "Promised",
+          "slow": "Slow build"
+        },
+        "tone": {
+          "peak": "Peak",
+          "active": "Active",
+          "quiet": "Quiet"
+        },
+        "areas": {
+          "title": "What Your Year Promises",
+          "intro": "In KP, the sub lord of each house cusp decides whether that part of life delivers. Here is its verdict for each area, and the stretch of the year it opens up most.",
+          "bestWindow": "Best window:",
+          "noWindow": "A steady, background year for this — no single standout stretch.",
+          "decidedBy": "Decided by {{planet}}, sub lord of house {{cusp}}",
+          "sensitive": "Close to a boundary — this reading depends on an accurate birth time."
+        },
+        "heatmap": {
+          "title": "Your Year, Month By Month",
+          "openMonth": "Open {{month}}"
+        },
+        "months": {
+          "title": "Your Monthly Guide",
+          "lords": "Running: {{md}} dasha · {{ad}} bhukti · {{pd}} antara",
+          "focus": "This month leans toward",
+          "care": {
+            "rest": "Pace yourself — keep sleep, food and rest regular this month.",
+            "spending": "Spending tends to run high — plan big expenses and keep a buffer."
+          }
+        },
+        "dasha": {
+          "title": "The Planetary Period You Are In",
+          "md": "Dasha",
+          "ad": "Bhukti",
+          "pd": "Antara",
+          "adUntil": "The {{planet}} bhukti runs until {{date}}",
+          "shifts": "Turning points this year",
+          "noShift": "No bhukti change this year — one steady chapter.",
+          "shiftTo": "{{ad}} bhukti begins (in {{md}} dasha)"
+        },
+        "transits": {
+          "title": "Big Transits This Year",
+          "house": "Moving through your house {{house}} — {{meaning}}",
+          "change": "Moves into {{sign}} around {{month}}"
+        },
+        "houseMeaning": {
+          "1": "self, body and confidence",
+          "2": "family, savings and speech",
+          "3": "courage, siblings and short trips",
+          "4": "home, mother, property and vehicles",
+          "5": "children, romance and creativity",
+          "6": "daily work, service and competition",
+          "7": "marriage and partnerships",
+          "8": "sudden changes and hidden matters",
+          "9": "luck, father, higher learning and long journeys",
+          "10": "career and reputation",
+          "11": "gains, friends and wishes fulfilled",
+          "12": "expenses, foreign lands and rest"
+        },
+        "questions": {
+          "title": "Your Questions, Answered"
+        },
+        "ruling": {
+          "title": "Your Ruling Planets",
+          "intro": "The five planets ruling the moment this year begins. KP uses them to confirm timing — a planet that appears twice carries extra weight.",
+          "role": {
+            "DAY_LORD": "Day lord",
+            "MOON_STAR_LORD": "Moon star",
+            "MOON_SIGN_LORD": "Moon sign",
+            "ASC_SIGN_LORD": "Lagna sign",
+            "ASC_STAR_LORD": "Lagna star"
+          }
+        },
+        "cusps": {
+          "title": "Your KP Chart (12 Cusps)",
+          "house": "House",
+          "sign": "Sign",
+          "star": "Star lord",
+          "sub": "Sub lord",
+          "sensitiveNote": "Near a sub boundary — a birth time off by under a minute could change this sub lord."
+        },
+        "analysis": {
+          "title": "The Full Reading"
+        },
+        "ask": {
+          "title": "Ask your own questions (optional)",
+          "intro": "Type up to 3 things you want to know about the coming year — a job change, marriage, a move, exams, money. We read each one the KP way and answer it in your report.",
+          "label": "Question {{n}}",
+          "placeholder1": "e.g. Will I get a better job this year?",
+          "placeholder2": "e.g. When is a good time to get married?",
+          "placeholder3": "e.g. Should I buy a house in the next 12 months?",
+          "deathBlocked": "We don’t answer questions about death or lifespan. Please change or remove this question to continue.",
+          "policy": "Questions about death, lifespan or self-harm can’t be answered. Your questions stay private to your report.",
+          "checking": "Checking your questions…"
+        }
       },
       progenyReport: {
         subtitle: "Classical readings on children, timing and blessings for you and your spouse",
@@ -2528,6 +2669,7 @@ export const resources = {
           name_change: "नाम परिवर्तन रिपोर्ट",
           remedies: "उपाय रिपोर्ट",
           progeny: "संतान रिपोर्ट",
+          kp_annual: "KP वार्षिक रिपोर्ट",
         },
         purchase: {
           confirmSpend: "इस रिपोर्ट को अनलॉक करने के लिए {{cost}} खर्च करें?",
@@ -2699,6 +2841,18 @@ export const resources = {
           obstructions: "ध्यान रखने योग्य बाधाएँ",
           progeny_remedies: "पारंपरिक उपाय",
           progeny_outlook: "ईमानदार निष्कर्ष",
+          year_at_a_glance: "आपका साल एक नज़र में",
+          kp_blueprint: "आपका KP खाका",
+          dasha_story: "आपकी चल रही दशा",
+          transit_triggers: "इस साल के बड़े गोचर",
+          career_money: "करियर और धन",
+          love_family: "प्रेम, विवाह और परिवार",
+          health_wellbeing: "स्वास्थ्य और ऊर्जा",
+          home_travel_learning: "घर, यात्रा और पढ़ाई",
+          month_by_month: "महीने-दर-महीने",
+          guidance_remedies: "सरल उपाय",
+          closing_note: "आपके साल के लिए एक संदेश",
+          your_questions: "आपके सवालों के जवाब",
         },
         lifeContext: {
           title: "अभी आपका जीवन संदर्भ",
@@ -2894,6 +3048,15 @@ export const resources = {
             "किन बाधाओं का ध्यान रखना चाहिए, और उन्हें कैसे दूर करें?",
             "यदि मेरी आयु 35 वर्ष या अधिक है, तो कुंडली मेरी मौजूदा संतान के बारे में क्या कहती है?",
           ],
+          kp_annual: [
+            "आज से अगले साल इसी तारीख तक — आपके अगले 12 महीने",
+            "कृष्णमूर्ति पद्धति (KP): प्लैसिडस भाव, सब-लॉर्ड और कारक ग्रह",
+            "करियर, धन, प्रेम, स्वास्थ्य, घर, यात्रा, पढ़ाई और परिवार — साल क्या वादा करता है",
+            "महीने-दर-महीने गाइड, सबसे अच्छे समय के नाम के साथ",
+            "आपकी दशा, भुक्ति, अंतर्दशा और बड़े गोचर",
+            "अपने 3 सवाल तक पूछें — जवाब रिपोर्ट में",
+            "आपके शासक ग्रहों से जुड़े सरल उपाय"
+          ],
         },
         descriptions: {
           marriage: "अपनी शादी की नियति जानें",
@@ -2912,6 +3075,7 @@ export const resources = {
           remedies: "व्यक्तिगत लाल किताब उपाय पाएं",
           gemstone: "अपनी कुंडली के लिए उपयुक्त रत्न जानें",
           progeny: "संतान संबंधी शास्त्रीय संकेत जानें",
+          kp_annual: "KP पद्धति से आपके अगले 12 महीने",
         },
         taglines: {
           marriage: "क्या केतु आपकी शादी में देरी कर रहा है?",
@@ -2930,6 +3094,7 @@ export const resources = {
           remedies: "ग्रह दोषों के लिए सरल उपाय",
           gemstone: "गलत रत्न पहनना आपके खिलाफ काम कर सकता है",
           progeny: "आपकी संतान के बारे में कुंडली क्या कहती है?",
+          kp_annual: "अपने सवाल पूछें — जवाब KP से",
         },
       },
       vastu: {
@@ -3460,6 +3625,123 @@ export const resources = {
         spouse: { title: "आपका संभावित जीवनसाथी" },
         decade: { title: "दशक अनुसार वैवाहिक गुणवत्ता" },
         remedies: { title: "उपाय" },
+      },
+      kpAnnualReport: {
+        "subtitle": "कृष्णमूर्ति पद्धति से पढ़े गए आपके अगले 12 महीने",
+        "glance": {
+          "eyebrow": "आपका आने वाला साल",
+          "window": "{{start}} से {{end}} तक",
+          "leans": "आपका साल किस ओर झुका है",
+          "method": "KP पद्धति से: कृष्णमूर्ति अयनांश, प्लैसिडस भाव, भाव-संधि सब-लॉर्ड, विंशोत्तरी दशा–भुक्ति–अंतर और धीमे ग्रहों का गोचर।",
+          "methodEqual": "KP पद्धति से: कृष्णमूर्ति अयनांश और सब-लॉर्ड। आपका जन्मस्थान प्लैसिडस भावों के लिए बहुत उत्तर/दक्षिण में है, इसलिए लग्न से समान भाव लिए गए।"
+        },
+        "area": {
+          "career": "करियर और काम",
+          "money": "धन और लाभ",
+          "love": "प्रेम और विवाह",
+          "health": "स्वास्थ्य और ऊर्जा",
+          "home": "घर और संपत्ति",
+          "travel": "यात्रा और विदेश",
+          "learning": "पढ़ाई और परीक्षा",
+          "family": "परिवार और संतान",
+          "general": "आपकी इच्छाएँ और दिशा"
+        },
+        "promise": {
+          "strong": "प्रबल वादा",
+          "steady": "वादा है",
+          "slow": "धीरे बनेगा"
+        },
+        "tone": {
+          "peak": "शिखर",
+          "active": "सक्रिय",
+          "quiet": "शांत"
+        },
+        "areas": {
+          "title": "आपका साल क्या वादा करता है",
+          "intro": "KP में हर भाव-संधि का सब-लॉर्ड तय करता है कि जीवन का वह हिस्सा फल देगा या नहीं। हर क्षेत्र के लिए उसका फैसला और साल का सबसे अच्छा समय यहाँ है।",
+          "bestWindow": "सबसे अच्छा समय:",
+          "noWindow": "इस क्षेत्र के लिए स्थिर साल — कोई एक खास समय नहीं।",
+          "decidedBy": "भाव {{cusp}} के सब-लॉर्ड {{planet}} से तय",
+          "sensitive": "सीमा के करीब — यह फल सही जन्म-समय पर निर्भर है।"
+        },
+        "heatmap": {
+          "title": "महीने-दर-महीने आपका साल",
+          "openMonth": "{{month}} खोलें"
+        },
+        "months": {
+          "title": "आपकी मासिक गाइड",
+          "lords": "चल रही: {{md}} दशा · {{ad}} भुक्ति · {{pd}} अंतर",
+          "focus": "इस महीने का झुकाव",
+          "care": {
+            "rest": "रफ़्तार धीमी रखें — इस महीने नींद, खाना और आराम नियमित रखें।",
+            "spending": "खर्च बढ़ सकता है — बड़े खर्च पहले से तय करें और थोड़ी बचत रखें।"
+          }
+        },
+        "dasha": {
+          "title": "आपकी चल रही दशा",
+          "md": "दशा",
+          "ad": "भुक्ति",
+          "pd": "अंतर",
+          "adUntil": "{{planet}} भुक्ति {{date}} तक",
+          "shifts": "इस साल के मोड़",
+          "noShift": "इस साल भुक्ति नहीं बदलती — एक स्थिर अध्याय।",
+          "shiftTo": "{{ad}} भुक्ति शुरू ({{md}} दशा में)"
+        },
+        "transits": {
+          "title": "इस साल के बड़े गोचर",
+          "house": "आपके {{house}}वें भाव से गुज़र रहा — {{meaning}}",
+          "change": "लगभग {{month}} में {{sign}} में प्रवेश"
+        },
+        "houseMeaning": {
+          "1": "स्वयं, शरीर और आत्मविश्वास",
+          "2": "परिवार, बचत और वाणी",
+          "3": "साहस, भाई-बहन और छोटी यात्राएँ",
+          "4": "घर, माता, संपत्ति और वाहन",
+          "5": "संतान, प्रेम और रचनात्मकता",
+          "6": "रोज़ का काम, सेवा और प्रतियोगिता",
+          "7": "विवाह और साझेदारी",
+          "8": "अचानक बदलाव और छिपी बातें",
+          "9": "भाग्य, पिता, उच्च शिक्षा और लंबी यात्राएँ",
+          "10": "करियर और प्रतिष्ठा",
+          "11": "लाभ, मित्र और इच्छा-पूर्ति",
+          "12": "खर्च, विदेश और विश्राम"
+        },
+        "questions": {
+          "title": "आपके सवाल, उनके जवाब"
+        },
+        "ruling": {
+          "title": "आपके शासक ग्रह",
+          "intro": "साल की शुरुआत के क्षण पर शासन करने वाले पाँच ग्रह। KP इनसे समय की पुष्टि करता है — जो ग्रह दो बार आए, उसका असर ज़्यादा।",
+          "role": {
+            "DAY_LORD": "वार स्वामी",
+            "MOON_STAR_LORD": "चंद्र नक्षत्र",
+            "MOON_SIGN_LORD": "चंद्र राशि",
+            "ASC_SIGN_LORD": "लग्न राशि",
+            "ASC_STAR_LORD": "लग्न नक्षत्र"
+          }
+        },
+        "cusps": {
+          "title": "आपकी KP कुंडली (12 भाव-संधि)",
+          "house": "भाव",
+          "sign": "राशि",
+          "star": "नक्षत्र स्वामी",
+          "sub": "सब-लॉर्ड",
+          "sensitiveNote": "सब-सीमा के पास — जन्म-समय में एक मिनट से कम का अंतर भी यह सब-लॉर्ड बदल सकता है।"
+        },
+        "analysis": {
+          "title": "पूरा विश्लेषण"
+        },
+        "ask": {
+          "title": "अपने सवाल पूछें (वैकल्पिक)",
+          "intro": "आने वाले साल के बारे में 3 बातें तक लिखें — नौकरी, शादी, घर बदलना, परीक्षा, पैसा। हम हर सवाल KP से पढ़कर रिपोर्ट में जवाब देंगे।",
+          "label": "सवाल {{n}}",
+          "placeholder1": "जैसे: क्या इस साल बेहतर नौकरी मिलेगी?",
+          "placeholder2": "जैसे: शादी के लिए अच्छा समय कब है?",
+          "placeholder3": "जैसे: क्या अगले 12 महीनों में घर खरीदना ठीक रहेगा?",
+          "deathBlocked": "हम मृत्यु या आयु से जुड़े सवालों का जवाब नहीं देते। आगे बढ़ने के लिए कृपया यह सवाल बदलें या हटाएँ।",
+          "policy": "मृत्यु, आयु या आत्म-हानि से जुड़े सवालों के जवाब नहीं दिए जा सकते। आपके सवाल आपकी रिपोर्ट तक ही निजी रहते हैं।",
+          "checking": "आपके सवाल जाँचे जा रहे हैं…"
+        }
       },
       progenyReport: {
         subtitle: "आपके और आपके जीवनसाथी के लिए संतान, समय और आशीर्वाद पर पारंपरिक विश्लेषण",

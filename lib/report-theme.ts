@@ -38,6 +38,7 @@ import {
   PenLine,
   Flame,
   Sprout,
+  Orbit,
 } from "lucide-react";
 
 /**
@@ -62,6 +63,7 @@ export type ReportHue =
   | "lime"
   | "orange"
   | "pink"
+  | "purple"
   | "gold";
 
 export interface ReportTheme {
@@ -93,6 +95,8 @@ export const REPORT_THEME: Record<string, ReportTheme> = {
   name_change: { icon: PenLine, hue: "lime" },
   remedies: { icon: Flame, hue: "orange" },
   progeny: { icon: Sprout, hue: "pink" },
+  // Last in catalogue order, next to progeny (pink) — a deep purple, the night-sky tone of its art.
+  kp_annual: { icon: Orbit, hue: "purple" },
 };
 
 /** Neutral gold-toned fallback for any catalogue key this client build doesn't have a theme for yet. */

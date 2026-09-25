@@ -29,6 +29,8 @@ function kindLabel(t: TFunction, txn: Transaction): string {
     case "decision_window": return t("transactions.reasonDecisionWindow", "Decision Astrology");
     case "find_my_date": return t("transactions.reasonFindMyDate", "Find My Date");
     case "bond_insight": return t("transactions.reasonBondInsight", "Aroha Bonds");
+    case "question_pack": return t("transactions.reasonQuestionPack", "Question Pack");
+    case "aroha_pass": return t("transactions.reasonArohaPass", "Aroha Pass");
     // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
     // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
     case "admin_adjustment":

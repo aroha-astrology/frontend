@@ -15,6 +15,7 @@ import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { useAuth } from "@/providers/auth-provider";
 import { useNewFeature } from "@/hooks/useFeature";
+import PassUpsell from "@/components/pass/PassUpsell";
 import { timelineApi, type TimelineArea, type TimelineBand, type TimelineResponse } from "@/lib/insights-api";
 import { ageTicks, chartWidthPx, positionPct, widthPct } from "@/lib/timeline-format";
 import { shortDate } from "@/lib/calendar-format";
@@ -279,6 +280,7 @@ function TimelinePage() {
                     ? t("timeline.unlock", { price: formatRupees(data.unlock.pricePaise) })
                     : t("timeline.unlockFree")}
                 </button>
+                <PassUpsell />
                 {unlockError && (
                   <p className="text-xs text-rose-300">
                     {unlockError === "funds" ? t("timeline.funds") : t("timeline.error")}{" "}

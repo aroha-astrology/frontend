@@ -4,13 +4,23 @@ export interface PlayBillingPurchase {
   productId: string;
   purchaseToken: string;
   orderId: string;
+  /** Subscriptions only: the server acknowledges them (never consumed). */
+  acknowledged?: boolean;
 }
 
 interface PlayBillingPluginInterface {
   /** `userId` (optional) is set as Play Billing's `obfuscatedAccountId` — it's what lets the
    * server-side RTDN webhook identify who a purchase belongs to when the app never confirms it. */
-  purchaseProduct(options: { productId: string; userId?: string }): Promise<PlayBillingPurchase>;
+  purchaseProduct(options: {
+    productId: string;
+    userId?: string;
+    /** "subs" buys a subscription (the Aroha Pass) on `basePlanId`; default is a one-time top-up. */
+    productType?: "inapp" | "subs";
+    basePlanId?: string;
+  }): Promise<PlayBillingPurchase>;
   queryUnconsumedPurchases(): Promise<{ purchases: PlayBillingPurchase[] }>;
+  /** Needs the app release that added subscriptions (1.13+); older builds reject. */
+  queryActiveSubscriptions(): Promise<{ purchases: PlayBillingPurchase[] }>;
 }
 
 /**

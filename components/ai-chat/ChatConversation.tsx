@@ -11,6 +11,7 @@ import posthog from "posthog-js";
 import { streamChat, sendChatFeedback, SwarmApiError, type ChatExploreEvent } from "@/lib/swarm-api";
 import { isStructuredAnswer, structuredToPlainText, structuredToSpeech } from "@/lib/structured-answer";
 import { speechLangFor } from "@/lib/speech-lang";
+import { passApi } from "@/lib/pass-api";
 import StructuredAnswer, { ExploreLinks } from "./StructuredAnswer";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { referralPlayStoreUrl } from "@/lib/referral";
@@ -201,7 +202,22 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const { user, refresh } = useAuth();
   /** Matches astro.routes.ts's chatMessageCostPaise — the backend resolves the same 'paid.chat' feature price and charges that, so this estimate and the actual debit can't drift. 2000 is only the fallback for the fail-open case. */
   const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
-  const canAfford = (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
+  // Chat is paid from the Aroha Pass quota, then Question Pack credits, then the
+  // wallet (backend pass/question-billing.ts). The Pass count comes from /v1/pass,
+  // fetched only while the Pass is switched on for this user.
+  const { enabled: passOn } = useNewFeature("nav.arohaPass");
+  const [passQuestionsLeft, setPassQuestionsLeft] = useState(0);
+  const [passTick, setPassTick] = useState(0);
+  useEffect(() => {
+    if (!passOn) return;
+    passApi
+      .status()
+      .then((s) => setPassQuestionsLeft(s.pass?.questionsLeft ?? 0))
+      .catch(() => {});
+  }, [passOn, passTick]);
+  const questionCredits = user?.questionCredits ?? 0;
+  const canAfford =
+    passQuestionsLeft > 0 || questionCredits > 0 || (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   /** One free answer-tap per account per 3 days (claimFreeFollowUp in the backend's
    * users.repo.ts). Refreshed after every send via refresh(), so it flips off right
    * after the free tap is spent. The server re-checks atomically; this only drives the badge. */
@@ -704,6 +720,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       // (even if generation then fails) — refresh so the balance shown in
       // the top bar reflects the new total right away.
       refresh().catch(() => {});
+      setPassTick((n) => n + 1);
     }
   }, [input, streaming, canAfford, t, refresh]);
   sendMessageRef.current = (text: string) => void sendMessage(text);
@@ -1021,7 +1038,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           now via ordinary flex spacing instead. */}
       <div className="flex-shrink-0 px-4 py-3 mb-[calc(var(--tab-bar-h)+1rem)]" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto">
-          {!canAfford ? (
+          {passQuestionsLeft > 0 ? (
+            <p className="text-center text-[11px] text-gold/90 mb-1.5" data-testid="chat-pass-quota">
+              {t("pass.chatPass", { count: passQuestionsLeft })}
+            </p>
+          ) : questionCredits > 0 ? (
+            <p className="text-center text-[11px] text-gold/90 mb-1.5" data-testid="chat-pack-credits">
+              {t("pass.chatCredits", { count: questionCredits })}
+            </p>
+          ) : !canAfford ? (
             <p className="text-center text-[11px] text-red-400 mb-1.5">
               {t("aiChatPage.notEnoughCreditsToAsk")} &middot;{" "}
               <Link href="/payment" className="underline underline-offset-2">

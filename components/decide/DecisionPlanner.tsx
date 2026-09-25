@@ -38,6 +38,7 @@ import {
 } from "@/lib/decisions-api";
 import { useAuth } from "@/providers/auth-provider";
 import DecisionResultView from "./DecisionResultView";
+import PassUpsell from "@/components/pass/PassUpsell";
 
 const ICONS: Record<string, ReactNode> = {
   careerChange: <Briefcase size={18} />,
@@ -247,6 +248,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
                     {list.pass ? t("decide.free") : price != null ? t("decide.price", { price: formatRupees(price) }) : null}
                   </p>
                 )}
+                {list && !list.pass && <PassUpsell />}
                 {error && (
                   <p className="text-center text-xs text-rose-300">
                     {t(`decide.${error}`)}{" "}

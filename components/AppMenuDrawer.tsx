@@ -27,6 +27,7 @@ import {
   HeartHandshake,
   BookHeart,
   Sparkles,
+  Crown,
   GanttChart,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
@@ -63,6 +64,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: bondsEnabled } = useNewFeature("nav.bonds");
   const { enabled: journalEnabled } = useNewFeature("nav.journal");
   const { enabled: practiceEnabled } = useNewFeature("nav.dailyPractice");
+  const { enabled: passEnabled } = useNewFeature("nav.arohaPass");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -315,6 +317,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<Sparkles size={16} />}
                     label={t("practice.menu")}
                     href="/practice"
+                    onClick={onClose}
+                  />
+                )}
+                {passEnabled && (
+                  <ListRow
+                    icon={<Crown size={16} />}
+                    label={t("pass.menu")}
+                    href="/pass"
                     onClick={onClose}
                   />
                 )}

@@ -10,6 +10,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import NewFeatureGuard from "@/components/NewFeatureGuard";
 import FactorList from "@/components/why/FactorList";
+import PassUpsell from "@/components/pass/PassUpsell";
 import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
@@ -120,6 +121,7 @@ function BondView({ bond, onUnlocked }: { bond: BondDetail; onUnlocked: () => vo
               ? t("bonds.unlock", { price: formatRupees(bond.unlock.pricePaise) })
               : t("bonds.unlockFree")}
           </button>
+          <PassUpsell />
           {unlockError && (
             <p className="text-xs text-rose-300">
               {t(unlockError === "funds" ? "bonds.funds" : "bonds.unlockError")}{" "}

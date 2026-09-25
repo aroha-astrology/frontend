@@ -93,6 +93,8 @@ export interface User {
   termsVersion: string | null;
   /** Wallet balance in paise, spendable for unlocking kundli house details (POST /v1/me/unlock-house). */
   walletBalancePaise: number;
+  /** Prepaid chat questions from Question Packs (roadmap step 10). Absent on an older backend. */
+  questionCredits?: number;
   /** The report key the user voted for on "what should we prepare next?", or null if
    * never asked / still pending. Account-level, not profile-scoped. */
   nextReportVote: string | null;
@@ -679,7 +681,9 @@ export type TransactionKind =
   | "life_timeline"
   | "decision_window"
   | "find_my_date"
-  | "bond_insight";
+  | "bond_insight"
+  | "question_pack"
+  | "aroha_pass";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

@@ -17,6 +17,7 @@ import { formatTimeOfBirth } from "@/lib/format";
 import { birthTimeWindowFor } from "@/lib/birth-time-window";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
+import PassBadge from "@/components/pass/PassBadge";
 
 interface EditForm {
   displayName: string;
@@ -202,6 +203,7 @@ export default function ProfilePage() {
             <ArrowLeft size={18} />
           </IconButton>
           <h1 className="text-lg font-display text-foreground flex-1">{t("profile.title")}</h1>
+          <PassBadge />
           {!editing && (
             <button
               onClick={() => startEdit()}

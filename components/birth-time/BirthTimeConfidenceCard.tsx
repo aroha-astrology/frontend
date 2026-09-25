@@ -10,6 +10,7 @@ import { ApiError, type RectifyDomain, type RectifyEvent } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { insightsApi, type BirthTimeCheck, type BirthTimeStatus } from "@/lib/insights-api";
 import { journalApi } from "@/lib/journal-api";
+import PassUpsell from "@/components/pass/PassUpsell";
 import { DOMAIN_GROUPS, MIN_EVENTS } from "@/components/ui/BirthTimeRectifyCard";
 
 const BAR_TONE = { high: "bg-emerald-400", medium: "bg-gold", low: "bg-amber-500" } as const;
@@ -253,6 +254,7 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
             )}
           </button>
           {status.freeWithPass && <p className="mt-1 text-center text-[11px] text-emerald-400">{t("birthTime.freeWithPass")}</p>}
+          {!status.freeWithPass && price && <PassUpsell className="mt-1" />}
           {usable.length < MIN_EVENTS && (
             <p className="mt-2 text-center text-[11px] text-muted">{t("rectify.needMore", { count: MIN_EVENTS })}</p>
           )}

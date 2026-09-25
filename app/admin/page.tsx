@@ -32,6 +32,7 @@ import RevenueLineChart from "@/components/admin/RevenueLineChart";
 import SpendByFeatureBarChart from "@/components/admin/SpendByFeatureBarChart";
 import Card from "@/components/ui/Card";
 import CostSplitBar from "@/components/admin/CostSplitBar";
+import PassStatsCard from "@/components/admin/PassStatsCard";
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -412,6 +413,8 @@ function AdminOverviewContent() {
                 is therefore the expected majority, and &quot;Undisclosed&quot; means the user declined.
               </p>
             </section>
+
+            <PassStatsCard />
 
             <section className="mb-8">
               <h2 className="text-sm font-semibold text-foreground mb-3">Revenue Over Time</h2>

@@ -9,6 +9,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type RectifyDomain, type RectifyEvent } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { insightsApi, type BirthTimeCheck, type BirthTimeStatus } from "@/lib/insights-api";
+import { journalApi } from "@/lib/journal-api";
 import { DOMAIN_GROUPS, MIN_EVENTS } from "@/components/ui/BirthTimeRectifyCard";
 
 const BAR_TONE = { high: "bg-emerald-400", medium: "bg-gold", low: "bg-amber-500" } as const;
@@ -22,7 +23,12 @@ const BAR_TONE = { high: "bg-emerald-400", medium: "bg-gold", low: "bg-amber-500
 export default function BirthTimeConfidenceCard({ className = "" }: { className?: string }) {
   const { t } = useTranslation();
   const { enabled } = useNewFeature("home.birthTimeConfidence");
-  const { refresh: refreshUser } = useAuth();
+  const { refresh: refreshUser, activeProfile } = useAuth();
+  // The Astro Journal is the account owner's own diary, so its life events
+  // only fill the form while the owner's own profile is the active one.
+  const { enabled: journalOn } = useNewFeature("nav.journal");
+  const ownProfile = !activeProfile || activeProfile.isPrimary;
+  const [journalEvents, setJournalEvents] = useState<RectifyEvent[]>([]);
   const [status, setStatus] = useState<BirthTimeStatus | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [events, setEvents] = useState<RectifyEvent[]>([{ date: "", domain: "job_started" }]);
@@ -46,6 +52,14 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
     if (enabled) load();
   }, [enabled, load]);
 
+  useEffect(() => {
+    if (!formOpen || !journalOn || !ownProfile) return;
+    journalApi
+      .lifeEvents()
+      .then((r) => setJournalEvents(r.events))
+      .catch(() => setJournalEvents([]));
+  }, [formOpen, journalOn, ownProfile]);
+
   if (!enabled || !status) return null;
 
   const usable = events.filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date));
@@ -54,6 +68,14 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
 
   function update(i: number, patch: Partial<RectifyEvent>) {
     setEvents((prev) => prev.map((e, idx) => (idx === i ? { ...e, ...patch } : e)));
+  }
+
+  const newFromJournal = journalEvents.filter(
+    (j) => !events.some((e) => e.date === j.date && e.domain === j.domain),
+  );
+
+  function addFromJournal() {
+    setEvents((prev) => [...prev.filter((e) => e.date), ...newFromJournal]);
   }
 
   async function runCheck() {
@@ -170,6 +192,15 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       ) : (
         <div className="mt-4">
           <p className="text-[11px] leading-snug text-muted">{t("birthTime.improveHint")}</p>
+          {newFromJournal.length > 0 && (
+            <button
+              type="button"
+              onClick={addFromJournal}
+              className="mt-2 text-xs font-medium text-gold underline underline-offset-2"
+            >
+              {t("journal.fromJournal", { count: newFromJournal.length })}
+            </button>
+          )}
           <div className="mt-3 space-y-2">
             {events.map((e, i) => (
               <div key={i} className="flex gap-2">

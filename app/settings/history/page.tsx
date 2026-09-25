@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText, Award, Hand, Phone, Clock, GanttChart, Scale, CalendarSearch, HeartHandshake, Crown, MessagesSquare } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Compass, Gem, UserPlus, Home, RotateCcw, Gift, Wallet, ScrollText, Award, Hand, Phone, Clock, GanttChart, Scale, CalendarSearch, HeartHandshake, Crown, MessagesSquare, Hexagon } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { api, type Transaction, type OrderStatus } from "@/lib/api";
@@ -47,6 +47,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "bond_insight": return <HeartHandshake size={16} />;
     case "question_pack": return <MessagesSquare size={16} />;
     case "aroha_pass": return <Crown size={16} />;
+    case "digital_yantra": return <Hexagon size={16} />;
     case "admin_adjustment": return <Gift size={16} />;
   }
 }
@@ -71,6 +72,7 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "bond_insight": return t("paymentHistory.bondInsight");
     case "question_pack": return t("paymentHistory.questionPack");
     case "aroha_pass": return t("paymentHistory.arohaPass");
+    case "digital_yantra": return t("paymentHistory.digitalYantra");
     // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
     // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
     case "admin_adjustment":

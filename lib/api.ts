@@ -683,7 +683,8 @@ export type TransactionKind =
   | "find_my_date"
   | "bond_insight"
   | "question_pack"
-  | "aroha_pass";
+  | "aroha_pass"
+  | "digital_yantra";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

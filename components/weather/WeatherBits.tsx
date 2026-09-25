@@ -54,26 +54,15 @@ export function MomentLine({ moment }: { moment: AstroWeather["moments"][number]
   );
 }
 
-/**
- * The day's windows. `windows` narrows the list (Your Day passes only what's
- * still to come); windows that have already ended are dimmed.
- */
-export function DayTimeline({
-  weather,
-  windows = weather.day,
-  now = new Date(),
-}: {
-  weather: AstroWeather;
-  windows?: AstroWeather["day"];
-  now?: Date;
-}) {
+/** The day's windows, sunrise to midnight; windows that have already ended are dimmed. */
+export function DayTimeline({ weather, now = new Date() }: { weather: AstroWeather; now?: Date }) {
   const { t, i18n } = useTranslation();
   if (!weather.dayAvailable) return <p className="text-xs text-muted">{t("weather.day.notIndia")}</p>;
   if (weather.day.length === 0) return <p className="text-xs text-muted">{t("weather.day.empty")}</p>;
   const clock = istClock(now);
   return (
     <ul className="space-y-1.5">
-      {windows.map((w, i) => {
+      {weather.day.map((w, i) => {
         const current = isNowIn(w.start, w.end, now);
         const past = w.end <= clock;
         return (

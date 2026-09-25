@@ -23,12 +23,22 @@ const WEATHER = {
   why: [],
 };
 
-/** Always one window over and one in progress, whatever time the test runs (bar 00:00–00:01 IST). */
+/**
+ * Always windows over, one in progress and one to come, whatever time the test
+ * runs (bar 00:00–00:01 and the last minute of the day, IST). Enough finished
+ * windows that the list has to scroll to open on the one in progress.
+ */
 const WEATHER_NOW = {
   ...WEATHER,
   day: [
-    { start: "00:00", end: "00:01", kind: "good", name: "Amrit" },
+    ...["Amrit", "Shubh", "Labh", "Rog", "Kaal", "Udveg"].map((name) => ({
+      start: "00:00",
+      end: "00:01",
+      kind: name === "Rog" || name === "Kaal" || name === "Udveg" ? "caution" : "good",
+      name,
+    })),
     { start: "00:01", end: "23:59", kind: "caution", name: "rahuKaal" },
+    { start: "23:59", end: "24:00", kind: "good", name: "abhijit" },
   ],
 };
 
@@ -66,7 +76,7 @@ test.describe("Astro Weather (roadmap step 2)", () => {
     await expect(page.getByText("Important today")).toBeVisible();
   });
 
-  test("Panchang's Your Day starts from the window you're in, with the full day one tap away", async ({ page }) => {
+  test("Panchang's Your Day lists the whole day to midnight, opened on the window you're in", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
       user: { features: { "home.yourDay": ON } },
@@ -79,13 +89,16 @@ test.describe("Astro Weather (roadmap step 2)", () => {
 
     await expect(page.getByText("Your Day")).toBeVisible();
     await expect(page.getByText(/^Now \d{1,2}:\d{2} [AP]M$/)).toBeVisible();
-    await expect(page.getByText(/Rahu Kaal/)).toBeVisible();
-    await expect(page.getByText(/Amrit/)).toHaveCount(0);
+    const list = page.getByRole("region", { name: "Your Day" });
+    await list.scrollIntoViewIfNeeded();
+    const past = list.getByText(/Amrit/);
+    await expect(list.getByText(/Rahu Kaal/)).toBeInViewport();
+    await expect(list.getByText("11:59 PM – 12:00 AM")).toBeVisible();
+    await expect(past).toBeAttached();
+    await expect(past).not.toBeInViewport();
 
-    await page.getByRole("button", { name: /Show full day/ }).click();
-    await expect(page.getByText(/Amrit/)).toBeVisible();
-    await page.getByRole("button", { name: /Show less/ }).click();
-    await expect(page.getByText(/Amrit/)).toHaveCount(0);
+    await past.scrollIntoViewIfNeeded();
+    await expect(past).toBeInViewport();
   });
 
   test("the /weather page sends users home while the flag is off", async ({ page }) => {

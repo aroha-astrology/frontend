@@ -25,11 +25,12 @@ export function strongestAndWeakest(
   return top.score - bottom.score >= 10 ? { strong: top.key, weak: bottom.key } : null;
 }
 
-/** 'HH:mm' (IST) → "6:18 PM" in English, 24-hour elsewhere. */
+/** 'HH:mm' (IST) → "6:18 PM" in English, 24-hour elsewhere. '24:00' (a window's end at midnight) reads as midnight. */
 export function formatClock(hhmm: string, lang: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  if (h == null || m == null || Number.isNaN(h) || Number.isNaN(m)) return hhmm;
-  if (!lang.startsWith("en")) return hhmm;
+  const [hour, m] = hhmm.split(":").map(Number);
+  if (hour == null || m == null || Number.isNaN(hour) || Number.isNaN(m)) return hhmm;
+  const h = hour % 24;
+  if (!lang.startsWith("en")) return h === hour ? hhmm : `00:${String(m).padStart(2, "0")}`;
   const suffix = h >= 12 ? "PM" : "AM";
   return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${suffix}`;
 }

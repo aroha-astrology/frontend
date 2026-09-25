@@ -42,6 +42,11 @@ describe("formatClock", () => {
     expect(formatClock("00:05", "en")).toBe("12:05 AM");
     expect(formatClock("18:18", "hi")).toBe("18:18");
   });
+
+  it("reads a window's 24:00 end as midnight", () => {
+    expect(formatClock("24:00", "en")).toBe("12:00 AM");
+    expect(formatClock("24:00", "hi")).toBe("00:00");
+  });
 });
 
 describe("isNowIn", () => {
@@ -69,6 +74,11 @@ describe("upcomingWindows", () => {
   it("drops finished windows and keeps the ones in progress first", () => {
     const at = new Date("2026-09-24T05:30:00Z"); // 11:00 IST
     expect(upcomingWindows(day, at).map((w) => w.name)).toEqual(["Kaal", "AbhijitMuhurta", "Amrit"]);
+  });
+
+  it("keeps a night window running to midnight until the day ends", () => {
+    const night = [...day, { start: "22:40", end: "24:00", name: "Kaal" }];
+    expect(upcomingWindows(night, new Date("2026-09-24T18:15:00Z")).map((w) => w.name)).toEqual(["Kaal"]); // 23:45 IST
   });
 
   it("is empty once the day's windows are over", () => {

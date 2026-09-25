@@ -69,8 +69,6 @@ export interface BirthTimeStatus {
   source: string | null;
   confidence: BirthTimeConfidence;
   latest: BirthTimeCheck | null;
-  pricePaise: number;
-  freeWithPass: boolean;
 }
 
 export const insightsApi = {
@@ -153,12 +151,6 @@ export const calendarApi = {
 
 export type TimelineArea = "career" | "relationships" | "money" | "education" | "family" | "business" | "relocation";
 
-export interface UnlockState {
-  unlocked: boolean;
-  via: "purchase" | "pass" | null;
-  pricePaise: number;
-}
-
 export interface TimelineBand {
   start: string;
   end: string;
@@ -171,9 +163,8 @@ export interface TimelineBand {
 export interface TimelineResponse {
   birthDate: string;
   today: string;
+  /** Birth to age 80. */
   range: { from: string; to: string };
-  full: boolean;
-  unlock: UnlockState;
   approximateBirthTime: boolean;
   mahadashas: Array<{ planet: string; start: string; end: string }>;
   lanes: Array<{ area: TimelineArea; bands: TimelineBand[] }>;
@@ -181,5 +172,4 @@ export interface TimelineResponse {
 
 export const timelineApi = {
   get: () => request<TimelineResponse>("/v1/timeline", { auth: true }),
-  unlock: () => request<UnlockState>("/v1/timeline/unlock", { method: "POST", auth: true }),
 };

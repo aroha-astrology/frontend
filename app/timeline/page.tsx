@@ -5,17 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, GanttChart, Lock, MessageCircle } from "lucide-react";
+import { ArrowLeft, GanttChart, MessageCircle } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import NewFeatureGuard from "@/components/NewFeatureGuard";
 import { ApiError } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
-import { useAuth } from "@/providers/auth-provider";
-import { useNewFeature } from "@/hooks/useFeature";
-import PassUpsell from "@/components/pass/PassUpsell";
+import { isPassRequired } from "@/lib/pass-api";
+import PassLock from "@/components/pass/PassLock";
 import { timelineApi, type TimelineArea, type TimelineBand, type TimelineResponse } from "@/lib/insights-api";
 import {
   ageOn,
@@ -143,22 +141,26 @@ function BandSheet({
 function TimelinePage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { refresh: refreshUser } = useAuth();
   const [data, setData] = useState<TimelineResponse | null>(null);
-  const [error, setError] = useState<"notReady" | "error" | null>(null);
+  // "pass": Aroha Pass only, and this user has no Pass.
+  const [error, setError] = useState<"pass" | "notReady" | "error" | null>(null);
   const [focus, setFocus] = useState<TimelineArea | "all">("all");
   const [open, setOpen] = useState<{ area: TimelineArea; band: TimelineBand } | null>(null);
-  const [unlocking, setUnlocking] = useState(false);
-  // The whole-life unlock has its own switch; with it off the free window stays, without a buy button that would 403.
-  const { enabled: unlockOn } = useNewFeature("paid.lifeTimelineFull");
-  const [unlockError, setUnlockError] = useState<"funds" | "error" | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
     timelineApi
       .get()
       .then(setData)
-      .catch((err: unknown) => setError(err instanceof ApiError && err.message === "CHART_NOT_READY" ? "notReady" : "error"));
+      .catch((err: unknown) =>
+        setError(
+          isPassRequired(err)
+            ? "pass"
+            : err instanceof ApiError && err.message === "CHART_NOT_READY"
+              ? "notReady"
+              : "error",
+        ),
+      );
   }, []);
 
   useEffect(load, [load]);
@@ -179,24 +181,10 @@ function TimelinePage() {
     el.scrollLeft = Math.max(0, el.scrollWidth * pct - el.clientWidth / 2);
   }, [data]);
 
-  async function unlock() {
-    setUnlocking(true);
-    setUnlockError(null);
-    try {
-      await timelineApi.unlock();
-      await refreshUser();
-      setData(null);
-      load();
-    } catch (err) {
-      setUnlockError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "error");
-    } finally {
-      setUnlocking(false);
-    }
-  }
-
   const lanes = data ? data.lanes.filter((l) => focus === "all" || l.area === focus) : [];
   const width = data ? chartWidthPx(data.range.from, data.range.to, 340) : 340;
-  const tickStep = data && data.full ? 10 : 1;
+  // The whole life: a tick every 10 years.
+  const tickStep = 10;
 
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
@@ -216,7 +204,8 @@ function TimelinePage() {
         </div>
 
         {!data && !error && <p className="py-10 text-center text-sm text-muted">{t("timeline.loading")}</p>}
-        {error && <p className="py-10 text-center text-sm text-muted">{t(`timeline.${error}`)}</p>}
+        {error === "pass" && <PassLock feature={t("timeline.title")} />}
+        {error && error !== "pass" && <p className="py-10 text-center text-sm text-muted">{t(`timeline.${error}`)}</p>}
 
         {data && (
           <>
@@ -325,38 +314,6 @@ function TimelinePage() {
             <p className="text-[11px] text-muted">{t("timeline.legend")}</p>
             {data.approximateBirthTime && <p className="text-[11px] text-amber-300/90">{t("timeline.approximate")}</p>}
 
-            {!data.full && unlockOn && (
-              <Card className="p-4 border-gold/20 text-center space-y-2">
-                <p className="flex items-center justify-center gap-2 text-sm text-foreground">
-                  <Lock size={14} className="text-gold" />
-                  {t("timeline.locked")}
-                </p>
-                <button
-                  type="button"
-                  disabled={unlocking}
-                  onClick={() => void unlock()}
-                  className="w-full rounded-xl bg-gold/20 px-3 py-2.5 text-sm font-semibold text-gold disabled:opacity-40"
-                >
-                  {data.unlock.pricePaise > 0
-                    ? t("timeline.unlock", { price: formatRupees(data.unlock.pricePaise) })
-                    : t("timeline.unlockFree")}
-                </button>
-                <PassUpsell />
-                {unlockError && (
-                  <p className="text-xs text-rose-300">
-                    {unlockError === "funds" ? t("timeline.funds") : t("timeline.error")}{" "}
-                    {unlockError === "funds" && (
-                      <Link href="/payment" className="font-semibold text-gold underline">
-                        {t("timeline.addMoney")}
-                      </Link>
-                    )}
-                  </p>
-                )}
-              </Card>
-            )}
-            {data.full && data.unlock.via === "pass" && (
-              <p className="text-center text-[11px] text-emerald-400">{t("timeline.freeWithPass")}</p>
-            )}
             <p className="pb-4 text-center text-[10px] text-muted">{t("timeline.guidance")}</p>
           </>
         )}

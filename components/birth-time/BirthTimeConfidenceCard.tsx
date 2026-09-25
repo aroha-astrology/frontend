@@ -1,25 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Clock, Loader2 } from "lucide-react";
 import { useNewFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError, type RectifyDomain, type RectifyEvent } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
 import { insightsApi, type BirthTimeCheck, type BirthTimeStatus } from "@/lib/insights-api";
 import { journalApi } from "@/lib/journal-api";
-import PassUpsell from "@/components/pass/PassUpsell";
+import { isPassRequired } from "@/lib/pass-api";
+import PassLock from "@/components/pass/PassLock";
 import { DOMAIN_GROUPS, MIN_EVENTS } from "@/components/ui/BirthTimeRectifyCard";
 
 const BAR_TONE = { high: "bg-emerald-400", medium: "bg-gold", low: "bg-amber-500" } as const;
 
 /**
  * Birth Time Confidence: how much Aroha trusts the active profile's birth
- * time, and a paid check that tests every few minutes around it against the
+ * time, and a check that tests every few minutes around it against the
  * user's own dated life events. Applying a suggestion rebuilds the chart, so
- * it takes a second, deliberate tap. Ships off (`home.birthTimeConfidence`).
+ * it takes a second, deliberate tap. Aroha Pass only: without the Pass it's
+ * the compact subscribe lock. Ships off (`home.birthTimeConfidence`).
  */
 export default function BirthTimeConfidenceCard({ className = "" }: { className?: string }) {
   const { t } = useTranslation();
@@ -31,11 +31,12 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
   const ownProfile = !activeProfile || activeProfile.isPrimary;
   const [journalEvents, setJournalEvents] = useState<RectifyEvent[]>([]);
   const [status, setStatus] = useState<BirthTimeStatus | null>(null);
+  const [locked, setLocked] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [events, setEvents] = useState<RectifyEvent[]>([{ date: "", domain: "job_started" }]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<BirthTimeCheck | null>(null);
-  const [error, setError] = useState<"notEnough" | "funds" | "error" | null>(null);
+  const [error, setError] = useState<"notEnough" | "error" | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [applied, setApplied] = useState(false);
 
@@ -46,7 +47,10 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
         setStatus(s);
         setResult((prev) => prev ?? s.latest);
       })
-      .catch(() => setStatus(null));
+      .catch((err: unknown) => {
+        setStatus(null);
+        setLocked(isPassRequired(err));
+      });
   }, []);
 
   useEffect(() => {
@@ -61,10 +65,10 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       .catch(() => setJournalEvents([]));
   }, [formOpen, journalOn, ownProfile]);
 
+  if (enabled && locked) return <PassLock feature={t("birthTime.title")} compact className={className} />;
   if (!enabled || !status) return null;
 
   const usable = events.filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date));
-  const price = status.pricePaise > 0 ? formatRupees(status.pricePaise) : null;
   const { pct, level, basis } = status.confidence;
 
   function update(i: number, patch: Partial<RectifyEvent>) {
@@ -87,10 +91,9 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
     try {
       setResult(await insightsApi.runBirthTimeCheck(usable));
       setFormOpen(false);
-      void refreshUser(); // wallet balance moved
     } catch (err) {
-      if (err instanceof ApiError && err.message === "NOT_ENOUGH_EVIDENCE") setError("notEnough");
-      else if (err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS") setError("funds");
+      if (isPassRequired(err)) setLocked(true);
+      else if (err instanceof ApiError && err.message === "NOT_ENOUGH_EVIDENCE") setError("notEnough");
       else setError("error");
     } finally {
       setBusy(false);
@@ -110,8 +113,9 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       setConfirming(false);
       await refreshUser();
       load();
-    } catch {
-      setError("error");
+    } catch (err) {
+      if (isPassRequired(err)) setLocked(true);
+      else setError("error");
     } finally {
       setBusy(false);
     }
@@ -247,30 +251,17 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
                 <Loader2 size={14} className="animate-spin" />
                 {t("birthTime.checking")}
               </>
-            ) : price ? (
-              t("birthTime.runPriced", { price })
             ) : (
               t("birthTime.run")
             )}
           </button>
-          {status.freeWithPass && <p className="mt-1 text-center text-[11px] text-emerald-400">{t("birthTime.freeWithPass")}</p>}
-          {!status.freeWithPass && price && <PassUpsell className="mt-1" />}
           {usable.length < MIN_EVENTS && (
             <p className="mt-2 text-center text-[11px] text-muted">{t("rectify.needMore", { count: MIN_EVENTS })}</p>
           )}
         </div>
       )}
 
-      {error && (
-        <p className="mt-3 text-xs text-rose-300">
-          {t(`birthTime.${error}`)}{" "}
-          {error === "funds" && (
-            <Link href="/payment" className="font-semibold text-gold underline">
-              {t("birthTime.addMoney")}
-            </Link>
-          )}
-        </p>
-      )}
+      {error && <p className="mt-3 text-xs text-rose-300">{t(`birthTime.${error}`)}</p>}
     </div>
   );
 }

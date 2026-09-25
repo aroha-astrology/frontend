@@ -11,6 +11,7 @@ import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
 import WalletBalance from "@/components/ui/WalletBalance";
+import PassSummaryCard from "@/components/pass/PassSummaryCard";
 import { api, ApiError, type TopUpAmount } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
@@ -154,6 +155,9 @@ export default function PaymentPage() {
           </div>
           <WalletBalance paise={user?.walletBalancePaise ?? 0} size="md" />
         </Card>
+
+        {/* The Aroha Pass — a Google Play subscription, never paid from this wallet. */}
+        <PassSummaryCard className="mb-6" />
 
         {success ? (
           <motion.div

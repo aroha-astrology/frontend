@@ -4,50 +4,31 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CalendarHeart, HeartHandshake, Lock, MessageCircle, Plus } from "lucide-react";
+import { ArrowLeft, CalendarHeart, HeartHandshake, MessageCircle, Plus } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import NewFeatureGuard from "@/components/NewFeatureGuard";
 import FactorList from "@/components/why/FactorList";
-import PassUpsell from "@/components/pass/PassUpsell";
+import PassLock from "@/components/pass/PassLock";
 import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 import { ApiError } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
 import { bondsApi, PHASE_CLASS, type BondDetail, type BondSummary } from "@/lib/bonds-api";
-import { useNewFeature } from "@/hooks/useFeature";
-import { useAuth } from "@/providers/auth-provider";
+import { isPassRequired } from "@/lib/pass-api";
 
-type LoadError = "notReady" | "error";
+/** "pass": Aroha Pass only, and this user has no Pass. */
+type LoadError = "pass" | "notReady" | "error";
 
 function planetName(t: (k: string) => string, planet: string | null): string {
   return planet ? t(`planetNames.${planet.toLowerCase()}`) : "—";
 }
 
-function BondView({ bond, onUnlocked }: { bond: BondDetail; onUnlocked: () => void }) {
+function BondView({ bond }: { bond: BondDetail }) {
   const { t, i18n } = useTranslation();
-  const { refresh } = useAuth();
-  const { enabled: unlockOn } = useNewFeature("paid.bondInsight");
-  const [unlocking, setUnlocking] = useState(false);
-  const [unlockError, setUnlockError] = useState<"funds" | "error" | null>(null);
   const name = bond.name || t("bonds.unnamed");
   const extra = { name };
   const lang = i18n.language;
-
-  async function unlock() {
-    setUnlocking(true);
-    setUnlockError(null);
-    try {
-      await bondsApi.unlock(bond.profileId);
-      void refresh();
-      onUnlocked();
-    } catch (err) {
-      setUnlockError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "error");
-    } finally {
-      setUnlocking(false);
-    }
-  }
 
   if (!bond.ready || !bond.compatibility) {
     return (
@@ -105,41 +86,8 @@ function BondView({ bond, onUnlocked }: { bond: BondDetail; onUnlocked: () => vo
         </Card>
       )}
 
-      {!bond.detail && unlockOn && (
-        <Card className="p-4 border-gold/20 text-center space-y-2">
-          <p className="flex items-center justify-center gap-2 text-sm text-foreground">
-            <Lock size={14} className="text-gold" />
-            {t("bonds.locked")}
-          </p>
-          <button
-            type="button"
-            disabled={unlocking}
-            onClick={() => void unlock()}
-            className="w-full rounded-xl bg-gold/20 px-3 py-2.5 text-sm font-semibold text-gold disabled:opacity-40"
-          >
-            {bond.unlock.pricePaise > 0
-              ? t("bonds.unlock", { price: formatRupees(bond.unlock.pricePaise) })
-              : t("bonds.unlockFree")}
-          </button>
-          <PassUpsell />
-          {unlockError && (
-            <p className="text-xs text-rose-300">
-              {t(unlockError === "funds" ? "bonds.funds" : "bonds.unlockError")}{" "}
-              {unlockError === "funds" && (
-                <Link href="/payment" className="font-semibold text-gold underline">
-                  {t("bonds.addMoney")}
-                </Link>
-              )}
-            </p>
-          )}
-        </Card>
-      )}
-
       {bond.detail && (
         <>
-          {bond.unlock.via === "pass" && (
-            <p className="text-center text-[11px] text-emerald-400">{t("bonds.freeWithPass")}</p>
-          )}
           <Card className="p-4 border-gold/10 space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("bonds.upcoming.title")}</p>
             {bond.detail.upcoming.length === 0 && <p className="text-xs text-muted">{t("bonds.upcoming.none")}</p>}
@@ -205,7 +153,11 @@ function BondsPage() {
   const [bond, setBond] = useState<BondDetail | null>(null);
 
   const toError = (err: unknown): LoadError =>
-    err instanceof ApiError && err.message === "CHART_NOT_READY" ? "notReady" : "error";
+    isPassRequired(err)
+      ? "pass"
+      : err instanceof ApiError && err.message === "CHART_NOT_READY"
+        ? "notReady"
+        : "error";
 
   useEffect(() => {
     setOpenId(new URLSearchParams(window.location.search).get("id"));
@@ -257,10 +209,11 @@ function BondsPage() {
           </div>
         </div>
 
-        {error && <p className="py-10 text-center text-sm text-muted">{t(`bonds.${error}`)}</p>}
+        {error === "pass" && <PassLock feature={t("bonds.title")} />}
+        {error && error !== "pass" && <p className="py-10 text-center text-sm text-muted">{t(`bonds.${error}`)}</p>}
         {!error && !list && <p className="py-10 text-center text-sm text-muted">{t("bonds.loading")}</p>}
 
-        {!error && openId && list && (bond ? <BondView bond={bond} onUnlocked={() => loadBond(openId)} /> : (
+        {!error && openId && list && (bond ? <BondView bond={bond} /> : (
           <p className="py-10 text-center text-sm text-muted">{t("bonds.loading")}</p>
         ))}
 

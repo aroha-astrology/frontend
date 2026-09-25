@@ -1,5 +1,5 @@
 import { request, type ProfileRelationship } from "@/lib/api";
-import type { UnlockState, WhyFactor } from "@/lib/insights-api";
+import type { WhyFactor } from "@/lib/insights-api";
 
 export type PhaseTone = "active" | "steady" | "mixed" | "testing";
 
@@ -24,7 +24,7 @@ export interface BondSummary {
 
 export interface BondDetail extends BondSummary {
   phaseDetail: { tone: PhaseTone; lords: [string | null, string | null]; why: WhyFactor[] } | null;
-  unlock: UnlockState;
+  /** Null while the other person's chart isn't ready. */
   detail: {
     upcoming: Array<{ start: string; end: string; tone: "good" | "care"; lords: [string, string]; why: WhyFactor[] }>;
     communication: WhyFactor[];
@@ -35,8 +35,6 @@ export interface BondDetail extends BondSummary {
 export const bondsApi = {
   list: () => request<{ bonds: BondSummary[] }>("/v1/bonds", { auth: true }),
   get: (profileId: string) => request<BondDetail>(`/v1/bonds/${profileId}`, { auth: true }),
-  unlock: (profileId: string) =>
-    request<UnlockState>(`/v1/bonds/${profileId}/unlock`, { method: "POST", auth: true }),
 };
 
 /** Tailwind classes for a phase badge. */

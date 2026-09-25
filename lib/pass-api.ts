@@ -1,4 +1,4 @@
-import { request } from "@/lib/api";
+import { ApiError, request } from "@/lib/api";
 
 export type QuestionPack = "small" | "medium" | "large";
 
@@ -8,9 +8,11 @@ export interface PassStatus {
   offer: {
     variant: "A" | "B" | "C";
     pricePaise: number;
-    play: { productId: string; basePlanId: string } | null;
+    /** The Pass is a Google Play subscription only — never paid from the wallet. */
+    play: { productId: string; basePlanId: string };
   } | null;
   pass: {
+    /** "wallet" only on a Pass from before the Pass went Google-Play-only; it never renews. */
     source: "wallet" | "google_play" | string;
     variant: string | null;
     pricePaise: number;
@@ -33,16 +35,21 @@ export interface PassStats {
 
 export const passApi = {
   status: () => request<PassStatus>("/v1/pass", { auth: true }),
-  buyWallet: (autoRenew: boolean) =>
-    request<PassStatus>("/v1/pass/wallet", { method: "POST", body: { autoRenew }, auth: true }),
-  setAutoRenew: (on: boolean) =>
-    request<PassStatus>("/v1/pass/auto-renew", { method: "POST", body: { on }, auth: true }),
   confirmPlay: (productId: string, purchaseToken: string) =>
     request<PassStatus>("/v1/pass/google-play", { method: "POST", body: { productId, purchaseToken }, auth: true }),
   buyPack: (pack: QuestionPack) =>
     request<PassStatus>(`/v1/question-packs/${pack}/buy`, { method: "POST", auth: true }),
   adminStats: () => request<PassStats>("/v1/admin/pass-stats", { auth: true }),
 };
+
+/**
+ * The server's answer for an Aroha Pass-only feature (Life Timeline, Bonds,
+ * Decisions, Find My Date, the birth-time check, Relocation) when the user has
+ * no live Pass. Pages show `PassLock` for it.
+ */
+export function isPassRequired(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 403 && err.message === "PASS_REQUIRED";
+}
 
 /** Where a Play Pass is managed (cancel, change payment). */
 export const PLAY_SUBSCRIPTIONS_URL =

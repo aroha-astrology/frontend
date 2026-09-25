@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockApi, callsTo } from "./fixtures/mock-api";
+import { mockApi, callsTo, PASS_REQUIRED } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -56,5 +56,18 @@ test.describe("Why? (roadmap step 1)", () => {
     await expect(page.getByText(/Saturn is moving through Pisces, your 10th house \(career\) counted from your Moon/)).toBeVisible();
     await expect(page.getByText("Birth time confidence: 72%")).toBeVisible();
     expect(callsTo(api, "GET /v1/why")[0]!.query.get("area")).toBe("overall");
+  });
+
+  test("the Birth Time Confidence card is Aroha Pass only: without it, Settings shows the lock", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const api = await mockApi(page, {
+      user: { features: { "home.birthTimeConfidence": ON } },
+      overrides: { "GET /v1/birth-time": () => PASS_REQUIRED },
+    });
+    await signIn(page, "/settings");
+
+    await expect(page.getByTestId("pass-lock").getByText("Birth Time Confidence is part of Aroha Pass")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Improve birth-time accuracy" })).toHaveCount(0);
+    expect(callsTo(api, "POST /v1/birth-time/check")).toHaveLength(0);
   });
 });

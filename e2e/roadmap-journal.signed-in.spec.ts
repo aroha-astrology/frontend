@@ -120,8 +120,6 @@ test.describe("Astro Journal (roadmap step 8)", () => {
             source: null,
             confidence: { pct: 55, level: "medium", basis: "stated_approximate" },
             latest: null,
-            pricePaise: 9900,
-            freeWithPass: false,
           },
         }),
       },

@@ -11,7 +11,7 @@ import { AnimatedNumber, Eyebrow, RatingPill, ScoreRing, scoreColor } from "./ui
  * The issue navigator: score + counts, then what to fix first (Show me / Why? /
  * Fix this), then every room on request. Replaces the long flat list.
  */
-export default function LiveAnalysis({ analysis, breakdown, onShowMe, onWhy, onFix, onScore, fixable }: {
+export default function LiveAnalysis({ analysis, breakdown, onShowMe, onWhy, onFix, onScore, fixable, onFixPlan }: {
   analysis: PlanAnalysis;
   breakdown: ScoreBreakdown;
   onShowMe: (roomId: string) => void;
@@ -20,6 +20,8 @@ export default function LiveAnalysis({ analysis, breakdown, onShowMe, onWhy, onF
   onScore: () => void;
   /** Rooms a fix can be suggested for. */
   fixable?: (roomId: string) => boolean;
+  /** "Fix my plan": improve the whole home. */
+  onFixPlan?: () => void;
 }) {
   const { t } = useTranslation();
   const [all, setAll] = useState(false);
@@ -55,6 +57,11 @@ export default function LiveAnalysis({ analysis, breakdown, onShowMe, onWhy, onF
 
       {has && (
         <div data-testid="vastu-issues">
+          {onFixPlan && priority.length > 0 && (
+            <button onClick={onFixPlan} data-testid="vastu-fixplan-open" className="mb-3 w-full flex items-center justify-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-[#1a0e00] shadow-[0_8px_24px_-10px_rgba(223,181,100,0.7)]">
+              <Sparkles size={15} /> {t("vastu.fixplan.title", "Fix my plan")}
+            </button>
+          )}
           <Eyebrow className="mb-2">{priority.length ? t("vastu.studio.fixFirst", "Look at these first") : t("vastu.studio.allGood", "Nothing needs correcting")}</Eyebrow>
           {priority.length === 0 ? (
             <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-3 text-[13px] text-emerald-300">

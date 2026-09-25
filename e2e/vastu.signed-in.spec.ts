@@ -298,4 +298,60 @@ test.describe("Vastu Studio", () => {
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText("Store");
   });
+
+  test("Fix my plan previews every change, applies them as one step, and undoes in one", async ({ page }) => {
+    await open(page, {
+      "GET /v1/vastu/homes": () => ({
+        json: {
+          homes: [
+            home({
+              plot: square,
+              northOffsetDeg: 0,
+              rooms: [
+                { id: "b1", type: "bathroom", x: 9, y: 0, w: 3, h: 3, fixtures: [] },
+                { id: "k1", type: "kitchen", x: 0, y: 0, w: 3.5, h: 3.5, fixtures: [] },
+                { id: "m1", type: "master_bed", x: 8, y: 8, w: 4, h: 4, fixtures: [] },
+              ],
+            }),
+          ],
+        },
+      }),
+    });
+    await page.getByTestId("vastu-fixplan-open").click();
+    await expect(page.getByTestId("vastu-fixplan-steps").getByRole("listitem")).toHaveCount(3);
+    await page.getByTestId("vastu-fixplan-preview-all").click();
+    await expect(page.getByTestId("vastu-ghost")).toHaveCount(3);
+    await page.getByTestId("vastu-fixplan-apply-all").click();
+    await expect(page.getByText("Nothing needs correcting")).toBeVisible();
+    await page.getByTestId("vastu-undo").click();
+    // Back to the original plan: the NE bathroom and SE master bed are flagged again
+    // (the NW kitchen was only "acceptable", so it was an improvement, not an issue).
+    await expect(page.getByTestId("vastu-issue")).toHaveCount(2);
+  });
+
+  test("Fix my plan one by one lets you keep a room where it is", async ({ page }) => {
+    await open(page);
+    await page.getByTestId("vastu-fixplan-open").click();
+    await page.getByTestId("vastu-fixplan-review").click();
+    await page.getByTestId("vastu-fixplan-skip").click();
+    // The only issue was kept, so the proposal closes and nothing moved.
+    await expect(page.getByTestId("vastu-fixplan")).toHaveCount(0);
+    await expect(page.getByTestId("vastu-issue")).toHaveCount(1);
+  });
+
+  test("the 3D view only appears when admins switch it on", async ({ page }) => {
+    await open(page);
+    await expect(page.getByRole("tab", { name: "3D" })).toHaveCount(0);
+  });
+
+  test("with 3D switched on, the 3D view opens and shares the room selection with 2D", async ({ page }) => {
+    await open(page, {}, { features: { "nav.vastuThreeD": { enabled: true, pricePaise: null, originalPricePaise: null } } });
+    await page.getByRole("tab", { name: "3D" }).click();
+    await expect(page.getByTestId("vastu-3d-canvas")).toBeVisible();
+    // Select through the shared state (issue card → Show me), then check 3D kept it.
+    await page.getByTestId("vastu-issue").getByRole("button", { name: "Show me" }).click();
+    await expect(page.getByTestId("vastu-room-bar")).toContainText("Bathroom");
+    await page.getByRole("tab", { name: "2D" }).click();
+    await expect(page.getByTestId("vastu-room-bar")).toContainText("Bathroom");
+  });
 });

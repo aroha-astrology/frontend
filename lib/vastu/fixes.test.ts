@@ -66,4 +66,10 @@ describe("planFixes", () => {
     const p = plan([room("k", "kitchen", 9, 9), room("m", "master_bed", 0, 9)]);
     expect(planFixes(p).steps).toEqual([]);
   });
+
+  it("never moves a room the user chose to keep", () => {
+    const p = plan([room("b", "bathroom", 9, 0), room("k", "kitchen", 0, 0)]);
+    const r = planFixes(p, 6, ["b"]);
+    expect(r.steps.every((s) => s.roomId !== "b")).toBe(true);
+  });
 });

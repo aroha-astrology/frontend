@@ -62,7 +62,7 @@ export default function PlanCanvas({
   lens = false,
   focus,
   badgeLabel,
-  ghost,
+  ghosts,
 }: {
   plan: Plan;
   ratingById: Record<string, RoomRating>;
@@ -79,8 +79,8 @@ export default function PlanCanvas({
   focus?: { roomId: string; nonce: number } | null;
   /** Text for the floating badge over the selected room, e.g. "SE · ✓ Highly Beneficial". */
   badgeLabel?: string | null;
-  /** A proposed position to preview (dashed gold), with the current room dimmed. */
-  ghost?: { roomId: string; x: number; y: number; w: number; h: number } | null;
+  /** Proposed positions to preview (dashed gold), with the current rooms dimmed. */
+  ghosts?: { roomId: string; x: number; y: number; w: number; h: number }[];
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -367,19 +367,25 @@ export default function PlanCanvas({
           const rating = ratingById[room.id];
           if (!rating) return null;
           return (
-            <g key={room.id} opacity={ghost?.roomId === room.id ? 0.3 : lens && selectedId && room.id !== selectedId ? 0.55 : 1}>
+            <g key={room.id} opacity={ghosts?.some((g) => g.roomId === room.id) ? 0.3 : lens && selectedId && room.id !== selectedId ? 0.55 : 1}>
               <RoomBlock room={room} color={colorForType(room.type)} label={labelForType(room.type)} rating={rating} selected={room.id === selectedId} issues={issuesById?.[room.id]} onBodyDown={onBodyDown} onHandleDown={onHandleDown} onFixtureDown={onFixtureDown} />
             </g>
           );
         })}
 
-        {ghost && (
-          <g style={{ pointerEvents: "none" }} data-testid="vastu-ghost">
-            <rect x={ghost.x} y={ghost.y} width={ghost.w} height={ghost.h} rx={0.35} fill="rgba(212,175,55,0.12)" stroke="#D4AF37" strokeWidth={0.14} strokeDasharray="0.4 0.25">
-              <animate attributeName="stroke-dashoffset" from="0" to="-1.3" dur="1.2s" repeatCount="indefinite" />
-            </rect>
-          </g>
-        )}
+        {ghosts?.map((ghost) => {
+          const from = plan.rooms.find((r) => r.id === ghost.roomId);
+          return (
+            <g key={ghost.roomId} style={{ pointerEvents: "none" }} data-testid="vastu-ghost">
+              {from && (from.x !== ghost.x || from.y !== ghost.y) && (
+                <line x1={from.x + from.w / 2} y1={from.y + from.h / 2} x2={ghost.x + ghost.w / 2} y2={ghost.y + ghost.h / 2} stroke="#D4AF37" strokeWidth={0.07} strokeDasharray="0.2 0.2" opacity={0.7} />
+              )}
+              <rect x={ghost.x} y={ghost.y} width={ghost.w} height={ghost.h} rx={0.35} fill="rgba(212,175,55,0.12)" stroke="#D4AF37" strokeWidth={0.14} strokeDasharray="0.4 0.25">
+                <animate attributeName="stroke-dashoffset" from="0" to="-1.3" dur="1.2s" repeatCount="indefinite" />
+              </rect>
+            </g>
+          );
+        })}
 
         {/* Mid-wall "+" — drag to add a corner there. */}
         {!lens && plan.plot.length < 12 && plan.plot.map((a, i) => {

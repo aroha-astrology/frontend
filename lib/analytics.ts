@@ -17,7 +17,30 @@ export type AnalyticsEvent =
   | "referral_share_clicked"
   | "push_opened"
   | "push_received_foreground"
-  | "notification_settings_changed";
+  | "notification_settings_changed"
+  // Vastu Studio (spec §62): does the studio get understood, used and trusted?
+  | "vastu_open"
+  | "vastu_plan_created"
+  | "vastu_room_added"
+  | "vastu_fixture_added"
+  | "vastu_north_aligned"
+  | "vastu_lens_opened"
+  | "vastu_issue_opened"
+  | "vastu_show_me"
+  | "vastu_fix_preview"
+  | "vastu_fix_applied"
+  | "vastu_fixplan_opened"
+  | "vastu_fixplan_applied"
+  | "vastu_3d_opened"
+  | "vastu_score_viewed"
+  | "vastu_report_cta"
+  | "vastu_report_started"
+  | "vastu_report_done"
+  | "vastu_report_error"
+  | "vastu_history_opened"
+  | "vastu_version_restored"
+  | "vastu_upload_started"
+  | "vastu_followup_asked";
 
 /**
  * Fire-and-forget PostHog capture. The `__loaded` guard matters: PostHog is

@@ -140,11 +140,12 @@ export interface PlanFix {
  * only moves that raise the overall score. Each step is re-planned against the
  * plan as changed so far, so later moves never collide with earlier ones.
  */
-export function planFixes(plan: Plan, maxSteps = 6): PlanFix {
+export function planFixes(plan: Plan, maxSteps = 6, exclude: Iterable<string> = []): PlanFix {
   const scoreBefore = analyzePlan(plan).overallScore;
   let cur = plan;
   const steps: FixSuggestion[] = [];
-  const tried = new Set<string>();
+  // Rooms the user chose to keep where they are are never moved.
+  const tried = new Set<string>(exclude);
   for (let i = 0; i < maxSteps; i++) {
     const ranked = analyzePlan(cur)
       .rooms.filter((r) => r.ratingKey !== "ideal" && !tried.has(r.roomId))

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { VastuPlan } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
+import { track } from "@/lib/analytics";
 import { Eyebrow, scoreColor } from "./studio/ui";
 
 interface RoomAnalysisEntry {
@@ -252,7 +253,7 @@ function GenerateCTA({ hasRooms, reportReady, balancePaise, costPaise, aiLoading
               </div>
             ) : (
               <>
-                <button onClick={() => setConfirming(true)} disabled={!reportReady} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_8px_24px_-10px_rgba(223,181,100,0.7)]">
+                <button onClick={() => { track("vastu_report_cta"); setConfirming(true); }} disabled={!reportReady} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_8px_24px_-10px_rgba(223,181,100,0.7)]">
                   <Sparkles size={15} /> {t("vastu.report.generate", "Generate report")}
                 </button>
                 {!hasRooms ? (

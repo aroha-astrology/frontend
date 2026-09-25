@@ -9,13 +9,14 @@ import { useAuth } from "@/providers/auth-provider";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { api, type VastuPlan } from "@/lib/api";
 import { reportErrorKey } from "@/lib/vastu/errors";
+import { track } from "@/lib/analytics";
 import { getRoomType } from "@/lib/vastu/data";
 import { analyzePlan } from "@/lib/vastu/analysis";
 import { buildRoomLayout, fixtureFacing, plotSummary, bbox, roomDirection } from "@/lib/vastu/geometry";
 import { validatePlan } from "@/lib/vastu/validation";
 import { scoreBreakdown } from "@/lib/vastu/breakdown";
 import { explainRoom } from "@/lib/vastu/explain";
-import { applyChange, suggestFixes, type FixSuggestion } from "@/lib/vastu/fixes";
+import { applyChange, planFixes, suggestFixes, type FixSuggestion, type PlanFix } from "@/lib/vastu/fixes";
 import { historyReducer, initialHistory } from "@/lib/vastu/history";
 import { templatePlan, type TemplateId } from "@/lib/vastu/templates";
 import type { Plan } from "@/lib/vastu/types";
@@ -35,6 +36,7 @@ import ScoreSheet from "./studio/ScoreSheet";
 import StartSheet from "./studio/StartSheet";
 import HomeSheet from "./studio/HomeSheet";
 import FixBar from "./studio/FixBar";
+import FixPlanBar, { type FixPlanMode } from "./studio/FixPlanBar";
 import ProfileSwitchTrigger from "@/components/ui/ProfileSwitchTrigger";
 
 // Three.js only loads when someone opens 3D — the 2D editor never pays for it.
@@ -95,6 +97,8 @@ export default function VastuPlanner() {
   const [camReset, setCamReset] = useState(0);
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => track("vastu_open"), []);
+
   // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
   const [compassHint, setCompassHint] = useState<string | null>(null);
@@ -111,6 +115,7 @@ export default function VastuPlanner() {
     }
   }, [compass.state, compass.heading]);
   const onLock = useCallback(() => {
+    track("vastu_north_aligned", { via: "compass" });
     compass.lock();
     dispatch({ type: "endGesture" });
   }, [compass]);
@@ -152,6 +157,7 @@ export default function VastuPlanner() {
     const p = tpl === "demo" ? samplePlan() : templatePlan(tpl, uid);
     const name = homesSync.homes.length === 0 ? t("vastu.home.defaultName") : t("vastu.homes.newName", "Home {{n}}", { n: homesSync.homes.length + 1 });
     void homesSync.createHome(name, p, analyzePlan(p).overallScore);
+    track("vastu_plan_created", { start: tpl });
     setSelectedId(null);
     setSheet(null);
     setView("2d");
@@ -187,6 +193,7 @@ export default function VastuPlanner() {
     canvasRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, []);
   const showMe = useCallback((roomId: string) => {
+    track("vastu_show_me");
     setWhyId(null);
     setSelectedId(roomId);
     setView("vastu");
@@ -194,6 +201,7 @@ export default function VastuPlanner() {
     scrollToCanvas();
   }, [scrollToCanvas]);
   const startFix = useCallback((roomId: string) => {
+    track("vastu_fix_preview");
     setWhyId(null);
     setSelectedId(roomId);
     setView("vastu");
@@ -204,7 +212,10 @@ export default function VastuPlanner() {
   const applyFix = useCallback(() => {
     if (!fix) return;
     const s = fix.suggestions[fix.choice];
-    if (s) dispatch({ type: "replace", plan: applyChange(plan, s.change) });
+    if (s) {
+      dispatch({ type: "replace", plan: applyChange(plan, s.change) });
+      track("vastu_fix_applied", { gain: s.scoreAfter - s.scoreBefore });
+    }
     setFix(null);
   }, [fix, plan]);
   // Any edit while previewing makes the preview stale.
@@ -215,7 +226,38 @@ export default function VastuPlanner() {
   }, [plan, fix]);
   const fixChange = fix?.suggestions[fix.choice]?.change;
   const fixRoom = fix ? plan.rooms.find((r) => r.id === fix.roomId) : undefined;
-  const ghost = fixChange?.kind === "move" && fixRoom ? { roomId: fixRoom.id, x: fixChange.x, y: fixChange.y, w: fixRoom.w, h: fixRoom.h } : null;
+
+  // ── Fix my plan (whole home) ───────────────────────────────────────────────
+  const [fixPlan, setFixPlan] = useState<(PlanFix & { mode: FixPlanMode; kept: string[]; base: string }) | null>(null);
+  const planJson = useMemo(() => JSON.stringify(plan), [plan]);
+  const openFixPlan = useCallback(() => {
+    setFix(null);
+    setSelectedId(null);
+    setView("vastu");
+    const r = planFixes(plan);
+    track("vastu_fixplan_opened", { steps: r.steps.length });
+    setFixPlan({ ...r, mode: "overview", kept: [], base: JSON.stringify(plan) });
+    scrollToCanvas();
+  }, [plan, scrollToCanvas]);
+  // Any other edit makes the proposal stale.
+  useEffect(() => {
+    if (fixPlan && fixPlan.base !== planJson) setFixPlan(null);
+  }, [planJson, fixPlan]);
+  const continueFixPlan = useCallback((next: Plan, kept: string[]) => {
+    const r = planFixes(next, 6, kept);
+    setFixPlan(r.steps.length ? { ...r, mode: "step", kept, base: JSON.stringify(normalizePlan(next)) } : null);
+  }, []);
+  const fixPlanGhosts = useMemo(() => {
+    if (!fixPlan || fixPlan.mode === "overview") return [];
+    const moves = fixPlan.mode === "step" ? fixPlan.steps.slice(0, 1) : fixPlan.steps;
+    const final = new Map<string, { x: number; y: number }>();
+    for (const s of moves) if (s.change.kind === "move") final.set(s.roomId, { x: s.change.x, y: s.change.y });
+    return [...final].flatMap(([roomId, p]) => {
+      const r = plan.rooms.find((x) => x.id === roomId);
+      return r ? [{ roomId, x: p.x, y: p.y, w: r.w, h: r.h }] : [];
+    });
+  }, [fixPlan, plan.rooms]);
+  const ghosts = fixChange?.kind === "move" && fixRoom ? [{ roomId: fixRoom.id, x: fixChange.x, y: fixChange.y, w: fixRoom.w, h: fixRoom.h }] : fixPlanGhosts;
   const fixable = useCallback((roomId: string) => ratingById[roomId]?.ratingKey !== "ideal", [ratingById]);
 
   const whyRoom = whyId ? plan.rooms.find((r) => r.id === whyId) : undefined;
@@ -325,6 +367,7 @@ export default function VastuPlanner() {
           if (activeProfileIdRef.current === generationProfileId) {
             setAiResult(p.analysis as VastuAiResult);
           }
+          track("vastu_report_done");
           void loadReports();
           void refresh();
           return;
@@ -360,10 +403,12 @@ export default function VastuPlanner() {
     setAiLoading(true);
     setAiStartedAt(Date.now());
     let planId: string;
+    track("vastu_report_started");
     try {
       ({ planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language, home?.id)));
     } catch (e) {
       const key = reportErrorKey(e);
+      track("vastu_report_error", { reason: key });
       setAiError(key === "INSUFFICIENT_CREDITS" ? key : t(key));
       setAiLoading(false);
       void refresh();
@@ -392,6 +437,7 @@ export default function VastuPlanner() {
     if (!activePlanId) return;
     setAskError(null);
     setAsking(true);
+    track("vastu_followup_asked");
     try {
       const updated = await api.vastuAsk(activePlanId, question, i18n.language);
       if (updated.analysis) setAiResult(updated.analysis as VastuAiResult);
@@ -404,6 +450,7 @@ export default function VastuPlanner() {
 
   const onViewHistory = useCallback(async (p: VastuPlan) => {
     if (!p.analysis) return;
+    track("vastu_history_opened");
     // Show the list copy at once, then swap in this one report in the current language
     // (the list itself never translates).
     setAiResult(p.analysis as VastuAiResult);
@@ -455,7 +502,34 @@ export default function VastuPlanner() {
   const bb = bbox(plan.plot);
   const lensOn = view === "vastu";
 
-  const bar = fix && fixRoom ? (
+  const bar = fixPlan ? (
+    <FixPlanBar
+      steps={fixPlan.steps}
+      scoreBefore={fixPlan.scoreBefore}
+      scoreAfter={fixPlan.scoreAfter}
+      mode={fixPlan.mode}
+      stepIndex={0}
+      onMode={(m) => setFixPlan((f) => (f ? { ...f, mode: m } : f))}
+      onApplyAll={() => {
+        track("vastu_fixplan_applied", { steps: fixPlan.steps.length, gain: fixPlan.scoreAfter - fixPlan.scoreBefore });
+        dispatch({ type: "replace", plan: fixPlan.plan });
+        setFixPlan(null);
+      }}
+      onApplyStep={() => {
+        const s = fixPlan.steps[0];
+        if (!s) return;
+        const next = applyChange(plan, s.change);
+        dispatch({ type: "replace", plan: next });
+        continueFixPlan(next, fixPlan.kept);
+      }}
+      onSkipStep={() => {
+        const s = fixPlan.steps[0];
+        if (!s) return;
+        continueFixPlan(plan, [...fixPlan.kept, s.roomId]);
+      }}
+      onClose={() => setFixPlan(null)}
+    />
+  ) : fix && fixRoom ? (
     <FixBar
       roomLabel={labelForType(fixRoom.type)}
       emoji={getRoomType(fixRoom.type)?.emoji ?? ""}
@@ -470,8 +544,14 @@ export default function VastuPlanner() {
       emoji={getRoomType(selectedRoom.type)?.emoji ?? ""}
       label={labelForType(selectedRoom.type)}
       rating={selectedRating}
-      onDoor={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "door" })}
-      onWindow={() => dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "window" })}
+      onDoor={() => {
+        dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "door" });
+        track("vastu_fixture_added", { kind: "door" });
+      }}
+      onWindow={() => {
+        dispatch({ type: "addFixture", roomId: selectedRoom.id, kind: "window" });
+        track("vastu_fixture_added", { kind: "window" });
+      }}
       onWhy={() => setWhyId(selectedRoom.id)}
       onFix={selectedRating && selectedRating.ratingKey !== "ideal" ? () => startFix(selectedRoom.id) : undefined}
       onDuplicate={() => dispatch({ type: "duplicateRoom", id: selectedRoom.id })}
@@ -500,7 +580,11 @@ export default function VastuPlanner() {
           <ViewSwitcher
             view={view}
             onChange={(v) => {
-              if (v === "3d") setVastu3d(view === "vastu");
+              if (v === "3d") {
+                setVastu3d(view === "vastu");
+                track("vastu_3d_opened");
+              }
+              if (v === "vastu") track("vastu_lens_opened");
               setView(v);
               setFocus(null);
               setFix(null);
@@ -565,7 +649,7 @@ export default function VastuPlanner() {
           lens={lensOn}
           focus={focus}
           badgeLabel={badgeLabel}
-          ghost={ghost}
+          ghosts={ghosts}
         />
       </div>
       )}
@@ -612,10 +696,17 @@ export default function VastuPlanner() {
           analysis={analysis}
           breakdown={breakdown}
           onShowMe={showMe}
-          onWhy={(id) => setWhyId(id)}
+          onWhy={(id) => {
+            track("vastu_issue_opened");
+            setWhyId(id);
+          }}
           onFix={startFix}
           fixable={fixable}
-          onScore={() => setSheet("score")}
+          onFixPlan={openFixPlan}
+          onScore={() => {
+            track("vastu_score_viewed");
+            setSheet("score");
+          }}
         />
       </div>
 
@@ -645,7 +736,14 @@ export default function VastuPlanner() {
         askError={askError}
       />
 
-      <RoomSheet open={sheet === "room"} onClose={() => setSheet(null)} onAdd={(type) => dispatch({ type: "addRoom", roomType: type })} />
+      <RoomSheet
+        open={sheet === "room"}
+        onClose={() => setSheet(null)}
+        onAdd={(type) => {
+          dispatch({ type: "addRoom", roomType: type });
+          track("vastu_room_added", { type });
+        }}
+      />
       <NorthSheet
         open={sheet === "north"}
         onClose={() => setSheet(null)}

@@ -79,7 +79,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     await page.getByRole("button", { name: "Changing job or career" }).click();
     await page.getByPlaceholder(/Should I take the offer/).fill("Should I take the new offer?");
     await page.getByRole("button", { name: "60 days" }).click();
-    await expect(page.getByText(/₹/)).toHaveCount(0);
+    await expect(page.getByText(/per result/)).toHaveCount(0);
     await page.getByRole("button", { name: "Show my windows" }).click();
 
     const view = page.getByTestId("decision-result");

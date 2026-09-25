@@ -104,6 +104,10 @@ export default function VastuPlanner() {
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => track("vastu_open"), []);
+  // 3D switched off (or not yet confirmed on) while it was open: fall back to the 2D editor.
+  useEffect(() => {
+    if (!has3d && view === "3d") setView("2d");
+  }, [has3d, view]);
 
   // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
@@ -343,6 +347,8 @@ export default function VastuPlanner() {
     };
   }, []);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  /** The report currently on screen — a late translation of any other one is dropped. */
+  const viewedPlanRef = useRef<string | null>(null);
   /** Layout of the history report being viewed, for "Open this plan". */
   const [viewedLayout, setViewedLayout] = useState<Plan | null>(null);
   const [reports, setReports] = useState<VastuPlan[]>([]);
@@ -407,6 +413,7 @@ export default function VastuPlanner() {
   const [aiStartedAt, setAiStartedAt] = useState<number | null>(null);
   const waitForPlan = useCallback(async (planId: string, generationProfileId: string | null, startedAt: number) => {
     trackedPlanRef.current = planId;
+    viewedPlanRef.current = planId;
     setActivePlanId(planId);
     setViewedLayout(null);
     setAiLoading(true);
@@ -513,6 +520,7 @@ export default function VastuPlanner() {
   const onViewHistory = useCallback(async (p: VastuPlan) => {
     if (!p.analysis) return;
     track("vastu_history_opened");
+    viewedPlanRef.current = p.id;
     // Show the list copy at once, then swap in this one report in the current language
     // (the list itself never translates).
     setAiResult(p.analysis as VastuAiResult);
@@ -523,7 +531,8 @@ export default function VastuPlanner() {
     if (p.language && p.language !== i18n.language) {
       try {
         const full = await api.vastuGet(p.id, i18n.language);
-        if (full.analysis) setAiResult(full.analysis as VastuAiResult);
+        // Another report (or a new one) may have been opened while this translated.
+        if (full.analysis && viewedPlanRef.current === p.id) setAiResult(full.analysis as VastuAiResult);
       } catch {
         /* keep the untranslated copy */
       }

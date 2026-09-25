@@ -46,6 +46,7 @@ export function usePersonalizedHoroscope(
   const { i18n } = useTranslation();
   const [state, setState] = useState<PersonalizedHoroscopeState>("loading");
   const [data, setData] = useState<PersonalizedHoroscope | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
@@ -123,7 +124,10 @@ export function usePersonalizedHoroscope(
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [authLoading, firebaseUser, enabled, period, i18n.language, activeProfile?.id, user?.id]);
+  }, [authLoading, firebaseUser, enabled, period, i18n.language, activeProfile?.id, user?.id, retryCount]);
 
-  return { state, data };
+  /** Starts over after an "error" (the card offers it as Try again). */
+  const retry = () => setRetryCount((n) => n + 1);
+
+  return { state, data, retry };
 }

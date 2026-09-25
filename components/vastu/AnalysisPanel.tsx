@@ -54,6 +54,10 @@ export default function AnalysisPanel(props: {
   aiLoading: boolean;
   aiResult: VastuAiResult | null;
   aiError: string | null;
+  /** Still waiting past the usual time — shown under the spinner. */
+  aiSlow: boolean;
+  /** Neutral outcome message (e.g. stopped waiting, report will appear in history). */
+  aiNotice: string | null;
   onGenerate: () => void;
   history: VastuPlan[];
   historyLoading: boolean;
@@ -116,6 +120,8 @@ export default function AnalysisPanel(props: {
         costPaise={costPaise}
         aiLoading={aiLoading}
         aiError={aiError}
+        aiSlow={props.aiSlow}
+        aiNotice={props.aiNotice}
         onGenerate={props.onGenerate}
       />
 
@@ -142,7 +148,7 @@ export default function AnalysisPanel(props: {
                     <button onClick={() => done && props.onViewHistory(p)} disabled={!done} className="w-full flex items-center gap-2 rounded-xl border border-gold/15 px-3 py-2 text-left hover:border-gold/40 disabled:opacity-50 transition-colors">
                       <span className="text-xs text-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
                       {p.overallScore != null && <span className={`text-xs font-semibold ${scoreTone(p.overallScore).text}`}>{p.overallScore}</span>}
-                      <span className="ml-auto text-[10px] text-muted capitalize">{done ? "" : p.status}</span>
+                      <span className="ml-auto text-[10px] text-muted">{done ? "" : t(`vastu.analysis.status.${p.status}`, p.status)}</span>
                       {done && <ChevronRight size={13} className="text-muted" />}
                     </button>
                   </li>
@@ -156,8 +162,8 @@ export default function AnalysisPanel(props: {
   );
 }
 
-function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, aiError, onGenerate }: {
-  hasRooms: boolean; signedIn: boolean; balancePaise: number; costPaise: number; aiLoading: boolean; aiError: string | null; onGenerate: () => void;
+function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, aiError, aiSlow, aiNotice, onGenerate }: {
+  hasRooms: boolean; signedIn: boolean; balancePaise: number; costPaise: number; aiLoading: boolean; aiError: string | null; aiSlow: boolean; aiNotice: string | null; onGenerate: () => void;
 }) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
@@ -204,6 +210,11 @@ function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, a
         </>
       )}
       {aiError && aiError !== "INSUFFICIENT_CREDITS" && <p className="mt-2 text-[11px] text-red-400 text-center">{aiError}</p>}
+      {((aiLoading && aiSlow) || (!aiLoading && aiNotice)) && (
+        <p className="mt-2 text-[11px] text-amber-400 text-center" role="status" data-testid="vastu-still-working">
+          {aiLoading ? t("vastu.analysis.stillWorking") : aiNotice}
+        </p>
+      )}
     </Card>
   );
 }

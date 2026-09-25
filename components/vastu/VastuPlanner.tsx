@@ -19,6 +19,8 @@ import AnalysisPanel, { type VastuAiResult } from "./AnalysisPanel";
 import { useCompass } from "./useCompass";
 
 const STORAGE_KEY = "vastu_plan";
+/** The usual wait ("up to 2 min") — past this the panel says the report is still being written. */
+const SLOW_AFTER_MS = 150_000;
 
 function buildPayload(plan: Plan, language: string) {
   const roomLayout = buildRoomLayout(plan);
@@ -94,6 +96,17 @@ export default function VastuPlanner() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<VastuAiResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  // Past SLOW_AFTER_MS the report is still being written: say so (it will land in the
+  // history list) instead of an error that invites paying again.
+  const [aiSlow, setAiSlow] = useState(false);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [history, setHistory] = useState<VastuPlan[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -129,12 +142,24 @@ export default function VastuPlanner() {
     setAiResult(null);
     setActivePlanId(null);
     setAiError(null);
+    setAiNotice(null);
     setAskError(null);
   }, [activeProfile?.id]);
+
+  // A plan still queued/processing (e.g. one that outlasted the wait below) lands in
+  // history on its own — check back while any is unfinished.
+  const historyPending = history.some((p) => p.status === "pending" || p.status === "processing");
+  useEffect(() => {
+    if (!historyPending || aiLoading) return;
+    const id = setTimeout(() => void loadHistory(), 15_000);
+    return () => clearTimeout(id);
+  }, [historyPending, aiLoading, history, loadHistory]);
 
   const onGenerate = useCallback(async () => {
     const generationProfileId = activeProfileIdRef.current;
     setAiError(null);
+    setAiNotice(null);
+    setAiSlow(false);
     setAiResult(null);
     setActivePlanId(null);
     setAiLoading(true);
@@ -142,8 +167,12 @@ export default function VastuPlanner() {
       const { planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language));
       setActivePlanId(planId);
       void refresh(); // balance dropped by 5
-      const deadline = Date.now() + 150_000;
+      const started = Date.now();
+      // The server reaps (and refunds) a plan stuck processing after 5 minutes.
+      const deadline = started + 6 * 60_000;
       while (Date.now() < deadline) {
+        if (!mountedRef.current) return;
+        if (Date.now() - started > SLOW_AFTER_MS) setAiSlow(true);
         const p = await api.vastuGet(planId, i18n.language);
         if (p.status === "done" && p.analysis) {
           // The user may have switched profiles while this was in flight —
@@ -155,16 +184,25 @@ export default function VastuPlanner() {
           void refresh();
           return;
         }
-        if (p.status === "error") throw new Error("failed");
+        if (p.status === "error") {
+          // Charged at the start and refunded by the server on failure.
+          setAiError(t("vastu.analysis.failedRefunded"));
+          void loadHistory();
+          void refresh();
+          return;
+        }
         await new Promise((r) => setTimeout(r, 2500));
       }
-      throw new Error("timeout");
+      // Still working on the server: it will show up in the history list.
+      setAiNotice(t("vastu.analysis.stillWorking"));
+      void loadHistory();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       setAiError(msg === "INSUFFICIENT_CREDITS" ? "INSUFFICIENT_CREDITS" : t("vastu.analysis.error"));
       void refresh();
     } finally {
       setAiLoading(false);
+      setAiSlow(false);
     }
   }, [plan, t, i18n.language, loadHistory, refresh]);
 
@@ -283,6 +321,8 @@ export default function VastuPlanner() {
         aiLoading={aiLoading}
         aiResult={aiResult}
         aiError={aiError}
+        aiSlow={aiSlow}
+        aiNotice={aiNotice}
         onGenerate={onGenerate}
         history={history}
         historyLoading={historyLoading}

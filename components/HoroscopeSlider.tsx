@@ -42,7 +42,7 @@ export default function HoroscopeSlider() {
   // useMoonSignForecasts call gated on 'nav.horoscope' instead) — so it's
   // safe to hardcode this component's own flag rather than take it as a prop.
   const { enabled } = useFeature("home.horoscopeSlider");
-  const { forecasts, loading } = useMoonSignForecasts("daily", enabled);
+  const { forecasts, loading, allFailed, retry } = useMoonSignForecasts("daily", enabled);
   const { kundli } = useKundli();
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -69,6 +69,19 @@ export default function HoroscopeSlider() {
     );
   }
 
+  if (allFailed) {
+    return (
+      <div className="pb-4 pr-5">
+        <Card className="p-4 border-gold/10 text-center" data-testid="signs-error">
+          <p className="text-xs text-muted">{t("common.somethingWentWrong")}</p>
+          <button onClick={retry} className="mt-1.5 text-xs font-semibold text-gold underline underline-offset-4">
+            {t("common.tryAgain")}
+          </button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
@@ -83,7 +96,7 @@ export default function HoroscopeSlider() {
             className={`min-w-[160px] max-w-[160px] p-4 flex-shrink-0 cursor-pointer active:scale-95 transition-transform ${
               isUserSign ? "border-gold/50" : "border-gold/10 hover:border-gold/30"
             }`}
-            onClick={() => setSelected(index)}
+            onClick={() => (sign.failed ? retry() : setSelected(index))}
           >
             {isUserSign && (
               <span className="inline-block text-[9px] font-semibold text-gold uppercase tracking-wider mb-1.5">
@@ -103,13 +116,19 @@ export default function HoroscopeSlider() {
               </div>
             </div>
 
-            <div className="flex gap-0.5 mb-2">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={10} className={i < sign.rating ? "fill-gold text-gold" : "text-gold/20"} />
-              ))}
-            </div>
+            {sign.failed ? (
+              <p className="text-xs text-muted leading-relaxed line-clamp-3">{t("horoscope.signLoadFailed")}</p>
+            ) : (
+              <>
+                <div className="flex gap-0.5 mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={10} className={i < sign.rating ? "fill-gold text-gold" : "text-gold/20"} />
+                  ))}
+                </div>
 
-            <p className="text-xs text-muted leading-relaxed line-clamp-3">{sign.text}</p>
+                <p className="text-xs text-muted leading-relaxed line-clamp-3">{sign.text}</p>
+              </>
+            )}
           </Card>
           );
         })}

@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Star } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock, Star } from "lucide-react";
 import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
 import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
@@ -60,7 +60,7 @@ export default function ReportDetailPage() {
   const { state, data, failedError, retry } = useReport(id, i18n.language);
   const { user } = useAuth();
 
-  // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (200s) — long enough that a
+  // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (6 min) — long enough that a
   // user idly scrolls the page while it's essentially empty. PageTransition only resets scroll
   // on a PATHNAME change, not on this in-place generating->ready state flip, so without this the
   // page can stay scrolled to that old (now-blank) offset once the much taller ready content
@@ -170,7 +170,7 @@ export default function ReportDetailPage() {
 
   // The report tour explains the gauges, bands and verdict cards, which have no
   // legend anywhere else. Gated on `ready` because ReportGeneratingSheet can
-  // hold this screen for up to 200s and the tour must never run over it.
+  // hold this screen for up to 6 minutes and the tour must never run over it.
   useTourReady("report-detail", ready);
   const { tourActive } = useTour();
 
@@ -299,11 +299,26 @@ export default function ReportDetailPage() {
           </div>
         )}
 
+        {/* Still generating when we stopped waiting — it may well finish, so never call it failed. */}
+        {state === "slow" && (
+          <div className="flex flex-col items-center text-center gap-3 py-16" data-testid="report-slow">
+            <Clock size={28} className="text-gold" />
+            <p className="text-sm font-semibold text-foreground">{t("common.connectionSlow")}</p>
+            <p className="text-xs text-muted max-w-xs">{t("reports.view.generatingHint")}</p>
+            <button
+              onClick={retry}
+              className="mt-2 text-sm font-semibold text-gold underline underline-offset-4"
+            >
+              {t("reports.view.checkAgain")}
+            </button>
+          </div>
+        )}
+
         {state === "error" && (
           <div className="flex flex-col items-center text-center gap-3 py-16">
             <AlertTriangle size={28} className="text-red-400" />
             <p className="text-sm font-semibold text-foreground">{t("reports.view.failedTitle")}</p>
-            <p className="text-xs text-muted max-w-xs">{t("reports.view.failedBody")}</p>
+            <p className="text-xs text-muted max-w-xs">{t("reports.view.errorBody")}</p>
             <button
               onClick={retry}
               className="mt-2 text-sm font-semibold text-gold underline underline-offset-4"

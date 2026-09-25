@@ -99,7 +99,12 @@ function ReportsCatalogue() {
             <Loader2 size={24} className="animate-spin text-gold" />
           </div>
         ) : error && !reports ? (
-          <p className="text-xs text-red-400 text-center py-10">{t("reports.loadError")}</p>
+          <div className="flex flex-col items-center gap-2 py-10">
+            <p className="text-xs text-red-400 text-center">{t("reports.loadError")}</p>
+            <button onClick={() => refetch()} className="text-sm font-semibold text-gold underline underline-offset-4">
+              {t("common.tryAgain")}
+            </button>
+          </div>
         ) : activeList.length === 0 ? (
           <p className="text-xs text-muted text-center py-10">{t("reports.empty")}</p>
         ) : (

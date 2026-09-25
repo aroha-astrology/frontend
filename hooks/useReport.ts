@@ -6,12 +6,17 @@ import { nextPollDelay } from "@/lib/poll-backoff";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
 
-export type ReportViewState = "idle" | "loading" | "generating" | "ready" | "failed" | "error";
+/** "slow": still generating when this screen stopped waiting (the report may yet finish — offer
+ * Check again, never "failed"). "error": the status check itself kept failing (network). */
+export type ReportViewState = "idle" | "loading" | "generating" | "slow" | "ready" | "failed" | "error";
 
 export type ReportReady = Extract<ReportDetailResult, { status: "ready" }>;
 
 const POLL_BASE_MS = 2500;
-const POLL_TIMEOUT_MS = 200_000;
+// Past the "2-5 minutes" the waiting screen promises (reports.view.generatingBody).
+const POLL_TIMEOUT_MS = 6 * 60_000;
+/** Back-to-back failed status checks tolerated before showing "error" — one dropped request mid-wait isn't a failure. */
+const MAX_CONSECUTIVE_POLL_ERRORS = 3;
 
 /** A ready report's content for a given language never changes once generated (translate-on-read + cache on the backend) — see lib/cache.ts's module doc for why this is a generous-but-bounded SWR TTL, not a correctness mechanism. */
 const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -31,7 +36,7 @@ const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  * replaces it (and refreshes the cache).
  *
  * `retry()` restarts the whole poll loop (fresh deadline, fresh attempt
- * counter) after a timeout ("error" state) without needing to change route —
+ * counter) after a timeout ("slow") or an "error" without needing to change route —
  * it just bumps an internal counter that's part of the effect's dependency
  * array, which re-runs the effect from scratch.
  */
@@ -69,12 +74,14 @@ export function useReport(id: string | null, language: string) {
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
     let attempt = 0;
+    let consecutiveErrors = 0;
 
     const poll = () => {
       reportsApi
         .get(id, language)
         .then((res) => {
           if (cancelled) return;
+          consecutiveErrors = 0;
           if (res.status === "ready") {
             setView({ state: "ready", data: res, failedError: null });
             if (cacheKey) cacheSet(cacheKey, res, Date.now() + SWR_TTL_MS);
@@ -88,7 +95,7 @@ export function useReport(id: string | null, language: string) {
           if (!cached) setView((v) => ({ ...v, state: "generating" }));
           const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
           if (Date.now() + delay > deadline) {
-            if (!cached) setView((v) => ({ ...v, state: "error" }));
+            if (!cached) setView((v) => ({ ...v, state: "slow" }));
             return;
           }
           timer = setTimeout(poll, delay);
@@ -96,6 +103,12 @@ export function useReport(id: string | null, language: string) {
         .catch(() => {
           if (cancelled) return;
           if (cached) return; // keep showing the cached report on a background revalidation error
+          consecutiveErrors += 1;
+          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
+          if (consecutiveErrors < MAX_CONSECUTIVE_POLL_ERRORS && Date.now() + delay <= deadline) {
+            timer = setTimeout(poll, delay);
+            return;
+          }
           setView((v) => ({ ...v, state: "error" }));
         });
     };

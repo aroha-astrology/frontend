@@ -78,6 +78,8 @@ export interface SignForecast {
   rating: number;
   text: string;
   raw: ForecastData | null;
+  /** This sign's reading didn't load — cards show a translated retry prompt instead of text and stars. */
+  failed?: boolean;
 }
 
 export function forecastToRating(forecast: unknown): number {

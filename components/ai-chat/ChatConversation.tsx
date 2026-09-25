@@ -199,7 +199,7 @@ interface SpeechRecognitionLike {
 
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
-  const { user, refresh } = useAuth();
+  const { user, refresh, activeProfile } = useAuth();
   /** Matches astro.routes.ts's chatMessageCostPaise — the backend resolves the same 'paid.chat' feature price and charges that, so this estimate and the actual debit can't drift. 2000 is only the fallback for the fail-open case. */
   const CHAT_MESSAGE_COST_PAISE = useFeature("paid.chat").pricePaise ?? 2000;
   // Chat is paid from the Aroha Pass quota, then Question Pack credits, then the
@@ -223,17 +223,22 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
    * after the free tap is spent. The server re-checks atomically; this only drives the badge. */
   const freeFollowUpAvailable =
     !user?.nextFreeFollowUpAt || new Date(user.nextFreeFollowUpAt).getTime() <= Date.now();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content: t("aiChatPage.personaGreeting", {
-        name: t(ASTROLOGER.nameKey),
-        specialty: t(ASTROLOGER.specialtyKey),
-      }),
-      isGreeting: true,
-    },
-  ]);
+  const greetingMessage = (): Message => ({
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content: t("aiChatPage.personaGreeting", {
+      name: t(ASTROLOGER.nameKey),
+      specialty: t(ASTROLOGER.specialtyKey),
+    }),
+    isGreeting: true,
+  });
+  const [messages, setMessages] = useState<Message[]>(() => [greetingMessage()]);
+  // Shown when the chat in the URL can't be continued (a failed load, or the
+  // server no longer finds it) — the next message starts a new chat instead.
+  const [chatUnavailable, setChatUnavailable] = useState(false);
+  // Bumped whenever the conversation is thrown away (a profile switch), so a
+  // reply still streaming for the old conversation can't write into the new one.
+  const conversationRef = useRef(0);
   // Already-fetched-elsewhere kundli data (moon sign etc.) — reused here
   // purely to personalize the opening greeting, no extra LLM call involved.
   const { kundli } = useKundli();
@@ -259,6 +264,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sessionIdRef = useRef<string | undefined>(undefined);
+  /** Drops the current chat so the next message opens a new one (and a reload doesn't reopen it). */
+  const forgetSession = () => {
+    sessionIdRef.current = undefined;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("sessionId")) {
+      url.searchParams.delete("sessionId");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
   // The in-flight request's own cancellation handle, created fresh per send —
   // wired to the Stop button below. Separate from streamChat's internal
   // 5-minute timeout controller, which the caller has no access to (see
@@ -472,17 +486,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           })
           .then((session) => {
             if (session && session.history) {
-              const loadedMessages: Message[] = [
-                {
-                  id: crypto.randomUUID(),
-                  role: "assistant",
-                  content: t("aiChatPage.personaGreeting", {
-                    name: t(ASTROLOGER.nameKey),
-                    specialty: t(ASTROLOGER.specialtyKey),
-                  }),
-                  isGreeting: true,
-                },
-              ];
+              const loadedMessages: Message[] = [greetingMessage()];
               for (const h of session.history) {
                 loadedMessages.push({
                   id: crypto.randomUUID(),
@@ -490,13 +494,43 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
                   content: h.content,
                 });
               }
-              setMessages(loadedMessages);
+              // Never replace a conversation the user has already started here.
+              setMessages((prev) => (prev.some((m) => m.role === "user") ? prev : loadedMessages));
             }
           })
-          .catch(console.error);
+          .catch((err) => {
+            console.error(err);
+            // Unknown or not this profile's chat: continuing it would only fail
+            // on every send, so start fresh and say why the history is missing.
+            if (sessionIdRef.current !== sid) return;
+            forgetSession();
+            setChatUnavailable(true);
+          });
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
+
+  // A chat belongs to the profile it was started under — the server refuses
+  // its session for any other profile — so switching profile (from the menu,
+  // without leaving this screen) starts a fresh conversation.
+  const activeProfileId = activeProfile?.id ?? null;
+  const chatProfileIdRef = useRef(activeProfileId);
+  useEffect(() => {
+    const previous = chatProfileIdRef.current;
+    chatProfileIdRef.current = activeProfileId;
+    // null → id is the profile list arriving, not a switch.
+    if (!previous || !activeProfileId || previous === activeProfileId) return;
+    conversationRef.current += 1;
+    abortControllerRef.current?.abort();
+    forgetSession();
+    pendingCompareProfileIdRef.current = undefined;
+    pendingMatchReportIdRef.current = undefined;
+    setChatUnavailable(false);
+    setVoteMap({});
+    setMessages([greetingMessage()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfileId]);
 
   // Personalize the opening greeting once the user's kundli is available —
   // e.g. "I see your Moon in Rohini" instead of a generic hello. Only touches
@@ -569,6 +603,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     ]);
     setInput("");
     setStreaming(true);
+    setChatUnavailable(false);
+    const conversation = conversationRef.current;
+    const discarded = () => conversation !== conversationRef.current;
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -594,6 +631,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       });
 
       for await (const event of stream) {
+        if (discarded()) break;
         if (event.type === "token") {
           fullContent += event.data.content;
           const captured = fullContent;
@@ -636,6 +674,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         }
       }
 
+      if (discarded()) return;
+
       // If we got no content at all, show a fallback
       if (!fullContent) {
         setMessages((prev) => {
@@ -665,12 +705,15 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         }
       }
     } catch (err) {
+      // The conversation was thrown away mid-reply (profile switch) — nothing
+      // left on screen belongs to this send.
+      if (discarded()) return;
+
       // Pacing rejections are the one failure the user must never be shown,
       // because the product deliberately never tells anyone a rate limit exists
       // — see the `silent` limiter and the in-flight lock in the backend's
       // middleware/rate-limit.ts and astro.routes.ts. Both arrive as a 429; a
-      // 409 here still means "not enough credits" and must fall through to the
-      // normal error display below.
+      // 409 means "not enough credits" and is handled right below.
       //
       // This composer already blocks a second send while `streaming`, so the
       // only way to reach a 429 is a second tab or a replayed request. Roll the
@@ -679,6 +722,32 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       if (err instanceof SwarmApiError && err.status === 429) {
         setMessages((prev) => prev.slice(0, -2));
         setInput(msg);
+        return;
+      }
+
+      // The server refused the charge even though this screen thought the
+      // balance covered it (spent on another device, or a follow-up tap the
+      // server didn't count as free). Same recharge reply as the local check.
+      if (err instanceof SwarmApiError && err.status === 409) {
+        setMessages((prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last && last.role === "assistant") {
+            next[next.length - 1] = { ...last, content: t("aiChatPage.outOfCreditReply"), isOutOfCredit: true };
+          }
+          return next;
+        });
+        return;
+      }
+
+      // The chat being continued is gone, or belongs to another profile. The
+      // server checks that before charging, so put the question back: sending
+      // it again starts a new chat.
+      if (err instanceof SwarmApiError && err.status === 404 && sessionIdRef.current) {
+        setMessages((prev) => prev.slice(0, -2));
+        setInput(msg);
+        forgetSession();
+        setChatUnavailable(true);
         return;
       }
 
@@ -967,6 +1036,12 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             );
           })}
         </AnimatePresence>
+
+        {chatUnavailable && (
+          <p className="ml-9 text-[11px] text-amber-400" role="status" data-testid="chat-unavailable">
+            {t("aiChatPage.chatUnavailable")}
+          </p>
+        )}
 
         {/* Conversation starters — only before the user has sent anything, so a
             blank input box isn't the first thing a new chat asks of them. Once

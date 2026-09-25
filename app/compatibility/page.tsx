@@ -78,7 +78,7 @@ export default function CompatibilityPage() {
   const [reportId, setReportId] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const { state: reportState, data: report, failedError } = useReport(reportId, i18n.language);
+  const { state: reportState, data: report, failedError, retry: retryReport } = useReport(reportId, i18n.language);
   const { reports: catalogue, refetch: refetchCatalogue } = useReportCatalogue();
   const matchReportEntry = catalogue?.find((r) => r.key === "match_report");
   const costPaise = matchReportEntry?.pricePaise ?? 5000;
@@ -464,6 +464,17 @@ export default function CompatibilityPage() {
             <GeneratingSpinner label={t("reports.view.generatingTitle")} size={40} className="py-16" />
             <p className="text-xs text-muted text-center -mt-2">{t("reports.view.generatingBody")}</p>
           </>
+        )}
+
+        {/* Still being written when we stopped waiting — keep the purchase on screen, never the form again. */}
+        {reportState === "slow" && (
+          <div className="flex flex-col items-center text-center gap-3 py-16">
+            <p className="text-sm font-semibold text-foreground">{t("common.connectionSlow")}</p>
+            <p className="text-xs text-muted max-w-xs">{t("reports.view.generatingHint")}</p>
+            <button onClick={retryReport} className="mt-2 text-sm font-semibold text-gold underline underline-offset-4">
+              {t("reports.view.checkAgain")}
+            </button>
+          </div>
         )}
 
         {reportState === "failed" && (

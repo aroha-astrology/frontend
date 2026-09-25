@@ -9,20 +9,12 @@ import { forecastToRating, forecastToText, type ForecastData, type SignForecast,
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
 import { currentPeriodKey, periodExpiresAt } from "@/lib/period-expiry";
 
-const FALLBACK_TEXT = "Cosmic energies align for you today.";
-
 /** Shape of a single sign's raw API response — same for every consumer of api.moonSignForecast. */
 type MoonSignForecastResponse = Awaited<ReturnType<typeof api.moonSignForecast>>;
 
-function fallbackForecasts(): SignForecast[] {
-  return zodiac.map((sign) => ({
-    name: sign.name,
-    dates: sign.dates,
-    symbol: sign.symbol,
-    rating: 3,
-    text: FALLBACK_TEXT,
-    raw: null,
-  }));
+/** A sign whose reading didn't load. No invented text or rating: the card says so and offers a retry. */
+function failedForecast(sign: (typeof zodiac)[number]): SignForecast {
+  return { name: sign.name, dates: sign.dates, symbol: sign.symbol, rating: 0, text: "", raw: null, failed: true };
 }
 
 /**
@@ -51,6 +43,7 @@ export function useMoonSignForecasts(period: Timescale = "daily", enabled: boole
   const { firebaseUser, loading: authLoading } = useAuth();
   const [forecasts, setForecasts] = useState<SignForecast[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (authLoading || !firebaseUser) return;
@@ -82,7 +75,7 @@ export function useMoonSignForecasts(period: Timescale = "daily", enabled: boole
 
         const items: SignForecast[] = results.map((result, i) => {
           const sign = zodiac[i]!;
-          if (result.status === "fulfilled") {
+          if (result.status === "fulfilled" && result.value.forecast) {
             const forecast = result.value.forecast;
             return {
               name: sign.name,
@@ -93,19 +86,12 @@ export function useMoonSignForecasts(period: Timescale = "daily", enabled: boole
               raw: forecast as ForecastData | null,
             };
           }
-          return {
-            name: sign.name,
-            dates: sign.dates,
-            symbol: sign.symbol,
-            rating: 3,
-            text: FALLBACK_TEXT,
-            raw: null,
-          };
+          return failedForecast(sign);
         });
 
         setForecasts(items);
       } catch {
-        setForecasts(fallbackForecasts());
+        setForecasts(zodiac.map(failedForecast));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -113,7 +99,11 @@ export function useMoonSignForecasts(period: Timescale = "daily", enabled: boole
 
     fetchAll();
     return () => { cancelled = true; };
-  }, [authLoading, firebaseUser, enabled, period, i18n.language]);
+  }, [authLoading, firebaseUser, enabled, period, i18n.language, retryCount]);
 
-  return { forecasts, loading };
+  /** Refetches every sign that isn't cached yet — i.e. the ones that failed. */
+  const retry = () => setRetryCount((n) => n + 1);
+  const allFailed = forecasts.length > 0 && forecasts.every((f) => f.failed);
+
+  return { forecasts, loading, allFailed, retry };
 }

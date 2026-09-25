@@ -26,7 +26,7 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   // FeatureGuard already redirects away from this route when nav.horoscope
   // is off; this is defense-in-depth so the hook never fires either way.
   const { enabled } = useFeature("nav.horoscope");
-  const { state, data } = usePersonalizedHoroscope(period, enabled);
+  const { state, data, retry } = usePersonalizedHoroscope(period, enabled);
   const [showMonths, setShowMonths] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -51,7 +51,18 @@ function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
     );
   }
 
-  if (state === "error" || !data) return null;
+  if (state === "error") {
+    return (
+      <Card className="p-5 border-gold/10 text-center" data-testid="personalized-error">
+        <p className="text-sm text-muted">{t("common.somethingWentWrong")}</p>
+        <button onClick={retry} className="mt-2 text-sm font-semibold text-gold underline underline-offset-4">
+          {t("common.tryAgain")}
+        </button>
+      </Card>
+    );
+  }
+
+  if (!data) return null;
 
   const hasMonths = period === "yearly" && !!data.monthlyBreakdown?.length;
   const year = data.forDate?.slice(0, 4) ?? "";
@@ -148,7 +159,7 @@ export default function HoroscopePage() {
   const { t } = useTranslation();
   const { enabled: navHoroscopeEnabled } = useFeature("nav.horoscope");
   const [timescale, setTimescale] = useState<Timescale>("daily");
-  const { forecasts, loading } = useMoonSignForecasts(timescale, navHoroscopeEnabled);
+  const { forecasts, loading, allFailed, retry: retryForecasts } = useMoonSignForecasts(timescale, navHoroscopeEnabled);
   const [selected, setSelected] = useState<number | null>(null);
   // Decoupled from `timescale`: "Tomorrow" only ever applies to the
   // personalized card below, never to the generic moon-sign section (which
@@ -238,6 +249,13 @@ export default function HoroscopePage() {
                 </Card>
               ))}
             </div>
+          ) : allFailed ? (
+            <Card className="p-5 border-gold/10 text-center" data-testid="signs-error">
+              <p className="text-sm text-muted">{t("common.somethingWentWrong")}</p>
+              <button onClick={retryForecasts} className="mt-2 text-sm font-semibold text-gold underline underline-offset-4">
+                {t("common.tryAgain")}
+              </button>
+            </Card>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {forecasts.map((sign, index) => (
@@ -247,7 +265,7 @@ export default function HoroscopePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
                   className="p-4 border-gold/10 hover:border-gold/30 cursor-pointer active:scale-95 transition-transform"
-                  onClick={() => setSelected(index)}
+                  onClick={() => (sign.failed ? retryForecasts() : setSelected(index))}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-9 h-9 rounded-full border border-gold/40 flex items-center justify-center text-gold text-base">
@@ -258,12 +276,18 @@ export default function HoroscopePage() {
                       <SignHindiName sign={sign.name} />
                     </div>
                   </div>
-                  <div className="flex gap-0.5 mb-1.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={9} className={i < sign.rating ? "fill-gold text-gold" : "text-gold/20"} />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed line-clamp-2">{sign.text}</p>
+                  {sign.failed ? (
+                    <p className="text-xs text-muted leading-relaxed line-clamp-2">{t("horoscope.signLoadFailed")}</p>
+                  ) : (
+                    <>
+                      <div className="flex gap-0.5 mb-1.5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={9} className={i < sign.rating ? "fill-gold text-gold" : "text-gold/20"} />
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted leading-relaxed line-clamp-2">{sign.text}</p>
+                    </>
+                  )}
                 </Card>
               ))}
             </div>

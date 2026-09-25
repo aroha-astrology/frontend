@@ -26,6 +26,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "Renew automatically from my wallet",
       buyPlay: "Subscribe with Google Play",
       restore: "Already subscribed? Restore",
+      playNeedsUpdate: "Update the Aroha app from the Play Store to subscribe with Google Play. You can still get the Pass from your wallet.",
       active: {
         title: "Your Aroha Pass is active",
         until: "Until {{date}}",
@@ -82,6 +83,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "मेरे वॉलेट से अपने आप नवीनीकरण करें",
       buyPlay: "Google Play से सदस्यता लें",
       restore: "पहले से सदस्य हैं? बहाल करें",
+      playNeedsUpdate: "Google Play से सदस्यता लेने के लिए Play Store से Aroha ऐप अपडेट करें। वॉलेट से Pass अब भी ले सकते हैं।",
       active: {
         title: "आपका Aroha Pass सक्रिय है",
         until: "{{date}} तक",
@@ -138,6 +140,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "আমার ওয়ালেট থেকে নিজে থেকে নবীকরণ করুন",
       buyPlay: "Google Play দিয়ে সদস্য হন",
       restore: "আগেই সদস্য? ফিরিয়ে আনুন",
+      playNeedsUpdate: "Google Play দিয়ে সদস্য হতে Play Store থেকে Aroha অ্যাপ আপডেট করুন। ওয়ালেট থেকে Pass এখনও নিতে পারেন।",
       active: {
         title: "আপনার Aroha Pass চালু আছে",
         until: "{{date}} পর্যন্ত",
@@ -194,6 +197,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "माझ्या वॉलेटमधून आपोआप नूतनीकरण करा",
       buyPlay: "Google Play द्वारे सदस्य व्हा",
       restore: "आधीच सदस्य आहात? पुनर्संचयित करा",
+      playNeedsUpdate: "Google Play ने सदस्यता घेण्यासाठी Play Store वरून Aroha ॲप अपडेट करा. वॉलेटमधून Pass अजूनही घेऊ शकता.",
       active: {
         title: "तुमचा Aroha Pass सक्रिय आहे",
         until: "{{date}} पर्यंत",
@@ -250,6 +254,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "నా వాలెట్ నుంచి ఆటోమేటిక్‌గా పునరుద్ధరించండి",
       buyPlay: "Google Play తో సభ్యత్వం తీసుకోండి",
       restore: "ఇప్పటికే సభ్యులా? పునరుద్ధరించండి",
+      playNeedsUpdate: "Google Play తో సభ్యత్వం తీసుకోవడానికి Play Store నుండి Aroha యాప్‌ను అప్‌డేట్ చేయండి. వాలెట్ నుండి Pass ఇప్పటికీ తీసుకోవచ్చు.",
       active: {
         title: "మీ Aroha Pass యాక్టివ్‌గా ఉంది",
         until: "{{date}} వరకు",
@@ -306,6 +311,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "என் வாலட்டிலிருந்து தானாகப் புதுப்பி",
       buyPlay: "Google Play மூலம் சந்தா செலுத்து",
       restore: "ஏற்கெனவே சந்தாதாரரா? மீட்டெடு",
+      playNeedsUpdate: "Google Play மூலம் சந்தா பெற Play Store-இல் Aroha ஆப்பைப் புதுப்பிக்கவும். வாலெட்டிலிருந்து Pass-ஐ இன்னும் பெறலாம்.",
       active: {
         title: "உங்கள் Aroha Pass செயலில் உள்ளது",
         until: "{{date}} வரை",
@@ -362,6 +368,7 @@ export const passBundle: RoadmapBundle = {
       autoRenew: "મારા વૉલેટમાંથી આપમેળે રિન્યૂ કરો",
       buyPlay: "Google Play થી સભ્ય બનો",
       restore: "પહેલેથી સભ્ય છો? પુનઃસ્થાપિત કરો",
+      playNeedsUpdate: "Google Play થી સભ્યપદ લેવા Play Store પરથી Aroha ઍપ અપડેટ કરો. વૉલેટમાંથી Pass હજુ પણ લઈ શકો છો.",
       active: {
         title: "તમારો Aroha Pass સક્રિય છે",
         until: "{{date}} સુધી",

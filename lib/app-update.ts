@@ -43,6 +43,25 @@ export async function isUpdateAvailable(): Promise<boolean> {
   }
 }
 
+/**
+ * First Android build (1.13) with Google Play subscriptions for the Aroha Pass.
+ * The app loads the live site, so older installs get the new pages with their
+ * old native code and must not be offered what that code can't do.
+ */
+export const PLAY_SUBSCRIPTIONS_BUILD = 16;
+
+/** The installed Android versionCode, or null on the web / iOS / when it can't be read. */
+export async function installedAndroidBuild(): Promise<number | null> {
+  try {
+    if (!(await isNativeAndroid())) return null;
+    const { App } = await import("@capacitor/app");
+    const n = Number.parseInt((await App.getInfo()).build, 10);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 export function snoozeUpdatePrompt(): void {
   try {
     window.localStorage.setItem(SNOOZE_KEY, String(Date.now()));

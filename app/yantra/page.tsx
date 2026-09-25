@@ -28,9 +28,16 @@ function YantraPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<"funds" | "failed" | null>(null);
   const [saved, setSaved] = useState(false);
+  // An Android app build without the gallery saver (1.12 and older) can't save the images.
+  const [oldApp, setOldApp] = useState(false);
   const lang = i18n.language;
 
   useEffect(() => {
+    void isNativeAndroid().then(async (android) => {
+      if (!android) return;
+      const { Capacitor } = await import("@capacitor/core");
+      setOldApp(!Capacitor.isPluginAvailable("ImageSaver"));
+    });
     yantraApi
       .get()
       .then(setView)
@@ -177,7 +184,7 @@ function YantraPage() {
                     <Download size={16} />
                     {t(kind === "yantra" ? "yantra.downloadYantra" : "yantra.downloadWallpaper")}
                   </button>
-                ) : view.prices[kind] != null ? (
+                ) : view.prices[kind] != null && !oldApp ? (
                   <button
                     key={kind}
                     type="button"
@@ -191,6 +198,7 @@ function YantraPage() {
                   </button>
                 ) : null,
               )}
+              {oldApp && <p className="text-center text-xs text-muted">{t("yantra.updateApp")}</p>}
               {saved && <p className="text-center text-xs text-emerald-400">{t("yantra.saved")}</p>}
               {error && (
                 <p className="text-center text-xs text-rose-300">

@@ -13,6 +13,7 @@ import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
 import { passApi, PLAY_SUBSCRIPTIONS_URL, type PassStatus, type QuestionPack } from "@/lib/pass-api";
 import { isNativeAndroid, PlayBilling } from "@/lib/play-billing";
+import { installedAndroidBuild, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
 import { useAuth } from "@/providers/auth-provider";
 
 type ActionError = "funds" | "failed";
@@ -27,6 +28,8 @@ function PassPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ActionError | null>(null);
   const [android, setAndroid] = useState(false);
+  // An app build from before Play subscriptions (1.12 and older) can't buy one.
+  const [playReady, setPlayReady] = useState(false);
   const [packNote, setPackNote] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,6 +38,7 @@ function PassPage() {
       .then(setStatus)
       .catch(() => setLoadError(true));
     void isNativeAndroid().then(setAndroid);
+    void installedAndroidBuild().then((b) => setPlayReady(b != null && b >= PLAY_SUBSCRIPTIONS_BUILD));
   }, []);
 
   const run = useCallback(
@@ -168,7 +172,10 @@ function PassPage() {
                 >
                   {t("pass.buyWallet", { price: formatRupees(status.offer.pricePaise) })}
                 </button>
-                {android && status.offer.play && (
+                {android && status.offer.play && !playReady && (
+                  <p className="text-center text-[11px] text-muted">{t("pass.playNeedsUpdate")}</p>
+                )}
+                {android && status.offer.play && playReady && (
                   <>
                     <button
                       type="button"

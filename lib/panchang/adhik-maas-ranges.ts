@@ -11,6 +11,7 @@ export interface AdhikMaasRange {
 export const ADHIK_MAAS_RANGES: AdhikMaasRange[] = [
   { start: "2023-07-18", end: "2023-08-16", monthName: "Shravana", label: "Adhik Shravana 2023" },
   { start: "2026-05-17", end: "2026-06-15", monthName: "Jyeshtha", label: "Adhik Jyeshtha 2026" },
+  { start: "2029-03-16", end: "2029-04-13", monthName: "Chaitra", label: "Adhik Chaitra 2029" },
 ];
 
 export function findAdhikMaas(isoDate: string): AdhikMaasRange | null {

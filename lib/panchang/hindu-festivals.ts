@@ -3,7 +3,7 @@
 // Hindu festivals are tithi-based, and their Gregorian dates shift each
 // year. Computing them from first principles requires lunar-month logic
 // that the panchang engine doesn't yet expose, so this is a hand-maintained
-// table covering 2025 through Aug 2028, sourced from drikpanchang.com.
+// table covering 2025 through 2029, sourced from drikpanchang.com.
 //
 // 2026-08-27: a full audit (3 parallel agents, one per year-ish range, each
 // cross-checking drikpanchang.com direct-fetch against 2+ independent
@@ -12,6 +12,10 @@
 // Diwali/Dhanteras swap. All fixed below. Lesson: don't trust a single-pass
 // hand-curation or a single agent's fetch for this data again without a
 // cross-check — see the audit note in project memory for the full list.
+//
+// 2026-09-25: Sep 2028 - Dec 2029 added from drikpanchang.com (New Delhi), each date's
+// tithi re-checked against our own ephemeris (backend astro-engine). Borderline days
+// (a tithi only partly covering pradosh/madhyahna/nishita) follow drikpanchang.
 //
 // Add years/festivals over time. Keys are local date strings (YYYY-MM-DD)
 // using the standard Indian panchang reckoning (IST sunrise rule).
@@ -258,6 +262,44 @@ export const HINDU_FESTIVALS: Record<string, HinduFestival[]> = {
   ],
   "2028-08-15": [{ name: "Independence Day", emoji: "🇮🇳", importance: "minor" }],
   "2028-08-23": [{ name: "Ganesh Chaturthi", emoji: "🐘", importance: "major" }],
+  "2028-09-19": [{ name: "Sharad Navratri begins", emoji: "🪔", importance: "major" }],
+  "2028-09-26": [{ name: "Durga Ashtami", emoji: "🗡", importance: "major" }],
+  "2028-09-27": [{ name: "Vijayadashami (Dussehra)", emoji: "🏹", importance: "major" }],
+  "2028-10-07": [{ name: "Karwa Chauth", emoji: "🌙", importance: "major" }],
+  "2028-10-15": [{ name: "Dhanteras", emoji: "💰", importance: "major" }],
+  "2028-10-17": [{ name: "Diwali (Lakshmi Puja)", emoji: "🪔", importance: "major" }],
+  "2028-10-18": [{ name: "Govardhan Puja", emoji: "🐄", importance: "minor" }],
+  "2028-10-19": [{ name: "Bhai Dooj", emoji: "👫", importance: "minor" }],
+  "2028-10-23": [{ name: "Chhath Puja", emoji: "🌅", importance: "major" }],
+  "2028-11-27": [{ name: "Mokshada Ekadashi (Gita Jayanti)", emoji: "📖", importance: "major" }],
+
+  // -- 2029 --------------------------------------------------------------
+  "2029-01-14": [{ name: "Makar Sankranti", emoji: "🪁", importance: "major" }],
+  "2029-01-19": [{ name: "Vasant Panchami", emoji: "📚", importance: "major" }],
+  "2029-01-26": [{ name: "Republic Day", emoji: "🇮🇳", importance: "minor" }],
+  "2029-02-11": [{ name: "Maha Shivaratri", emoji: "🔱", importance: "major" }],
+  "2029-02-28": [{ name: "Holika Dahan", emoji: "🔥", importance: "minor" }],
+  "2029-03-01": [{ name: "Holi", emoji: "🎨", importance: "major" }],
+  "2029-04-14": [{ name: "Chaitra Navratri begins", emoji: "🪔", importance: "major" }],
+  "2029-04-23": [{ name: "Rama Navami", emoji: "🏹", importance: "major" }],
+  "2029-04-28": [{ name: "Hanuman Jayanti", emoji: "🐒", importance: "major" }],
+  "2029-05-16": [{ name: "Akshaya Tritiya", emoji: "✨", importance: "major" }],
+  "2029-07-21": [{ name: "Devshayani Ekadashi", emoji: "🕉", importance: "minor" }],
+  "2029-07-25": [{ name: "Guru Purnima", emoji: "🌕", importance: "major" }],
+  "2029-08-15": [{ name: "Independence Day", emoji: "🇮🇳", importance: "minor" }],
+  "2029-08-23": [{ name: "Raksha Bandhan", emoji: "🪢", importance: "major" }],
+  "2029-09-01": [{ name: "Krishna Janmashtami", emoji: "🦚", importance: "major" }],
+  "2029-09-11": [{ name: "Ganesh Chaturthi", emoji: "🐘", importance: "major" }],
+  "2029-10-08": [{ name: "Sharad Navratri begins", emoji: "🪔", importance: "major" }],
+  "2029-10-14": [{ name: "Durga Ashtami", emoji: "🗡", importance: "major" }],
+  "2029-10-16": [{ name: "Vijayadashami (Dussehra)", emoji: "🏹", importance: "major" }],
+  "2029-10-26": [{ name: "Karwa Chauth", emoji: "🌙", importance: "major" }],
+  "2029-11-04": [{ name: "Dhanteras", emoji: "💰", importance: "major" }],
+  "2029-11-05": [{ name: "Diwali (Lakshmi Puja)", emoji: "🪔", importance: "major" }],
+  "2029-11-06": [{ name: "Govardhan Puja", emoji: "🐄", importance: "minor" }],
+  "2029-11-07": [{ name: "Bhai Dooj", emoji: "👫", importance: "minor" }],
+  "2029-11-11": [{ name: "Chhath Puja", emoji: "🌅", importance: "major" }],
+  "2029-12-16": [{ name: "Mokshada Ekadashi (Gita Jayanti)", emoji: "📖", importance: "major" }],
 };
 
 export function getFestivalsForDate(date: string): HinduFestival[] {

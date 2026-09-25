@@ -4,30 +4,43 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Check, Crown, MessageCircle } from "lucide-react";
+import { ArrowLeft, Crown, ExternalLink, MessageCircle } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
+import PassBenefits from "@/components/pass/PassBenefits";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
 import { passApi, PLAY_SUBSCRIPTIONS_URL, type PassStatus, type QuestionPack } from "@/lib/pass-api";
-import { isNativeAndroid, PlayBilling } from "@/lib/play-billing";
+import { isNativeAndroid, isNativeIOS, PlayBilling } from "@/lib/play-billing";
 import { installedAndroidBuild, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
+import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
 
 type ActionError = "funds" | "failed";
+type Platform = "android" | "ios" | "web";
 
+/** The user backed out of the Play purchase sheet — not an error. */
+function isUserCancelled(err: unknown): boolean {
+  return err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
+}
+
+/**
+ * The Aroha Pass is a Google Play subscription only: it is never paid from
+ * the wallet. Android (app 1.13+) subscribes here; older Android builds are
+ * asked to update; the web points to the Android app; iOS gets a plain
+ * notice, since Apple's rules don't allow sending iPhone users elsewhere to pay.
+ */
 function PassPage() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, refresh } = useAuth();
   const [status, setStatus] = useState<PassStatus | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [autoRenew, setAutoRenew] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ActionError | null>(null);
-  const [android, setAndroid] = useState(false);
+  const [platform, setPlatform] = useState<Platform | null>(null);
   // An app build from before Play subscriptions (1.12 and older) can't buy one.
   const [playReady, setPlayReady] = useState(false);
   const [packNote, setPackNote] = useState<string | null>(null);
@@ -37,19 +50,26 @@ function PassPage() {
       .status()
       .then(setStatus)
       .catch(() => setLoadError(true));
-    void isNativeAndroid().then(setAndroid);
+    void Promise.all([isNativeAndroid(), isNativeIOS()]).then(([android, ios]) =>
+      setPlatform(android ? "android" : ios ? "ios" : "web"),
+    );
     void installedAndroidBuild().then((b) => setPlayReady(b != null && b >= PLAY_SUBSCRIPTIONS_BUILD));
   }, []);
 
+  /** Runs a purchase; true when it went through. */
   const run = useCallback(
-    async (action: () => Promise<PassStatus>) => {
+    async (action: () => Promise<PassStatus>): Promise<boolean> => {
       setBusy(true);
       setError(null);
       try {
         setStatus(await action());
         void refresh();
+        return true;
       } catch (err) {
-        setError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "failed");
+        if (!isUserCancelled(err)) {
+          setError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "failed");
+        }
+        return false;
       } finally {
         setBusy(false);
       }
@@ -75,7 +95,7 @@ function PassPage() {
     await run(async () => {
       const { purchases } = await PlayBilling.queryActiveSubscriptions();
       let latest = await passApi.status();
-      for (const p of purchases.filter((x) => x.productId === status?.offer?.play?.productId)) {
+      for (const p of purchases.filter((x) => x.productId === status?.offer?.play.productId)) {
         latest = await passApi.confirmPlay(p.productId, p.purchaseToken);
       }
       return latest;
@@ -84,12 +104,10 @@ function PassPage() {
 
   async function buyPack(pack: QuestionPack, questions: number) {
     setPackNote(null);
-    await run(() => passApi.buyPack(pack));
-    setPackNote(t("pass.packs.bought", { count: questions }));
+    if (await run(() => passApi.buyPack(pack))) setPackNote(t("pass.packs.bought", { count: questions }));
   }
 
   const lang = i18n.language;
-  const b = status?.benefits;
 
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
@@ -120,7 +138,7 @@ function PassPage() {
                   {t("pass.active.title")}
                 </p>
                 <p className="text-sm text-foreground/90">
-                  {status.pass.autoRenew
+                  {status.pass.source === "google_play" && status.pass.autoRenew
                     ? t("pass.active.renews", { date: shortDate(status.pass.periodEnd.slice(0, 10), lang) })
                     : t("pass.active.until", { date: shortDate(status.pass.periodEnd.slice(0, 10), lang) })}
                 </p>
@@ -131,57 +149,39 @@ function PassPage() {
                     total: status.benefits.questionsPerPeriod,
                   })}
                 </p>
-                <p className="text-[11px] text-muted">
-                  {t(status.pass.source === "google_play" ? "pass.active.sourcePlay" : "pass.active.sourceWallet")} ·{" "}
-                  {t(status.pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
-                </p>
                 {status.pass.source === "google_play" ? (
-                  <a href={PLAY_SUBSCRIPTIONS_URL} className="text-xs font-medium text-gold underline underline-offset-2">
-                    {t("pass.active.manage")}
-                  </a>
+                  <>
+                    <p className="text-[11px] text-muted">
+                      {t("pass.active.sourcePlay")} ·{" "}
+                      {t(status.pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
+                    </p>
+                    <a
+                      href={PLAY_SUBSCRIPTIONS_URL}
+                      className="text-xs font-medium text-gold underline underline-offset-2"
+                    >
+                      {t("pass.active.manage")}
+                    </a>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void run(() => passApi.setAutoRenew(!status.pass!.autoRenew))}
-                    className="text-xs font-medium text-gold underline underline-offset-2 disabled:opacity-40"
-                  >
-                    {t(status.pass.autoRenew ? "pass.active.turnOff" : "pass.active.turnOn")}
-                  </button>
+                  <p className="text-[11px] text-muted">{t("pass.active.walletEnds")}</p>
                 )}
               </Card>
             ) : status.offer ? (
               <Card className="p-5 border-gold/30 space-y-4" data-testid="pass-offer">
-                <p className="text-2xl font-display text-foreground">
-                  {t("pass.perMonth", { price: formatRupees(status.offer.pricePaise) })}
-                </p>
-                <label className="flex items-center gap-2 text-sm text-foreground/85">
-                  <input
-                    type="checkbox"
-                    checked={autoRenew}
-                    onChange={(e) => setAutoRenew(e.target.checked)}
-                    className="h-4 w-4 accent-yellow-500"
-                  />
-                  {t("pass.autoRenew")}
-                </label>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void run(() => passApi.buyWallet(autoRenew))}
-                  className="w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
-                >
-                  {t("pass.buyWallet", { price: formatRupees(status.offer.pricePaise) })}
-                </button>
-                {android && status.offer.play && !playReady && (
-                  <p className="text-center text-[11px] text-muted">{t("pass.playNeedsUpdate")}</p>
-                )}
-                {android && status.offer.play && playReady && (
+                <div className="space-y-1">
+                  <p className="text-2xl font-display text-foreground">
+                    {t("pass.perMonth", { price: formatRupees(status.offer.pricePaise) })}
+                  </p>
+                  <p className="text-xs text-muted">{t("pass.renewNote")}</p>
+                </div>
+
+                {platform === "android" && playReady && (
                   <>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => void subscribeWithPlay()}
-                      className="w-full h-12 rounded-full border border-gold/40 text-sm font-semibold text-gold disabled:opacity-40"
+                      className="w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
                     >
                       {t("pass.buyPlay")}
                     </button>
@@ -195,6 +195,37 @@ function PassPage() {
                     </button>
                   </>
                 )}
+                {platform === "android" && !playReady && (
+                  <div className="space-y-2 text-center" data-testid="pass-update-app">
+                    <p className="text-sm text-foreground/90">{t("pass.playNeedsUpdate")}</p>
+                    <a
+                      href={PLAY_STORE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold"
+                    >
+                      {t("pass.updateApp")}
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}
+                {platform === "web" && (
+                  <div className="space-y-2 text-center" data-testid="pass-android-only">
+                    <p className="text-sm text-foreground/90">{t("pass.androidOnly")}</p>
+                    <a
+                      href={PLAY_STORE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold"
+                    >
+                      {t("pass.getAndroidApp")}
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}
+                {platform === "ios" && <p className="text-center text-sm text-foreground/90">{t("pass.iosSoon")}</p>}
+
+                <p className="text-center text-[11px] text-muted">{t("pass.playOnly")}</p>
               </Card>
             ) : (
               status.enabled && <p className="text-sm text-muted">{t("pass.notAvailable")}</p>
@@ -211,25 +242,10 @@ function PassPage() {
               </p>
             )}
 
-            {b && status.enabled && (
+            {status.enabled && (
               <Card className="p-4 border-gold/10 space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("pass.benefitsTitle")}</p>
-                <ul className="space-y-1.5 text-sm text-foreground/90">
-                  {[
-                    t("pass.benefits.questions", { count: b.questionsPerPeriod }),
-                    t("pass.benefits.timeline"),
-                    t("pass.benefits.bonds"),
-                    t("pass.benefits.decisions"),
-                    t("pass.benefits.birthTime"),
-                    t("pass.benefits.relocation"),
-                    t("pass.benefits.reports", { pct: b.reportDiscountPct }),
-                  ].map((line) => (
-                    <li key={line} className="flex gap-2">
-                      <Check size={14} className="mt-0.5 shrink-0 text-emerald-400" />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
+                <PassBenefits benefits={status.benefits} />
               </Card>
             )}
 
@@ -276,4 +292,3 @@ export default function PassRoute() {
   if (loading || !anyOn) return null;
   return <PassPage />;
 }
-

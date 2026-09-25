@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockApi, callsTo } from "./fixtures/mock-api";
+import { mockApi, callsTo, passStatus, PASS_REQUIRED } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -30,26 +30,21 @@ const LIST = {
   ],
 };
 
-function detail(unlocked: boolean) {
-  return {
-    ...LIST.bonds[0],
-    phaseDetail: {
-      tone: "active",
-      lords: ["Moon", "Venus"],
-      why: [
-        { kind: "lordship", planet: "Venus", house: 7, effect: 1, textKey: "bonds.why.theirRules", params: { planet: "Venus", house: 7, name: "Priya" } },
-      ],
-    },
-    unlock: unlocked ? { unlocked: true, via: "purchase", pricePaise: 0 } : { unlocked: false, via: null, pricePaise: 4900 },
-    detail: unlocked
-      ? {
-          upcoming: [{ start: "2029-01-07", end: "2029-09-23", tone: "good", lords: ["Jupiter", "Jupiter"], why: [] }],
-          communication: [{ kind: "house", planet: "Moon", effect: 1, textKey: "bonds.comm.moonSame", params: { name: "Priya" } }],
-          dates: [{ date: "2026-11-03", kind: "birthday" }],
-        }
-      : null,
-  };
-}
+const DETAIL = {
+  ...LIST.bonds[0],
+  phaseDetail: {
+    tone: "active",
+    lords: ["Moon", "Venus"],
+    why: [
+      { kind: "lordship", planet: "Venus", house: 7, effect: 1, textKey: "bonds.why.theirRules", params: { planet: "Venus", house: 7, name: "Priya" } },
+    ],
+  },
+  detail: {
+    upcoming: [{ start: "2029-01-07", end: "2029-09-23", tone: "good", lords: ["Jupiter", "Jupiter"], why: [] }],
+    communication: [{ kind: "house", planet: "Moon", effect: 1, textKey: "bonds.comm.moonSame", params: { name: "Priya" } }],
+    dates: [{ date: "2026-11-03", kind: "birthday" }],
+  },
+};
 
 test.describe("Aroha Bonds (roadmap step 7)", () => {
   test("the page and Home card stay hidden while the flags are off", async ({ page }) => {
@@ -61,18 +56,13 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
     expect(callsTo(api, "GET /v1/bonds")).toHaveLength(0);
   });
 
-  test("Home card → list → a bond, then unlock the detail once", async ({ page }) => {
+  test("with the Pass: Home card → list → a bond with its full detail, no unlock step", async ({ page }) => {
     await skipLaunchOverlays(page);
-    let unlocked = false;
     const api = await mockApi(page, {
-      user: { features: { "nav.bonds": ON, "home.bondsCard": ON, "paid.bondInsight": { ...ON, pricePaise: 4900 } } },
+      user: { features: { "nav.bonds": ON, "home.bondsCard": ON } },
       overrides: {
         "GET /v1/bonds": () => ({ json: LIST }),
-        "GET /v1/bonds/:id": () => ({ json: detail(unlocked) }),
-        "POST /v1/bonds/:id/unlock": () => {
-          unlocked = true;
-          return { json: { unlocked: true, via: "purchase", pricePaise: 0 } };
-        },
+        "GET /v1/bonds/:id": () => ({ json: DETAIL }),
       },
     });
     await signIn(page, "/");
@@ -93,14 +83,38 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
     await expect(view.getByText("Venus rules Priya's 7th house (partnership).")).toBeVisible();
     await expect(view.getByRole("link", { name: /Ask Aroha about Priya/ })).toHaveAttribute("href", /\/ai-chat\?q=/);
 
-    await view.getByRole("button", { name: "Unlock for ₹49" }).click();
     await expect(view.getByText("You and Priya feel things in a very similar way.")).toBeVisible();
     await expect(view.getByText("Priya's birthday")).toBeVisible();
     await expect(view.getByText("Supportive period")).toBeVisible();
-    expect(callsTo(api, "POST /v1/bonds/" + PRIYA + "/unlock")).toHaveLength(1);
+    await expect(view.getByRole("button", { name: /Unlock/ })).toHaveCount(0);
+    expect(callsTo(api, "POST /v1/bonds/" + PRIYA + "/unlock")).toHaveLength(0);
   });
 
-  test("a person without a birth time asks for it, and the unlock hides while paid.bondInsight is off", async ({ page }) => {
+  test("without the Pass, the page and the Home card are locked behind the subscription", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: {
+        features: { "nav.bonds": ON, "home.bondsCard": ON, "nav.arohaPass": ON, "paid.arohaPassB": { ...ON, pricePaise: 29900 } },
+      },
+      overrides: {
+        "GET /v1/bonds": () => PASS_REQUIRED,
+        "GET /v1/bonds/:id": () => PASS_REQUIRED,
+        "GET /v1/pass": () => ({ json: passStatus() }),
+      },
+    });
+    await signIn(page, "/");
+
+    const homeLock = page.getByTestId("pass-lock");
+    await expect(homeLock.getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
+    await expect(homeLock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(page.getByTestId("bonds-card")).toHaveCount(0);
+
+    await page.goto(`/bonds?id=${PRIYA}`);
+    await expect(page.getByTestId("pass-lock").getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
+    await expect(page.getByTestId("bond-detail")).toHaveCount(0);
+  });
+
+  test("a person without a birth time asks for it", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
       user: { features: { "nav.bonds": ON } },
@@ -108,8 +122,8 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
         "GET /v1/bonds": () => ({ json: LIST }),
         "GET /v1/bonds/:id": (c) =>
           c.path.endsWith(MA)
-            ? { json: { ...LIST.bonds[1], phaseDetail: null, unlock: { unlocked: false, via: null, pricePaise: 4900 }, detail: null } }
-            : { json: detail(false) },
+            ? { json: { ...LIST.bonds[1], phaseDetail: null, detail: null } }
+            : { json: DETAIL },
       },
     });
     await signIn(page, `/bonds?id=${MA}`);
@@ -117,6 +131,5 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
 
     await page.goto(`/bonds?id=${PRIYA}`);
     await expect(page.getByTestId("bond-detail").getByText("26.5 of 36")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Unlock/ })).toHaveCount(0);
   });
 });

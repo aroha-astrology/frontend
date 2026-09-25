@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockApi, callsTo } from "./fixtures/mock-api";
+import { mockApi, callsTo, passStatus, PASS_REQUIRED } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -9,7 +9,7 @@ function inDays(n: number): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d);
 }
 
-const LIST = { items: [], prices: { decision: 4900, muhurta: 4900 }, pass: false };
+const LIST = { items: [] };
 
 function result(kind: "decision" | "muhurta", category: string) {
   return {
@@ -65,7 +65,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     expect(callsTo(api, "POST /v1/decisions")).toHaveLength(0);
   });
 
-  test("a decision: pick, ask, pay once, and see windows, strongest dates and dates to avoid", async ({ page }) => {
+  test("a decision with the Pass: pick, ask, and see windows, strongest dates and dates to avoid", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
       user: { features: { "nav.decisions": ON } },
@@ -79,7 +79,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     await page.getByRole("button", { name: "Changing job or career" }).click();
     await page.getByPlaceholder(/Should I take the offer/).fill("Should I take the new offer?");
     await page.getByRole("button", { name: "60 days" }).click();
-    await expect(page.getByText("₹49 per result")).toBeVisible();
+    await expect(page.getByText(/per result/)).toHaveCount(0);
     await page.getByRole("button", { name: "Show my windows" }).click();
 
     const view = page.getByTestId("decision-result");
@@ -121,7 +121,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     expect(sent[0]!.body).toMatchObject({ category: "vehicle", days: 60, place: { name: "Delhi, India", tz: "Asia/Kolkata" } });
   });
 
-  test("reopening a saved result is free, and a short wallet shows Add money", async ({ page }) => {
+  test("reopening a saved result doesn't run a new one, and a Pass that ends mid-way shows the lock", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
       user: { features: { "nav.decisions": ON } },
@@ -145,10 +145,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
           },
         }),
         "GET /v1/decisions/:id": () => ({ json: result("decision", "marriage") }),
-        "POST /v1/decisions": () => ({
-          status: 409,
-          json: { error: { code: "CONFLICT", message: "INSUFFICIENT_CREDITS" } },
-        }),
+        "POST /v1/decisions": () => PASS_REQUIRED,
       },
     });
     await signIn(page, "/decide");
@@ -160,7 +157,36 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     await page.getByRole("button", { name: "Change" }).click();
     await page.getByRole("button", { name: "Starting a business" }).click();
     await page.getByRole("button", { name: "Show my windows" }).click();
-    await expect(page.getByText("Not enough money in your wallet.")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Add money" })).toHaveAttribute("href", "/payment");
+    await expect(page.getByTestId("pass-lock")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Add money" })).toHaveCount(0);
+  });
+
+  test("without the Pass, Decisions and Find My Date are locked behind the subscription", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const api = await mockApi(page, {
+      user: {
+        features: {
+          "nav.decisions": ON,
+          "panchang.findMyDate": ON,
+          "nav.arohaPass": ON,
+          "paid.arohaPassB": { ...ON, pricePaise: 29900 },
+        },
+      },
+      overrides: {
+        "GET /v1/decisions": () => PASS_REQUIRED,
+        "GET /v1/pass": () => ({ json: passStatus() }),
+      },
+    });
+    await signIn(page, "/decide");
+    const lock = page.getByTestId("pass-lock");
+    await expect(lock.getByText("Decision Astrology is part of Aroha Pass")).toBeVisible();
+    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(page.getByRole("button", { name: "Changing job or career" })).toHaveCount(0);
+
+    await page.goto("/find-date");
+    await expect(page.getByTestId("pass-lock").getByText(/is part of Aroha Pass/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Buying a vehicle" })).toHaveCount(0);
+    expect(callsTo(api, "POST /v1/decisions")).toHaveLength(0);
+    expect(callsTo(api, "POST /v1/find-date")).toHaveLength(0);
   });
 });

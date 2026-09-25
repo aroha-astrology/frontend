@@ -25,6 +25,22 @@ export interface MockState {
 /** "METHOD /v1/path" → handler. A `:param` segment matches anything. */
 export type Handlers = Record<string, Handler>;
 
+/** What an Aroha Pass-only route answers for someone without a live Pass. */
+export const PASS_REQUIRED: Reply = { status: 403, json: { error: { code: "FORBIDDEN", message: "PASS_REQUIRED" } } };
+
+/** A GET /v1/pass body: the Pass on offer at ₹299 through Google Play, not yet bought. */
+export function passStatus(extra: Record<string, unknown> = {}) {
+  return {
+    enabled: true,
+    offer: { variant: "B", pricePaise: 29900, play: { productId: "aroha_pass_monthly", basePlanId: "pass-299" } },
+    pass: null,
+    questionCredits: 0,
+    packs: [],
+    benefits: { questionsPerPeriod: 30, periodDays: 30, reportDiscountPct: 20 },
+    ...extra,
+  };
+}
+
 const DEFAULT_HANDLERS: Handlers = {
   "POST /v1/auth/session": (_c, s) => ({ json: { user: s.user, created: false } }),
   "GET /v1/me": (_c, s) => ({ json: s.user }),

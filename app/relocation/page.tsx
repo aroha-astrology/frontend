@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Globe, Lock, X } from "lucide-react";
+import { ArrowLeft, Globe, X } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import NewFeatureGuard from "@/components/NewFeatureGuard";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import FactorList from "@/components/why/FactorList";
-import PassUpsell from "@/components/pass/PassUpsell";
+import PassLock from "@/components/pass/PassLock";
 import { ApiError } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
+import { isPassRequired } from "@/lib/pass-api";
 import {
   LEVEL_CLASS,
   MAX_PLACES,
@@ -25,20 +25,16 @@ import {
   type RelocationPlace,
   type RelocationStatus,
 } from "@/lib/relocation-api";
-import { useNewFeature } from "@/hooks/useFeature";
-import { useAuth } from "@/providers/auth-provider";
 
 type Cell = { place: number; area: RelocationArea };
 
 function RelocationPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { refresh } = useAuth();
-  const { enabled: unlockOn } = useNewFeature("paid.relocation");
   const [status, setStatus] = useState<RelocationStatus | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [unlocking, setUnlocking] = useState(false);
-  const [unlockError, setUnlockError] = useState<"funds" | "failed" | null>(null);
+  // Aroha Pass only: the server answers PASS_REQUIRED without a live Pass.
+  const [locked, setLocked] = useState(false);
   const [places, setPlaces] = useState<RelocationPlace[]>([]);
   // Bumped after each pick so the search box re-mounts empty for the next city.
   const [pickerKey, setPickerKey] = useState(0);
@@ -52,24 +48,10 @@ function RelocationPage() {
     relocationApi
       .status()
       .then(setStatus)
-      .catch(() => setLoadError(true));
+      .catch((err: unknown) => (isPassRequired(err) ? setLocked(true) : setLoadError(true)));
   }
 
   useEffect(load, []);
-
-  async function unlock() {
-    setUnlocking(true);
-    setUnlockError(null);
-    try {
-      await relocationApi.unlock();
-      void refresh();
-      load();
-    } catch (err) {
-      setUnlockError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "failed");
-    } finally {
-      setUnlocking(false);
-    }
-  }
 
   function addPlace(place: RelocationPlace | null) {
     if (!place) return;
@@ -90,8 +72,9 @@ function RelocationPage() {
       setResults(res.places);
     } catch (err) {
       const code = err instanceof ApiError ? err.message : "";
-      // The gate or the unlock changed under us — show the page's current state instead.
-      if (code === "RELOCATION_LOCKED" || code === "BIRTH_TIME_TOO_UNCERTAIN") load();
+      // The Pass ended or the birth-time gate changed under us — show the page's current state instead.
+      if (isPassRequired(err)) setLocked(true);
+      else if (code === "BIRTH_TIME_TOO_UNCERTAIN") load();
       else setCompareError(code === "CHART_NOT_READY" ? "notReady" : "failed");
     } finally {
       setComparing(false);
@@ -119,10 +102,13 @@ function RelocationPage() {
           </div>
         </div>
 
+        {locked && <PassLock feature={t("relocation.title")} />}
         {loadError && <p className="py-10 text-center text-sm text-muted">{t("relocation.error")}</p>}
-        {!loadError && !status && <p className="py-10 text-center text-sm text-muted">{t("relocation.loading")}</p>}
+        {!locked && !loadError && !status && (
+          <p className="py-10 text-center text-sm text-muted">{t("relocation.loading")}</p>
+        )}
 
-        {status?.blocked && (
+        {!locked && status?.blocked && (
           <Card className="p-4 border-amber-500/30 space-y-3" data-testid="relocation-blocked">
             <p className="text-sm text-foreground/90">{t("relocation.blocked", { pct: status.confidence.pct })}</p>
             <Link href="/settings" className="block text-center text-sm font-semibold text-gold underline">
@@ -131,39 +117,7 @@ function RelocationPage() {
           </Card>
         )}
 
-        {status && !status.blocked && !status.unlock.unlocked && (
-          <Card className="p-4 border-gold/20 text-center space-y-2" data-testid="relocation-locked">
-            <p className="flex items-center justify-center gap-2 text-sm text-foreground">
-              <Lock size={14} className="text-gold shrink-0" />
-              {t("relocation.locked")}
-            </p>
-            {unlockOn && (
-              <button
-                type="button"
-                disabled={unlocking}
-                onClick={() => void unlock()}
-                className="w-full rounded-xl bg-gold/20 px-3 py-2.5 text-sm font-semibold text-gold disabled:opacity-40"
-              >
-                {status.unlock.pricePaise > 0
-                  ? t("relocation.unlock", { price: formatRupees(status.unlock.pricePaise) })
-                  : t("relocation.unlockFree")}
-              </button>
-            )}
-            <PassUpsell />
-            {unlockError && (
-              <p className="text-xs text-rose-300">
-                {t(`relocation.${unlockError}`)}{" "}
-                {unlockError === "funds" && (
-                  <Link href="/payment" className="font-semibold text-gold underline">
-                    {t("relocation.addMoney")}
-                  </Link>
-                )}
-              </p>
-            )}
-          </Card>
-        )}
-
-        {status && !status.blocked && status.unlock.unlocked && (
+        {!locked && status && !status.blocked && (
           <>
             <Card className="p-4 border-gold/15 space-y-3">
               {places.length > 0 && (

@@ -1,5 +1,5 @@
 import { request } from "@/lib/api";
-import type { UnlockState, WhyFactor } from "@/lib/insights-api";
+import type { WhyFactor } from "@/lib/insights-api";
 
 export const RELOCATION_AREAS = ["career", "relationships", "finance", "education", "family", "lifestyle"] as const;
 export type RelocationArea = (typeof RELOCATION_AREAS)[number];
@@ -12,7 +12,6 @@ export const MAX_PLACES = 5;
 export interface RelocationStatus {
   confidence: { pct: number; level: "low" | "medium" | "high" };
   blocked: boolean;
-  unlock: UnlockState;
   birthPlace: { name: string | null } | null;
 }
 
@@ -40,7 +39,6 @@ export interface RelocationPlace {
 
 export const relocationApi = {
   status: () => request<RelocationStatus>("/v1/relocation", { auth: true }),
-  unlock: () => request<UnlockState>("/v1/relocation/unlock", { method: "POST", auth: true }),
   compare: (places: RelocationPlace[]) =>
     request<{ places: PlaceResult[] }>("/v1/relocation/compare", { method: "POST", body: { places }, auth: true }),
 };

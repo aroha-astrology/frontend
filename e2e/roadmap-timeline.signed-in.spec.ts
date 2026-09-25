@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockApi, callsTo } from "./fixtures/mock-api";
+import { mockApi, callsTo, passStatus, PASS_REQUIRED } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -7,9 +7,7 @@ const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
 const TIMELINE = {
   birthDate: "1990-05-15",
   today: "2026-09-24",
-  range: { from: "2023-09-24", to: "2029-09-24" },
-  full: false,
-  unlock: { unlocked: false, via: null, pricePaise: 9900 },
+  range: { from: "1990-05-15", to: "2070-05-15" },
   approximateBirthTime: true,
   mahadashas: [{ planet: "Mercury", start: "2020-01-01", end: "2037-01-01" }],
   lanes: [
@@ -52,22 +50,48 @@ test.describe("Life Timeline (roadmap step 4)", () => {
     expect(callsTo(api, "GET /v1/timeline")).toHaveLength(0);
   });
 
-  test("with the flag on, shows the lanes, explains a band, and unlocks the whole life", async ({ page }) => {
+  test("without the Aroha Pass the whole page is locked, with a way to subscribe and no wallet unlock", async ({ page }) => {
     await skipLaunchOverlays(page);
-    let unlocked = false;
     const api = await mockApi(page, {
-      user: { features: { "nav.lifeTimeline": ON, "paid.lifeTimelineFull": { ...ON, pricePaise: 9900 } } },
-      overrides: {
-        "GET /v1/timeline": () => ({
-          json: unlocked
-            ? { ...TIMELINE, full: true, unlock: { unlocked: true, via: "purchase", pricePaise: 0 }, range: { from: "1990-05-15", to: "2070-05-15" } }
-            : TIMELINE,
-        }),
-        "POST /v1/timeline/unlock": () => {
-          unlocked = true;
-          return { json: { unlocked: true, via: "purchase", pricePaise: 0 } };
-        },
+      user: {
+        features: { "nav.lifeTimeline": ON, "nav.arohaPass": ON, "paid.arohaPassB": { ...ON, pricePaise: 29900 } },
+        walletBalancePaise: 100_000,
       },
+      overrides: {
+        "GET /v1/timeline": () => PASS_REQUIRED,
+        "GET /v1/pass": () => ({ json: passStatus() }),
+      },
+    });
+    await signIn(page, "/timeline");
+
+    const lock = page.getByTestId("pass-lock");
+    await expect(lock.getByText("Life Timeline is part of Aroha Pass")).toBeVisible();
+    await expect(lock.getByText("₹299 / 30 days · Google Play subscription")).toBeVisible();
+    await expect(lock.getByText("30 questions to Aroha every 30 days")).toBeVisible();
+    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(page.getByRole("button", { name: /Career/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /₹/ })).toHaveCount(0);
+    expect(callsTo(api, "POST /v1/timeline/unlock")).toHaveLength(0);
+  });
+
+  test("locked while the Pass itself isn't on yet: says it's coming, no subscribe button", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: { features: { "nav.lifeTimeline": ON } },
+      overrides: { "GET /v1/timeline": () => PASS_REQUIRED },
+    });
+    await signIn(page, "/timeline");
+
+    const lock = page.getByTestId("pass-lock");
+    await expect(lock.getByText("Coming soon with Aroha Pass")).toBeVisible();
+    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveCount(0);
+  });
+
+  test("with the Pass, shows the whole life's lanes and explains a band", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: { features: { "nav.lifeTimeline": ON } },
+      overrides: { "GET /v1/timeline": () => ({ json: TIMELINE }) },
     });
     await signIn(page, "/timeline");
 
@@ -91,8 +115,7 @@ test.describe("Life Timeline (roadmap step 4)", () => {
     await expect(page.getByText("A strong time for a relationship to begin", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "Skip" }).click();
 
-    await page.getByRole("button", { name: /See your whole life · ₹99/ }).click();
-    await expect.poll(() => callsTo(api, "POST /v1/timeline/unlock").length).toBe(1);
-    await expect(page.getByRole("button", { name: /See your whole life/ })).toHaveCount(0);
+    await expect(page.getByTestId("pass-lock")).toHaveCount(0);
+    await expect(page.getByText(/See your whole life/)).toHaveCount(0);
   });
 });

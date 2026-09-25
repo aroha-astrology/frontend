@@ -64,10 +64,9 @@ export interface DecisionListItem {
   createdAt: string;
 }
 
+/** Aroha Pass only: without a live Pass the server answers PASS_REQUIRED. */
 export interface DecisionList {
   items: DecisionListItem[];
-  prices: { decision: number; muhurta: number };
-  pass: boolean;
 }
 
 export const RANGE_OPTIONS = [30, 60, 90] as const;

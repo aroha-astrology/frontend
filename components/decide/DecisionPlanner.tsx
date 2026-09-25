@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,7 +23,6 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import { ApiError, type PlaceOfBirth } from "@/lib/api";
-import { formatRupees } from "@/lib/format";
 import { istToday, shortDate } from "@/lib/calendar-format";
 import { categoryKey } from "@/lib/decision-format";
 import {
@@ -36,9 +34,10 @@ import {
   type DecisionList,
   type DecisionResult,
 } from "@/lib/decisions-api";
+import { isPassRequired } from "@/lib/pass-api";
 import { useAuth } from "@/providers/auth-provider";
 import DecisionResultView from "./DecisionResultView";
-import PassUpsell from "@/components/pass/PassUpsell";
+import PassLock from "@/components/pass/PassLock";
 
 const ICONS: Record<string, ReactNode> = {
   careerChange: <Briefcase size={18} />,
@@ -55,18 +54,19 @@ const ICONS: Record<string, ReactNode> = {
   puja: <Flame size={18} />,
 };
 
-type RunError = "funds" | "notReady" | "error";
+type RunError = "notReady" | "error";
 
 /**
  * Decision Astrology (kind "decision", /decide) and Find My Date (kind
  * "muhurta", /find-date): pick a category, add a question or a place and a
- * range, pay once, get the scored result. `?id=` reopens a saved result for
- * free. Ships off — the pages are behind nav.decisions / panchang.findMyDate.
+ * range, get the scored result. `?id=` reopens a saved result. Aroha Pass
+ * only: without the Pass the server answers PASS_REQUIRED and the page shows
+ * the subscribe lock. Ships off — behind nav.decisions / panchang.findMyDate.
  */
 export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { user, refresh } = useAuth();
+  const { user } = useAuth();
   const ns = kind === "decision" ? "decide" : "findDate";
   const categories: readonly string[] = kind === "decision" ? DECISION_CATEGORIES : MUHURTA_CATEGORIES;
 
@@ -78,20 +78,29 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<RunError | null>(null);
   const [result, setResult] = useState<DecisionResult | null>(null);
+  const [locked, setLocked] = useState(false);
+
+  function open(id: string) {
+    decisionsApi
+      .get(id)
+      .then(setResult)
+      .catch((err: unknown) => (isPassRequired(err) ? setLocked(true) : setError("error")));
+  }
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("id");
-    if (id) decisionsApi.get(id).then(setResult).catch(() => setError("error"));
+    if (id) open(id);
   }, []);
 
   useEffect(() => {
     decisionsApi
       .list(kind)
       .then(setList)
-      .catch(() => setList(null));
+      .catch((err: unknown) => {
+        if (isPassRequired(err)) setLocked(true);
+        setList(null);
+      });
   }, [kind, result]);
-
-  const price = list ? list.prices[kind] : null;
 
   async function run() {
     if (!category || running) return;
@@ -116,10 +125,9 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
             });
       setResult(res);
       window.history.replaceState({}, "", `?id=${res.id}`);
-      void refresh();
     } catch (err) {
-      const code = err instanceof ApiError ? err.message : "";
-      setError(code === "INSUFFICIENT_CREDITS" ? "funds" : code === "CHART_NOT_READY" ? "notReady" : "error");
+      if (isPassRequired(err)) setLocked(true);
+      else setError(err instanceof ApiError && err.message === "CHART_NOT_READY" ? "notReady" : "error");
     } finally {
       setRunning(false);
     }
@@ -154,7 +162,9 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
           </div>
         </div>
 
-        {result ? (
+        {locked ? (
+          <PassLock feature={t(`${ns}.title`)} />
+        ) : result ? (
           <>
             <DecisionResultView result={result} />
             <button
@@ -243,22 +253,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
                 >
                   {running ? t(`${ns}.running`) : t(`${ns}.run`)}
                 </button>
-                {list && (
-                  <p className="text-center text-[11px] text-muted">
-                    {list.pass ? t("decide.free") : price != null ? t("decide.price", { price: formatRupees(price) }) : null}
-                  </p>
-                )}
-                {list && !list.pass && <PassUpsell />}
-                {error && (
-                  <p className="text-center text-xs text-rose-300">
-                    {t(`decide.${error}`)}{" "}
-                    {error === "funds" && (
-                      <Link href="/payment" className="font-semibold text-gold underline">
-                        {t("decide.addMoney")}
-                      </Link>
-                    )}
-                  </p>
-                )}
+                {error && <p className="text-center text-xs text-rose-300">{t(`decide.${error}`)}</p>}
               </Card>
             )}
 
@@ -271,7 +266,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
                     type="button"
                     onClick={() => {
                       window.history.replaceState({}, "", `?id=${item.id}`);
-                      decisionsApi.get(item.id).then(setResult).catch(() => setError("error"));
+                      open(item.id);
                     }}
                     className="flex w-full items-center gap-3 rounded-2xl border border-gold/10 bg-surface/50 px-3 py-2.5 text-left"
                   >

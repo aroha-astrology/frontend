@@ -67,6 +67,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: practiceEnabled } = useNewFeature("nav.dailyPractice");
   const { enabled: passEnabled } = useNewFeature("nav.arohaPass");
   const { enabled: yantraEnabled } = useNewFeature("nav.digitalYantra");
+  const { enabled: relocationEnabled } = useNewFeature("nav.relocation");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -335,6 +336,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<Hexagon size={16} />}
                     label={t("yantra.menu")}
                     href="/yantra"
+                    onClick={onClose}
+                  />
+                )}
+                {relocationEnabled && (
+                  <ListRow
+                    icon={<Globe size={16} />}
+                    label={t("relocation.menu")}
+                    href="/relocation"
                     onClick={onClose}
                   />
                 )}

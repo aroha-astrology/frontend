@@ -214,6 +214,7 @@ function PassPage() {
                     t("pass.benefits.bonds"),
                     t("pass.benefits.decisions"),
                     t("pass.benefits.birthTime"),
+                    t("pass.benefits.relocation"),
                     t("pass.benefits.reports", { pct: b.reportDiscountPct }),
                   ].map((line) => (
                     <li key={line} className="flex gap-2">

@@ -32,6 +32,9 @@ export function whyFactorText(t: Translate, factor: WhyFactor, lang: string): st
   if (p.nakshatra != null) vars.nakshatraName = t(`nakshatraNames.${String(p.nakshatra).toLowerCase()}`);
   if (p.weekday != null) vars.weekdayName = weekdayName(Number(p.weekday), lang);
   if (p.name != null) vars.name = String(p.name);
+  // Plain numbers the text shows as they are (a strength percentage, Ashtakavarga points).
+  if (p.pct != null) vars.pct = String(p.pct);
+  if (p.points != null) vars.points = String(p.points);
   return t(factor.textKey, vars);
 }
 

@@ -35,6 +35,12 @@ describe("whyFactorText", () => {
     ).toBe("decide.why.weekdayGood(weekdayName=Thursday)");
     expect(weekdayName(0, "hi")).toBe("रविवार");
   });
+
+  it("passes plain numbers through for Relocation factors", () => {
+    expect(
+      whyFactorText(t, { kind: "house", effect: 1, textKey: "relocation.why.sav", params: { house: 10, points: 33 } }, "en"),
+    ).toBe("relocation.why.sav(houseName=why.houses.10,points=33)");
+  });
 });
 
 describe("formatUntil", () => {

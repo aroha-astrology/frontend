@@ -37,9 +37,11 @@ interface Props {
    *  horoscope remedy) reaches the ring. The saved index still restores,
    *  clamped to this target. */
   targetOverride?: number;
+  /** Called once when the count reaches the target (Today's Practice logs the item done). */
+  onComplete?: () => void;
 }
 
-export default function ChantRing({ chantKey, sanskrit, audioSrc, defaultTarget, targetOverride }: Props) {
+export default function ChantRing({ chantKey, sanskrit, audioSrc, defaultTarget, targetOverride, onComplete }: Props) {
   const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [target, setTarget] = useState(defaultTarget);
@@ -95,6 +97,17 @@ export default function ChantRing({ chantKey, sanskrit, audioSrc, defaultTarget,
 
   const total = target;
   const isComplete = ready && total > 0 && index === total - 1;
+
+  // Fire onComplete once per completion (a reset and re-run fires it again).
+  const completedRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !completedRef.current) {
+      completedRef.current = true;
+      onComplete?.();
+    } else if (!isComplete) {
+      completedRef.current = false;
+    }
+  }, [isComplete, onComplete]);
   const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
 
   /** Updates index state + its ref + persistence together — the single

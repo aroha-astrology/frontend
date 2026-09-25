@@ -26,6 +26,7 @@ import {
   Scale,
   HeartHandshake,
   BookHeart,
+  Sparkles,
   GanttChart,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
@@ -61,6 +62,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: findDateEnabled } = useNewFeature("panchang.findMyDate");
   const { enabled: bondsEnabled } = useNewFeature("nav.bonds");
   const { enabled: journalEnabled } = useNewFeature("nav.journal");
+  const { enabled: practiceEnabled } = useNewFeature("nav.dailyPractice");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -305,6 +307,14 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     icon={<BookHeart size={16} />}
                     label={t("journal.menu")}
                     href="/journal"
+                    onClick={onClose}
+                  />
+                )}
+                {practiceEnabled && (
+                  <ListRow
+                    icon={<Sparkles size={16} />}
+                    label={t("practice.menu")}
+                    href="/practice"
                     onClick={onClose}
                   />
                 )}

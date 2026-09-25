@@ -3,6 +3,16 @@
 // (VASTU_RULES + evaluateRoomPlacement). Powers the LIVE, instant rating in the
 // browser. Keep in sync with the backend copy backend/src/modules/vastu/vastu.rules.ts.
 
+/**
+ * The rules table below, named and versioned — must match the backend's
+ * VASTU_RULE_SET. Bump both (and the shared snapshot) whenever a rule changes.
+ */
+export const VASTU_RULE_SET = {
+  id: "aroha-traditional-v1",
+  name: "Aroha Traditional Vastu",
+  version: "1.0",
+} as const;
+
 export interface VastuRule {
   room: string;
   idealDirections: string[];

@@ -2,6 +2,7 @@
 
 import type { Room } from "@/lib/vastu/types";
 import type { RoomRating } from "@/lib/vastu/analysis";
+import type { RoomIssue } from "@/lib/vastu/validation";
 import WallFixture from "./WallFixture";
 
 export type Corner = "tl" | "tr" | "br" | "bl";
@@ -17,6 +18,7 @@ export default function RoomBlock({
   label,
   rating,
   selected,
+  issues,
   onBodyDown,
   onHandleDown,
   onFixtureDown,
@@ -27,6 +29,8 @@ export default function RoomBlock({
   label: string;
   rating: RoomRating;
   selected: boolean;
+  /** Geometry problems: outside the home outline (invalid) or overlapping another room (warning). */
+  issues?: RoomIssue[];
   onBodyDown: (e: React.PointerEvent, roomId: string) => void;
   onHandleDown: (e: React.PointerEvent, roomId: string, corner: Corner) => void;
   onFixtureDown: (e: React.PointerEvent, roomId: string, fixtureId: string) => void;
@@ -35,6 +39,8 @@ export default function RoomBlock({
   const cy = room.y + room.h / 2;
   const stroke = selected ? 0.18 : 0.1;
   const compact = room.w < 3 || room.h < 2.2;
+  const outside = issues?.includes("outside") ?? false;
+  const overlap = issues?.includes("overlap") ?? false;
 
   const handles: { corner: Corner; x: number; y: number }[] = [
     { corner: "tl", x: room.x, y: room.y },
@@ -59,6 +65,24 @@ export default function RoomBlock({
         onPointerDown={(e) => onBodyDown(e, room.id)}
         style={{ cursor: "move", touchAction: "none" }}
       />
+
+      {/* Geometry problem: red dashed for outside the home, amber dashed for overlap. */}
+      {(outside || overlap) && (
+        <rect
+          x={room.x}
+          y={room.y}
+          width={room.w}
+          height={room.h}
+          rx={0.35}
+          fill={outside ? "#ef4444" : "none"}
+          fillOpacity={outside ? 0.12 : 0}
+          stroke={outside ? "#ef4444" : "#f59e0b"}
+          strokeWidth={0.14}
+          strokeDasharray="0.45 0.3"
+          data-testid={outside ? "room-outside" : "room-overlap"}
+          style={{ pointerEvents: "none" }}
+        />
+      )}
 
       {/* Zone code chip (top-left) */}
       <text

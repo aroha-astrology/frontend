@@ -2,65 +2,59 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DoorOpen, AppWindow, Copy, Trash2, Maximize2, X } from "lucide-react";
+import { DoorOpen, AppWindow, Copy, Trash2, Maximize2, X, Cloud, CloudOff, Loader2, AlertTriangle } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api, type VastuPlan } from "@/lib/api";
+import { reportErrorKey } from "@/lib/vastu/errors";
 import { getRoomType } from "@/lib/vastu/data";
 import { analyzePlan } from "@/lib/vastu/analysis";
-import { buildRoomLayout, fixtureFacing, plotSummary, bbox } from "@/lib/vastu/geometry";
+import { buildRoomLayout, fixtureFacing, plotSummary, bbox, roomDirection } from "@/lib/vastu/geometry";
+import { validatePlan } from "@/lib/vastu/validation";
 import type { Plan } from "@/lib/vastu/types";
-import { planReducer, initialPlan, samplePlan } from "./planState";
+import { planReducer, initialPlan, samplePlan, normalizePlan } from "./planState";
 import PlanCanvas from "./PlanCanvas";
 import RoomPalette from "./RoomPalette";
 import Toolbar from "./Toolbar";
 import AnalysisPanel, { type VastuAiResult } from "./AnalysisPanel";
 import { useCompass } from "./useCompass";
+import { useHomeSync, type SaveStatus } from "./useHomeSync";
 
-const STORAGE_KEY = "vastu_plan";
 /** The usual wait ("up to 2 min") — past this the panel says the report is still being written. */
 const SLOW_AFTER_MS = 150_000;
+/** The server reaps (and refunds) a plan stuck processing after 5 minutes — wait a bit past that. */
+const WAIT_MS = 6 * 60_000;
 
-function buildPayload(plan: Plan, language: string) {
+function buildPayload(plan: Plan, language: string, homeId?: string) {
   const roomLayout = buildRoomLayout(plan);
-  const roomDetails: Record<string, unknown> = {};
-  for (const room of plan.rooms) {
-    const doors = room.fixtures.filter((f) => f.kind === "door").map((f) => fixtureFacing(f.wall, plan));
-    const windows = room.fixtures.filter((f) => f.kind === "window").map((f) => fixtureFacing(f.wall, plan));
-    if (doors.length) roomDetails[`${room.type}_doors`] = doors;
-    if (windows.length) roomDetails[`${room.type}_windows`] = windows;
-  }
-  return { roomLayout, roomDetails, houseShape: plotSummary(plan), layout: plan as unknown as Record<string, unknown>, language };
+  // One entry per room, keyed by the room's own id — two bathrooms stay two bathrooms
+  // (a type-keyed map let the second overwrite the first's doors and windows).
+  const rooms = plan.rooms.map((room) => ({
+    id: room.id,
+    type: room.type,
+    direction: roomDirection(room, plan),
+    doors: room.fixtures.filter((f) => f.kind === "door").map((f) => fixtureFacing(f.wall, plan)),
+    windows: room.fixtures.filter((f) => f.kind === "window").map((f) => fixtureFacing(f.wall, plan)),
+  }));
+  return {
+    roomLayout,
+    roomDetails: { rooms },
+    houseShape: plotSummary(plan),
+    layout: plan as unknown as Record<string, unknown>,
+    language,
+    ...(homeId ? { homeId } : {}),
+  };
 }
 
 export default function VastuPlanner() {
   const { t, i18n } = useTranslation();
-  const { user, activeProfile, refresh } = useAuth();
-  const CREDIT_COST_PAISE = useFeature("paid.vastu").pricePaise ?? 5000;
+  const { user, profiles, activeProfile, refresh } = useAuth();
+  const paidVastu = useFeature("paid.vastu");
+  const CREDIT_COST_PAISE = paidVastu.pricePaise ?? 5000;
   const [plan, dispatch] = useReducer(planReducer, undefined, initialPlan);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  const loaded = useRef(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      dispatch({ type: "load", plan: raw ? (JSON.parse(raw) as Plan) : samplePlan() });
-    } catch {
-      dispatch({ type: "load", plan: samplePlan() });
-    }
-    loaded.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!loaded.current) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
-    } catch {
-      /* ignore */
-    }
-  }, [plan]);
 
   // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
@@ -88,6 +82,19 @@ export default function VastuPlanner() {
 
   // ── Live analysis (offline, free) ──────────────────────────────────────────
   const analysis = useMemo(() => analyzePlan(plan), [plan]);
+  const validation = useMemo(() => validatePlan(plan), [plan]);
+
+  // ── Saved to the account, per profile (device draft + server copy) ─────────
+  // Scope waits for the profile list, so a plan is never saved under the wrong profile.
+  const scope = user && profiles !== null ? `${user.id}:${activeProfile?.id ?? "primary"}` : null;
+  const { status: saveStatus, home } = useHomeSync({
+    scope,
+    signedIn: !!user,
+    plan,
+    score: analysis.overallScore,
+    dispatch,
+    defaultName: t("vastu.home.defaultName"),
+  });
   const ratingById = useMemo(() => Object.fromEntries(analysis.rooms.map((r) => [r.roomId, r])), [analysis]);
   const labelForType = useCallback((type: string) => t(getRoomType(type)?.labelKey ?? type, getRoomType(type)?.label ?? type), [t]);
   const colorForType = useCallback((type: string) => getRoomType(type)?.color ?? "#94a3b8", []);
@@ -101,6 +108,8 @@ export default function VastuPlanner() {
   const [aiSlow, setAiSlow] = useState(false);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
   const mountedRef = useRef(true);
+  /** The report whose status this screen is currently waiting on. */
+  const trackedPlanRef = useRef<string | null>(null);
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -108,6 +117,8 @@ export default function VastuPlanner() {
     };
   }, []);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  /** Layout of the history report being viewed, for "Open this plan". */
+  const [viewedLayout, setViewedLayout] = useState<Plan | null>(null);
   const [history, setHistory] = useState<VastuPlan[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [asking, setAsking] = useState(false);
@@ -141,9 +152,14 @@ export default function VastuPlanner() {
     activeProfileIdRef.current = activeProfile?.id ?? null;
     setAiResult(null);
     setActivePlanId(null);
+    setViewedLayout(null);
     setAiError(null);
     setAiNotice(null);
     setAskError(null);
+    // Stop waiting on the old profile's report (it still lands in that profile's history).
+    trackedPlanRef.current = null;
+    setAiLoading(false);
+    setAiSlow(false);
   }, [activeProfile?.id]);
 
   // A plan still queued/processing (e.g. one that outlasted the wait below) lands in
@@ -155,26 +171,29 @@ export default function VastuPlanner() {
     return () => clearTimeout(id);
   }, [historyPending, aiLoading, history, loadHistory]);
 
-  const onGenerate = useCallback(async () => {
-    const generationProfileId = activeProfileIdRef.current;
-    setAiError(null);
-    setAiNotice(null);
-    setAiSlow(false);
-    setAiResult(null);
-    setActivePlanId(null);
+  /**
+   * Wait for one report to finish. Used right after buying and to pick up a report that was
+   * still being written when the page was left or reloaded — the charge already happened
+   * server-side, so this never implies failure just because the wait ends.
+   */
+  const waitForPlan = useCallback(async (planId: string, generationProfileId: string | null, startedAt: number) => {
+    trackedPlanRef.current = planId;
+    setActivePlanId(planId);
+    setViewedLayout(null);
     setAiLoading(true);
+    setAiSlow(false);
     try {
-      const { planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language));
-      setActivePlanId(planId);
-      void refresh(); // balance dropped by 5
-      const started = Date.now();
-      // The server reaps (and refunds) a plan stuck processing after 5 minutes.
-      const deadline = started + 6 * 60_000;
+      const deadline = startedAt + WAIT_MS;
       while (Date.now() < deadline) {
-        if (!mountedRef.current) return;
-        if (Date.now() - started > SLOW_AFTER_MS) setAiSlow(true);
-        const p = await api.vastuGet(planId, i18n.language);
-        if (p.status === "done" && p.analysis) {
+        if (!mountedRef.current || trackedPlanRef.current !== planId) return;
+        if (Date.now() - startedAt > SLOW_AFTER_MS) setAiSlow(true);
+        let p: VastuPlan | null = null;
+        try {
+          p = await api.vastuGet(planId, i18n.language);
+        } catch {
+          // One dropped status check (flaky network, app backgrounded) doesn't end the wait.
+        }
+        if (p?.status === "done" && p.analysis) {
           // The user may have switched profiles while this was in flight —
           // don't paint a report generated for a different resident.
           if (activeProfileIdRef.current === generationProfileId) {
@@ -184,7 +203,7 @@ export default function VastuPlanner() {
           void refresh();
           return;
         }
-        if (p.status === "error") {
+        if (p?.status === "error") {
           // Charged at the start and refunded by the server on failure.
           setAiError(t("vastu.analysis.failedRefunded"));
           void loadHistory();
@@ -196,15 +215,51 @@ export default function VastuPlanner() {
       // Still working on the server: it will show up in the history list.
       setAiNotice(t("vastu.analysis.stillWorking"));
       void loadHistory();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      setAiError(msg === "INSUFFICIENT_CREDITS" ? "INSUFFICIENT_CREDITS" : t("vastu.analysis.error"));
-      void refresh();
     } finally {
-      setAiLoading(false);
-      setAiSlow(false);
+      if (trackedPlanRef.current === planId) {
+        setAiLoading(false);
+        setAiSlow(false);
+      }
     }
-  }, [plan, t, i18n.language, loadHistory, refresh]);
+  }, [t, i18n.language, loadHistory, refresh]);
+
+  const onGenerate = useCallback(async () => {
+    const generationProfileId = activeProfileIdRef.current;
+    setAiError(null);
+    setAiNotice(null);
+    setAiSlow(false);
+    setAiResult(null);
+    setActivePlanId(null);
+    setViewedLayout(null);
+    setAiLoading(true);
+    let planId: string;
+    try {
+      ({ planId } = await api.vastuAnalyze(buildPayload(plan, i18n.language, home?.id)));
+    } catch (e) {
+      const key = reportErrorKey(e);
+      setAiError(key === "INSUFFICIENT_CREDITS" ? key : t(key));
+      setAiLoading(false);
+      void refresh();
+      return;
+    }
+    void refresh(); // balance dropped
+    await waitForPlan(planId, generationProfileId, Date.now());
+  }, [plan, t, i18n.language, home?.id, refresh, waitForPlan]);
+
+  // A report still being written when the page was left or reloaded: pick the wait back up
+  // instead of leaving the user unsure whether they paid for nothing.
+  useEffect(() => {
+    if (aiLoading) return;
+    const newest = history[0];
+    if (!newest || (newest.status !== "pending" && newest.status !== "processing")) return;
+    if (trackedPlanRef.current === newest.id) return;
+    const startedAt = Date.parse(newest.createdAt);
+    if (!(Date.now() - startedAt < WAIT_MS)) return;
+    setAiError(null);
+    setAiNotice(null);
+    setAiResult(null);
+    void waitForPlan(newest.id, activeProfileIdRef.current, startedAt);
+  }, [history, aiLoading, waitForPlan]);
 
   const onAsk = useCallback(async (question: string) => {
     if (!activePlanId) return;
@@ -220,18 +275,54 @@ export default function VastuPlanner() {
     }
   }, [activePlanId, t, i18n.language]);
 
-  const onViewHistory = useCallback((p: VastuPlan) => {
-    if (p.analysis) {
-      setAiResult(p.analysis as VastuAiResult);
-      setActivePlanId(p.id);
-      setAiError(null);
+  const onViewHistory = useCallback(async (p: VastuPlan) => {
+    if (!p.analysis) return;
+    // Show the list copy at once, then swap in this one report in the current language
+    // (the list itself never translates).
+    setAiResult(p.analysis as VastuAiResult);
+    setActivePlanId(p.id);
+    setAiError(null);
+    setAiNotice(null);
+    setViewedLayout(p.layout ? normalizePlan(p.layout) : null);
+    if (p.language && p.language !== i18n.language) {
+      try {
+        const full = await api.vastuGet(p.id, i18n.language);
+        if (full.analysis) setAiResult(full.analysis as VastuAiResult);
+      } catch {
+        /* keep the untranslated copy */
+      }
     }
-  }, []);
+  }, [i18n.language]);
+
+  const onOpenPlan = useCallback(() => {
+    if (!viewedLayout) return;
+    dispatch({ type: "load", plan: viewedLayout });
+    setSelectedId(null);
+    setViewedLayout(null);
+  }, [viewedLayout]);
+
+  const onDeleteHistory = useCallback(async (p: VastuPlan) => {
+    try {
+      await api.vastuDelete(p.id);
+      setHistory((h) => h.filter((x) => x.id !== p.id));
+      if (activePlanId === p.id) {
+        setAiResult(null);
+        setActivePlanId(null);
+        setViewedLayout(null);
+      }
+    } catch {
+      setAiError(t("vastu.history.deleteError"));
+    }
+  }, [activePlanId, t]);
 
   const selectedRoom = plan.rooms.find((r) => r.id === selectedId) ?? null;
 
   const editor = (
     <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2 text-[11px]">
+        <span className="font-semibold text-foreground truncate">{home?.name ?? t("vastu.home.defaultName")}</span>
+        <SaveBadge status={saveStatus} />
+      </div>
       <Toolbar
         northOffsetDeg={plan.northOffsetDeg}
         onRotate={onRotate}
@@ -249,6 +340,7 @@ export default function VastuPlanner() {
           setSelectedId(null);
           setAiResult(null);
           setActivePlanId(null);
+          setViewedLayout(null);
         }}
       />
 
@@ -263,6 +355,7 @@ export default function VastuPlanner() {
         <PlanCanvas
           plan={plan}
           ratingById={ratingById}
+          issuesById={validation.roomIssues}
           labelForType={labelForType}
           colorForType={colorForType}
           selectedId={selectedId}
@@ -271,6 +364,8 @@ export default function VastuPlanner() {
           locked={compass.state === "locked"}
         />
       </div>
+
+      <ValidationNotes plotInvalid={validation.plotInvalid} outside={validation.outsideCount} overlap={validation.overlapCount} />
 
       {selectedRoom ? (
         <div className="flex items-center gap-2 flex-wrap">
@@ -284,9 +379,7 @@ export default function VastuPlanner() {
             <ActionBtn icon={<Trash2 size={14} />} label={t("vastu.block.delete")} danger onClick={() => { dispatch({ type: "deleteRoom", id: selectedRoom.id }); setSelectedId(null); }} />
           </div>
         </div>
-      ) : (
-        <p className="text-[11px] text-muted">{t("vastu.onboarding.step1")}</p>
-      )}
+      ) : null}
 
       {(compassHint || compass.state === "reading") && (
         <p className="text-[11px] text-amber-400">
@@ -315,7 +408,8 @@ export default function VastuPlanner() {
       <div data-tour="vastu-analysis">
       <AnalysisPanel
         analysis={analysis}
-        signedIn={!!user}
+        reportEnabled={paidVastu.enabled}
+        reportReady={validation.reportReady}
         balancePaise={user?.walletBalancePaise ?? 0}
         costPaise={CREDIT_COST_PAISE}
         aiLoading={aiLoading}
@@ -327,7 +421,9 @@ export default function VastuPlanner() {
         history={history}
         historyLoading={historyLoading}
         profileName={activeProfile?.displayName?.trim() || t("profileSwitcher.unnamed")}
-        onViewHistory={onViewHistory}
+        onViewHistory={(p) => void onViewHistory(p)}
+        onDeleteHistory={(p) => void onDeleteHistory(p)}
+        onOpenPlan={viewedLayout ? onOpenPlan : undefined}
         canAsk={!!activePlanId}
         onAsk={onAsk}
         asking={asking}
@@ -349,5 +445,39 @@ function ActionBtn({ icon, label, onClick, danger }: { icon: React.ReactNode; la
       {icon}
       <span className="hidden sm:inline">{label}</span>
     </button>
+  );
+}
+
+function SaveBadge({ status }: { status: SaveStatus }) {
+  const { t } = useTranslation();
+  if (status === "idle") return null;
+  const map = {
+    saving: { icon: <Loader2 size={11} className="animate-spin" />, cls: "text-muted", key: "vastu.save.saving" },
+    saved: { icon: <Cloud size={11} />, cls: "text-emerald-400", key: "vastu.save.saved" },
+    offline: { icon: <CloudOff size={11} />, cls: "text-amber-400", key: "vastu.save.offline" },
+    error: { icon: <CloudOff size={11} />, cls: "text-red-400", key: "vastu.save.error" },
+  } as const;
+  const m = map[status];
+  return (
+    <span className={`ml-auto flex items-center gap-1 ${m.cls}`} role="status" data-testid="vastu-save-status">
+      {m.icon} {t(m.key)}
+    </span>
+  );
+}
+
+function ValidationNotes({ plotInvalid, outside, overlap }: { plotInvalid: boolean; outside: number; overlap: number }) {
+  const { t } = useTranslation();
+  if (!plotInvalid && !outside && !overlap) return null;
+  return (
+    <div className="flex flex-col gap-1" data-testid="vastu-validation">
+      {plotInvalid ? (
+        <p className="flex items-center gap-1.5 text-[11px] text-red-400"><X size={12} /> {t("vastu.validation.plotInvalid")}</p>
+      ) : outside > 0 ? (
+        <p className="flex items-center gap-1.5 text-[11px] text-red-400"><X size={12} /> {t("vastu.validation.outside", { count: outside })}</p>
+      ) : null}
+      {overlap > 0 && (
+        <p className="flex items-center gap-1.5 text-[11px] text-amber-400"><AlertTriangle size={12} /> {t("vastu.validation.overlap")}</p>
+      )}
+    </div>
   );
 }

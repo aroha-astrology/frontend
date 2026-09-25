@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
   Sparkles, Loader2, AlertTriangle, ListChecks, History, ChevronRight,
-  Star, Home, Wind, CheckCircle2, Send,
+  Star, Home, Wind, CheckCircle2, Send, Trash2, PencilRuler,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { RATING_META, TONE_CLASSES } from "@/lib/vastu/data";
@@ -48,7 +48,10 @@ function scoreTone(score: number) {
 
 export default function AnalysisPanel(props: {
   analysis: PlanAnalysis;
-  signedIn: boolean;
+  /** Admin switch for the paid report (paid.vastu) — off hides the report card. */
+  reportEnabled: boolean;
+  /** The plan passes the geometry checks a paid report needs (validatePlan().reportReady). */
+  reportReady: boolean;
   balancePaise: number;
   costPaise: number;
   aiLoading: boolean;
@@ -63,13 +66,17 @@ export default function AnalysisPanel(props: {
   historyLoading: boolean;
   profileName: string;
   onViewHistory: (plan: VastuPlan) => void;
+  onDeleteHistory: (plan: VastuPlan) => void;
+  /** Load the viewed report's saved plan into the editor (absent when there's nothing to load). */
+  onOpenPlan?: () => void;
   canAsk: boolean;
   onAsk: (question: string) => void;
   asking: boolean;
   askError: string | null;
 }) {
   const { t } = useTranslation();
-  const { analysis, signedIn, balancePaise, costPaise, aiLoading, aiResult, aiError } = props;
+  const { analysis, balancePaise, costPaise, aiLoading, aiResult, aiError } = props;
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const hasRooms = analysis.rooms.length > 0;
   const tone = scoreTone(analysis.overallScore);
 
@@ -113,9 +120,10 @@ export default function AnalysisPanel(props: {
       </Card>
 
       {/* Generate CTA */}
+      {props.reportEnabled && (
       <GenerateCTA
         hasRooms={hasRooms}
-        signedIn={signedIn}
+        reportReady={props.reportReady}
         balancePaise={balancePaise}
         costPaise={costPaise}
         aiLoading={aiLoading}
@@ -124,9 +132,10 @@ export default function AnalysisPanel(props: {
         aiNotice={props.aiNotice}
         onGenerate={props.onGenerate}
       />
+      )}
 
       {/* AI result */}
-      {aiResult && <AiResult result={aiResult} canAsk={props.canAsk} onAsk={props.onAsk} asking={props.asking} askError={props.askError} />}
+      {aiResult && <AiResult result={aiResult} canAsk={props.canAsk} onAsk={props.onAsk} asking={props.asking} askError={props.askError} onOpenPlan={props.onOpenPlan} />}
 
       {/* History — scoped to whichever profile is currently active */}
       {!props.historyLoading && (
@@ -143,14 +152,25 @@ export default function AnalysisPanel(props: {
             <ul className="flex flex-col gap-1.5">
               {props.history.map((p) => {
                 const done = p.status === "done" && !!p.analysis;
+                const inFlight = p.status === "pending" || p.status === "processing";
                 return (
-                  <li key={p.id}>
-                    <button onClick={() => done && props.onViewHistory(p)} disabled={!done} className="w-full flex items-center gap-2 rounded-xl border border-gold/15 px-3 py-2 text-left hover:border-gold/40 disabled:opacity-50 transition-colors">
+                  <li key={p.id} className="flex items-center gap-1.5">
+                    <button onClick={() => done && props.onViewHistory(p)} disabled={!done} className="flex-1 min-w-0 flex items-center gap-2 rounded-xl border border-gold/15 px-3 py-2 text-left hover:border-gold/40 disabled:opacity-50 transition-colors">
                       <span className="text-xs text-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
                       {p.overallScore != null && <span className={`text-xs font-semibold ${scoreTone(p.overallScore).text}`}>{p.overallScore}</span>}
                       <span className="ml-auto text-[10px] text-muted">{done ? "" : t(`vastu.analysis.status.${p.status}`, p.status)}</span>
                       {done && <ChevronRight size={13} className="text-muted" />}
                     </button>
+                    {!inFlight && (confirmDelete === p.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setConfirmDelete(null)} className="rounded-lg border border-gold/20 px-2 py-2 text-[10px] text-muted">{t("common.no")}</button>
+                        <button onClick={() => { setConfirmDelete(null); props.onDeleteHistory(p); }} className="rounded-lg border border-red-500/30 bg-red-500/10 px-2 py-2 text-[10px] font-semibold text-red-400">{t("vastu.history.deleteConfirm")}</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDelete(p.id)} aria-label={t("vastu.history.deleteReport")} title={t("vastu.history.deleteReport")} className="rounded-lg border border-gold/15 p-2 text-muted hover:text-red-400 hover:border-red-500/30 transition-colors">
+                        <Trash2 size={13} />
+                      </button>
+                    ))}
                   </li>
                 );
               })}
@@ -162,8 +182,8 @@ export default function AnalysisPanel(props: {
   );
 }
 
-function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, aiError, aiSlow, aiNotice, onGenerate }: {
-  hasRooms: boolean; signedIn: boolean; balancePaise: number; costPaise: number; aiLoading: boolean; aiError: string | null; aiSlow: boolean; aiNotice: string | null; onGenerate: () => void;
+function GenerateCTA({ hasRooms, reportReady, balancePaise, costPaise, aiLoading, aiError, aiSlow, aiNotice, onGenerate }: {
+  hasRooms: boolean; reportReady: boolean; balancePaise: number; costPaise: number; aiLoading: boolean; aiError: string | null; aiSlow: boolean; aiNotice: string | null; onGenerate: () => void;
 }) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
@@ -180,9 +200,7 @@ function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, a
       </div>
       <p className="text-[11px] text-muted mb-3">{t("vastu.analysis.reportBlurb")}</p>
 
-      {!signedIn ? (
-        <p className="text-xs text-muted text-center py-2">{t("vastu.analysis.signInToAnalyze")}</p>
-      ) : aiLoading ? (
+      {aiLoading ? (
         <button disabled className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold/15 border border-gold/30 text-gold px-4 py-3 text-sm font-semibold">
           <Loader2 size={15} className="animate-spin" /> {t("vastu.analysis.analyzing")}
         </button>
@@ -203,10 +221,14 @@ function GenerateCTA({ hasRooms, signedIn, balancePaise, costPaise, aiLoading, a
         </div>
       ) : (
         <>
-          <button onClick={() => setConfirming(true)} disabled={!hasRooms} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed">
+          <button onClick={() => setConfirming(true)} disabled={!reportReady} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed">
             <Sparkles size={15} /> {t("vastu.analysis.generate", { cost: formatRupees(costPaise) })}
           </button>
-          {!hasRooms && <p className="mt-2 text-[11px] text-muted text-center">{t("vastu.analysis.empty")}</p>}
+          {!hasRooms ? (
+            <p className="mt-2 text-[11px] text-muted text-center">{t("vastu.analysis.empty")}</p>
+          ) : !reportReady ? (
+            <p className="mt-2 text-[11px] text-amber-400 text-center">{t("vastu.reportErrors.invalidPlan")}</p>
+          ) : null}
         </>
       )}
       {aiError && aiError !== "INSUFFICIENT_CREDITS" && <p className="mt-2 text-[11px] text-red-400 text-center">{aiError}</p>}
@@ -238,11 +260,12 @@ function Bullets({ items, color = "text-gold" }: { items?: string[]; color?: str
   );
 }
 
-function AiResult({ result, canAsk, onAsk, asking, askError }: {
-  result: VastuAiResult; canAsk: boolean; onAsk: (q: string) => void; asking: boolean; askError: string | null;
+function AiResult({ result, canAsk, onAsk, asking, askError, onOpenPlan }: {
+  result: VastuAiResult; canAsk: boolean; onAsk: (q: string) => void; asking: boolean; askError: string | null; onOpenPlan?: () => void;
 }) {
   const { t } = useTranslation();
   const [q, setQ] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const summary = Array.isArray(result.summary) ? result.summary : [];
   const rooms = Array.isArray(result.roomAnalysis) ? result.roomAnalysis : [];
   const elements = result.elementBalance ?? {};
@@ -253,6 +276,22 @@ function AiResult({ result, canAsk, onAsk, asking, askError }: {
   return (
     <Card className="p-4 flex flex-col gap-4">
       <h3 className="text-sm font-semibold text-gold font-display">{t("vastu.analysis.remediesTitle")}</h3>
+
+      {onOpenPlan && (
+        confirmOpen ? (
+          <div className="rounded-xl border border-gold/20 p-3 flex flex-col gap-2">
+            <p className="text-xs text-foreground">{t("vastu.history.openPlanConfirm")}</p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmOpen(false)} className="flex-1 rounded-xl border border-gold/20 text-muted px-3 py-2 text-xs font-medium">{t("common.no")}</button>
+              <button onClick={() => { setConfirmOpen(false); onOpenPlan(); }} className="flex-1 rounded-xl bg-gold text-[#1a0e00] px-3 py-2 text-xs font-bold">{t("vastu.history.openPlan")}</button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setConfirmOpen(true)} className="self-start flex items-center gap-1.5 rounded-xl border border-gold/25 px-3 py-2 text-xs font-medium text-gold hover:border-gold/50">
+            <PencilRuler size={13} /> {t("vastu.history.openPlan")}
+          </button>
+        )
+      )}
 
       {summary.length >= 3 && (
         <div className="rounded-xl border border-gold/20 bg-gold/5 p-3 flex flex-col gap-1.5">

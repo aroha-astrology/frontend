@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import type { Plan, Room, Wall } from "@/lib/vastu/types";
 import type { RoomRating } from "@/lib/vastu/analysis";
+import type { RoomIssue } from "@/lib/vastu/validation";
 import { plotOutlinePath, planCenter, maxVertexDist, bbox } from "@/lib/vastu/geometry";
 import type { PlanAction } from "./planState";
 import RoomBlock, { type Corner } from "./RoomBlock";
@@ -49,6 +50,7 @@ const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 export default function PlanCanvas({
   plan,
   ratingById,
+  issuesById,
   labelForType,
   colorForType,
   selectedId,
@@ -58,6 +60,7 @@ export default function PlanCanvas({
 }: {
   plan: Plan;
   ratingById: Record<string, RoomRating>;
+  issuesById?: Record<string, RoomIssue[]>;
   labelForType: (type: string) => string;
   colorForType: (type: string) => string;
   selectedId: string | null;
@@ -291,7 +294,7 @@ export default function PlanCanvas({
           const rating = ratingById[room.id];
           if (!rating) return null;
           return (
-            <RoomBlock key={room.id} room={room} color={colorForType(room.type)} label={labelForType(room.type)} rating={rating} selected={room.id === selectedId} onBodyDown={onBodyDown} onHandleDown={onHandleDown} onFixtureDown={onFixtureDown} />
+            <RoomBlock key={room.id} room={room} color={colorForType(room.type)} label={labelForType(room.type)} rating={rating} selected={room.id === selectedId} issues={issuesById?.[room.id]} onBodyDown={onBodyDown} onHandleDown={onHandleDown} onFixtureDown={onFixtureDown} />
           );
         })}
 

@@ -7,6 +7,9 @@ const config: Config = {
     "./components/**/*.{ts,tsx}",
     "./providers/**/*.{ts,tsx}",
     "./data/**/*.{ts,tsx}",
+    // lib/ holds class-name maps (e.g. lib/vastu/data.ts TONE_CLASSES) — without
+    // this, classes used only there (the lime "Beneficial" tone) are never generated.
+    "./lib/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {

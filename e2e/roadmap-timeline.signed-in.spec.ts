@@ -26,6 +26,19 @@ const TIMELINE = {
         },
       ],
     },
+    {
+      area: "relationships",
+      bands: [
+        {
+          start: "2027-03-01",
+          end: "2029-01-12",
+          score: 75,
+          level: "high",
+          lords: ["Mercury", "Venus"],
+          why: [{ kind: "dasha", planet: "Venus", level: "antardasha", effect: 1, textKey: "timeline.why.karaka", params: { planet: "Venus" } }],
+        },
+      ],
+    },
     { area: "money", bands: [] },
   ],
 };
@@ -60,10 +73,22 @@ test.describe("Life Timeline (roadmap step 4)", () => {
 
     await expect(page.getByText("Life Timeline").first()).toBeVisible();
     await expect(page.getByText("Your birth time isn't exact", { exact: false })).toBeVisible();
-    await page.getByRole("button", { name: "Career 2026-01-01" }).click();
+    // Bars carry their years; a tap shows the years, where today sits, and what the period can bring.
+    const careerBar = page.getByRole("button", { name: "Career 2026-01-01" });
+    await expect(careerBar).toHaveText("2026–27");
+    await careerBar.click();
     await expect(page.getByText("Career: Strong period")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "2026 – 2027" })).toBeVisible();
+    await expect(page.getByText("Happening now · until Jun 1, 2027")).toBeVisible();
+    await expect(page.getByText("A strong time for a new job", { exact: false })).toBeVisible();
     await expect(page.getByText("Saturn rules your 10th house (career).")).toBeVisible();
     // The shared bottom sheet labels its close button with tour.skip ("Skip").
+    await page.getByRole("button", { name: "Skip" }).click();
+
+    await page.getByRole("button", { name: "Relationships 2027-03-01" }).click();
+    await expect(page.getByRole("heading", { name: "2027 – 2029" })).toBeVisible();
+    await expect(page.getByText("Starts Mar 1, 2027 · in 5 months")).toBeVisible();
+    await expect(page.getByText("A strong time for a relationship to begin", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "Skip" }).click();
 
     await page.getByRole("button", { name: /See your whole life · ₹99/ }).click();

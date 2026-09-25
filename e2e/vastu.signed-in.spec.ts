@@ -141,8 +141,8 @@ test.describe("Vastu planner", () => {
     expect(callsTo(api, "POST /v1/vastu/homes")).toHaveLength(1);
 
     await page.getByRole("button", { name: /Dining/ }).click();
-    await expect.poll(() => callsTo(api, "PATCH /v1/vastu/homes/:id").length).toBeGreaterThan(0);
-    const patch = callsTo(api, "PATCH /v1/vastu/homes/:id").at(-1)?.body as { layout: { rooms: { type: string }[] } };
+    await expect.poll(() => callsTo(api, `PATCH /v1/vastu/homes/${HOME_ID}`).length).toBeGreaterThan(0);
+    const patch = callsTo(api, `PATCH /v1/vastu/homes/${HOME_ID}`).at(-1)?.body as { layout: { rooms: { type: string }[] } };
     expect(patch.layout.rooms.map((r) => r.type)).toContain("dining");
   });
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { formatModelPricing } from "@/lib/admin-format";
+import { formatModelPricing, modelPricingDetail } from "@/lib/admin-format";
 
 /**
  * The model dropdown a Features/Group row shows in place of a price editor
  * when the key declares `modelOptions` (see FeatureRow's priceEditor slot).
  * Each option is captioned with its $/1M-token list price (see
- * formatModelPricing) so an admin can compare cost before picking — that
+ * formatModelPricing), and the picked model's full price, notes included,
+ * sits under the dropdown so an admin can compare cost before picking — that
  * pricing table is a static reference only, not the live cost dashboard (see
  * its own doc comment in admin-format.ts).
  */
@@ -25,6 +26,7 @@ export default function ModelSelect({
   onChange: (value: string) => void;
   disabled?: boolean;
 }) {
+  const detail = value ? modelPricingDetail(value) : null;
   return (
     <div className="flex flex-col items-end gap-0.5">
       <label htmlFor={id} className="text-[9px] uppercase tracking-wide text-muted whitespace-nowrap">
@@ -35,7 +37,7 @@ export default function ModelSelect({
         value={value ?? ""}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-surface border border-border rounded-lg px-2 py-1 text-xs text-foreground disabled:opacity-50 max-w-[260px]"
+        className="bg-surface border border-border rounded-lg px-2 py-1 text-xs text-foreground disabled:opacity-50 max-w-[280px]"
       >
         {value === null && (
           <option value="" disabled>
@@ -52,6 +54,7 @@ export default function ModelSelect({
           );
         })}
       </select>
+      {detail && <p className="max-w-[280px] text-right text-[10px] leading-snug text-muted">{detail}</p>}
     </div>
   );
 }

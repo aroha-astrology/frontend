@@ -16,6 +16,8 @@ import SunMoonTimings from "@/components/panchang/SunMoonTimings";
 import ChoghadiyaTimeline from "@/components/panchang/ChoghadiyaTimeline";
 import AuspiciousDays from "@/components/panchang/AuspiciousDays";
 import FindMyDateCard from "@/components/decide/FindMyDateCard";
+import YourDayCard from "@/components/weather/YourDayCard";
+import NextWindowCard from "@/components/calendar/NextWindowCard";
 import { REGION_META, REGION_OPTIONS, type RegionId } from "@/lib/panchang/regions";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
@@ -88,7 +90,9 @@ export default function PanchangPage() {
   const geo = useGeolocation();
   // Planning to Buy card below is commented out — its useFeature("panchang.purchasePlan") gate went with it.
 
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
+  // The day the page opened on. Your Day only describes today, so it hides on any other date.
+  const [openedOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [selectedDate, setSelectedDate] = useState(openedOn);
   const { region, setRegion } = usePanchangRegion();
 
   const [refData, setRefData] = useState<PanchangData | null>(null);
@@ -359,6 +363,10 @@ export default function PanchangPage() {
               moonsetTime={data.moonsetTime}
             />
             </div>
+
+            {/* Your Day and the next important window (both moved here from Home; each hides itself while its flag is off) */}
+            {selectedDate === openedOn && <YourDayCard />}
+            <NextWindowCard />
 
             {/* Choghadiya — one continuous day+night rail (replaces the old collapsed accordion) */}
             {data.choghadiya && (

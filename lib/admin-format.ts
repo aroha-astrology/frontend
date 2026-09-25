@@ -275,29 +275,44 @@ export const GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = 1.5;
  * until the cost dashboard is made model-aware — a real gap, out of scope for
  * just adding the picker, flagged here rather than fixed silently.
  *
- * Sourced from ai.google.dev/gemini-api/docs/pricing on 2026-08-28.
- * gemini-3.1-pro's >200k-token-prompt tier ($4/$18) and gemini-3.7-flash's
- * post-2027-01-01 standard tier ($1.50/$7.50, double the introductory rate
- * shown here) are each a separate, higher rate not captured by this single
- * number — the caption these numbers feed says "from" for that reason.
+ * Sourced from ai.google.dev/gemini-api/docs/pricing on 2026-09-25, for every
+ * text model in the backend's SELECTABLE_GEMINI_MODELS (keep the two in step).
+ * `note` carries what one number can't: preview status, the higher rate for
+ * prompts over 200k tokens, and the 3.6/3.7/3.8 Flash introductory price.
  */
-export const MODEL_PRICING: Record<string, { inputUsdPerMillion: number; outputUsdPerMillion: number }> = {
-  'gemini-3.1-flash-lite': { inputUsdPerMillion: 0.25, outputUsdPerMillion: 1.5 },
-  'gemini-3.1-flash': { inputUsdPerMillion: 0.75, outputUsdPerMillion: 4.5 },
-  'gemini-3.1-pro': { inputUsdPerMillion: 2.0, outputUsdPerMillion: 12.0 },
-  'gemini-3.7-flash': { inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75 },
+export const MODEL_PRICING: Record<string, { inputUsdPerMillion: number; outputUsdPerMillion: number; note?: string }> = {
+  "gemini-3.8-flash": { inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75, note: "intro price until 31 Dec 2026, then $1.50 / $7.50" },
+  "gemini-3.7-flash": { inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75, note: "intro price until 31 Dec 2026, then $1.50 / $7.50" },
+  "gemini-3.6-flash": { inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75, note: "intro price until 31 Dec 2026, then $1.50 / $7.50" },
+  "gemini-3.5-flash": { inputUsdPerMillion: 1.5, outputUsdPerMillion: 9.0 },
+  "gemini-3.5-flash-lite": { inputUsdPerMillion: 0.3, outputUsdPerMillion: 2.5 },
+  "gemini-3.1-pro-preview": { inputUsdPerMillion: 2.0, outputUsdPerMillion: 12.0, note: "preview; $4 / $18 for prompts over 200k tokens" },
+  "gemini-3.1-flash-lite": { inputUsdPerMillion: 0.25, outputUsdPerMillion: 1.5 },
+  "gemini-3-flash-preview": { inputUsdPerMillion: 0.5, outputUsdPerMillion: 3.0, note: "preview" },
+  "gemini-2.5-pro": { inputUsdPerMillion: 1.25, outputUsdPerMillion: 10.0, note: "$2.50 / $15 for prompts over 200k tokens" },
+  "gemini-2.5-flash": { inputUsdPerMillion: 0.3, outputUsdPerMillion: 2.5 },
+  "gemini-2.5-flash-lite": { inputUsdPerMillion: 0.1, outputUsdPerMillion: 0.4 },
 };
 
+const usd = (n: number) => (Number.isInteger(n) ? n.toString() : n.toFixed(2));
+
 /**
- * "from $0.25 / $1.50 per 1M" — the dropdown-option caption. Returns null for
- * a model id with no pricing entry (never blocks rendering the option over a
- * missing price).
+ * "$0.25 / $1.50" (input / output per 1M tokens), short enough for a dropdown
+ * option. Returns null for a model id with no pricing entry (never blocks
+ * rendering the option over a missing price).
  */
 export function formatModelPricing(model: string): string | null {
   const p = MODEL_PRICING[model];
   if (!p) return null;
-  const fmt = (n: number) => (Number.isInteger(n) ? n.toString() : n.toFixed(2));
-  return `from $${fmt(p.inputUsdPerMillion)} / $${fmt(p.outputUsdPerMillion)} per 1M tokens`;
+  return `$${usd(p.inputUsdPerMillion)} / $${usd(p.outputUsdPerMillion)}`;
+}
+
+/** The full price line under the dropdown: "$0.75 in / $3.75 out per 1M tokens · intro price …". */
+export function modelPricingDetail(model: string): string | null {
+  const p = MODEL_PRICING[model];
+  if (!p) return null;
+  const base = `$${usd(p.inputUsdPerMillion)} in / $${usd(p.outputUsdPerMillion)} out per 1M tokens`;
+  return p.note ? `${base} · ${p.note}` : base;
 }
 
 /**

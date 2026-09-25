@@ -17,6 +17,7 @@ import PersonalizedProgress from "@/components/horoscope/PersonalizedProgress";
 import Card from "@/components/ui/Card";
 import { QUALITY_BADGE_KEYS, type Timescale } from "@/components/horoscope/types";
 import { zodiacSignLabel } from "@/data/zodiac";
+import SignHindiName from "@/components/horoscope/SignHindiName";
 
 function PersonalizedCard({ period }: { period: PersonalizedHoroscopePeriod }) {
   const { t } = useTranslation();
@@ -252,7 +253,10 @@ export default function HoroscopePage() {
                     <div className="w-9 h-9 rounded-full border border-gold/40 flex items-center justify-center text-gold text-base">
                       {sign.symbol}
                     </div>
-                    <h3 className="text-sm font-semibold text-foreground font-display">{zodiacSignLabel(t, sign.name)}</h3>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-foreground font-display">{zodiacSignLabel(t, sign.name)}</h3>
+                      <SignHindiName sign={sign.name} />
+                    </div>
                   </div>
                   <div className="flex gap-0.5 mb-1.5">
                     {[...Array(5)].map((_, i) => (

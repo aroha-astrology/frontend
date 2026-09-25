@@ -1,7 +1,7 @@
 import type { RoadmapBundle } from "./types";
 
 /**
- * Step 9 — Today's Practice (/practice) and its Home card. `lalKitabLines`
+ * Step 9 — Today's Practice (/practice). `lalKitabLines`
  * translates the Lal Kitab Moon-transit table (backend
  * lalkitab/transitRemedies.ts) for the three houses the practice uses.
  */
@@ -39,7 +39,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "Refrain from greed and selfishness", "1": "Do not harm others for personal gain" },
         h8: { "0": "Avoid large bodies of water; practise pranayama (breath meditation)", "1": "Keep the north-west corner of your home clean" },
       },
-      card: { title: "Today's practice", open: "Open practice" },
     },
   },
   hi: {
@@ -75,7 +74,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "लालच और स्वार्थ से बचें", "1": "अपने फ़ायदे के लिए किसी को नुक़सान न पहुँचाएँ" },
         h8: { "0": "बड़े जलाशयों से दूर रहें; प्राणायाम करें", "1": "घर का उत्तर-पश्चिम कोना साफ़ रखें" },
       },
-      card: { title: "आज की साधना", open: "साधना खोलें" },
     },
   },
   bn: {
@@ -111,7 +109,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "লোভ আর স্বার্থপরতা থেকে দূরে থাকুন", "1": "নিজের লাভের জন্য কারও ক্ষতি করবেন না" },
         h8: { "0": "বড় জলাশয় এড়িয়ে চলুন; প্রাণায়াম করুন", "1": "বাড়ির উত্তর-পশ্চিম কোণ পরিষ্কার রাখুন" },
       },
-      card: { title: "আজকের সাধনা", open: "সাধনা খুলুন" },
     },
   },
   mr: {
@@ -147,7 +144,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "लोभ आणि स्वार्थ टाळा", "1": "स्वतःच्या फायद्यासाठी कोणाचे नुकसान करू नका" },
         h8: { "0": "मोठ्या जलाशयांपासून दूर राहा; प्राणायाम करा", "1": "घराचा वायव्य कोपरा स्वच्छ ठेवा" },
       },
-      card: { title: "आजची साधना", open: "साधना उघडा" },
     },
   },
   te: {
@@ -183,7 +179,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "అత్యాశ, స్వార్థం నుంచి దూరంగా ఉండండి", "1": "సొంత లాభం కోసం ఎవరికీ హాని చేయకండి" },
         h8: { "0": "పెద్ద జలాశయాలకు దూరంగా ఉండండి; ప్రాణాయామం చేయండి", "1": "ఇంటి వాయువ్య మూలను శుభ్రంగా ఉంచండి" },
       },
-      card: { title: "ఈరోజు సాధన", open: "సాధన తెరవండి" },
     },
   },
   ta: {
@@ -219,7 +214,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "பேராசையையும் சுயநலத்தையும் தவிருங்கள்", "1": "சொந்த லாபத்துக்காக யாருக்கும் தீங்கு செய்யாதீர்கள்" },
         h8: { "0": "பெரிய நீர்நிலைகளைத் தவிருங்கள்; பிராணாயாமம் செய்யுங்கள்", "1": "வீட்டின் வடமேற்கு மூலையைச் சுத்தமாக வைத்திருங்கள்" },
       },
-      card: { title: "இன்றைய சாதனை", open: "சாதனையைத் திற" },
     },
   },
   gu: {
@@ -255,7 +249,6 @@ export const practiceBundle: RoadmapBundle = {
         h5: { "0": "લોભ અને સ્વાર્થથી દૂર રહો", "1": "પોતાના ફાયદા માટે કોઈને નુકસાન ન પહોંચાડો" },
         h8: { "0": "મોટા જળાશયોથી દૂર રહો; પ્રાણાયામ કરો", "1": "ઘરનો વાયવ્ય ખૂણો સ્વચ્છ રાખો" },
       },
-      card: { title: "આજની સાધના", open: "સાધના ખોલો" },
     },
   },
 };

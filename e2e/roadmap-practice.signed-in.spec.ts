@@ -44,38 +44,12 @@ function practice(done: string[]) {
 }
 
 test.describe("Today's Practice (roadmap step 9)", () => {
-  test("the page and Home card stay hidden while the flags are off", async ({ page }) => {
+  test("the page stays hidden while its flag is off", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page);
     await signIn(page, "/practice");
     await page.waitForURL((url) => url.pathname === "/");
-    await expect(page.getByTestId("practice-card")).toHaveCount(0);
     expect(callsTo(api, "GET /v1/practice/today")).toHaveLength(0);
-  });
-
-  test("Home's card lists the items and ticks one off", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    const done: string[] = [];
-    const api = await mockApi(page, {
-      user: { features: { "home.dailyPractice": ON } },
-      overrides: {
-        "GET /v1/practice/today": () => ({ json: practice(done) }),
-        "POST /v1/practice/complete": (c) => {
-          done.push((c.body as { itemId: string }).itemId);
-          return { json: practice(done) };
-        },
-      },
-    });
-    await signIn(page, "/");
-
-    const card = page.getByTestId("practice-card");
-    await expect(card.getByText("For your Saturn period")).toBeVisible();
-    await expect(card.getByText("Thursday's prayer")).toBeVisible();
-    await expect(card.getByText("0 of 4 done")).toBeVisible();
-    await card.getByRole("button", { name: "Mark as done" }).nth(2).click();
-    await expect(card.getByText("1 of 4 done")).toBeVisible();
-    expect(callsTo(api, "POST /v1/practice/complete")[0]!.body).toEqual({ itemId: "weekday" });
-    await expect(card.getByRole("link", { name: /Open practice/ })).toHaveCount(0);
   });
 
   test("the page explains each item, chants on the mala and logs a finished jap", async ({ page }) => {

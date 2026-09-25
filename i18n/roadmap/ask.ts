@@ -1,6 +1,6 @@
 import type { RoadmapBundle } from "./types";
 
-/** Step 5 — Ask Aroha 2.0 answer cards, the Home "Ask Aroha" card and voice mode. */
+/** Step 5 — Ask Aroha 2.0 answer cards and voice mode. */
 export const askBundle: RoadmapBundle = {
   en: {
     ask: {
@@ -13,16 +13,6 @@ export const askBundle: RoadmapBundle = {
         calendar: "Best periods ahead",
         weather: "Today's astro weather",
         decide: "Plan a decision",
-      },
-      card: {
-        title: "Ask Aroha",
-        subtitle: "Career, marriage, money — ask anything about your chart.",
-        type: "Type a question",
-        talk: "Talk to Aroha",
-        price: "{{amount}} per question",
-        q1: "When will my career grow?",
-        q2: "When is a good time for marriage?",
-        q3: "How will this year be for money?",
       },
       voice: {
         title: "Voice mode",
@@ -47,16 +37,6 @@ export const askBundle: RoadmapBundle = {
         weather: "आज का ज्योतिषीय मौसम",
         decide: "किसी फ़ैसले की योजना बनाएँ",
       },
-      card: {
-        title: "Aroha से पूछें",
-        subtitle: "करियर, शादी, पैसा — अपनी कुंडली के बारे में कुछ भी पूछें।",
-        type: "सवाल लिखें",
-        talk: "Aroha से बात करें",
-        price: "{{amount}} प्रति सवाल",
-        q1: "मेरा करियर कब आगे बढ़ेगा?",
-        q2: "शादी के लिए अच्छा समय कब है?",
-        q3: "पैसे के मामले में यह साल कैसा रहेगा?",
-      },
       voice: {
         title: "वॉइस मोड",
         tap: "माइक दबाएँ और अपना सवाल पूछें",
@@ -79,16 +59,6 @@ export const askBundle: RoadmapBundle = {
         calendar: "সামনের ভালো সময়",
         weather: "আজকের জ্যোতিষ আবহাওয়া",
         decide: "কোনো সিদ্ধান্তের পরিকল্পনা করুন",
-      },
-      card: {
-        title: "Aroha-কে জিজ্ঞাসা করুন",
-        subtitle: "কর্মজীবন, বিয়ে, টাকা — আপনার কুণ্ডলী নিয়ে যা খুশি জিজ্ঞাসা করুন।",
-        type: "প্রশ্ন লিখুন",
-        talk: "Aroha-র সঙ্গে কথা বলুন",
-        price: "প্রতি প্রশ্ন {{amount}}",
-        q1: "আমার কর্মজীবনে উন্নতি কবে হবে?",
-        q2: "বিয়ের জন্য ভালো সময় কখন?",
-        q3: "টাকাপয়সার দিক থেকে এই বছর কেমন যাবে?",
       },
       voice: {
         title: "ভয়েস মোড",
@@ -113,16 +83,6 @@ export const askBundle: RoadmapBundle = {
         weather: "आजचे ज्योतिषीय हवामान",
         decide: "निर्णयाचे नियोजन करा",
       },
-      card: {
-        title: "Aroha ला विचारा",
-        subtitle: "करिअर, लग्न, पैसा — तुमच्या कुंडलीबद्दल काहीही विचारा.",
-        type: "प्रश्न लिहा",
-        talk: "Aroha शी बोला",
-        price: "प्रति प्रश्न {{amount}}",
-        q1: "माझे करिअर कधी पुढे जाईल?",
-        q2: "लग्नासाठी चांगला काळ कधी आहे?",
-        q3: "पैशाच्या बाबतीत हे वर्ष कसे जाईल?",
-      },
       voice: {
         title: "व्हॉइस मोड",
         tap: "माइकवर टॅप करा आणि तुमचा प्रश्न विचारा",
@@ -145,16 +105,6 @@ export const askBundle: RoadmapBundle = {
         calendar: "రాబోయే మంచి సమయాలు",
         weather: "ఈరోజు జ్యోతిష వాతావరణం",
         decide: "ఒక నిర్ణయాన్ని ప్లాన్ చేయండి",
-      },
-      card: {
-        title: "Aroha ని అడగండి",
-        subtitle: "ఉద్యోగం, పెళ్లి, డబ్బు — మీ జాతకం గురించి ఏదైనా అడగండి.",
-        type: "ప్రశ్న టైప్ చేయండి",
-        talk: "Aroha తో మాట్లాడండి",
-        price: "ఒక్కో ప్రశ్నకు {{amount}}",
-        q1: "నా కెరీర్ ఎప్పుడు ఎదుగుతుంది?",
-        q2: "పెళ్లికి మంచి సమయం ఎప్పుడు?",
-        q3: "డబ్బు విషయంలో ఈ సంవత్సరం ఎలా ఉంటుంది?",
       },
       voice: {
         title: "వాయిస్ మోడ్",
@@ -179,16 +129,6 @@ export const askBundle: RoadmapBundle = {
         weather: "இன்றைய ஜோதிட வானிலை",
         decide: "ஒரு முடிவைத் திட்டமிடுங்கள்",
       },
-      card: {
-        title: "Aroha-விடம் கேளுங்கள்",
-        subtitle: "வேலை, திருமணம், பணம் — உங்கள் ஜாதகம் பற்றி எதையும் கேளுங்கள்.",
-        type: "கேள்வியைத் தட்டச்சு செய்யுங்கள்",
-        talk: "Aroha-வுடன் பேசுங்கள்",
-        price: "ஒரு கேள்விக்கு {{amount}}",
-        q1: "என் தொழில் எப்போது வளரும்?",
-        q2: "திருமணத்திற்கு நல்ல நேரம் எப்போது?",
-        q3: "பண விஷயத்தில் இந்த ஆண்டு எப்படி இருக்கும்?",
-      },
       voice: {
         title: "குரல் பயன்முறை",
         tap: "மைக்கைத் தட்டி உங்கள் கேள்வியைக் கேளுங்கள்",
@@ -211,16 +151,6 @@ export const askBundle: RoadmapBundle = {
         calendar: "આગળનો સારો સમય",
         weather: "આજનું જ્યોતિષીય હવામાન",
         decide: "નિર્ણયનું આયોજન કરો",
-      },
-      card: {
-        title: "Aroha ને પૂછો",
-        subtitle: "કારકિર્દી, લગ્ન, પૈસા — તમારી કુંડળી વિશે કંઈ પણ પૂછો.",
-        type: "પ્રશ્ન લખો",
-        talk: "Aroha સાથે વાત કરો",
-        price: "પ્રતિ પ્રશ્ન {{amount}}",
-        q1: "મારી કારકિર્દી ક્યારે આગળ વધશે?",
-        q2: "લગ્ન માટે સારો સમય ક્યારે છે?",
-        q3: "પૈસાની બાબતમાં આ વર્ષ કેવું જશે?",
       },
       voice: {
         title: "વૉઇસ મોડ",

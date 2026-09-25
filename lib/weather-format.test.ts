@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatClock, isNowIn, listenScript, scoreWordKey, strongestAndWeakest } from "./weather-format";
+import { formatClock, isNowIn, istClock, listenScript, scoreWordKey, strongestAndWeakest, upcomingWindows } from "./weather-format";
 import type { AstroWeather } from "./insights-api";
 
 const t = (key: string, vars?: Record<string, unknown>) =>
@@ -49,6 +49,30 @@ describe("isNowIn", () => {
     const at = new Date("2026-09-24T06:30:00Z"); // 12:00 IST
     expect(isNowIn("11:48", "12:36", at)).toBe(true);
     expect(isNowIn("13:30", "15:00", at)).toBe(false);
+  });
+});
+
+describe("istClock", () => {
+  it("gives the IST time as HH:mm", () => {
+    expect(istClock(new Date("2026-09-24T10:34:00Z"))).toBe("16:04");
+  });
+});
+
+describe("upcomingWindows", () => {
+  const day = [
+    { start: "06:46", end: "08:15", name: "Labh" },
+    { start: "09:44", end: "11:13", name: "Kaal" },
+    { start: "10:50", end: "11:37", name: "AbhijitMuhurta" },
+    { start: "15:37", end: "17:06", name: "Amrit" },
+  ];
+
+  it("drops finished windows and keeps the ones in progress first", () => {
+    const at = new Date("2026-09-24T05:30:00Z"); // 11:00 IST
+    expect(upcomingWindows(day, at).map((w) => w.name)).toEqual(["Kaal", "AbhijitMuhurta", "Amrit"]);
+  });
+
+  it("is empty once the day's windows are over", () => {
+    expect(upcomingWindows(day, new Date("2026-09-24T13:00:00Z"))).toEqual([]); // 18:30 IST
   });
 });
 

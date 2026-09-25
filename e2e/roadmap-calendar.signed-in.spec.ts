@@ -42,7 +42,7 @@ const CALENDAR = {
 };
 
 test.describe("Aroha Calendar (roadmap step 3)", () => {
-  test("the page, menu entry and Home card stay hidden while the flags are off", async ({ page }) => {
+  test("the page, menu entry and next-window card stay hidden while the flags are off", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page);
     await signIn(page, "/calendar");
@@ -51,14 +51,19 @@ test.describe("Aroha Calendar (roadmap step 3)", () => {
     expect(callsTo(api, "GET /v1/calendar")).toHaveLength(0);
   });
 
-  test("with the flags on, Home shows the next window and the calendar opens an event", async ({ page }) => {
+  test("with the flags on, Panchang shows the next window and the calendar opens an event", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
       user: { features: { "nav.calendar": ON, "home.nextWindow": ON } },
-      overrides: { "GET /v1/calendar": () => ({ json: CALENDAR }) },
+      overrides: {
+        "GET /v1/calendar": () => ({ json: CALENDAR }),
+        "GET /v1/panchang": () => ({ json: { date: inDays(0), tithi: null, nakshatra: null, yoga: null, karana: null } }),
+      },
     });
     await signIn(page, "/");
+    await expect(page.getByText("Next important window")).toHaveCount(0);
 
+    await page.goto("/panchang");
     await expect(page.getByText("Next important window")).toBeVisible();
     await expect(page.getByText("Saturn enters Aries").first()).toBeVisible();
 

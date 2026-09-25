@@ -27,6 +27,7 @@ import {
   GST_RATE,
   MODEL_PRICING,
   formatModelPricing,
+  modelPricingDetail,
 } from "./admin-format";
 
 describe("ADMIN_DATE_RANGE_PRESETS", () => {
@@ -478,12 +479,12 @@ describe("splitFreeVsPaid", () => {
 });
 
 describe("formatModelPricing", () => {
-  it("formats a known model's caption with $ input/output rates", () => {
-    expect(formatModelPricing("gemini-3.1-flash-lite")).toBe("from $0.25 / $1.50 per 1M tokens");
+  it("formats a known model's input / output rates for the dropdown option", () => {
+    expect(formatModelPricing("gemini-3.1-flash-lite")).toBe("$0.25 / $1.50");
   });
 
   it("formats a whole-dollar rate without a trailing .00", () => {
-    expect(formatModelPricing("gemini-3.1-pro")).toBe("from $2 / $12 per 1M tokens");
+    expect(formatModelPricing("gemini-3.1-pro-preview")).toBe("$2 / $12");
   });
 
   it("returns null for a model id with no pricing entry, never throws", () => {
@@ -493,15 +494,35 @@ describe("formatModelPricing", () => {
   it("has a pricing entry for every model in SELECTABLE_GEMINI_MODELS's frontend mirror", () => {
     // No shared import between backend config/features.ts and this file (frontend/backend are
     // separate builds) — this just guards against MODEL_PRICING silently drifting out of sync
-    // with the four models the backend's SELECTABLE_GEMINI_MODELS actually offers.
+    // with the models the backend's SELECTABLE_GEMINI_MODELS actually offers.
     for (const model of [
-      "gemini-3.1-flash-lite",
-      "gemini-3.1-flash",
-      "gemini-3.1-pro",
+      "gemini-3.8-flash",
       "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-pro-preview",
+      "gemini-3.1-flash-lite",
+      "gemini-3-flash-preview",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
     ]) {
       expect(MODEL_PRICING[model]).toBeDefined();
     }
+  });
+});
+
+describe("modelPricingDetail", () => {
+  it("spells out input and output, plus any note", () => {
+    expect(modelPricingDetail("gemini-3.1-flash-lite")).toBe("$0.25 in / $1.50 out per 1M tokens");
+    expect(modelPricingDetail("gemini-3.8-flash")).toBe(
+      "$0.75 in / $3.75 out per 1M tokens · intro price until 31 Dec 2026, then $1.50 / $7.50",
+    );
+  });
+
+  it("returns null for an unknown model", () => {
+    expect(modelPricingDetail("not-a-real-model")).toBeNull();
   });
 });
 

@@ -11,6 +11,7 @@ import { useKundli } from "@/hooks/useKundli";
 import { useFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
+import SignHindiName from "@/components/horoscope/SignHindiName";
 
 function SkeletonCard() {
   return (
@@ -97,6 +98,7 @@ export default function HoroscopeSlider() {
                 <h3 className="text-foreground text-sm font-semibold tracking-wide font-display">
                   {zodiacSignLabel(t, sign.name)}
                 </h3>
+                <SignHindiName sign={sign.name} />
                 <p className="text-[9px] text-muted leading-tight">{sign.dates}</p>
               </div>
             </div>

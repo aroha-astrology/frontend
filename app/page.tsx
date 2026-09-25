@@ -14,12 +14,8 @@ import PalmReadingCard from "@/components/PalmReadingCard";
 import ShlokasCard from "@/components/ShlokasCard";
 import RemediesCard from "@/components/RemediesCard";
 import AstroWeatherCard from "@/components/weather/AstroWeatherCard";
-import YourDayCard from "@/components/weather/YourDayCard";
-import NextWindowCard from "@/components/calendar/NextWindowCard";
-import AskArohaCard from "@/components/ask/AskArohaCard";
 import BondsCard from "@/components/bonds/BondsCard";
 import JournalPromptCard from "@/components/journal/JournalPromptCard";
-import PracticeCard from "@/components/practice/PracticeCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
@@ -52,30 +48,6 @@ function AstroWeatherSection() {
   );
 }
 
-function YourDaySection() {
-  return (
-    <div className="px-5 mt-6">
-      <YourDayCard />
-    </div>
-  );
-}
-
-function NextWindowSection() {
-  return (
-    <div className="px-5 mt-6">
-      <NextWindowCard />
-    </div>
-  );
-}
-
-function AskArohaSection() {
-  return (
-    <div className="px-5 mt-6">
-      <AskArohaCard />
-    </div>
-  );
-}
-
 function BondsSection() {
   return (
     <div className="px-5 mt-6">
@@ -88,14 +60,6 @@ function JournalPromptSection() {
   return (
     <div className="px-5 mt-6">
       <JournalPromptCard />
-    </div>
-  );
-}
-
-function PracticeSection() {
-  return (
-    <div className="px-5 mt-6">
-      <PracticeCard />
     </div>
   );
 }
@@ -192,15 +156,12 @@ interface HomeSection {
 }
 
 /** Order here IS render order — preserves the exact pre-existing sequence. */
+// Your Day and Next important window now live on the Panchang page (2026-09-25).
 const HOME_SECTIONS: HomeSection[] = [
-  { id: "astroWeather", featureKey: "home.astroWeather", Component: AstroWeatherSection, isNew: true },
   { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
-  { id: "yourDay", featureKey: "home.yourDay", Component: YourDaySection, isNew: true },
-  { id: "nextWindow", featureKey: "home.nextWindow", Component: NextWindowSection, isNew: true },
-  { id: "askAroha", featureKey: "home.askAroha", Component: AskArohaSection, isNew: true },
+  { id: "astroWeather", featureKey: "home.astroWeather", Component: AstroWeatherSection, isNew: true },
   { id: "bonds", featureKey: "home.bondsCard", Component: BondsSection, isNew: true },
   { id: "journalPrompt", featureKey: "home.journalPrompt", Component: JournalPromptSection, isNew: true },
-  { id: "dailyPractice", featureKey: "home.dailyPractice", Component: PracticeSection, isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
   { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },

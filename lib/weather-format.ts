@@ -34,15 +34,26 @@ export function formatClock(hhmm: string, lang: string): string {
   return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
 
-/** Is the 'HH:mm'–'HH:mm' (IST) window the one we're in right now? */
-export function isNowIn(start: string, end: string, now: Date = new Date()): boolean {
-  const ist = new Intl.DateTimeFormat("en-GB", {
+/** The IST clock time as 'HH:mm', the same shape as the day windows' start and end. */
+export function istClock(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   }).format(now);
+}
+
+/** Is the 'HH:mm'–'HH:mm' (IST) window the one we're in right now? */
+export function isNowIn(start: string, end: string, now: Date = new Date()): boolean {
+  const ist = istClock(now);
   return start <= ist && ist < end;
+}
+
+/** The windows still to come: the ones we're in first (they started earliest), then the rest in time order. */
+export function upcomingWindows<W extends { end: string }>(windows: W[], now: Date = new Date()): W[] {
+  const ist = istClock(now);
+  return windows.filter((w) => w.end > ist);
 }
 
 /**

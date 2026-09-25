@@ -17,13 +17,10 @@ function structuredReply(lines: string[], explore?: { area: string; links: strin
 }
 
 test.describe("Ask Aroha 2.0 + Talk to Aroha (roadmap step 5)", () => {
-  test("with the flags off, Home has no Ask Aroha card and ?voice=1 keeps the normal composer", async ({ page }) => {
+  test("with the flag off, ?voice=1 keeps the normal composer", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page);
-    await signIn(page, "/");
-    await expect(page.getByTestId("ask-aroha-card")).toHaveCount(0);
-
-    await page.goto("/ai-chat?voice=1");
+    await signIn(page, "/ai-chat?voice=1");
     await expect(page.getByPlaceholder("Ask your astrologer...")).toBeVisible();
     await expect(page.getByTestId("voice-panel")).toHaveCount(0);
   });
@@ -66,21 +63,6 @@ test.describe("Ask Aroha 2.0 + Talk to Aroha (roadmap step 5)", () => {
     );
     await expect(explore.getByRole("link", { name: /Best periods ahead/ })).toHaveAttribute("href", "/calendar");
     await expect(page.getByRole("button", { name: "Job or business?" })).toBeVisible();
-  });
-
-  test("the Home card pre-fills a sample question without sending it", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    const api = await mockApi(page, {
-      user: { features: { "home.askAroha": ON, "chat.voiceMode": ON } },
-    });
-    await signIn(page, "/");
-
-    const card = page.getByTestId("ask-aroha-card");
-    await expect(card.getByRole("link", { name: /Talk to Aroha/ })).toHaveAttribute("href", "/ai-chat?voice=1");
-    await card.getByRole("link", { name: "When will my career grow?" }).click();
-
-    await expect(page.getByPlaceholder("Ask your astrologer...")).toHaveValue("When will my career grow?");
-    expect(callsTo(api, "POST /v1/chat")).toHaveLength(0);
   });
 
   test("voice mode sends the spoken question and reads the reply in the voice of its script", async ({ page }) => {

@@ -7,6 +7,7 @@ import { isDaily, type ForecastData, PLANET_EMOJI, QUALITY_BADGE_KEYS } from "./
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import CategoryRatingRow from "./CategoryRatingRow";
 import { zodiacSignLabel } from "@/data/zodiac";
+import SignHindiName from "./SignHindiName";
 
 type ViewMode = "plain" | "technical";
 const CATEGORY_ORDER = ["overall", "health", "career", "marriage", "finance", "education"] as const;
@@ -36,6 +37,7 @@ export default function ForecastDetailModal({
           </div>
           <div className="min-w-0">
             <h2 className="text-lg font-semibold font-display text-foreground">{zodiacSignLabel(t, sign.name)}</h2>
+            <SignHindiName sign={sign.name} size="text-xs" />
             <p className="text-xs text-muted truncate">
               {daily ? forecast.date : `${forecast.periodStart} – ${forecast.periodEnd}`} &middot; {sign.dates}
             </p>

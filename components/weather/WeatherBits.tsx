@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import { Moon, TrendingDown, TrendingUp, ArrowRight } from "lucide-react";
 import type { AstroWeather } from "@/lib/insights-api";
-import { formatClock, isNowIn, scoreWordKey } from "@/lib/weather-format";
+import { formatClock, isNowIn, istClock, scoreWordKey } from "@/lib/weather-format";
 
 /** Shared pieces of the Astro Weather card and page. */
 
@@ -54,21 +54,34 @@ export function MomentLine({ moment }: { moment: AstroWeather["moments"][number]
   );
 }
 
-export function DayTimeline({ weather, limit }: { weather: AstroWeather; limit?: number }) {
+/**
+ * The day's windows. `windows` narrows the list (Your Day passes only what's
+ * still to come); windows that have already ended are dimmed.
+ */
+export function DayTimeline({
+  weather,
+  windows = weather.day,
+  now = new Date(),
+}: {
+  weather: AstroWeather;
+  windows?: AstroWeather["day"];
+  now?: Date;
+}) {
   const { t, i18n } = useTranslation();
   if (!weather.dayAvailable) return <p className="text-xs text-muted">{t("weather.day.notIndia")}</p>;
   if (weather.day.length === 0) return <p className="text-xs text-muted">{t("weather.day.empty")}</p>;
-  const windows = limit ? weather.day.slice(0, limit) : weather.day;
+  const clock = istClock(now);
   return (
     <ul className="space-y-1.5">
       {windows.map((w, i) => {
-        const now = isNowIn(w.start, w.end);
+        const current = isNowIn(w.start, w.end, now);
+        const past = w.end <= clock;
         return (
           <li
-            key={`${w.start}-${i}`}
-            className={`flex items-center gap-3 rounded-lg px-2 py-1.5 ${now ? "bg-gold/10 border border-gold/30" : ""}`}
+            key={`${w.start}-${w.name}-${i}`}
+            className={`flex items-center gap-3 rounded-lg px-2 py-1.5 ${current ? "bg-gold/10 border border-gold/30" : ""} ${past ? "opacity-50" : ""}`}
           >
-            <span className="w-28 shrink-0 text-[11px] tabular-nums text-foreground/80">
+            <span className="w-[124px] shrink-0 whitespace-nowrap text-[11px] tabular-nums text-foreground/80">
               {formatClock(w.start, i18n.language)} – {formatClock(w.end, i18n.language)}
             </span>
             <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${w.kind === "good" ? "bg-emerald-400" : "bg-amber-400"}`} />
@@ -76,7 +89,7 @@ export function DayTimeline({ weather, limit }: { weather: AstroWeather; limit?:
               {t(`muhurtaNames.${w.name.charAt(0).toLowerCase()}${w.name.slice(1)}`)} ·{" "}
               <span className="text-muted">{t(`weather.day.${w.kind}`)}</span>
             </span>
-            {now && <span className="text-[10px] font-semibold text-gold">{t("weather.day.now")}</span>}
+            {current && <span className="text-[10px] font-semibold text-gold">{t("weather.day.now")}</span>}
           </li>
         );
       })}

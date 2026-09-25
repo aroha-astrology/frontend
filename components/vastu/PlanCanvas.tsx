@@ -9,6 +9,9 @@ import { plotOutlinePath, planCenter, maxVertexDist, bbox, brahmasthanRadius } f
 import type { StudioAction } from "@/lib/vastu/history";
 import { lensSectors, FIT_HEX } from "@/lib/vastu/lens";
 import { DIRECTION_META } from "@/lib/vastu/data";
+import type { TraceImage } from "@/lib/vastu/trace";
+import AdvancedOverlay from "./studio/AdvancedOverlay";
+import TraceUnderlay from "./studio/TraceUnderlay";
 import RoomBlock, { type Corner } from "./RoomBlock";
 import CompassRing from "./CompassRing";
 
@@ -63,6 +66,8 @@ export default function PlanCanvas({
   focus,
   badgeLabel,
   ghosts,
+  advanced = "off",
+  trace,
 }: {
   plan: Plan;
   ratingById: Record<string, RoomRating>;
@@ -81,6 +86,10 @@ export default function PlanCanvas({
   badgeLabel?: string | null;
   /** Proposed positions to preview (dashed gold), with the current rooms dimmed. */
   ghosts?: { roomId: string; x: number; y: number; w: number; h: number }[];
+  /** Advanced Vastu guide over the plot (visual only). */
+  advanced?: "off" | "zones16" | "grid81";
+  /** A floor-plan photo shown faintly underneath, for tracing. */
+  trace?: TraceImage | null;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -343,8 +352,10 @@ export default function PlanCanvas({
             <stop offset="100%" stopColor="rgba(223,181,100,0.015)" />
           </radialGradient>
         </defs>
-        <path d={plotOutlinePath(plan)} fill="url(#vastu-plot-fill)" stroke="rgba(223,181,100,0.55)" strokeWidth={0.13} strokeLinejoin="round" />
-        {!lens && gridLines}
+        {trace && <TraceUnderlay trace={trace} />}
+        <path d={plotOutlinePath(plan)} fill={trace ? "rgba(223,181,100,0.03)" : "url(#vastu-plot-fill)"} stroke="rgba(223,181,100,0.55)" strokeWidth={0.13} strokeLinejoin="round" />
+        {!lens && advanced === "off" && gridLines}
+        {advanced !== "off" && <AdvancedOverlay plan={plan} mode={advanced} radius={ringRadius} />}
 
         {lens && (
           <g clipPath="url(#vastu-plot-clip)" style={{ pointerEvents: "none" }} data-testid="vastu-lens">

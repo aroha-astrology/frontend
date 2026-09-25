@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
-import { Maximize2, X, AlertTriangle, Loader2, RotateCcw, Box, Square, Sparkles } from "lucide-react";
+import { Maximize2, X, AlertTriangle, Loader2, RotateCcw, Box, Square, Sparkles, Grid3x3 } from "lucide-react";
+import { clearTrace, loadTrace, saveTrace, traceStorageKey, type TraceImage } from "@/lib/vastu/trace";
+import AdvancedSheet from "./studio/AdvancedSheet";
+import TraceSheet from "./studio/TraceSheet";
+import VersionsSheet from "./studio/VersionsSheet";
 import type { CameraMode } from "./three/VastuScene3D";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
@@ -75,7 +79,9 @@ function buildPayload(plan: Plan, language: string, homeId?: string) {
   };
 }
 
-type SheetId = "room" | "north" | "plot" | "score" | "homes" | "start" | null;
+type SheetId = "room" | "north" | "plot" | "score" | "homes" | "start" | "guides" | "trace" | "versions" | null;
+type Guides = "off" | "zones16" | "grid81";
+const GUIDES_KEY = "vastu_guides";
 
 export default function VastuPlanner() {
   const { t, i18n } = useTranslation();
@@ -149,6 +155,62 @@ export default function VastuPlanner() {
     defaultName: t("vastu.home.defaultName"),
   });
   const { status: saveStatus, home } = homesSync;
+
+  // ── Advanced guides (16 zones / 9×9 grid) — a per-device viewing preference ──
+  const [guides, setGuidesState] = useState<Guides>("off");
+  useEffect(() => {
+    try {
+      const g = localStorage.getItem(GUIDES_KEY);
+      if (g === "zones16" || g === "grid81") setGuidesState(g);
+    } catch {
+      /* default off */
+    }
+  }, []);
+  const setGuides = useCallback((g: Guides) => {
+    setGuidesState(g);
+    try {
+      localStorage.setItem(GUIDES_KEY, g);
+    } catch {
+      /* not persisted */
+    }
+  }, []);
+
+  // ── Tracing photo (stays on this device, per home) ─────────────────────────
+  const traceKey = scope ? traceStorageKey(scope, home?.id ?? null) : null;
+  const [trace, setTraceState] = useState<TraceImage | null>(null);
+  const traceRef = useRef<{ key: string | null; trace: TraceImage | null }>({ key: null, trace: null });
+  useEffect(() => {
+    let live = true;
+    const prev = traceRef.current;
+    // A photo picked before a brand-new home got its id moves with it.
+    if (traceKey && prev.trace && prev.key?.endsWith(":draft") && !traceKey.endsWith(":draft")) {
+      void saveTrace(traceKey, prev.trace);
+      void clearTrace(prev.key);
+      traceRef.current = { key: traceKey, trace: prev.trace };
+      return;
+    }
+    setTraceState(null);
+    traceRef.current = { key: traceKey, trace: null };
+    if (!traceKey) return;
+    void loadTrace(traceKey).then((t) => {
+      if (!live) return;
+      setTraceState(t);
+      traceRef.current = { key: traceKey, trace: t };
+    });
+    return () => {
+      live = false;
+    };
+  }, [traceKey]);
+  const traceSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setTrace = useCallback((t: TraceImage | null) => {
+    setTraceState(t);
+    traceRef.current = { key: traceKey, trace: t };
+    if (!traceKey) return;
+    if (traceSaveTimer.current) clearTimeout(traceSaveTimer.current);
+    traceSaveTimer.current = setTimeout(() => {
+      void (t ? saveTrace(traceKey, t) : clearTrace(traceKey));
+    }, 400);
+  }, [traceKey]);
   useEffect(() => {
     if (homesSync.needsStart) setSheet("start");
   }, [homesSync.needsStart]);
@@ -650,8 +712,21 @@ export default function VastuPlanner() {
           focus={focus}
           badgeLabel={badgeLabel}
           ghosts={ghosts}
+          advanced={guides}
+          trace={trace}
         />
       </div>
+      )}
+      {view !== "3d" && (
+        <button
+          onClick={() => setSheet("guides")}
+          aria-pressed={guides !== "off"}
+          data-testid="vastu-guides-open"
+          className={`absolute bottom-3 left-3 z-10 flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold backdrop-blur transition-colors ${guides !== "off" ? "bg-gold text-[#1a0e00]" : "bg-background/75 border border-gold/20 text-foreground/85"}`}
+          style={lensOn ? { bottom: "2.6rem" } : undefined}
+        >
+          <Grid3x3 size={13} /> {t("vastu.grid.chip", "Guides")}
+        </button>
       )}
       {lensOn && (
         <p className="px-4 pb-3 -mt-1 text-[11px] text-muted" data-testid="vastu-lens-caption">
@@ -765,9 +840,44 @@ export default function VastuPlanner() {
         heightU={Math.round(bb.h)}
         onScale={(w, h) => dispatch({ type: "scalePlot", widthU: w, heightU: h })}
         onStartOver={() => setSheet("start")}
+        onTrace={() => setSheet("trace")}
+        tracing={!!trace}
+      />
+      <AdvancedSheet open={sheet === "guides"} onClose={() => setSheet(null)} mode={guides} onMode={setGuides} />
+      <TraceSheet
+        open={sheet === "trace"}
+        onClose={() => setSheet(null)}
+        trace={trace}
+        onChange={(tr) => {
+          setTrace(tr);
+          if (!trace) track("vastu_upload_started");
+        }}
+        onRemove={() => setTrace(null)}
+        plotBBox={bb}
+      />
+      <VersionsSheet
+        open={sheet === "versions"}
+        onClose={() => setSheet(null)}
+        homeId={home?.id ?? null}
+        homeName={home?.name ?? t("vastu.home.defaultName")}
+        beforeSave={homesSync.saveNow}
+        onRestored={(layout) => {
+          dispatch({ type: "replace", plan: normalizePlan(layout) });
+          setSelectedId(null);
+          track("vastu_version_restored");
+        }}
       />
       <ScoreSheet open={sheet === "score"} onClose={() => setSheet(null)} score={analysis.overallScore} hasRooms={analysis.rooms.length > 0} breakdown={breakdown} />
-      <StartSheet open={sheet === "start"} onClose={() => setSheet(null)} onPick={startWith} canClose={!homesSync.needsStart} />
+      <StartSheet
+        open={sheet === "start"}
+        onClose={() => setSheet(null)}
+        onPick={startWith}
+        onTrace={() => {
+          startWith("blank");
+          setSheet("trace");
+        }}
+        canClose={!homesSync.needsStart}
+      />
       <HomeSheet
         open={sheet === "homes"}
         onClose={() => setSheet(null)}
@@ -779,6 +889,7 @@ export default function VastuPlanner() {
           homesSync.selectHome(id);
         }}
         onNew={() => setSheet("start")}
+        onVersions={() => setSheet("versions")}
         onDuplicate={() => {
           const name = t("vastu.homes.copyName", "{{name}} (copy)", { name: home?.name ?? t("vastu.home.defaultName") });
           void homesSync.createHome(name, { ...plan, rooms: plan.rooms.map((r) => ({ ...r, id: uid(), fixtures: r.fixtures.map((f) => ({ ...f, id: uid() })) })) }, analysis.overallScore);

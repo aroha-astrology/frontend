@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Copy, Pencil, Trash2, Check } from "lucide-react";
+import { Plus, Copy, Pencil, Trash2, Check, History } from "lucide-react";
 import type { HomeSummary } from "../useHomeSync";
 import { ScoreRing, Sheet, scoreColor } from "./ui";
 
 /** Your homes: switch, rename, duplicate, delete, or start a new one. */
-export default function HomeSheet({ open, onClose, homes, currentId, onSelect, onNew, onDuplicate, onRename, onDelete }: {
+export default function HomeSheet({ open, onClose, homes, currentId, onSelect, onNew, onDuplicate, onRename, onDelete, onVersions }: {
   open: boolean;
   onClose: () => void;
   homes: HomeSummary[];
@@ -17,6 +17,8 @@ export default function HomeSheet({ open, onClose, homes, currentId, onSelect, o
   onDuplicate: () => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
+  /** Open the current home's saved versions. */
+  onVersions?: () => void;
 }) {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export default function HomeSheet({ open, onClose, homes, currentId, onSelect, o
       </ul>
       <div className="flex gap-2 mt-3">
         <button onClick={() => { onClose(); onNew(); }} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gold px-3 py-2.5 text-sm font-bold text-[#1a0e00]"><Plus size={15} /> {t("vastu.homes.new", "New home")}</button>
+        {currentId && onVersions && <button onClick={() => { onClose(); onVersions(); }} data-testid="vastu-versions-open" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-gold/30 px-3 py-2.5 text-sm font-semibold text-gold"><History size={15} /> {t("vastu.versions.open", "Versions")}</button>}
         {currentId && <button onClick={() => { onClose(); onDuplicate(); }} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-gold/30 px-3 py-2.5 text-sm font-semibold text-gold"><Copy size={15} /> {t("vastu.homes.duplicate", "Duplicate")}</button>}
       </div>
     </Sheet>

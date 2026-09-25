@@ -354,4 +354,53 @@ test.describe("Vastu Studio", () => {
     await page.getByRole("tab", { name: "2D" }).click();
     await expect(page.getByTestId("vastu-room-bar")).toContainText("Bathroom");
   });
+
+  test("advanced guides draw over the plan without changing the score", async ({ page }) => {
+    await open(page);
+    await expect(page.getByTestId("vastu-save-status")).toHaveText(/Saved/);
+    await expect(page.getByTestId("vastu-issue")).toHaveCount(1);
+    const score = await page.getByTestId("vastu-score-card").textContent();
+    await page.getByTestId("vastu-guides-open").click();
+    await page.getByTestId("vastu-advanced-grid81").click();
+    await page.getByRole("button", { name: "Close" }).last().click();
+    await expect(page.getByTestId("vastu-advanced-overlay")).toHaveAttribute("data-mode", "grid81");
+    await expect(page.getByTestId("vastu-score-card")).toHaveText(score ?? "");
+  });
+
+  test("a traced floor-plan photo shows under the plan and is never uploaded", async ({ page }) => {
+    const api = await open(page);
+    await page.getByTestId("vastu-plot").click();
+    await page.getByRole("button", { name: /Trace over a photo/ }).click();
+    // A tiny valid PNG.
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEJMDEgAUwGAG0aA/1bLkxnAAAAAElFTkSuQmCC",
+      "base64",
+    );
+    await page.getByTestId("vastu-trace-file").setInputFiles({ name: "plan.png", mimeType: "image/png", buffer: png });
+    await expect(page.getByTestId("vastu-trace-opacity")).toBeVisible();
+    await page.getByRole("button", { name: "Close" }).last().click();
+    await expect(page.getByTestId("vastu-trace-underlay")).toBeVisible();
+    // Nothing about the photo went to the server.
+    expect(api.calls.some((c) => JSON.stringify(c.body ?? "").includes("data:image"))).toBe(false);
+  });
+
+  test("versions: save one, then restore it into the editor", async ({ page }) => {
+    const restored = { plot: square, northOffsetDeg: 0, rooms: [{ id: "d1", type: "dining", x: 9, y: 5, w: 3, h: 3, fixtures: [] }] };
+    const api = await open(page, {
+      "GET /v1/vastu/homes/:id/versions": () => ({
+        json: { versions: [{ id: "99999999-9999-4999-8999-999999999999", homeId: HOME_ID, label: null, overallScore: 100, ruleSetId: "aroha-traditional-v1", createdAt: "2026-09-20T10:00:00.000Z" }] },
+      }),
+      "POST /v1/vastu/homes/:id/versions": () => ({ status: 201, json: { id: "v-new", homeId: HOME_ID, label: null, overallScore: 90, ruleSetId: "aroha-traditional-v1", createdAt: new Date().toISOString() } }),
+      "POST /v1/vastu/homes/:id/versions/:vid/restore": () => ({ json: home(restored) }),
+    });
+    await page.getByTestId("vastu-home-switch").click();
+    await page.getByTestId("vastu-versions-open").click();
+    await page.getByTestId("vastu-version-save").click();
+    await expect.poll(() => api.calls.filter((c) => c.method === "POST" && c.path === `/v1/vastu/homes/${HOME_ID}/versions`).length).toBe(1);
+    await page.getByTestId("vastu-version-restore").first().click();
+    await page.getByTestId("vastu-version-confirm").click();
+    const rows = await allRooms(page);
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText("Dining");
+  });
 });

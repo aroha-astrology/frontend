@@ -1014,6 +1014,17 @@ export interface VastuPlan {
   completedAt: string | null;
 }
 
+/** A saved snapshot of a home. */
+export interface VastuHomeVersion {
+  id: string;
+  homeId: string;
+  label: string | null;
+  overallScore: number | null;
+  ruleSetId: string;
+  createdAt: string;
+  layout?: Record<string, unknown>;
+}
+
 /** A floor plan saved to the account, scoped to the active profile. */
 export interface VastuHome {
   id: string;
@@ -1349,6 +1360,18 @@ export const api = {
   ) => request<VastuHome>(`/v1/vastu/homes/${id}`, { method: "PATCH", body, auth: true }),
 
   vastuHomeDelete: (id: string) => request<void>(`/v1/vastu/homes/${id}`, { method: "DELETE", auth: true }),
+
+  /** Saved versions of a home, newest first (no layouts). */
+  vastuHomeVersions: (homeId: string) =>
+    request<{ versions: VastuHomeVersion[] }>(`/v1/vastu/homes/${homeId}/versions`, { auth: true }),
+
+  /** Snapshot the home's current saved layout as a version. */
+  vastuHomeVersionCreate: (homeId: string, label?: string) =>
+    request<VastuHomeVersion>(`/v1/vastu/homes/${homeId}/versions`, { method: "POST", body: label ? { label } : {}, auth: true }),
+
+  /** Restore a version (the server first saves the current state as "Before restore"). */
+  vastuHomeVersionRestore: (homeId: string, versionId: string) =>
+    request<VastuHome>(`/v1/vastu/homes/${homeId}/versions/${versionId}/restore`, { method: "POST", auth: true }),
 
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as

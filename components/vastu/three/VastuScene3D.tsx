@@ -297,12 +297,15 @@ export default function VastuScene3D({ plan, ratingById, labelForType, selectedI
 
   const selected = selectedId ? plan.rooms.find((r) => r.id === selectedId) : undefined;
   const target = useMemo(
-    () => (selected ? new THREE.Vector3(selected.x + selected.w / 2 - c.x, 0.3, selected.y + selected.h / 2 - c.y) : new THREE.Vector3(0, 0.2, 0)),
+    () => (selected ? new THREE.Vector3(selected.x + selected.w / 2 - c.x, 0.3, selected.y + selected.h / 2 - c.y) : // Aim a little toward the viewer's side: perspective makes the near corner loom, and
+      // this keeps the whole house optically centred rather than sitting low.
+      new THREE.Vector3(houseR * 0.12, 0.3, houseR * 0.14)),
     // Re-aim only when the selection changes, not on every drag in 2D.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedId, resetNonce],
   );
-  const radius = selected ? Math.max(2.2, Math.max(selected.w, selected.h) * 0.95) : houseR + 0.9;
+  // Frame the house itself (its walls reach ~1.3 up); the compass ring may bleed off the edges.
+  const radius = selected ? Math.max(2.2, Math.max(selected.w, selected.h) * 0.95) : houseR * 0.97 + 0.4;
   const goalKey = `${selectedId ?? "home"}:${resetNonce}`;
 
   const nr = houseR + 1.4;

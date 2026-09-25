@@ -375,6 +375,13 @@ export function useHomeSync({
     [homes, loadPlan, setCurrent],
   );
 
+  /** Push any pending edit now and wait for it (e.g. before snapshotting a version). */
+  const saveNow = useCallback(async () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    await push();
+  }, [push]);
+
   const home = homes.find((h) => h.id === homeId) ?? null;
-  return { status, home, homes, ready, needsStart, selectHome, createHome, renameHome, deleteHome };
+  return { status, home, homes, ready, needsStart, selectHome, createHome, renameHome, deleteHome, saveNow };
 }

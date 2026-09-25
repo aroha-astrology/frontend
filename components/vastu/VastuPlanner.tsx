@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Maximize2, X, AlertTriangle, Loader2, RotateCcw, Box, Square, Sparkles } from "lucide-react";
 import type { CameraMode } from "./three/VastuScene3D";
 import { useAuth } from "@/providers/auth-provider";
-import { useFeature } from "@/hooks/useFeature";
+import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { api, type VastuPlan } from "@/lib/api";
 import { reportErrorKey } from "@/lib/vastu/errors";
 import { getRoomType } from "@/lib/vastu/data";
@@ -79,6 +79,8 @@ export default function VastuPlanner() {
   const { t, i18n } = useTranslation();
   const { user, profiles, activeProfile, refresh } = useAuth();
   const paidVastu = useFeature("paid.vastu");
+  // Admin switch for the 3D view (fails closed: hidden until the backend says on).
+  const has3d = useNewFeature("nav.vastuThreeD").enabled;
   const CREDIT_COST_PAISE = paidVastu.pricePaise ?? 5000;
   const [history, dispatch] = useReducer(historyReducer, undefined, () => initialHistory(initialPlan()));
   const plan = history.present;
@@ -503,7 +505,7 @@ export default function VastuPlanner() {
               setFocus(null);
               setFix(null);
             }}
-            has3d
+            has3d={has3d}
           />
         </div>
         <button
@@ -514,7 +516,7 @@ export default function VastuPlanner() {
           {fullscreen ? <X size={16} /> : <Maximize2 size={15} />}
         </button>
       </div>
-      {view === "3d" ? (
+      {view === "3d" && has3d ? (
         <div className="relative pt-12">
           <div className="aspect-square w-full" data-testid="vastu-3d">
             <VastuScene3D

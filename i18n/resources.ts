@@ -537,6 +537,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "My Home" },
+        save: { saving: "Saving…", saved: "Saved", offline: "Offline · saved on this device", error: "Not saved · will retry" },
+        validation: { plotInvalid: "The home outline crosses itself — drag a corner back.", outside_one: "{{count}} room is outside the home outline", outside_other: "{{count}} rooms are outside the home outline", overlap: "Some rooms overlap" },
+        reportErrors: { offline: "You're offline. Connect to the internet to generate a report.", dailyLimit: "You've reached today's Vastu report limit. Please try again tomorrow.", tooFast: "Too many requests just now. Please wait a minute and try again.", consent: "Please complete data-processing consent before generating this report.", unavailable: "Vastu reports are unavailable right now.", invalidPlan: "Move every room inside the home outline before generating a report." },
+        history: { deleteReport: "Delete report", deleteConfirm: "Delete", deleteError: "Could not delete that report. Please try again.", openPlan: "Open this plan", openPlanConfirm: "Load this report's floor plan into the editor? It replaces your current plan." },
         title: "Vastu Planner",
         subtitle: "Draw your floor plan and see live Vastu analysis",
         rooms: {
@@ -617,7 +622,6 @@ export const resources = {
           historyTitle: "Previous Plans",
           stillWorking: "This is taking longer than usual. Your report will appear in the list below when it's ready.", failedRefunded: "Could not generate the report. Any amount charged has been refunded to your wallet.", status: { pending: "Queued", processing: "Working…", error: "Failed · refunded" },
           historyEmpty: "No Vastu plan generated yet for {{name}}.",
-          signInToAnalyze: "Sign in to get your AI Vastu report.",
           error: "Could not generate the report. Please try again.",
         },
         onboarding: {
@@ -2114,12 +2118,12 @@ export const resources = {
           thisYearBody: "From your annual chart — the muntha house, and which planet helps or hinders you this year.",
         },
         vastu: {
-          canvasTitle: "Draw your home",
-          canvasBody: "Drag rooms to match your actual floor plan. North is at the top.",
-          paletteTitle: "Add rooms",
-          paletteBody: "Kitchen, bedroom, pooja room, entrance — each one matters to the direction rules.",
-          analysisTitle: "What needs fixing",
-          analysisBody: "Direction-by-direction findings, and practical changes that do not need you to rebuild anything.",
+          canvasTitle: "Build your home",
+          canvasBody: "Drag rooms, corners and doors until the plan looks like your home.",
+          northTitle: "Point it North",
+          northBody: "Use your phone's compass or turn it by hand — every direction depends on it.",
+          analysisTitle: "See Vastu live",
+          analysisBody: "Your score and what to look at first update as you move rooms. Tap Show me or Fix this.",
         },
         palm: {
           startTitle: "Read your palm",
@@ -2933,6 +2937,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "मेरा घर" },
+        save: { saving: "सेव हो रहा है…", saved: "सेव हो गया", offline: "ऑफ़लाइन · इस डिवाइस पर सेव", error: "सेव नहीं हुआ · फिर कोशिश होगी" },
+        validation: { plotInvalid: "घर की रेखा खुद को काट रही है — एक कोना वापस खींचें।", outside_one: "{{count}} कमरा घर की सीमा से बाहर है", outside_other: "{{count}} कमरे घर की सीमा से बाहर हैं", overlap: "कुछ कमरे एक-दूसरे पर चढ़े हुए हैं" },
+        reportErrors: { offline: "आप ऑफ़लाइन हैं। रिपोर्ट बनाने के लिए इंटरनेट से जुड़ें।", dailyLimit: "आज की वास्तु रिपोर्ट सीमा पूरी हो गई है। कृपया कल फिर कोशिश करें।", tooFast: "अभी बहुत सारे अनुरोध हुए हैं। एक मिनट रुककर फिर कोशिश करें।", consent: "यह रिपोर्ट बनाने से पहले कृपया डेटा-प्रोसेसिंग सहमति पूरी करें।", unavailable: "वास्तु रिपोर्ट अभी उपलब्ध नहीं है।", invalidPlan: "रिपोर्ट बनाने से पहले हर कमरे को घर की सीमा के अंदर रखें।" },
+        history: { deleteReport: "रिपोर्ट हटाएँ", deleteConfirm: "हटाएँ", deleteError: "रिपोर्ट हटाई नहीं जा सकी। फिर कोशिश करें।", openPlan: "यह नक्शा खोलें", openPlanConfirm: "इस रिपोर्ट का नक्शा एडिटर में खोलें? यह आपके मौजूदा नक्शे की जगह ले लेगा।" },
         title: "वास्तु प्लानर",
         subtitle: "अपना फ्लोर प्लान बनाएं और लाइव वास्तु विश्लेषण देखें",
         rooms: {
@@ -2959,7 +2968,7 @@ export const resources = {
           good: "अच्छा वास्तु", needsWork: "सुधार की आवश्यकता", majorIssues: "बड़ी समस्याएँ",
           getRemedies: "AI उपाय प्राप्त करें", analyzing: "वास्तु विशेषज्ञ से परामर्श…", remediesTitle: "AI उपाय और समाधान",
           priorityActions: "प्राथमिक कार्य", criticalDefects: "गंभीर दोष", elementBalance: "तत्व संतुलन",
-          historyTitle: "पिछली योजनाएँ", historyEmpty: "{{name}} के लिए अभी तक कोई वास्तु योजना नहीं बनाई गई है।", signInToAnalyze: "AI उपाय के लिए साइन इन करें।", error: "उपाय उत्पन्न नहीं हो सके। पुनः प्रयास करें।",
+          historyTitle: "पिछली योजनाएँ", historyEmpty: "{{name}} के लिए अभी तक कोई वास्तु योजना नहीं बनाई गई है।", error: "उपाय उत्पन्न नहीं हो सके। पुनः प्रयास करें।",
           stillWorking: "इसमें सामान्य से अधिक समय लग रहा है। तैयार होते ही आपकी रिपोर्ट नीचे की सूची में दिखाई देगी।", failedRefunded: "रिपोर्ट तैयार नहीं हो सकी। ली गई राशि आपके वॉलेट में वापस कर दी गई है।", status: { pending: "कतार में", processing: "तैयार हो रही है…", error: "विफल · राशि वापस" },
         },
         onboarding: {
@@ -4435,11 +4444,11 @@ export const resources = {
         },
         vastu: {
           canvasTitle: "अपना घर बनाएँ",
-          canvasBody: "अपने वास्तविक नक्शे के अनुसार कमरे खींचें। ऊपर की ओर उत्तर है।",
-          paletteTitle: "कमरे जोड़ें",
-          paletteBody: "रसोई, शयनकक्ष, पूजा कक्ष, प्रवेश — दिशा-नियमों में हर एक महत्वपूर्ण है।",
-          analysisTitle: "क्या सुधारना है",
-          analysisBody: "दिशावार निष्कर्ष, और ऐसे व्यावहारिक बदलाव जिनके लिए कुछ तोड़ना-बनाना न पड़े।",
+          canvasBody: "कमरे, कोने और दरवाज़े तब तक खींचें जब तक नक्शा आपके घर जैसा न लगे।",
+          northTitle: "उत्तर की ओर सेट करें",
+          northBody: "फ़ोन का कम्पास इस्तेमाल करें या हाथ से घुमाएँ — हर दिशा इसी पर निर्भर है।",
+          analysisTitle: "वास्तु लाइव देखें",
+          analysisBody: "कमरे खिसकाते ही आपका स्कोर और पहले देखने लायक बातें बदलती हैं। 'दिखाएँ' या 'इसे ठीक करें' टैप करें।",
         },
         palm: {
           startTitle: "अपनी हथेली पढ़ें",
@@ -5243,6 +5252,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "আমার বাড়ি" },
+        save: { saving: "সেভ হচ্ছে…", saved: "সেভ হয়েছে", offline: "অফলাইন · এই ডিভাইসে সেভ", error: "সেভ হয়নি · আবার চেষ্টা হবে" },
+        validation: { plotInvalid: "বাড়ির রেখা নিজেকে কাটছে — একটি কোণ ফিরিয়ে টানুন।", outside_one: "{{count}}টি ঘর বাড়ির সীমার বাইরে", outside_other: "{{count}}টি ঘর বাড়ির সীমার বাইরে", overlap: "কিছু ঘর একে অপরের উপর পড়েছে" },
+        reportErrors: { offline: "আপনি অফলাইন। রিপোর্ট তৈরি করতে ইন্টারনেটে যুক্ত হন।", dailyLimit: "আজকের বাস্তু রিপোর্টের সীমা শেষ। অনুগ্রহ করে আগামীকাল চেষ্টা করুন।", tooFast: "এইমাত্র অনেক অনুরোধ হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।", consent: "এই রিপোর্ট তৈরির আগে ডেটা-প্রসেসিং সম্মতি সম্পূর্ণ করুন।", unavailable: "বাস্তু রিপোর্ট এখন পাওয়া যাচ্ছে না।", invalidPlan: "রিপোর্ট তৈরির আগে প্রতিটি ঘর বাড়ির সীমার ভিতরে রাখুন।" },
+        history: { deleteReport: "রিপোর্ট মুছুন", deleteConfirm: "মুছুন", deleteError: "রিপোর্টটি মোছা যায়নি। আবার চেষ্টা করুন।", openPlan: "এই নকশা খুলুন", openPlanConfirm: "এই রিপোর্টের নকশা এডিটরে খুলবেন? এটি আপনার বর্তমান নকশার জায়গা নেবে।" },
         title: "বাস্তু প্ল্যানার",
         subtitle: "আপনার ফ্লোর প্ল্যান আঁকুন এবং লাইভ বাস্তু বিশ্লেষণ দেখুন",
         rooms: {
@@ -5269,7 +5283,7 @@ export const resources = {
           good: "ভালো বাস্তু", needsWork: "উন্নতি প্রয়োজন", majorIssues: "বড় সমস্যা",
           getRemedies: "AI প্রতিকার নিন", analyzing: "বাস্তু বিশেষজ্ঞের সাথে পরামর্শ…", remediesTitle: "AI প্রতিকার ও সমাধান",
           priorityActions: "অগ্রাধিকার পদক্ষেপ", criticalDefects: "গুরুতর ত্রুটি", elementBalance: "উপাদান ভারসাম্য",
-          historyTitle: "পূর্ববর্তী পরিকল্পনা", historyEmpty: "{{name}}-এর জন্য এখনও কোনো বাস্তু পরিকল্পনা তৈরি হয়নি।", signInToAnalyze: "AI প্রতিকারের জন্য সাইন ইন করুন।", error: "প্রতিকার তৈরি করা যায়নি। আবার চেষ্টা করুন।",
+          historyTitle: "পূর্ববর্তী পরিকল্পনা", historyEmpty: "{{name}}-এর জন্য এখনও কোনো বাস্তু পরিকল্পনা তৈরি হয়নি।", error: "প্রতিকার তৈরি করা যায়নি। আবার চেষ্টা করুন।",
           stillWorking: "এতে স্বাভাবিকের চেয়ে বেশি সময় লাগছে। তৈরি হলে আপনার রিপোর্ট নিচের তালিকায় দেখা যাবে।", failedRefunded: "রিপোর্ট তৈরি করা যায়নি। কাটা টাকা আপনার ওয়ালেটে ফেরত দেওয়া হয়েছে।", status: { pending: "অপেক্ষমাণ", processing: "তৈরি হচ্ছে…", error: "ব্যর্থ · টাকা ফেরত" },
         },
         onboarding: {
@@ -6746,12 +6760,12 @@ export const resources = {
           thisYearBody: "আপনার বর্ষকুণ্ডলী থেকে — মুন্থা ভাব, এবং এই বছর কোন গ্রহ সহায়ক বা বাধক।",
         },
         vastu: {
-          canvasTitle: "আপনার বাড়ি আঁকুন",
-          canvasBody: "আপনার প্রকৃত নকশা অনুযায়ী ঘরগুলি টানুন। উপরের দিকে উত্তর।",
-          paletteTitle: "ঘর যোগ করুন",
-          paletteBody: "রান্নাঘর, শোবার ঘর, পূজার ঘর, প্রবেশপথ — দিক-নিয়মে প্রত্যেকটিই গুরুত্বপূর্ণ।",
-          analysisTitle: "কী ঠিক করতে হবে",
-          analysisBody: "দিক অনুযায়ী পর্যবেক্ষণ, এবং এমন ব্যবহারিক পরিবর্তন যাতে কিছু ভাঙাগড়া লাগে না।",
+          canvasTitle: "নিজের বাড়ি তৈরি করুন",
+          canvasBody: "ঘর, কোণ ও দরজা টেনে নকশাটিকে নিজের বাড়ির মতো করুন।",
+          northTitle: "উত্তর দিকে সেট করুন",
+          northBody: "ফোনের কম্পাস ব্যবহার করুন বা হাতে ঘোরান — প্রতিটি দিক এর উপর নির্ভর করে।",
+          analysisTitle: "বাস্তু লাইভ দেখুন",
+          analysisBody: "ঘর সরালেই আপনার স্কোর ও আগে দেখার বিষয়গুলো বদলায়। 'দেখান' বা 'এটি ঠিক করুন' ট্যাপ করুন।",
         },
         palm: {
           startTitle: "আপনার হাত দেখুন",
@@ -7555,6 +7569,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "माझे घर" },
+        save: { saving: "सेव्ह होत आहे…", saved: "सेव्ह झाले", offline: "ऑफलाइन · या डिव्हाइसवर सेव्ह", error: "सेव्ह झाले नाही · पुन्हा प्रयत्न होईल" },
+        validation: { plotInvalid: "घराची रेषा स्वतःला छेदते — एक कोपरा परत ओढा.", outside_one: "{{count}} खोली घराच्या हद्दीबाहेर आहे", outside_other: "{{count}} खोल्या घराच्या हद्दीबाहेर आहेत", overlap: "काही खोल्या एकमेकांवर आल्या आहेत" },
+        reportErrors: { offline: "तुम्ही ऑफलाइन आहात. रिपोर्ट तयार करण्यासाठी इंटरनेटशी जोडा.", dailyLimit: "आजची वास्तु रिपोर्ट मर्यादा संपली आहे. कृपया उद्या पुन्हा प्रयत्न करा.", tooFast: "आत्ताच खूप विनंत्या झाल्या. एक मिनिट थांबून पुन्हा प्रयत्न करा.", consent: "हा रिपोर्ट तयार करण्यापूर्वी कृपया डेटा-प्रोसेसिंग संमती पूर्ण करा.", unavailable: "वास्तु रिपोर्ट सध्या उपलब्ध नाही.", invalidPlan: "रिपोर्ट तयार करण्यापूर्वी प्रत्येक खोली घराच्या हद्दीत ठेवा." },
+        history: { deleteReport: "रिपोर्ट हटवा", deleteConfirm: "हटवा", deleteError: "रिपोर्ट हटवता आला नाही. पुन्हा प्रयत्न करा.", openPlan: "हा नकाशा उघडा", openPlanConfirm: "या रिपोर्टचा नकाशा एडिटरमध्ये उघडायचा? तो तुमच्या सध्याच्या नकाशाची जागा घेईल." },
         title: "वास्तु प्लॅनर",
         subtitle: "तुमचा फ्लोअर प्लॅन काढा आणि थेट वास्तु विश्लेषण पहा",
         rooms: {
@@ -7581,7 +7600,7 @@ export const resources = {
           good: "चांगले वास्तु", needsWork: "सुधारणा हवी", majorIssues: "मोठ्या समस्या",
           getRemedies: "AI उपाय मिळवा", analyzing: "वास्तु तज्ज्ञांचा सल्ला…", remediesTitle: "AI उपाय व उपाययोजना",
           priorityActions: "प्राधान्य कृती", criticalDefects: "गंभीर दोष", elementBalance: "तत्व संतुलन",
-          historyTitle: "मागील योजना", historyEmpty: "{{name}} साठी अद्याप कोणतीही वास्तु योजना तयार केलेली नाही.", signInToAnalyze: "AI उपायांसाठी साइन इन करा.", error: "उपाय तयार करता आले नाहीत. पुन्हा प्रयत्न करा.",
+          historyTitle: "मागील योजना", historyEmpty: "{{name}} साठी अद्याप कोणतीही वास्तु योजना तयार केलेली नाही.", error: "उपाय तयार करता आले नाहीत. पुन्हा प्रयत्न करा.",
           stillWorking: "याला नेहमीपेक्षा जास्त वेळ लागत आहे. तयार झाल्यावर तुमचा अहवाल खालील यादीत दिसेल.", failedRefunded: "अहवाल तयार करता आला नाही. आकारलेली रक्कम तुमच्या वॉलेटमध्ये परत केली आहे.", status: { pending: "रांगेत", processing: "तयार होत आहे…", error: "अयशस्वी · रक्कम परत" },
         },
         onboarding: {
@@ -9059,12 +9078,12 @@ export const resources = {
           thisYearBody: "तुमच्या वर्षकुंडलीवरून — मुंथा स्थान, आणि या वर्षी कोणता ग्रह मदत करतो किंवा अडथळा आणतो.",
         },
         vastu: {
-          canvasTitle: "तुमचे घर काढा",
-          canvasBody: "तुमच्या प्रत्यक्ष नकाशाप्रमाणे खोल्या ओढा. वर उत्तर आहे.",
-          paletteTitle: "खोल्या जोडा",
-          paletteBody: "स्वयंपाकघर, शयनकक्ष, पूजाघर, प्रवेश — दिशा-नियमांत प्रत्येक महत्त्वाचे आहे.",
-          analysisTitle: "काय दुरुस्त करायचे",
-          analysisBody: "दिशानिहाय निष्कर्ष, आणि असे व्यावहारिक बदल ज्यासाठी काही तोडफोड करावी लागत नाही.",
+          canvasTitle: "तुमचे घर तयार करा",
+          canvasBody: "नकाशा तुमच्या घरासारखा दिसेपर्यंत खोल्या, कोपरे आणि दरवाजे ओढा.",
+          northTitle: "उत्तरेकडे सेट करा",
+          northBody: "फोनचा होकायंत्र वापरा किंवा हाताने फिरवा — प्रत्येक दिशा यावर अवलंबून आहे.",
+          analysisTitle: "वास्तु लाइव्ह पाहा",
+          analysisBody: "खोल्या हलवताच तुमचे गुण आणि आधी पाहण्याच्या गोष्टी बदलतात. 'दाखवा' किंवा 'हे दुरुस्त करा' टॅप करा.",
         },
         palm: {
           startTitle: "तुमचा हात वाचा",
@@ -9868,6 +9887,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "నా ఇల్లు" },
+        save: { saving: "సేవ్ అవుతోంది…", saved: "సేవ్ అయింది", offline: "ఆఫ్‌లైన్ · ఈ పరికరంలో సేవ్", error: "సేవ్ కాలేదు · మళ్లీ ప్రయత్నిస్తాం" },
+        validation: { plotInvalid: "ఇంటి రేఖ తనను తానే దాటుతోంది — ఒక మూలను వెనక్కి లాగండి.", outside_one: "{{count}} గది ఇంటి హద్దు బయట ఉంది", outside_other: "{{count}} గదులు ఇంటి హద్దు బయట ఉన్నాయి", overlap: "కొన్ని గదులు ఒకదానిపై ఒకటి ఉన్నాయి" },
+        reportErrors: { offline: "మీరు ఆఫ్‌లైన్‌లో ఉన్నారు. రిపోర్ట్ కోసం ఇంటర్నెట్‌కు కనెక్ట్ అవ్వండి.", dailyLimit: "ఈరోజు వాస్తు రిపోర్ట్ పరిమితి పూర్తయింది. దయచేసి రేపు మళ్లీ ప్రయత్నించండి.", tooFast: "ఇప్పుడే చాలా అభ్యర్థనలు వచ్చాయి. ఒక నిమిషం ఆగి మళ్లీ ప్రయత్నించండి.", consent: "ఈ రిపోర్ట్ రూపొందించే ముందు డేటా-ప్రాసెసింగ్ సమ్మతిని పూర్తి చేయండి.", unavailable: "వాస్తు రిపోర్ట్‌లు ప్రస్తుతం అందుబాటులో లేవు.", invalidPlan: "రిపోర్ట్ రూపొందించే ముందు ప్రతి గదిని ఇంటి హద్దు లోపల ఉంచండి." },
+        history: { deleteReport: "రిపోర్ట్ తొలగించండి", deleteConfirm: "తొలగించు", deleteError: "రిపోర్ట్‌ను తొలగించలేకపోయాం. మళ్లీ ప్రయత్నించండి.", openPlan: "ఈ ప్లాన్ తెరవండి", openPlanConfirm: "ఈ రిపోర్ట్ ఫ్లోర్ ప్లాన్‌ను ఎడిటర్‌లో తెరవాలా? ఇది మీ ప్రస్తుత ప్లాన్ స్థానంలో వస్తుంది." },
         title: "వాస్తు ప్లానర్",
         subtitle: "మీ ఫ్లోర్ ప్లాన్ గీయండి, లైవ్ వాస్తు విశ్లేషణ చూడండి",
         rooms: {
@@ -9894,7 +9918,7 @@ export const resources = {
           good: "మంచి వాస్తు", needsWork: "మెరుగుదల అవసరం", majorIssues: "పెద్ద సమస్యలు",
           getRemedies: "AI పరిహారాలు పొందు", analyzing: "వాస్తు నిపుణుడిని సంప్రదిస్తోంది…", remediesTitle: "AI పరిహారాలు & పరిష్కారాలు",
           priorityActions: "ప్రాధాన్య చర్యలు", criticalDefects: "తీవ్ర లోపాలు", elementBalance: "మూలక సమతుల్యత",
-          historyTitle: "మునుపటి ప్రణాళికలు", historyEmpty: "{{name}} కోసం ఇంకా ఏ వాస్తు ప్రణాళిక రూపొందించలేదు.", signInToAnalyze: "AI పరిహారాల కోసం సైన్ ఇన్ చేయండి.", error: "పరిహారాలు రూపొందించలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+          historyTitle: "మునుపటి ప్రణాళికలు", historyEmpty: "{{name}} కోసం ఇంకా ఏ వాస్తు ప్రణాళిక రూపొందించలేదు.", error: "పరిహారాలు రూపొందించలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
           stillWorking: "దీనికి సాధారణం కంటే ఎక్కువ సమయం పడుతోంది. సిద్ధమైన తర్వాత మీ నివేదిక కింది జాబితాలో కనిపిస్తుంది.", failedRefunded: "నివేదికను రూపొందించలేకపోయాము. వసూలు చేసిన మొత్తం మీ వాలెట్‌కు తిరిగి జమ చేయబడింది.", status: { pending: "వరుసలో ఉంది", processing: "సిద్ధమవుతోంది…", error: "విఫలమైంది · మొత్తం తిరిగి జమ" },
         },
         onboarding: {
@@ -11368,12 +11392,12 @@ export const resources = {
           thisYearBody: "మీ వార్షిక జాతకం నుండి — ముంథా భావం, ఈ సంవత్సరం ఏ గ్రహం సహాయం లేదా ఆటంకం.",
         },
         vastu: {
-          canvasTitle: "మీ ఇంటిని గీయండి",
-          canvasBody: "మీ వాస్తవ ప్లాన్ ప్రకారం గదులను లాగండి. పైన ఉత్తరం.",
-          paletteTitle: "గదులు జోడించండి",
-          paletteBody: "వంటగది, పడకగది, పూజ గది, ప్రవేశం — దిశా నియమాలలో ప్రతిదీ ముఖ్యం.",
-          analysisTitle: "ఏమి సరిచేయాలి",
-          analysisBody: "దిశల వారీ ఫలితాలు, ఏదీ కూల్చాల్సిన అవసరం లేని ఆచరణాత్మక మార్పులు.",
+          canvasTitle: "మీ ఇంటిని నిర్మించండి",
+          canvasBody: "ప్లాన్ మీ ఇంటిలా కనిపించే వరకు గదులు, మూలలు, తలుపులను లాగండి.",
+          northTitle: "ఉత్తరం వైపు సెట్ చేయండి",
+          northBody: "ఫోన్ కంపాస్ ఉపయోగించండి లేదా చేత్తో తిప్పండి — ప్రతి దిశ దీనిపై ఆధారపడుతుంది.",
+          analysisTitle: "వాస్తును లైవ్‌గా చూడండి",
+          analysisBody: "గదులు జరిపినప్పుడు మీ స్కోర్, ముందు చూడాల్సినవి మారతాయి. 'చూపించు' లేదా 'దీన్ని సరిచేయండి' తాకండి.",
         },
         palm: {
           startTitle: "మీ అరచేయి చదవండి",
@@ -12177,6 +12201,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "என் வீடு" },
+        save: { saving: "சேமிக்கிறது…", saved: "சேமிக்கப்பட்டது", offline: "ஆஃப்லைன் · இந்தச் சாதனத்தில் சேமிக்கப்பட்டது", error: "சேமிக்கவில்லை · மீண்டும் முயலும்" },
+        validation: { plotInvalid: "வீட்டின் எல்லைக்கோடு தன்னையே கடக்கிறது — ஒரு மூலையைத் திரும்ப இழுக்கவும்.", outside_one: "{{count}} அறை வீட்டு எல்லைக்கு வெளியே உள்ளது", outside_other: "{{count}} அறைகள் வீட்டு எல்லைக்கு வெளியே உள்ளன", overlap: "சில அறைகள் ஒன்றின் மேல் ஒன்று உள்ளன" },
+        reportErrors: { offline: "நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். அறிக்கை உருவாக்க இணையத்துடன் இணைக்கவும்.", dailyLimit: "இன்றைய வாஸ்து அறிக்கை வரம்பை அடைந்துவிட்டீர்கள். நாளை மீண்டும் முயற்சிக்கவும்.", tooFast: "இப்போது அதிக கோரிக்கைகள். ஒரு நிமிடம் காத்திருந்து மீண்டும் முயற்சிக்கவும்.", consent: "இந்த அறிக்கையை உருவாக்கும் முன் தரவு-செயலாக்க ஒப்புதலை முடிக்கவும்.", unavailable: "வாஸ்து அறிக்கைகள் இப்போது கிடைக்கவில்லை.", invalidPlan: "அறிக்கை உருவாக்கும் முன் ஒவ்வொரு அறையையும் வீட்டு எல்லைக்குள் வைக்கவும்." },
+        history: { deleteReport: "அறிக்கையை நீக்கு", deleteConfirm: "நீக்கு", deleteError: "அந்த அறிக்கையை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.", openPlan: "இந்தத் திட்டத்தைத் திற", openPlanConfirm: "இந்த அறிக்கையின் வரைபடத்தை எடிட்டரில் திறக்கவா? இது உங்கள் தற்போதைய திட்டத்தை மாற்றும்." },
         title: "வாஸ்து திட்டமிடுபவர்",
         subtitle: "உங்கள் தளவமைப்பை வரைந்து நேரடி வாஸ்து பகுப்பாய்வைக் காணுங்கள்",
         rooms: {
@@ -12203,7 +12232,7 @@ export const resources = {
           good: "நல்ல வாஸ்து", needsWork: "மேம்பாடு தேவை", majorIssues: "பெரிய சிக்கல்கள்",
           getRemedies: "AI தீர்வுகளைப் பெறு", analyzing: "வாஸ்து நிபுணரை அணுகுகிறது…", remediesTitle: "AI தீர்வுகள் & பரிகாரங்கள்",
           priorityActions: "முன்னுரிமை நடவடிக்கைகள்", criticalDefects: "கடுமையான குறைபாடுகள்", elementBalance: "பஞ்சபூத சமநிலை",
-          historyTitle: "முந்தைய திட்டங்கள்", historyEmpty: "{{name}}க்காக இதுவரை எந்த வாஸ்து திட்டமும் உருவாக்கப்படவில்லை.", signInToAnalyze: "AI தீர்வுகளுக்கு உள்நுழையவும்.", error: "தீர்வுகளை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+          historyTitle: "முந்தைய திட்டங்கள்", historyEmpty: "{{name}}க்காக இதுவரை எந்த வாஸ்து திட்டமும் உருவாக்கப்படவில்லை.", error: "தீர்வுகளை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
           stillWorking: "இதற்கு வழக்கத்தை விட அதிக நேரம் ஆகிறது. தயாரானதும் உங்கள் அறிக்கை கீழே உள்ள பட்டியலில் தோன்றும்.", failedRefunded: "அறிக்கையை உருவாக்க முடியவில்லை. வசூலிக்கப்பட்ட தொகை உங்கள் வாலட்டில் திருப்பிச் சேர்க்கப்பட்டது.", status: { pending: "வரிசையில்", processing: "தயாராகிறது…", error: "தோல்வி · தொகை திருப்பப்பட்டது" },
         },
         onboarding: {
@@ -13683,12 +13712,12 @@ export const resources = {
           thisYearBody: "உங்கள் வருட ஜாதகத்திலிருந்து — முந்தா வீடு, இந்த ஆண்டு எந்தக் கிரகம் உதவும் அல்லது தடுக்கும்.",
         },
         vastu: {
-          canvasTitle: "உங்கள் வீட்டை வரையுங்கள்",
-          canvasBody: "உங்கள் உண்மையான வரைபடத்திற்கு ஏற்ப அறைகளை இழுங்கள். மேலே வடக்கு.",
-          paletteTitle: "அறைகளைச் சேர்க்கவும்",
-          paletteBody: "சமையலறை, படுக்கையறை, பூஜை அறை, நுழைவு — திசை விதிகளில் ஒவ்வொன்றும் முக்கியம்.",
-          analysisTitle: "எதைச் சரிசெய்ய வேண்டும்",
-          analysisBody: "திசை வாரியான கண்டுபிடிப்புகள், எதையும் இடிக்காமல் செய்யக்கூடிய நடைமுறை மாற்றங்கள்.",
+          canvasTitle: "உங்கள் வீட்டை உருவாக்குங்கள்",
+          canvasBody: "வரைபடம் உங்கள் வீடு போலத் தோன்றும் வரை அறைகள், மூலைகள், கதவுகளை இழுங்கள்.",
+          northTitle: "வடக்கு நோக்கி அமை",
+          northBody: "ஃபோன் திசைகாட்டியைப் பயன்படுத்துங்கள் அல்லது கையால் சுழற்றுங்கள் — ஒவ்வொரு திசையும் இதைப் பொறுத்தது.",
+          analysisTitle: "வாஸ்துவை நேரடியாகப் பாருங்கள்",
+          analysisBody: "அறைகளை நகர்த்தும்போது உங்கள் மதிப்பெண்ணும் முதலில் பார்க்க வேண்டியவையும் மாறும். 'காட்டு' அல்லது 'இதைச் சரிசெய்' என்பதைத் தட்டவும்.",
         },
         palm: {
           startTitle: "உங்கள் உள்ளங்கையைப் படியுங்கள்",
@@ -14491,6 +14520,11 @@ export const resources = {
         },
       },
       vastu: {
+        home: { defaultName: "મારું ઘર" },
+        save: { saving: "સેવ થઈ રહ્યું છે…", saved: "સેવ થયું", offline: "ઓફલાઇન · આ ડિવાઇસ પર સેવ", error: "સેવ ન થયું · ફરી પ્રયાસ થશે" },
+        validation: { plotInvalid: "ઘરની રેખા પોતાને જ કાપે છે — એક ખૂણો પાછો ખેંચો.", outside_one: "{{count}} રૂમ ઘરની હદની બહાર છે", outside_other: "{{count}} રૂમ ઘરની હદની બહાર છે", overlap: "કેટલાક રૂમ એકબીજા પર આવી ગયા છે" },
+        reportErrors: { offline: "તમે ઓફલાઇન છો. રિપોર્ટ બનાવવા ઇન્ટરનેટ સાથે જોડાઓ.", dailyLimit: "આજની વાસ્તુ રિપોર્ટ મર્યાદા પૂરી થઈ ગઈ છે. કૃપા કરીને કાલે ફરી પ્રયાસ કરો.", tooFast: "હમણાં ઘણી વિનંતીઓ આવી. એક મિનિટ રાહ જોઈને ફરી પ્રયાસ કરો.", consent: "આ રિપોર્ટ બનાવતા પહેલાં કૃપા કરીને ડેટા-પ્રોસેસિંગ સંમતિ પૂર્ણ કરો.", unavailable: "વાસ્તુ રિપોર્ટ હાલમાં ઉપલબ્ધ નથી.", invalidPlan: "રિપોર્ટ બનાવતા પહેલાં દરેક રૂમને ઘરની હદની અંદર રાખો." },
+        history: { deleteReport: "રિપોર્ટ કાઢી નાખો", deleteConfirm: "કાઢી નાખો", deleteError: "રિપોર્ટ કાઢી શકાયો નથી. ફરી પ્રયાસ કરો.", openPlan: "આ નકશો ખોલો", openPlanConfirm: "આ રિપોર્ટનો નકશો એડિટરમાં ખોલવો છે? તે તમારા હાલના નકશાનું સ્થાન લેશે." },
         title: "વાસ્તુ પ્લાનર",
         subtitle: "તમારો ફ્લોર પ્લાન દોરો અને લાઇવ વાસ્તુ વિશ્લેષણ જુઓ",
         rooms: {
@@ -14517,7 +14551,7 @@ export const resources = {
           good: "સારું વાસ્તુ", needsWork: "સુધારો જરૂરી", majorIssues: "મોટી સમસ્યાઓ",
           getRemedies: "AI ઉપાય મેળવો", analyzing: "વાસ્તુ નિષ્ણાતની સલાહ…", remediesTitle: "AI ઉપાય અને ઉકેલ",
           priorityActions: "પ્રાથમિકતા ક્રિયાઓ", criticalDefects: "ગંભીર ખામીઓ", elementBalance: "તત્વ સંતુલન",
-          historyTitle: "અગાઉની યોજનાઓ", historyEmpty: "{{name}} માટે હજુ સુધી કોઈ વાસ્તુ યોજના બનાવવામાં આવી નથી.", signInToAnalyze: "AI ઉપાય માટે સાઇન ઇન કરો.", error: "ઉપાય બનાવી શકાયા નથી. ફરી પ્રયાસ કરો.",
+          historyTitle: "અગાઉની યોજનાઓ", historyEmpty: "{{name}} માટે હજુ સુધી કોઈ વાસ્તુ યોજના બનાવવામાં આવી નથી.", error: "ઉપાય બનાવી શકાયા નથી. ફરી પ્રયાસ કરો.",
           stillWorking: "આમાં સામાન્ય કરતાં વધુ સમય લાગી રહ્યો છે. તૈયાર થયા પછી તમારો અહેવાલ નીચેની યાદીમાં દેખાશે.", failedRefunded: "અહેવાલ તૈયાર થઈ શક્યો નહીં. લેવાયેલી રકમ તમારા વૉલેટમાં પરત કરવામાં આવી છે.", status: { pending: "કતારમાં", processing: "તૈયાર થઈ રહ્યું છે…", error: "નિષ્ફળ · રકમ પરત" },
         },
         onboarding: {
@@ -15990,12 +16024,12 @@ export const resources = {
           thisYearBody: "તમારી વર્ષકુંડળી પરથી — મુંથા ભાવ, અને આ વર્ષે કયો ગ્રહ મદદ કરે કે અડચણ કરે.",
         },
         vastu: {
-          canvasTitle: "તમારું ઘર દોરો",
-          canvasBody: "તમારા ખરા નકશા પ્રમાણે ઓરડા ખેંચો. ઉપર ઉત્તર છે.",
-          paletteTitle: "ઓરડા ઉમેરો",
-          paletteBody: "રસોડું, શયનખંડ, પૂજા ખંડ, પ્રવેશ — દિશા-નિયમોમાં દરેક મહત્ત્વનું છે.",
-          analysisTitle: "શું સુધારવું",
-          analysisBody: "દિશા પ્રમાણે તારણો, અને એવા વ્યવહારુ ફેરફાર જેમાં કંઈ તોડવું ન પડે.",
+          canvasTitle: "તમારું ઘર બનાવો",
+          canvasBody: "નકશો તમારા ઘર જેવો લાગે ત્યાં સુધી રૂમ, ખૂણા અને દરવાજા ખેંચો.",
+          northTitle: "ઉત્તર તરફ સેટ કરો",
+          northBody: "ફોનનું હોકાયંત્ર વાપરો અથવા હાથથી ફેરવો — દરેક દિશા તેના પર આધાર રાખે છે.",
+          analysisTitle: "વાસ્તુ લાઇવ જુઓ",
+          analysisBody: "રૂમ ખસેડતાં જ તમારો સ્કોર અને પહેલાં જોવાની બાબતો બદલાય છે. 'બતાવો' અથવા 'આ સુધારો' ટૅપ કરો.",
         },
         palm: {
           startTitle: "તમારી હથેળી વાંચો",

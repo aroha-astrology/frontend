@@ -138,9 +138,10 @@ export const TOURS: TourDef[] = [
     path: "/vastu",
     exact: true,
     steps: [
+      // Task-shaped: build it, point it north, see Vastu live.
       { id: "canvas", target: "vastu-canvas", titleKey: "tour.vastu.canvasTitle", bodyKey: "tour.vastu.canvasBody", icon: Grid3x3 },
-      { id: "palette", target: "vastu-palette", titleKey: "tour.vastu.paletteTitle", bodyKey: "tour.vastu.paletteBody", icon: Home },
-      { id: "analysis", target: "vastu-analysis", titleKey: "tour.vastu.analysisTitle", bodyKey: "tour.vastu.analysisBody", icon: Compass },
+      { id: "north", target: "vastu-north", titleKey: "tour.vastu.northTitle", bodyKey: "tour.vastu.northBody", icon: Compass },
+      { id: "analysis", target: "vastu-analysis", titleKey: "tour.vastu.analysisTitle", bodyKey: "tour.vastu.analysisBody", icon: Home },
     ],
   },
   {

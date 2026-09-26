@@ -993,6 +993,8 @@ export interface VastuAnalyzeBody {
   layout?: Record<string, unknown>;
   /** UI language to generate the AI remedies in — backend defaults to 'en' if omitted. */
   language?: string;
+  /** The saved home this report is taken from. */
+  homeId?: string;
 }
 
 export interface VastuPlan {
@@ -1000,10 +1002,39 @@ export interface VastuPlan {
   status: "pending" | "processing" | "done" | "error";
   overallScore: number | null;
   roomLayout: Record<string, string[]>;
+  /** The editable plan as it was when the report was bought (null on very old reports). */
+  layout?: Record<string, unknown> | null;
   analysis: Record<string, unknown> | null;
+  /** Language the report was written in. */
+  language?: string;
+  ruleSetId?: string;
+  homeId?: string | null;
   errorMessage: string | null;
   createdAt: string;
   completedAt: string | null;
+}
+
+/** A saved snapshot of a home. */
+export interface VastuHomeVersion {
+  id: string;
+  homeId: string;
+  label: string | null;
+  overallScore: number | null;
+  ruleSetId: string;
+  createdAt: string;
+  layout?: Record<string, unknown>;
+}
+
+/** A floor plan saved to the account, scoped to the active profile. */
+export interface VastuHome {
+  id: string;
+  name: string;
+  layout: Record<string, unknown>;
+  overallScore: number | null;
+  ruleSetId: string;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Support tickets ────────────────────────────────────────────────────────
@@ -1316,6 +1347,31 @@ export const api = {
 
   /** Delete a Vastu plan. */
   vastuDelete: (id: string) => request<void>(`/v1/vastu/${id}`, { method: "DELETE", auth: true }),
+
+  /** The active profile's saved homes, most recently edited first. */
+  vastuHomesList: () => request<{ homes: VastuHome[] }>("/v1/vastu/homes", { auth: true }),
+
+  vastuHomeCreate: (body: { name: string; layout: Record<string, unknown>; overallScore?: number }) =>
+    request<VastuHome>("/v1/vastu/homes", { method: "POST", body, auth: true }),
+
+  vastuHomeUpdate: (
+    id: string,
+    body: { name?: string; layout?: Record<string, unknown>; overallScore?: number | null; archived?: boolean },
+  ) => request<VastuHome>(`/v1/vastu/homes/${id}`, { method: "PATCH", body, auth: true }),
+
+  vastuHomeDelete: (id: string) => request<void>(`/v1/vastu/homes/${id}`, { method: "DELETE", auth: true }),
+
+  /** Saved versions of a home, newest first (no layouts). */
+  vastuHomeVersions: (homeId: string) =>
+    request<{ versions: VastuHomeVersion[] }>(`/v1/vastu/homes/${homeId}/versions`, { auth: true }),
+
+  /** Snapshot the home's current saved layout as a version. */
+  vastuHomeVersionCreate: (homeId: string, label?: string) =>
+    request<VastuHomeVersion>(`/v1/vastu/homes/${homeId}/versions`, { method: "POST", body: label ? { label } : {}, auth: true }),
+
+  /** Restore a version (the server first saves the current state as "Before restore"). */
+  vastuHomeVersionRestore: (homeId: string, versionId: string) =>
+    request<VastuHome>(`/v1/vastu/homes/${homeId}/versions/${versionId}/restore`, { method: "POST", auth: true }),
 
   /**
    * Force-regenerate the kundli (synchronous on the backend). Same union as

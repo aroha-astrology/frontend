@@ -9,7 +9,7 @@ import type { Dir8, Zone, Room, Plan, Wall, Pt } from "./types";
 import { DIR8_CW } from "./data";
 
 /** Fraction of the plot half-diagonal within which a room counts as central. */
-const BRAHMASTHAN_RADIUS_FRAC = 0.12;
+export const BRAHMASTHAN_RADIUS_FRAC = 0.12;
 
 export function roomCentroid(room: Room): Pt {
   return { x: room.x + room.w / 2, y: room.y + room.h / 2 };
@@ -175,4 +175,113 @@ export function plotSummary(plan: Plan): string {
     return ratio < 1.15 ? "square 4-sided plot" : "rectangular 4-sided plot";
   }
   return `${n}-sided plot`;
+}
+
+// ── Plan validity ────────────────────────────────────────────────────────────
+// Rooms are rectangles; the plot is any simple polygon. These are exact checks
+// against the real outline, not its bounding box.
+
+const EPS = 1e-6;
+
+/** Twice the signed area of triangle abc (>0 = counter-clockwise in y-up terms). */
+function cross(a: Pt, b: Pt, c: Pt): number {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+function onSegment(p: Pt, a: Pt, b: Pt): boolean {
+  return (
+    Math.abs(cross(a, b, p)) < EPS &&
+    p.x >= Math.min(a.x, b.x) - EPS &&
+    p.x <= Math.max(a.x, b.x) + EPS &&
+    p.y >= Math.min(a.y, b.y) - EPS &&
+    p.y <= Math.max(a.y, b.y) + EPS
+  );
+}
+
+/** True when segments ab and cd cross at a single interior point (touching/collinear doesn't count). */
+export function segmentsCross(a: Pt, b: Pt, c: Pt, d: Pt): boolean {
+  const d1 = cross(c, d, a);
+  const d2 = cross(c, d, b);
+  const d3 = cross(a, b, c);
+  const d4 = cross(a, b, d);
+  return (
+    ((d1 > EPS && d2 < -EPS) || (d1 < -EPS && d2 > EPS)) &&
+    ((d3 > EPS && d4 < -EPS) || (d3 < -EPS && d4 > EPS))
+  );
+}
+
+/** Point in polygon; a point on the outline counts as inside. */
+export function pointInPolygon(p: Pt, poly: Pt[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i];
+    const b = poly[j];
+    if (onSegment(p, a, b)) return true;
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function rectCorners(r: { x: number; y: number; w: number; h: number }): Pt[] {
+  return [
+    { x: r.x, y: r.y },
+    { x: r.x + r.w, y: r.y },
+    { x: r.x + r.w, y: r.y + r.h },
+    { x: r.x, y: r.y + r.h },
+  ];
+}
+
+/**
+ * Whether a room rectangle lies fully inside the plot outline (edges may touch
+ * it). All four corners must be inside, no plot corner may poke into the room,
+ * and no plot edge may cut across it — together these catch concave notches
+ * that a corners-only test misses.
+ */
+export function roomInsidePlot(room: { x: number; y: number; w: number; h: number }, plot: Pt[]): boolean {
+  const corners = rectCorners(room);
+  if (!corners.every((c) => pointInPolygon(c, plot))) return false;
+  const strictlyInside = (p: Pt) =>
+    p.x > room.x + EPS && p.x < room.x + room.w - EPS && p.y > room.y + EPS && p.y < room.y + room.h - EPS;
+  if (plot.some(strictlyInside)) return false;
+  for (let i = 0; i < plot.length; i++) {
+    const a = plot[i];
+    const b = plot[(i + 1) % plot.length];
+    for (let k = 0; k < 4; k++) {
+      if (segmentsCross(a, b, corners[k], corners[(k + 1) % 4])) return false;
+    }
+  }
+  return true;
+}
+
+/** Two rooms share floor area (touching walls is fine). */
+export function roomsOverlap(
+  a: { x: number; y: number; w: number; h: number },
+  b: { x: number; y: number; w: number; h: number },
+): boolean {
+  const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return ox > EPS && oy > EPS;
+}
+
+/** The plot outline crosses itself (e.g. a corner dragged across the opposite side). */
+export function polygonSelfIntersects(plot: Pt[]): boolean {
+  const n = plot.length;
+  for (let i = 0; i < n; i++) {
+    const a = plot[i];
+    const b = plot[(i + 1) % n];
+    for (let j = i + 1; j < n; j++) {
+      // Adjacent edges share a corner — not a crossing.
+      if (j === i || (j + 1) % n === i || (i + 1) % n === j) continue;
+      if (segmentsCross(a, b, plot[j], plot[(j + 1) % n])) return true;
+    }
+  }
+  return false;
+}
+
+/** Radius (plot units) within which a room centre counts as on the Brahmasthan. */
+export function brahmasthanRadius(plan: Plan): number {
+  const bb = bbox(plan.plot);
+  return (Math.hypot(bb.w, bb.h) / 2) * BRAHMASTHAN_RADIUS_FRAC;
 }

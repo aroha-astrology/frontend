@@ -1,11 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import type { Plan, Room, Wall } from "@/lib/vastu/types";
 import type { RoomRating } from "@/lib/vastu/analysis";
-import { plotOutlinePath, planCenter, maxVertexDist, bbox } from "@/lib/vastu/geometry";
-import type { PlanAction } from "./planState";
+import type { RoomIssue } from "@/lib/vastu/validation";
+import { plotOutlinePath, planCenter, maxVertexDist, bbox, brahmasthanRadius } from "@/lib/vastu/geometry";
+import type { StudioAction } from "@/lib/vastu/history";
+import { lensSectors, FIT_HEX } from "@/lib/vastu/lens";
+import { DIRECTION_META } from "@/lib/vastu/data";
+import type { TraceImage } from "@/lib/vastu/trace";
+import AdvancedOverlay from "./studio/AdvancedOverlay";
+import TraceUnderlay from "./studio/TraceUnderlay";
 import RoomBlock, { type Corner } from "./RoomBlock";
 import CompassRing from "./CompassRing";
 
@@ -49,21 +55,41 @@ const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 export default function PlanCanvas({
   plan,
   ratingById,
+  issuesById,
   labelForType,
   colorForType,
   selectedId,
   onSelect,
   dispatch,
   locked,
+  lens = false,
+  focus,
+  badgeLabel,
+  ghosts,
+  advanced = "off",
+  trace,
 }: {
   plan: Plan;
   ratingById: Record<string, RoomRating>;
+  issuesById?: Record<string, RoomIssue[]>;
   labelForType: (type: string) => string;
   colorForType: (type: string) => string;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
-  dispatch: React.Dispatch<PlanAction>;
+  dispatch: React.Dispatch<StudioAction>;
   locked: boolean;
+  /** Vastu Lens: tint the plot by direction (for the selected room's type, when one is selected). */
+  lens?: boolean;
+  /** "Show me": zoom to this room. `nonce` re-triggers for the same room. */
+  focus?: { roomId: string; nonce: number } | null;
+  /** Text for the floating badge over the selected room, e.g. "SE · ✓ Highly Beneficial". */
+  badgeLabel?: string | null;
+  /** Proposed positions to preview (dashed gold), with the current rooms dimmed. */
+  ghosts?: { roomId: string; x: number; y: number; w: number; h: number }[];
+  /** Advanced Vastu guide over the plot (visual only). */
+  advanced?: "off" | "zones16" | "grid81";
+  /** A floor-plan photo shown faintly underneath, for tracing. */
+  trace?: TraceImage | null;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -72,6 +98,7 @@ export default function PlanCanvas({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Pt>({ x: 0, y: 0 });
   const [selVertex, setSelVertex] = useState<number | null>(null);
+  const focusRoom = focus ? plan.rooms.find((r) => r.id === focus.roomId) : undefined;
 
   const center = planCenter(plan);
   const ringRadius = maxVertexDist(plan) + 1.5;
@@ -80,6 +107,20 @@ export default function PlanCanvas({
   const H = ringRadius + 2.6;
   const viewSize = (2 * H) / zoom;
   const bb = bbox(plan.plot);
+
+  // "Show me": zoom in on the room and centre it.
+  useEffect(() => {
+    if (!focus || !focusRoom) return;
+    const span = Math.max(focusRoom.w, focusRoom.h) * 3.2;
+    const nz = clampZoom((2 * H) / Math.max(span, 1));
+    const rcx = focusRoom.x + focusRoom.w / 2;
+    const rcy = focusRoom.y + focusRoom.h / 2;
+    // viewBox min = center - vs/2 + pan  →  choose pan so the room is centred.
+    const lim = H;
+    setZoom(nz);
+    setPan(nz === 1 ? { x: 0, y: 0 } : { x: Math.max(-lim, Math.min(lim, rcx - center.x)), y: Math.max(-lim, Math.min(lim, rcy - center.y)) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus?.nonce]);
 
   const minX = center.x - viewSize / 2 + pan.x;
   const minY = center.y - viewSize / 2 + pan.y;
@@ -140,6 +181,7 @@ export default function PlanCanvas({
     const room = plan.rooms.find((r) => r.id === roomId);
     if (!room) return;
     dragRef.current = { kind: "move", roomId, startUnit: toUnit(e.clientX, e.clientY), startX: room.x, startY: room.y };
+    dispatch({ type: "beginGesture" });
     capture(e);
   };
   const onHandleDown = (e: React.PointerEvent, roomId: string, corner: Corner) => {
@@ -153,6 +195,7 @@ export default function PlanCanvas({
       y: corner === "tl" || corner === "tr" ? room.y + room.h : room.y,
     };
     dragRef.current = { kind: "resize", roomId, corner, fixed };
+    dispatch({ type: "beginGesture" });
     capture(e);
   };
   const onFixtureDown = (e: React.PointerEvent, roomId: string, fixtureId: string) => {
@@ -160,6 +203,7 @@ export default function PlanCanvas({
     if (multi()) return;
     onSelect(roomId);
     dragRef.current = { kind: "fixture", roomId, fixtureId };
+    dispatch({ type: "beginGesture" });
     capture(e);
   };
   const onVertexDown = (e: React.PointerEvent, index: number) => {
@@ -168,6 +212,18 @@ export default function PlanCanvas({
     setSelVertex(index);
     onSelect(null);
     dragRef.current = { kind: "vertex", index };
+    dispatch({ type: "beginGesture" });
+    capture(e);
+  };
+  // Dragging a wall's midpoint "+" inserts a corner there and drags it.
+  const onMidpointDown = (e: React.PointerEvent, edgeIndex: number) => {
+    e.stopPropagation();
+    if (multi()) return;
+    onSelect(null);
+    dispatch({ type: "addVertex", edgeIndex });
+    setSelVertex(edgeIndex + 1);
+    dragRef.current = { kind: "vertex", index: edgeIndex + 1 };
+    dispatch({ type: "beginGesture" });
     capture(e);
   };
   const onBackgroundDown = (e: React.PointerEvent) => {
@@ -237,6 +293,7 @@ export default function PlanCanvas({
         /* pointer already released */
       }
       dragRef.current = null;
+      dispatch({ type: "endGesture" });
     }
   };
 
@@ -265,6 +322,10 @@ export default function PlanCanvas({
   }
 
   const canDeleteVertex = plan.plot.length > 3;
+  const selectedRoom = selectedId ? plan.rooms.find((r) => r.id === selectedId) : undefined;
+  const lensType = selectedRoom?.type;
+  const badgeRoom = selectedRoom;
+  const badgeRating = selectedRoom ? ratingById[selectedRoom.id] : undefined;
 
   return (
     <div className="relative">
@@ -282,16 +343,72 @@ export default function PlanCanvas({
         onPointerCancel={endDrag}
         onWheel={onWheel}
       >
-        <path d={plotOutlinePath(plan)} fill="rgba(212,175,55,0.03)" stroke="rgba(212,175,55,0.5)" strokeWidth={0.13} strokeLinejoin="round" />
-        {gridLines}
+        <defs>
+          <clipPath id="vastu-plot-clip">
+            <path d={plotOutlinePath(plan)} />
+          </clipPath>
+          <radialGradient id="vastu-plot-fill" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="rgba(223,181,100,0.07)" />
+            <stop offset="100%" stopColor="rgba(223,181,100,0.015)" />
+          </radialGradient>
+        </defs>
+        {trace && <TraceUnderlay trace={trace} />}
+        <path d={plotOutlinePath(plan)} fill={trace ? "rgba(223,181,100,0.03)" : "url(#vastu-plot-fill)"} stroke="rgba(223,181,100,0.55)" strokeWidth={0.13} strokeLinejoin="round" />
+        {!lens && advanced === "off" && gridLines}
+        {advanced !== "off" && <AdvancedOverlay plan={plan} mode={advanced} radius={ringRadius} />}
 
+        {lens && (
+          <g clipPath="url(#vastu-plot-clip)" style={{ pointerEvents: "none" }} data-testid="vastu-lens">
+            {lensSectors(plan, ringRadius, lensType).map((sct, i) => (
+              <path
+                key={sct.dir}
+                d={sct.path}
+                fill={sct.fit ? FIT_HEX[sct.fit] : DIRECTION_META[sct.dir].color}
+                fillOpacity={sct.fit ? (sct.fit === "neutral" ? 0.04 : 0.15) : i % 2 ? 0.06 : 0.1}
+                stroke="rgba(223,181,100,0.28)"
+                strokeWidth={0.04}
+              />
+            ))}
+            <circle cx={center.x} cy={center.y} r={brahmasthanRadius(plan)} fill="rgba(223,181,100,0.18)" stroke="#D4AF37" strokeWidth={0.06} strokeDasharray="0.18 0.14" />
+          </g>
+        )}
         <circle cx={center.x} cy={center.y} r={0.5} fill="none" stroke="rgba(212,175,55,0.5)" strokeWidth={0.06} strokeDasharray="0.2 0.2" />
 
         {plan.rooms.map((room) => {
           const rating = ratingById[room.id];
           if (!rating) return null;
           return (
-            <RoomBlock key={room.id} room={room} color={colorForType(room.type)} label={labelForType(room.type)} rating={rating} selected={room.id === selectedId} onBodyDown={onBodyDown} onHandleDown={onHandleDown} onFixtureDown={onFixtureDown} />
+            <g key={room.id} opacity={ghosts?.some((g) => g.roomId === room.id) ? 0.3 : lens && selectedId && room.id !== selectedId ? 0.55 : 1}>
+              <RoomBlock room={room} color={colorForType(room.type)} label={labelForType(room.type)} rating={rating} selected={room.id === selectedId} issues={issuesById?.[room.id]} onBodyDown={onBodyDown} onHandleDown={onHandleDown} onFixtureDown={onFixtureDown} />
+            </g>
+          );
+        })}
+
+        {ghosts?.map((ghost) => {
+          const from = plan.rooms.find((r) => r.id === ghost.roomId);
+          return (
+            <g key={ghost.roomId} style={{ pointerEvents: "none" }} data-testid="vastu-ghost">
+              {from && (from.x !== ghost.x || from.y !== ghost.y) && (
+                <line x1={from.x + from.w / 2} y1={from.y + from.h / 2} x2={ghost.x + ghost.w / 2} y2={ghost.y + ghost.h / 2} stroke="#D4AF37" strokeWidth={0.07} strokeDasharray="0.2 0.2" opacity={0.7} />
+              )}
+              <rect x={ghost.x} y={ghost.y} width={ghost.w} height={ghost.h} rx={0.35} fill="rgba(212,175,55,0.12)" stroke="#D4AF37" strokeWidth={0.14} strokeDasharray="0.4 0.25">
+                <animate attributeName="stroke-dashoffset" from="0" to="-1.3" dur="1.2s" repeatCount="indefinite" />
+              </rect>
+            </g>
+          );
+        })}
+
+        {/* Mid-wall "+" — drag to add a corner there. */}
+        {!lens && plan.plot.length < 12 && plan.plot.map((a, i) => {
+          const b = plan.plot[(i + 1) % plan.plot.length];
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          return (
+            <g key={`mid${i}`} onPointerDown={(e) => onMidpointDown(e, i)} style={{ cursor: "copy", touchAction: "none" }} data-testid="vastu-midpoint">
+              <circle cx={mx} cy={my} r={0.55} fill="transparent" />
+              <circle cx={mx} cy={my} r={0.26} fill="var(--card)" stroke="rgba(223,181,100,0.55)" strokeWidth={0.06} />
+              <path d={`M${mx - 0.13} ${my}H${mx + 0.13}M${mx} ${my - 0.13}V${my + 0.13}`} stroke="#D4AF37" strokeWidth={0.06} strokeLinecap="round" />
+            </g>
           );
         })}
 
@@ -319,6 +436,23 @@ export default function PlanCanvas({
         })}
 
         <CompassRing cx={center.x} cy={center.y} radius={ringRadius} northOffsetDeg={plan.northOffsetDeg} locked={locked} />
+
+        {badgeRoom && badgeLabel && (() => {
+          const fs = Math.max(0.5, 0.62 / Math.sqrt(zoom));
+          const w = badgeLabel.length * fs * 0.56 + fs * 1.4;
+          const h = fs * 1.9;
+          const bx = badgeRoom.x + badgeRoom.w / 2;
+          const above = badgeRoom.y - h - 0.35 > minY + 0.2;
+          const by = above ? badgeRoom.y - h - 0.35 : badgeRoom.y + badgeRoom.h + 0.35;
+          return (
+            <g style={{ pointerEvents: "none" }} data-testid="vastu-room-badge">
+              <rect x={bx - w / 2} y={by} width={w} height={h} rx={h / 2} fill="var(--card)" stroke={badgeRating?.hex ?? "#D4AF37"} strokeWidth={0.07} />
+              <text x={bx} y={by + h / 2} dy={fs * 0.36} fontSize={fs} fontWeight={700} textAnchor="middle" fill={badgeRating?.hex ?? "#D4AF37"} style={{ userSelect: "none" }}>
+                {badgeLabel}
+              </text>
+            </g>
+          );
+        })()}
       </svg>
 
       <div className="absolute bottom-3 right-3 flex flex-col gap-1.5">

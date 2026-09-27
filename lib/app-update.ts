@@ -7,7 +7,7 @@ import { isNativeAndroid } from "./play-billing";
  * instantly, so already-installed APKs learn about the new build the moment
  * Vercel goes live, with no native change needed.
  */
-export const LATEST_PLAY_BUILD = 10;
+export const LATEST_PLAY_BUILD = 14;
 
 const SNOOZE_KEY = "aroha:updateSnoozed:v1";
 // "Later" hides it for a day, not forever — an outdated app is a problem that

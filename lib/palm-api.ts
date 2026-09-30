@@ -38,6 +38,29 @@ export interface PalmLineNote {
   prediction: string;
 }
 
+export type PalmEventKind = "marriage" | "child" | "careerChange" | "promotion" | "wealth" | "relocation";
+
+/** One life event read off the hand and dated against the birth chart. While the reading is
+ * only scanned (free), `ages` is empty and `locked` is true: the photo shows WHICH events the
+ * hand indicates and where, and the ages unlock with the full reading. */
+export interface PalmEvent {
+  kind: PalmEventKind;
+  /** A line id (heartLine…), or "marriageLine" / "childrenLine". */
+  source: string;
+  mark?: string;
+  /** 0-1 point on the front photo the callout points at, or null. */
+  anchor: [number, number] | null;
+  ages: Array<{ age: number; palmAge: number | null; agreement: "match" | "adjusted" | "chart"; past: boolean }>;
+  locked?: boolean;
+}
+
+export interface PalmKundliMatch {
+  percent: number;
+  timing: { agree: number; total: number } | null;
+  scores: { agree: number; total: number } | null;
+  mounts: { agree: number; total: number } | null;
+}
+
 export interface PalmReadingResponse {
   id: string;
   status: PalmReadingStatus;
@@ -61,7 +84,15 @@ export interface PalmReadingResponse {
    * where the capture recorded them, each mount's real position on that hand's photograph. */
   mountRelief?: Record<string, Record<string, unknown>>;
   synthesis?: Record<string, unknown>;
+  events?: PalmEvent[];
+  /** The question typed before the scan and its answer (raw when the question was "Subir Raw"). */
+  question?: { text: string; raw: boolean; answer: string };
+  /** How much of what the hand shows the birth chart independently confirms (paid reading). */
+  kundliMatch?: PalmKundliMatch;
+  /** The hand the app asked for vs the one the vision pass saw in the photograph. */
+  handCheck?: { expected: string; detected: string };
   error?: string | null;
+  errorCode?: "NOT_A_PALM";
 }
 
 export interface CreatePalmReadingResponse {
@@ -87,10 +118,11 @@ export const palmApi = {
    * charge. Produces the teaser (hand element, confidence, annotated overlay); poll GET until
    * status is "observed", then call `unlock()` for the full interpretation.
    * Throws ApiError — 400 missing frames, 409 already generating, 403 consent required. */
-  analyze: (readingId: string) =>
+  analyze: (readingId: string, question?: string) =>
     request<{ status: string }>(`/v1/palm/readings/${readingId}/analyze`, {
       method: "POST",
       auth: true,
+      ...(question ? { body: { question } } : {}),
     }),
 
   /** PAID — charges the wallet and kicks off Stage B/C (the full interpretation) for an

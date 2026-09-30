@@ -71,6 +71,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [framing, setFraming] = useState<HandFraming>("none");
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [question, setQuestion] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   /**
@@ -199,7 +200,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       try {
         // Every frame must have landed before the backend will accept the scan.
         await Promise.all(uploadsRef.current);
-        await palmApi.analyze(readingId);
+        await palmApi.analyze(readingId, question.trim() || undefined);
         Object.values(allFrames).forEach((f) => f && URL.revokeObjectURL(f.previewUrl));
         router.push(`/palm/${readingId}`);
       } catch (err) {
@@ -363,6 +364,17 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
 
         {uploadError && <p className="text-center text-xs text-red-400 mb-2">{uploadError}</p>}
         {finishError && <p className="text-center text-xs text-red-400 mb-2">{finishError}</p>}
+
+        {reviewing && isLastStep && (
+          <input
+            type="text"
+            value={question}
+            maxLength={500}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={t("palm.capture.questionPlaceholder", "Ask a question about your palm (optional)")}
+            className="mb-3 w-full rounded-2xl border border-white/25 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-gold"
+          />
+        )}
 
         {reviewing ? (
           <div className="flex items-center justify-center gap-3">

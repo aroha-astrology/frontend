@@ -32,7 +32,7 @@ export default function PalmReadingPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
-  const { state, data, failedError, retry } = usePalmReading(id, i18n.language);
+  const { state, data, failedError, failedCode, retry } = usePalmReading(id, i18n.language);
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [unlockOpen, setUnlockOpen] = useState(false);
 
@@ -73,6 +73,11 @@ export default function PalmReadingPage() {
   const lowVisibility =
     typeof lineVisibility === "number" && lineVisibility < LOW_VISIBILITY_THRESHOLD;
 
+  const wrongHand =
+    data?.handCheck != null &&
+    (data.handCheck.detected === "left" || data.handCheck.detected === "right") &&
+    data.handCheck.detected !== data.handCheck.expected;
+
   const handleUnlocked = () => {
     setUnlockOpen(false);
     retry();
@@ -94,7 +99,9 @@ export default function PalmReadingPage() {
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <AlertTriangle className="text-amber-400" size={28} />
             <p className="text-sm text-foreground">{t("palm.view.failedTitle")}</p>
-            <p className="text-xs text-muted">{t("palm.view.failedBody")}</p>
+            <p className="text-xs text-muted">
+              {failedCode === "NOT_A_PALM" ? t("palm.map.notPalm") : t("palm.view.failedBody")}
+            </p>
             <button type="button" onClick={() => router.push("/palm")} className="text-gold text-sm underline">
               {t("common.back")}
             </button>
@@ -117,7 +124,57 @@ export default function PalmReadingPage() {
 
         {state === "ready" && data && (
           <>
-            <PalmAnnotatedView photoUrl={heroUrl} />
+            <PalmAnnotatedView
+              photoUrl={heroUrl}
+              observations={primaryObservations as never}
+              events={data.events}
+              unlocked={isFullyReady}
+              kundliMatch={isFullyReady ? data.kundliMatch : null}
+            />
+
+            {data.question && (
+              <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-2">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+                  {t("palm.map.yourQuestion", "Your question")}
+                </p>
+                <p className="text-sm text-gold font-medium">{data.question.text}</p>
+                <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">
+                  {data.question.answer}
+                </p>
+              </div>
+            )}
+
+            {wrongHand && (
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 flex items-start gap-2">
+                <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={15} />
+                <div className="space-y-1.5">
+                  <p className="text-xs text-foreground/85 leading-relaxed">
+                    {t("palm.map.wrongHand", {
+                      detected: t(`palm.hand.${data.handCheck?.detected}`),
+                      expected: t(`palm.hand.${data.handCheck?.expected}`),
+                    })}
+                  </p>
+                  <button type="button" onClick={() => router.push("/palm")} className="text-xs text-gold underline">
+                    {t("palm.view.retakeCta")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isFullyReady && data.kundliMatch && (
+              <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+                    {t("palm.map.matchTitle")}
+                  </p>
+                  <span className="font-display text-2xl text-gold">{data.kundliMatch.percent}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-surface overflow-hidden">
+                  <div className="h-full bg-gold rounded-full" style={{ width: `${data.kundliMatch.percent}%` }} />
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed">{t("palm.map.matchBody")}</p>
+              </div>
+            )}
 
             {lowVisibility && (
               <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 flex items-start gap-2">

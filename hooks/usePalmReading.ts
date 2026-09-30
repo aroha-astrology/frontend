@@ -25,6 +25,7 @@ export function usePalmReading(id: string | null, language: string) {
   const [state, setState] = useState<PalmViewState>("idle");
   const [data, setData] = useState<PalmReadingResponse | null>(null);
   const [failedError, setFailedError] = useState<string | null>(null);
+  const [failedCode, setFailedCode] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function usePalmReading(id: string | null, language: string) {
       setData(null);
     }
     setFailedError(null);
+    setFailedCode(null);
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
     let attempt = 0;
@@ -75,6 +77,7 @@ export function usePalmReading(id: string | null, language: string) {
             if (!cached) {
               setState("failed");
               setFailedError(res.error ?? null);
+              setFailedCode(res.errorCode ?? null);
             }
             return;
           }
@@ -104,5 +107,5 @@ export function usePalmReading(id: string | null, language: string) {
 
   const retry = () => setRetryCount((c) => c + 1);
 
-  return { state, data, failedError, retry };
+  return { state, data, failedError, failedCode, retry };
 }

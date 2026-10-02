@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "local-coding-agent": {
+      "command": "C:/Users/wookiee/aroha-astrology/frontend/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/wookiee/aroha-astrology/frontend/tools/local_agent/mcp_server.py"
+      ],
+      "env": {
+        "LOCAL_CODER_MODEL": "qwen3-8b-agent"
+      }
+    }
+  }
+}

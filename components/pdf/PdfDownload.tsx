@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Download } from "lucide-react";
-import IconButton from "@/components/ui/IconButton";
 import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
 import { canSavePdf, savePdf, type PdfSaveResult } from "@/lib/pdf/save";
 import { track } from "@/lib/analytics";
@@ -62,15 +61,8 @@ export function usePdfDownload({ source, fileName, title }: { source: string; fi
   return { targetRef, status, capturing: status === "working", download, dismiss };
 }
 
-export function PdfDownloadButton({ variant = "pill", onClick }: { variant?: "pill" | "icon"; onClick: () => void }) {
+export function PdfDownloadButton({ onClick }: { onClick: () => void }) {
   const { t } = useTranslation();
-  if (variant === "icon") {
-    return (
-      <IconButton onClick={onClick} aria-label={t("pdf.download")} title={t("pdf.download")} className="shrink-0">
-        <Download size={18} />
-      </IconButton>
-    );
-  }
   return (
     <button
       type="button"

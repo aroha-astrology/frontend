@@ -199,7 +199,6 @@ export default function ReportDetailPage() {
 
   // The file is named after the report key, which is plain letters in every language.
   const pdf = usePdfDownload({ source: "report", fileName: pdfFileName(data?.reportKey), title });
-  const pdfButton = ready ? <PdfDownloadButton variant="icon" onClick={pdf.download} /> : null;
 
   const resolveHeading = (s: ReportSection): string =>
     s.id
@@ -281,7 +280,6 @@ export default function ReportDetailPage() {
             artSrc={designed.artSrc}
             subtitleKey={designed.subtitleKey}
             validUntilLabel={validUntilLabel}
-            action={pdfButton}
           />
           </div>
         ) : (
@@ -292,7 +290,6 @@ export default function ReportDetailPage() {
               </IconButton>
             )}
             <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
-            {!pdf.capturing && pdfButton}
           </div>
         )}
 

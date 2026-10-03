@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
@@ -16,8 +16,6 @@ export interface ReportHeroProps {
   /** Already-formatted "Valid till 18 Aug 2027" string — yearly reports only (see
    * ReportCatalogueEntry.isYearly's doc comment); omitted for every other report type. */
   validUntilLabel?: string;
-  /** A button for the right-hand end of the header, e.g. "Download PDF". */
-  action?: ReactNode;
 }
 
 /**
@@ -29,10 +27,9 @@ export interface ReportHeroProps {
  * Falls back to no artwork at all (just the title block) if the asset fails to
  * load; nothing here carries meaning, so there is no icon substitute to draw.
  *
- * The buttons are left out while the screen is saved as a PDF: a back arrow means nothing
- * on paper.
+ * The back button is left out while the screen is saved as a PDF: it means nothing on paper.
  */
-export default function ReportHero({ title, onBack, artSrc, subtitleKey, validUntilLabel, action }: ReportHeroProps) {
+export default function ReportHero({ title, onBack, artSrc, subtitleKey, validUntilLabel }: ReportHeroProps) {
   const { t } = useTranslation();
   const capturing = usePdfCapturing();
   const [imgError, setImgError] = useState(false);
@@ -66,7 +63,6 @@ export default function ReportHero({ title, onBack, artSrc, subtitleKey, validUn
             </p>
           )}
         </div>
-        {!capturing && action}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Download, Check } from "lucide-react";
 import type { PalmEvent, PalmKundliMatch } from "@/lib/palm-api";
 import { ImageSaver } from "@/lib/yantra-api";
+import { usePdfCapturing } from "@/components/pdf/PdfCapturingContext";
 import { isNativeAndroid } from "@/lib/play-billing";
 
 /**
@@ -110,6 +111,8 @@ export default function PalmAnnotatedView({
   kundliMatch = null,
 }: PalmAnnotatedViewProps) {
   const { t } = useTranslation();
+  // The "save image" button is left out of a saved PDF of the reading.
+  const capturing = usePdfCapturing();
   const [aspect, setAspect] = useState<number | null>(null);
   const [imgSize, setImgSize] = useState<{ w: number; h: number } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -336,7 +339,7 @@ export default function PalmAnnotatedView({
         )}
       </div>
 
-      {showOverlay && (
+      {showOverlay && !capturing && (
         <button
           type="button"
           onClick={() => void save()}

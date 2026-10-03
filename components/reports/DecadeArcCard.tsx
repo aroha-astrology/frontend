@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DecadeArcChart from "./DecadeArcChart";
 import type { DecadeBand } from "@/lib/report-score-facts";
+import { usePdfCapturing } from "@/components/pdf/PdfCapturingContext";
 
 interface DecadeBandWithUi extends DecadeBand {
   aiExplanation?: string;
@@ -60,7 +61,10 @@ export default function DecadeArcCard({
   collapsible?: boolean;
 }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(!collapsible);
+  const [expanded, setOpen] = useState(!collapsible);
+  // A saved PDF shows every chapter, whether or not the list is open on screen.
+  const capturing = usePdfCapturing();
+  const open = expanded || capturing;
 
   if (bands.length === 0) {
     return (
@@ -104,7 +108,7 @@ export default function DecadeArcCard({
               {open
                 ? t("reports.facts.lifeArc.hide", { defaultValue: "Hide chapters" })
                 : t("reports.facts.lifeArc.show", { defaultValue: "Show chapters" })}
-              <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+              <ChevronDown size={12} className={`${capturing ? "" : "transition-transform"} ${open ? "rotate-180" : ""}`} aria-hidden />
             </button>
           </div>
         )}

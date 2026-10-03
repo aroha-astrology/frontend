@@ -32,6 +32,9 @@ import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import ReportRatingSheet from "@/components/reports/ReportRatingSheet";
 import NextReportSheet from "@/components/reports/NextReportSheet";
 import { hasRatedReport } from "@/lib/report-rating";
+import { PdfCapturingContext } from "@/components/pdf/PdfCapturingContext";
+import { PdfDownloadButton, PdfStatusLayer, usePdfDownload } from "@/components/pdf/PdfDownload";
+import { pdfFileName } from "@/lib/pdf/save";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
  * type except match_report, whose ids (life-area names like "wealth"/"health") are ambiguous
@@ -194,6 +197,10 @@ export default function ReportDetailPage() {
       ? t(`reports.labels.${data.reportKey}`, humanizeKey(data.reportKey))
       : t("reports.view.title");
 
+  // The file is named after the report key, which is plain letters in every language.
+  const pdf = usePdfDownload({ source: "report", fileName: pdfFileName(data?.reportKey), title });
+  const pdfButton = ready ? <PdfDownloadButton variant="icon" onClick={pdf.download} /> : null;
+
   const resolveHeading = (s: ReportSection): string =>
     s.id
       ? t(sectionHeadingKey(data?.reportKey ?? "", s.id), { defaultValue: s.heading })
@@ -264,7 +271,8 @@ export default function ReportDetailPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="page-container pt-4 space-y-4">
+      <PdfCapturingContext.Provider value={pdf.capturing}>
+      <div ref={pdf.targetRef} className="page-container pt-4 space-y-4">
         {designed ? (
           <div data-tour="report-header">
           <ReportHero
@@ -273,14 +281,18 @@ export default function ReportDetailPage() {
             artSrc={designed.artSrc}
             subtitleKey={designed.subtitleKey}
             validUntilLabel={validUntilLabel}
+            action={pdfButton}
           />
           </div>
         ) : (
           <div className="flex items-center gap-3" data-tour="report-header">
-            <IconButton onClick={attemptBack} aria-label={t("common.back")}>
-              <ArrowLeft size={18} />
-            </IconButton>
+            {!pdf.capturing && (
+              <IconButton onClick={attemptBack} aria-label={t("common.back")}>
+                <ArrowLeft size={18} />
+              </IconButton>
+            )}
             <h1 className="text-lg font-display text-foreground flex-1 truncate">{title}</h1>
+            {!pdf.capturing && pdfButton}
           </div>
         )}
 
@@ -401,15 +413,21 @@ export default function ReportDetailPage() {
           </>
         )}
 
-        {ready && !hasRatedReport(id) && !showRatingModal && (
-          <button
-            type="button"
-            onClick={() => setShowRatingModal(true)} // standalone open — ratingModalBacks stays false
-            className="mx-auto flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 text-xs font-semibold text-gold"
-          >
-            <Star size={14} className="fill-gold" />
-            {t("reportRating.title")}
-          </button>
+        {/* Buttons, so not part of the saved PDF. */}
+        {ready && !pdf.capturing && (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <PdfDownloadButton onClick={pdf.download} />
+            {!hasRatedReport(id) && !showRatingModal && (
+              <button
+                type="button"
+                onClick={() => setShowRatingModal(true)} // standalone open — ratingModalBacks stays false
+                className="flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 text-xs font-semibold text-gold"
+              >
+                <Star size={14} className="fill-gold" />
+                {t("reportRating.title")}
+              </button>
+            )}
+          </div>
         )}
 
         {showRatingModal && <ReportRatingSheet reportId={id} onClose={closeRatingModal} />}
@@ -418,6 +436,8 @@ export default function ReportDetailPage() {
           <NextReportSheet reportKeys={upcomingReportKeys} onClose={closeNextReportModal} />
         )}
       </div>
+      </PdfCapturingContext.Provider>
+      <PdfStatusLayer status={pdf.status} onDismiss={pdf.dismiss} />
     </main>
   );
 }

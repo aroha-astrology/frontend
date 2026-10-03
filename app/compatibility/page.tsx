@@ -24,6 +24,9 @@ import { useReport } from "@/hooks/useReport";
 import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { reportsApi, type MatchReportScores, type PurchaseReportBody } from "@/lib/reports-api";
 import type { Profile } from "@/lib/api";
+import { PdfCapturingContext } from "@/components/pdf/PdfCapturingContext";
+import { PdfDownloadButton, PdfStatusLayer, usePdfDownload } from "@/components/pdf/PdfDownload";
+import { pdfFileName } from "@/lib/pdf/save";
 
 interface PersonForm {
   name: string;
@@ -325,6 +328,7 @@ export default function CompatibilityPage() {
   );
 
   const showForm = reportState === "idle" || reportState === "error";
+  const pdf = usePdfDownload({ source: "match_report", fileName: pdfFileName("match-report"), title: t("compatibilityPage.title") });
   // Once the catalogue has actually loaded, match_report existing-but-disabled means an admin
   // retired the paid Compatibility Match Report — every REPORT_CATALOGUE key always comes back
   // from GET /v1/reports regardless of `enabled` (see backend's getReportCatalogueForUser), so
@@ -492,7 +496,9 @@ export default function CompatibilityPage() {
         )}
 
         {reportState === "ready" && scores && (
+          <PdfCapturingContext.Provider value={pdf.capturing}>
           <motion.div
+            ref={pdf.targetRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-8 p-6 rounded-3xl border space-y-5"
@@ -519,15 +525,25 @@ export default function CompatibilityPage() {
             <MatchReportCards sections={areaCards} riskFactors={scores.riskFactors} />
             <DosAndDontsCard closingSections={closingSections} />
 
-            <button
-              onClick={askAstrologer}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
-            >
-              <MessageCircle size={16} />
-              {t("kundli.house.askAstrologer")}
-            </button>
+            {/* Buttons, so not part of the saved PDF. */}
+            {!pdf.capturing && (
+              <>
+                <button
+                  onClick={askAstrologer}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.98] hover:bg-gold/10"
+                >
+                  <MessageCircle size={16} />
+                  {t("kundli.house.askAstrologer")}
+                </button>
+                <div className="flex justify-center">
+                  <PdfDownloadButton onClick={pdf.download} />
+                </div>
+              </>
+            )}
           </motion.div>
+          </PdfCapturingContext.Provider>
         )}
+        <PdfStatusLayer status={pdf.status} onDismiss={pdf.dismiss} />
 
         {/* Saved reports — profile-scoped history, most recent first. */}
         {showForm && matchReportEntry && matchReportEntry.purchases.length > 0 && (

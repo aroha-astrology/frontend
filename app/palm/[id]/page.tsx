@@ -11,6 +11,9 @@ import PalmCoverageList from "@/components/palm/PalmCoverageList";
 import PalmLineNotes from "@/components/palm/PalmLineNotes";
 import { usePalmReading } from "@/hooks/usePalmReading";
 import { palmApi } from "@/lib/palm-api";
+import { PdfCapturingContext } from "@/components/pdf/PdfCapturingContext";
+import { PdfDownloadButton, PdfStatusLayer, usePdfDownload } from "@/components/pdf/PdfDownload";
+import { pdfFileName } from "@/lib/pdf/save";
 
 const SCORE_LABEL_KEY: Record<string, string> = {
   career: "palm.scores.career",
@@ -35,6 +38,7 @@ export default function PalmReadingPage() {
   const { state, data, failedError, failedCode, retry } = usePalmReading(id, i18n.language);
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const pdf = usePdfDownload({ source: "palm", fileName: pdfFileName("palm-reading"), title: t("palm.title") });
 
   const isObservedOnly = data?.status === "observed";
   const isFullyReady = data?.status === "ready";
@@ -85,7 +89,8 @@ export default function PalmReadingPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="page-container pt-4 space-y-5">
+      <PdfCapturingContext.Provider value={pdf.capturing}>
+      <div ref={pdf.targetRef} className="page-container pt-4 space-y-5">
         {(state === "idle" || state === "loading" || state === "generating") && (
           <>
             <GeneratingSpinner label={t("palm.view.generatingTitle")} size={40} className="py-16" />
@@ -284,6 +289,13 @@ export default function PalmReadingPage() {
               </div>
             )}
 
+            {/* Only the full, paid reading is worth keeping as a file. */}
+            {isFullyReady && !pdf.capturing && (
+              <div className="flex justify-center">
+                <PdfDownloadButton onClick={pdf.download} />
+              </div>
+            )}
+
             {isObservedOnly && (
               <>
                 {/* Everything the paid reading will answer, listed BEFORE they pay. */}
@@ -305,6 +317,8 @@ export default function PalmReadingPage() {
           </>
         )}
       </div>
+      </PdfCapturingContext.Provider>
+      <PdfStatusLayer status={pdf.status} onDismiss={pdf.dismiss} />
 
       {unlockOpen && id && (
         <PalmUnlockDrawer readingId={id} onClose={() => setUnlockOpen(false)} onUnlocked={handleUnlocked} />

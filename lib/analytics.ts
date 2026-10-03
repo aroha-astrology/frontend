@@ -13,6 +13,7 @@ export type AnalyticsEvent =
   | "topup_succeeded"
   | "report_purchase_started"
   | "report_purchased"
+  | "pdf_downloaded"
   | "chat_message_sent"
   | "referral_share_clicked"
   | "push_opened"

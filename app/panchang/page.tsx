@@ -247,15 +247,20 @@ export default function PanchangPage() {
   return (
     <FeatureGuard featureKey="nav.panchang">
     {geo.status === "requesting" && <LocationSearchOverlay />}
-    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="page-container pt-4">
-        <PanchangHeader subtitle={data?.date ?? ""} />
+    {/* From 1280px the page itself does not scroll: the calendar column and the
+          details column each scroll on their own (scrollbars hidden). 4.25rem is
+          the desktop TopBar row height (components/TopBar.tsx). */}
+    <main className="min-h-screen pb-tab-safe xl:h-[calc(100dvh-4.25rem)] xl:min-h-0 xl:pb-0 xl:overflow-hidden" style={{ background: "var(--background)" }}>
+      <div className="page-container pt-4 xl:flex xl:flex-col xl:h-full xl:min-h-0">
+        <div className="xl:shrink-0">
+          <PanchangHeader subtitle={data?.date ?? ""} />
+        </div>
 
-        {/* From 1280px: the calendar and its controls stay in view on the left
-            while the chosen day's details scroll on the right. Below that the
-            two wrappers are plain blocks and everything stacks as before. */}
-        <div className="xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:gap-8 xl:items-start">
-        <div className="xl:sticky xl:top-[calc(var(--topbar-h)+0.5rem)]">
+        {/* From 1280px: the calendar and its controls scroll on the left while
+            the chosen day's details scroll on the right, independently. Below
+            that the two wrappers are plain blocks and everything stacks as before. */}
+        <div className="xl:flex-1 xl:min-h-0 xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:grid-rows-[minmax(0,1fr)] xl:gap-8">
+        <div className="xl:min-h-0 xl:overflow-y-auto xl:pb-8 scrollbar-hide">
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
@@ -329,7 +334,7 @@ export default function PanchangPage() {
         </div>
         </div>
 
-        <div>
+        <div className="xl:min-h-0 xl:overflow-y-auto xl:pb-8 scrollbar-hide">
         {state === "loading" && (
           <div className="mt-6 space-y-4">
             {[...Array(3)].map((_, i) => (

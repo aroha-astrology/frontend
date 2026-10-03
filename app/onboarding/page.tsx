@@ -34,6 +34,7 @@ import { LEGAL_VERSION } from "@/lib/legal-content";
 import { track } from "@/lib/analytics";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
+import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -150,9 +151,7 @@ function BotBubble({ text }: { text: string }) {
   return (
     <div className="flex items-end gap-2 max-w-[82%]">
       {/* Avatar */}
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gold/80 to-purple-600/60 shrink-0 flex items-center justify-center text-[11px]">
-        ✨
-      </div>
+      <YogiBabaAvatar size={28} />
       <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-surface border border-gold/10 text-[14px] text-foreground leading-relaxed shadow-sm">
         {text}
       </div>

@@ -108,7 +108,7 @@ function ReportsCatalogue() {
         ) : activeList.length === 0 ? (
           <p className="text-xs text-muted text-center py-10">{t("reports.empty")}</p>
         ) : (
-          <div className="flex flex-col gap-3 md:grid page-grid" data-tour="reports-list">
+          <div className="flex flex-col gap-3 md:grid page-grid md:items-stretch" data-tour="reports-list">
             {activeList.slice(0, gemstoneIndex).map((entry) => (
               <ReportCard
                 key={entry.key}

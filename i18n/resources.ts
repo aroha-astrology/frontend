@@ -516,6 +516,7 @@ export const resources = {
           remedies: "Get personalized Lal Kitab remedies",
           gemstone: "Find the gemstones suited to your chart",
           progeny: "Classical readings on children, timing and blessings",
+          kp_annual: "Your year ahead through the KP system",
         },
         taglines: {
           marriage: "Ketu delaying your marriage?",
@@ -534,6 +535,7 @@ export const resources = {
           remedies: "Simple remedies for planetary doshas",
           gemstone: "Wearing the wrong stone could work against you",
           progeny: "What does your chart say about children?",
+          kp_annual: "Which months does KP mark as your best?",
         },
       },
       vastu: {
@@ -772,6 +774,10 @@ export const resources = {
         spouse: { title: "Your Likely Partner" },
         decade: { title: "Marriage Quality by Decade" },
         remedies: { title: "Remedies" },
+      },
+      kpReport: {
+        subtitle: "Your year ahead, read the Krishnamurti way",
+        analysis: { title: "Your year in words" },
       },
       progenyReport: {
         subtitle: "Classical readings on children, timing and blessings for you and your spouse",

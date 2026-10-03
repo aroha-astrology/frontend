@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { PhoneOff, Loader2 } from "lucide-react";
 import { ASTROLOGER } from "@/lib/personas";
+import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import type { VoiceCall } from "@/hooks/useVoiceCall";
 
 /**
@@ -82,9 +83,7 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                   />
                 ))}
             </AnimatePresence>
-            <div className="w-28 h-28 rounded-full bg-yellow-500/15 border border-gold/40 flex items-center justify-center text-5xl">
-              {ASTROLOGER.avatar}
-            </div>
+            <YogiBabaAvatar size={112} className="border-2" />
           </div>
 
           <h2 className="text-2xl font-bold text-gold font-display text-center">

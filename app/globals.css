@@ -105,6 +105,16 @@
     background-color: #faf7f0;
   }
 
+  /* Tablets: everything is sized in rem, so a slightly larger root size gives
+     the whole app a gentle zoom (112.5% = 18px) on screens that otherwise look
+     small and sparse. Phones and desktops keep 16px. The side rail follows
+     (15rem = 270px), which e2e/responsive.signed-in.spec.ts accounts for. */
+  @media (min-width: 768px) and (max-width: 1279px) {
+    html {
+      font-size: 112.5%;
+    }
+  }
+
   /* ── Dark mode: deep-space cosmic ── */
   body {
     @apply text-foreground;

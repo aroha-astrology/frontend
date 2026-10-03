@@ -71,7 +71,8 @@ const ROUTES = [
 ];
 
 const SIDE_NAV_FROM = 1024;
-const SIDE_NAV_WIDTH = 240;
+/** 15rem; tablets (768-1279px) run at an 18px root size, so the rail is 270px there. */
+const sideNavWidth = (viewportWidth: number) => (viewportWidth < 1280 ? 270 : 240);
 const PAGE_MAX = 1200;
 
 const square = [
@@ -121,7 +122,7 @@ for (const vp of VIEWPORTS) {
     test.use({ viewport: { width: vp.width, height: vp.height }, isMobile: false, hasTouch: false });
 
     const wide = vp.width >= SIDE_NAV_FROM;
-    const contentWidth = wide ? vp.width - SIDE_NAV_WIDTH : vp.width;
+    const contentWidth = wide ? vp.width - sideNavWidth(vp.width) : vp.width;
 
     test("every route fills its width, aligns with the top bar, and never scrolls sideways", async ({ page }) => {
       test.setTimeout(300_000);

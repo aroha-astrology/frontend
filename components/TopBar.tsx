@@ -67,11 +67,11 @@ export default function TopBar() {
 
   return (
     <>
-      <div className="sticky top-0 z-20 w-full bg-background/90 backdrop-blur-xl">
+      <div className="sticky top-0 z-20 w-full bg-background/90 backdrop-blur-xl lg:bg-background lg:border-b lg:border-gold/10">
         {/* page-container, not its own max width: the menu button and wallet
             sit on the same edges as the page content at every screen size. */}
         <div
-          className="page-container flex justify-between items-center pt-[calc(2rem+var(--sat))] pb-4 relative"
+          className="page-container flex justify-between items-center pt-[calc(2rem+var(--sat))] pb-4 relative lg:h-[4.25rem] lg:py-0"
           data-testid="topbar-row"
         >
           <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>

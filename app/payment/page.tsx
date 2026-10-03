@@ -189,9 +189,11 @@ export default function PaymentPage() {
           <h1 className="text-lg font-display text-foreground flex-1">{t("payment.title")}</h1>
         </div>
 
-        <div className="md:flex md:items-start md:gap-4">
+        {/* From 1024px: balance, packs and Pay on the left, the Pass card on the
+            right. On a phone it is one column in the same order as before. */}
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-6 lg:items-start">
         {/* Current balance */}
-        <Card className="p-4 mb-5 flex items-center justify-between md:flex-1">
+        <Card className="p-4 mb-5 flex items-center justify-between lg:col-start-1">
           <div className="flex items-center gap-2">
             <Wallet size={16} className="text-gold" />
             <span className="text-xs text-muted">{t("payment.currentBalance")}</span>
@@ -200,9 +202,9 @@ export default function PaymentPage() {
         </Card>
 
         {/* The Aroha Pass — a Google Play subscription, never paid from this wallet. */}
-        <PassSummaryCard className="mb-6 md:flex-1" />
-        </div>
+        <PassSummaryCard className="mb-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:w-[22rem]" />
 
+        <div className="lg:col-start-1">
         {success ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -301,6 +303,8 @@ export default function PaymentPage() {
             </p>
           </>
         )}
+        </div>
+        </div>
       </div>
     </main>
   );

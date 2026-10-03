@@ -330,7 +330,7 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && designed && (
           <>
-            <div data-tour="report-body" className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
+            <div data-tour="report-body" className="flex flex-col gap-6 lg:block lg:columns-2 lg:gap-6 lg:[&>*]:mb-6 lg:[&>*]:break-inside-avoid">
               <designed.View data={data} />
             </div>
             {/* The 10 designed screens compose their own cards and never call

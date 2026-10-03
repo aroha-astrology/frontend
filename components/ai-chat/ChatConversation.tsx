@@ -18,6 +18,7 @@ import { referralPlayStoreUrl } from "@/lib/referral";
 import { track } from "@/lib/analytics";
 import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
+import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
 import { getFirebaseAuth } from "@/lib/firebase";
@@ -856,8 +857,8 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
         <div className="absolute left-5 top-1/2 -translate-y-1/2" data-tour="chat-voice">
           <VoiceCall locale={i18n.language} />
         </div>
-        <h1 className="text-2xl font-bold text-gold font-display text-center">
-          {ASTROLOGER.avatar} {t(ASTROLOGER.nameKey)}
+        <h1 className="text-2xl font-bold text-gold font-display text-center flex items-center justify-center gap-2">
+          <YogiBabaAvatar size={32} /> {t(ASTROLOGER.nameKey)}
         </h1>
       </div>
 
@@ -905,11 +906,9 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
               transition={{ duration: 0.3 }}
               className={msg.role === "user" ? "flex flex-col items-end" : "flex flex-col items-start"}
             >
-              <div className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
+              <div className={msg.role === "user" ? "flex justify-end w-full" : "flex justify-start"}>
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
-                    {ASTROLOGER.avatar}
-                  </div>
+                  <YogiBabaAvatar size={28} className="mr-2 mt-1" />
                 )}
                 <div
                   className={
@@ -1076,9 +1075,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             animate={{ opacity: 1 }}
             className="flex justify-start items-center"
           >
-            <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0">
-              {ASTROLOGER.avatar}
-            </div>
+            <YogiBabaAvatar size={28} className="mr-2" />
             <div
               className="rounded-[16px_16px_16px_3px] px-4 py-3 border flex gap-2.5 items-center"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}

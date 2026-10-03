@@ -95,48 +95,66 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
   if (entry.isMonthly) {
     const monthState = monthlyCardState(entry.purchases);
     const month = formatMonthName(currentMonthKey());
+    const description = t(`reports.descriptions.${entry.key}`, "");
+    const tagline = t(`reports.taglines.${entry.key}`, "");
     return (
-      <Card className="p-4 relative">
+      <Card className="p-4 flex flex-col gap-3 relative h-full">
         {entry.isNew && <NewBadge className="absolute top-2 right-2 z-10" />}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground line-clamp-2 break-words">{label}</p>
+        <div className="flex items-start gap-3">
+          <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground line-clamp-2 break-words">{label}</p>
+
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
+              <span className="text-[10px] font-medium text-muted border border-border rounded-full px-2 py-0.5">
+                {t("reports.tabMonthly")}
+              </span>
+            </div>
+
+            {description && <p className="text-xs text-muted mt-1.5 leading-relaxed">{description}</p>}
+
+            <div className="flex items-center justify-between gap-3 mt-2">
               <DiscountPrice
                 pricePaise={entry.pricePaise}
                 originalPricePaise={entry.originalPricePaise}
                 priceLabel={formatRupees(entry.pricePaise)}
               />
+
+              {monthState.state === "ready" ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
+                  className="shrink-0 rounded-xl border border-gold/30 text-gold px-4 py-2.5 text-xs font-bold"
+                >
+                  {t("reports.viewReport")}
+                </button>
+              ) : monthState.state === "generating" ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
+                  className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-3.5 py-2 text-[11px] font-semibold"
+                >
+                  {t("reports.generating")}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onAddMonths}
+                  className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-4 py-2.5 text-xs font-bold"
+                >
+                  {monthState.state === "failed" ? t("reports.retry") : t("reports.buyForMonth", { month })}
+                </button>
+              )}
             </div>
           </div>
-
-          {monthState.state === "ready" ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
-              className="shrink-0 rounded-xl border border-gold/30 text-gold px-3.5 py-2.5 text-xs font-bold"
-            >
-              {t("reports.viewReport")}
-            </button>
-          ) : monthState.state === "generating" ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/reports/${monthState.purchaseId}`)}
-              className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-3.5 py-2 text-[11px] font-semibold"
-            >
-              {t("reports.generating")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onAddMonths}
-              className="shrink-0 rounded-xl bg-gold text-[#1a0e00] px-3.5 py-2.5 text-xs font-bold"
-            >
-              {monthState.state === "failed" ? t("reports.retry") : t("reports.buyForMonth", { month })}
-            </button>
-          )}
         </div>
+
+        {tagline && (
+          <div className="mt-auto flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
+            <p className="text-[11px] text-emerald-400 leading-snug">{tagline}</p>
+          </div>
+        )}
       </Card>
     );
   }
@@ -159,7 +177,7 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
   const hasGeneratedCount = typeof generatedCount === "number" && Number.isFinite(generatedCount) && generatedCount > 0;
 
   return (
-    <Card className="p-4 flex flex-col gap-3 relative">
+    <Card className="p-4 flex flex-col gap-3 relative h-full">
       {entry.isNew && <NewBadge className="absolute top-2 right-2 z-10" />}
       <div className="flex items-start gap-3">
         <ReportRowVisual reportKey={entry.key} hue={theme.hue} Icon={Icon} />
@@ -239,7 +257,7 @@ export default function ReportCard({ entry, comingSoon, onBuy, onAddMonths, gene
       </div>
 
       {tagline && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
+        <div className="mt-auto flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
           <p className="text-[11px] text-emerald-400 leading-snug">{tagline}</p>
         </div>

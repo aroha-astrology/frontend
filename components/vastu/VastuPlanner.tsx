@@ -761,10 +761,10 @@ export default function VastuPlanner() {
       <StudioHeader homeName={home?.name ?? t("vastu.home.defaultName")} status={saveStatus} onHomes={() => setSheet("homes")} right={<ProfileSwitchTrigger className="mb-5" />} />
 
       {/* From 1024px the plan and its analysis sit side by side. The plan
-          column is capped by the viewport height so the whole square stays on
-          screen. On a phone the wrappers are display: contents, so every
+          column is capped by the viewport height, less the tab bar, so the
+          whole square stays on screen. On a phone the wrappers are display: contents, so every
           child is laid out by the root column exactly as before. */}
-      <div className="contents lg:grid lg:grid-cols-[minmax(0,min(50%,calc(100dvh-13rem)))_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <div className="contents lg:grid lg:grid-cols-[minmax(0,min(50%,calc(100dvh-13rem-var(--tab-bar-h))))_minmax(0,1fr)] lg:items-start lg:gap-6">
       <div className="contents lg:flex lg:flex-col lg:gap-3">
       {fullscreen ? (
         // Sits above the nav bar (z-50), so pb clears the system bar, not the nav.

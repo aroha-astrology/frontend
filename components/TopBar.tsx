@@ -26,7 +26,7 @@ import WalletBalance from "@/components/ui/WalletBalance";
  * bar too, stacked above their own header row — the same pattern already
  * established for ai-chat and reports/[id]. Only routes that are
  * structurally incompatible are excluded — see `hasAppChrome` in
- * lib/app-chrome.ts, the rule the bottom bar and the desktop side rail share.
+ * lib/app-chrome.ts, the rule the bottom bar shares.
  * Each visible route opts into a right-side slot via `useTopBarRightContent`.
  */
 

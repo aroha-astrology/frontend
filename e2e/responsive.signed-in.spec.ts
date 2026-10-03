@@ -6,7 +6,7 @@ import { signIn, skipLaunchOverlays } from "./fixtures/auth";
  * Layout contract for every customer route at phone, tablet and desktop sizes:
  * nothing scrolls sideways, the top bar lines up with the page content, the
  * page fills the width it is given (up to the 1200px cap), and navigation is
- * the bottom bar below 1024px and the left sidebar from 1024px.
+ * the bottom bar at every size.
  */
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -70,9 +70,8 @@ const ROUTES = [
   "/weather",
 ];
 
-const SIDE_NAV_FROM = 1024;
-/** 15rem; tablets (768-1279px) run at an 18px root size, so the rail is 270px there. */
-const sideNavWidth = (viewportWidth: number) => (viewportWidth < 1280 ? 270 : 240);
+/** From here the Vastu plan sits beside its analysis instead of above it. */
+const WIDE_FROM = 1024;
 const PAGE_MAX = 1200;
 
 const square = [
@@ -121,8 +120,7 @@ for (const vp of VIEWPORTS) {
   test.describe(`Responsive layout — ${vp.name} (${vp.width}×${vp.height})`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height }, isMobile: false, hasTouch: false });
 
-    const wide = vp.width >= SIDE_NAV_FROM;
-    const contentWidth = wide ? vp.width - sideNavWidth(vp.width) : vp.width;
+    const wide = vp.width >= WIDE_FROM;
 
     test("every route fills its width, aligns with the top bar, and never scrolls sideways", async ({ page }) => {
       test.setTimeout(300_000);
@@ -151,25 +149,22 @@ for (const vp of VIEWPORTS) {
           expect.soft(Math.abs(content.left - bar.left), `${route}: left edge matches the top bar`).toBeLessThanOrEqual(1);
           expect.soft(Math.abs(content.right - bar.right), `${route}: right edge matches the top bar`).toBeLessThanOrEqual(1);
           expect
-            .soft(Math.abs(content.width - Math.min(PAGE_MAX, contentWidth)), `${route}: fills the available width (got ${content.width}px)`)
+            .soft(Math.abs(content.width - Math.min(PAGE_MAX, vp.width)), `${route}: fills the available width (got ${content.width}px)`)
             .toBeLessThanOrEqual(1);
         }
       }
     });
 
-    test(wide ? "navigation is the left sidebar" : "navigation is the bottom bar", async ({ page }) => {
+    test("navigation is the bottom bar", async ({ page }) => {
       await open(page);
-      const side = page.getByTestId("side-nav");
       const bottom = page.getByTestId("bottom-nav");
-      if (wide) {
-        await expect(side).toBeVisible();
-        await expect(bottom).toBeHidden();
-        await side.getByRole("link", { name: "Horoscope" }).click();
-        await expect(page).toHaveURL(/\/horoscope$/);
-      } else {
-        await expect(bottom).toBeVisible();
-        await expect(side).toBeHidden();
-      }
+      await expect(bottom).toBeVisible();
+      await expect(page.getByTestId("side-nav")).toHaveCount(0);
+      const bar = await box(page, '[data-testid="bottom-nav"]');
+      expect(bar!.width).toBe(vp.width);
+      expect(bar!.bottom).toBe(vp.height);
+      await bottom.getByRole("link", { name: "Horoscope" }).click();
+      await expect(page).toHaveURL(/\/horoscope$/);
     });
 
     test("the Vastu canvas fits on screen", async ({ page }) => {
@@ -180,9 +175,11 @@ for (const vp of VIEWPORTS) {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(overflow).toBeLessThanOrEqual(0);
       if (wide) {
-        // Side-by-side with the analysis: the whole square is visible without scrolling.
+        // Side-by-side with the analysis: the whole square is visible without
+        // scrolling, above the bottom bar.
         const rect = await box(page, '[data-tour="vastu-canvas"]');
-        expect(rect!.bottom).toBeLessThanOrEqual(vp.height);
+        const barTop = await page.getByTestId("bottom-nav").evaluate((el) => Math.round(el.getBoundingClientRect().top));
+        expect(rect!.bottom).toBeLessThanOrEqual(barTop);
       }
     });
 

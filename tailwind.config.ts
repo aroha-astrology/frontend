@@ -36,7 +36,6 @@ const config: Config = {
         sat: "var(--sat)",
         "tab-bar": "var(--tab-bar-h)",
         "tab-safe": "calc(var(--tab-bar-h) + 2rem)",
-        "side-nav": "var(--side-nav-w)",
       },
       fontFamily: {
         devanagari: ["var(--font-devanagari)", "serif"],

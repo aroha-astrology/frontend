@@ -1,6 +1,6 @@
 /**
  * The one rule for "this route shows the customer navigation" (TopBar, bottom
- * tab bar, desktop side rail). Structurally incompatible routes are excluded:
+ * tab bar). Structurally incompatible routes are excluded:
  *   - exact: pre-auth (sign-in/sign-up) and the onboarding wizard — no
  *     completed user session/profile exists yet for wallet/notifications
  *     to reflect.

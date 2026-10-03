@@ -298,9 +298,11 @@ export default function PaymentPage() {
               )}
             </button>
 
-            <p className="text-[10px] text-muted text-center mt-3 px-4 leading-relaxed">
-              {t(playAvailable ? "payment.gatewayNote" : "payment.gatewayNoteWeb")}
-            </p>
+            {canPay && (
+              <p className="text-[10px] text-muted text-center mt-3 px-4 leading-relaxed">
+                {t(playAvailable ? "payment.gatewayNote" : "payment.gatewayNoteWeb")}
+              </p>
+            )}
           </>
         )}
         </div>

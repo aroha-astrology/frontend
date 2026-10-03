@@ -249,8 +249,9 @@ export default function PanchangPage() {
     {geo.status === "requesting" && <LocationSearchOverlay />}
     {/* From 1280px the page itself does not scroll: the calendar column and the
           details column each scroll on their own (scrollbars hidden). 4.25rem is
-          the desktop TopBar row height (components/TopBar.tsx). */}
-    <main className="min-h-screen pb-tab-safe xl:h-[calc(100dvh-4.25rem)] xl:min-h-0 xl:pb-0 xl:overflow-hidden" style={{ background: "var(--background)" }}>
+          the desktop TopBar row height (components/TopBar.tsx); the bottom
+          padding keeps both columns above the tab bar. */}
+    <main className="min-h-screen pb-tab-safe xl:h-[calc(100dvh-4.25rem)] xl:min-h-0 xl:pb-tab-bar xl:overflow-hidden" style={{ background: "var(--background)" }}>
       <div className="page-container pt-4 xl:flex xl:flex-col xl:h-full xl:min-h-0">
         <div className="xl:shrink-0">
           <PanchangHeader subtitle={data?.date ?? ""} />

@@ -13,8 +13,6 @@ import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
 import TopBar from "@/components/TopBar";
 import BottomNavigationGate from "@/components/BottomNavigationGate";
-import SideNavigation from "@/components/SideNavigation";
-import AppFrame from "@/components/AppFrame";
 import TourHost from "@/components/tour/TourHost";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
@@ -112,11 +110,8 @@ export default function RootLayout({
                               every prompt below defers to `tourActive` so nothing
                               renders underneath a running tour's scrim. */}
                           <TourProvider>
-                            <AppFrame>
-                              <TopBar />
-                              <PageTransition>{children}</PageTransition>
-                            </AppFrame>
-                            <SideNavigation />
+                            <TopBar />
+                            <PageTransition>{children}</PageTransition>
                             <BottomNavigationGate />
                             <PermissionsPrompt />
                             <TourHost />

@@ -18,17 +18,7 @@ interface Rect {
 
 function findTarget(target: string | null): Element | null {
   if (!target) return null;
-  // The nav targets exist twice (bottom bar and desktop side rail) with one
-  // hidden in CSS at any given width, so take the first match that has a box.
-  const matches = Array.from(document.querySelectorAll(`[data-tour="${target}"]`));
-  return (
-    matches.find((el) => {
-      const r = el.getBoundingClientRect();
-      return r.width > 0 || r.height > 0;
-    }) ??
-    matches[0] ??
-    null
-  );
+  return document.querySelector(`[data-tour="${target}"]`);
 }
 
 function measure(target: string | null): Rect | null {

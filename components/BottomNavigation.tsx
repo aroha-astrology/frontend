@@ -83,10 +83,9 @@ export default function BottomNavigation() {
   const gridColsClass = GRID_COLS[items.length] ?? GRID_COLS[5];
 
   return (
-    // lg:hidden — from 1024px components/SideNavigation.tsx takes over.
     <nav
       data-testid="bottom-nav"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-tab-bar pb-sab rounded-t-[2.5rem] transform-gpu lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-tab-bar pb-sab rounded-t-[2.5rem] transform-gpu"
       style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
     >
       {/* h-full resolves against the nav's content box, which excludes pb-sab —

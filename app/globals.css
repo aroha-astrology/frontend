@@ -50,17 +50,6 @@
      right-content row via useTopBarRightContent, TopBar grows taller than
      this constant accounts for. */
   --topbar-h: calc(5.5rem + var(--sat));
-  /* Width of the desktop left rail (components/SideNavigation.tsx). */
-  --side-nav-w: 15rem;
-}
-
-/* From 1024px the bottom tab bar is replaced by the left rail, so nothing has
-   to reserve room for it: pb-tab-safe, the chat input's bottom margin and the
-   sheet spacer all read --tab-bar-h and collapse on their own. */
-@media (min-width: 1024px) {
-  :root {
-    --tab-bar-h: 0px;
-  }
 }
 
 /* ── Light theme — luxury editorial, ivory paper ── */
@@ -107,8 +96,7 @@
 
   /* Tablets: everything is sized in rem, so a slightly larger root size gives
      the whole app a gentle zoom (112.5% = 18px) on screens that otherwise look
-     small and sparse. Phones and desktops keep 16px. The side rail follows
-     (15rem = 270px), which e2e/responsive.signed-in.spec.ts accounts for. */
+     small and sparse. Phones and desktops keep 16px. */
   @media (min-width: 768px) and (max-width: 1279px) {
     html {
       font-size: 112.5%;

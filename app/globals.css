@@ -266,3 +266,35 @@
     animation: rudraksha-grow-ring 2.2s ease-out infinite;
   }
 }
+
+/* ── Light theme: readable accent text ──
+   The pale 200/300/400 accent shades (status pills, "Health", trend icons,
+   error text) are picked for the dark theme and wash out on ivory/white. In
+   light mode the same classes resolve to the 600/700 shade of the same hue,
+   which clears 4.5:1 on white. Backgrounds and borders are left alone. */
+.light .text-emerald-200,
+.light .text-emerald-300,
+.light .text-emerald-400 { color: rgb(4 120 87 / var(--tw-text-opacity, 1)); }
+.light .text-emerald-400\/60,
+.light .text-emerald-400\/80,
+.light .text-emerald-400\/90 { color: rgb(4 120 87 / 0.9); }
+.light .text-green-400 { color: rgb(21 128 61 / var(--tw-text-opacity, 1)); }
+.light .text-teal-400 { color: rgb(15 118 110 / var(--tw-text-opacity, 1)); }
+.light .text-lime-400 { color: rgb(77 124 15 / var(--tw-text-opacity, 1)); }
+.light .text-amber-300,
+.light .text-amber-400 { color: rgb(180 83 9 / var(--tw-text-opacity, 1)); }
+.light .text-amber-300\/90,
+.light .text-amber-400\/80 { color: rgb(180 83 9 / 0.9); }
+.light .text-yellow-400 { color: rgb(161 98 7 / var(--tw-text-opacity, 1)); }
+.light .text-orange-400 { color: rgb(194 65 12 / var(--tw-text-opacity, 1)); }
+.light .text-red-400,
+.light .hover\:text-red-400:hover { color: rgb(220 38 38 / var(--tw-text-opacity, 1)); }
+.light .text-red-400\/60,
+.light .text-red-400\/70 { color: rgb(220 38 38 / 0.85); }
+.light .text-rose-200,
+.light .text-rose-300,
+.light .text-rose-400 { color: rgb(190 18 60 / var(--tw-text-opacity, 1)); }
+.light .text-sky-300,
+.light .text-sky-400 { color: rgb(3 105 161 / var(--tw-text-opacity, 1)); }
+.light .text-blue-400 { color: rgb(29 78 216 / var(--tw-text-opacity, 1)); }
+.light .text-purple-400 { color: rgb(126 34 206 / var(--tw-text-opacity, 1)); }

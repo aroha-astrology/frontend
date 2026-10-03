@@ -199,9 +199,15 @@ export default function PlanetOrb3D({
   planet = "moon",
   cycle = false,
   cycleMs = 5000,
+  light = false,
   className,
   style,
 }: {
+  /**
+   * Light theme: raise the fill light so the night side reads as a soft shade
+   * on the ivory page instead of a black crescent meant for a night sky.
+   */
+  light?: boolean;
   /**
    * Body to show. `moon`/`sun` are always pinned (rendered procedurally —
    * there's no GLB for either, so `cycle` never applies to them). Any of the
@@ -287,7 +293,11 @@ export default function PlanetOrb3D({
     >
       {/* UNCHANGED lighting rig ───────────────────────────────────────────── */}
       {/* soft fill so the night side blends into black instead of cutting hard */}
-      <ambientLight intensity={0.35} />
+      <ambientLight intensity={light ? 1.4 : 0.35} />
+      {/* light theme only: warm fill from the right so the shadow side isn't black */}
+      {light && (
+        <directionalLight position={[3, -1, 2]} intensity={0.9} color="#fff3dc" />
+      )}
       {/* key light from top-left, matching the hero composition */}
       <directionalLight position={[-3, 2.5, 3]} intensity={2.6} color="#fff6e0" />
       {/* faint warm rim from the opposite side */}

@@ -29,11 +29,11 @@ export default function MoonBackground({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // The orb's shaded/dark side is drawn to blend into a black night sky (see
-  // CssOrb below) — on the light theme's ivory background that same shading
-  // reads as a stray dark ring around the orb (and behind the header logo,
-  // since the orb reaches into the top-center on narrow screens). Fading it
-  // down in light mode keeps the depth cue without the visible halo.
+  // The orb's shaded/dark side is drawn to blend into a black night sky. On the
+  // light theme's ivory background that shading reads as a stray dark ring, so
+  // light mode lifts the night side instead (brighter fill light in 3D, a warm
+  // limb in the CSS orb) and keeps the planet itself clearly visible. Fading the
+  // whole orb out instead left a flat, colorless grey disc.
   const isLight = mounted && resolvedTheme === "light";
 
   return (
@@ -43,7 +43,10 @@ export default function MoonBackground({
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
         className="absolute -top-[80px] -left-[160px] lg:left-[calc(var(--side-nav-w)-160px)] w-[460px] h-[460px] transition-opacity duration-300"
         style={{
-          opacity: isLight ? 0.08 : 0.7,
+          opacity: 0.7,
+          // Daytime-moon look: pale and warm, so the greeting text that sits
+          // on top of the orb on phones stays readable.
+          filter: isLight ? "sepia(0.25) contrast(0.85) brightness(1.45)" : undefined,
         }}
       >
         {/* Atmospheric halo that bleeds into the night sky */}
@@ -66,9 +69,9 @@ export default function MoonBackground({
           }}
         >
           {lowEnd ? (
-            <CssOrb planet={planet} />
+            <CssOrb planet={planet} light={isLight} />
           ) : (
-            <PlanetOrb3D planet={planet} className="!absolute inset-0" />
+            <PlanetOrb3D planet={planet} light={isLight} className="!absolute inset-0" />
           )}
         </div>
       </motion.div>
@@ -84,13 +87,15 @@ export default function MoonBackground({
 }
 
 /** Pure-CSS fallback orb (no WebGL) — reads colors from the same registry. */
-function CssOrb({ planet }: { planet: PlanetId }) {
+function CssOrb({ planet, light = false }: { planet: PlanetId; light?: boolean }) {
   const v = getPlanet(planet);
   return (
     <div
       className="absolute inset-0 rounded-full"
       style={{
-        background: `radial-gradient(circle at 36% 32%, ${v.highlight} 0%, ${v.base} 30%, ${v.shadow} 70%, #14130f 95%)`,
+        background: light
+          ? `radial-gradient(circle at 36% 32%, ${v.highlight} 0%, ${v.base} 40%, ${v.shadow} 100%)`
+          : `radial-gradient(circle at 36% 32%, ${v.highlight} 0%, ${v.base} 30%, ${v.shadow} 70%, #14130f 95%)`,
       }}
     >
       <div
@@ -109,8 +114,9 @@ function CssOrb({ planet }: { planet: PlanetId }) {
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background:
-            "radial-gradient(circle at 32% 28%, transparent 40%, rgba(0,0,0,0.5) 80%, rgba(0,0,0,0.85) 100%)",
+          background: light
+            ? "radial-gradient(circle at 32% 28%, transparent 50%, rgba(120,95,60,0.18) 85%, rgba(120,95,60,0.3) 100%)"
+            : "radial-gradient(circle at 32% 28%, transparent 40%, rgba(0,0,0,0.5) 80%, rgba(0,0,0,0.85) 100%)",
         }}
       />
     </div>

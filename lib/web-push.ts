@@ -69,8 +69,26 @@ function serviceWorkerUrl(): string {
 
 async function registerWorker(): Promise<ServiceWorkerRegistration> {
   const registration = await navigator.serviceWorker.register(serviceWorkerUrl(), { scope: SW_SCOPE });
-  await navigator.serviceWorker.ready;
+  // Not navigator.serviceWorker.ready: that only resolves for a worker that
+  // controls THIS page, and this one is registered at its own scope, so it
+  // would wait forever.
+  const worker = registration.installing ?? registration.waiting ?? registration.active;
+  if (worker && worker.state !== "activated") {
+    await new Promise<void>((resolve) => {
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "activated" || worker.state === "redundant") resolve();
+      });
+    });
+  }
   return registration;
+}
+
+/** Never let a stuck browser API leave the caller waiting: give up after `ms`. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("web push timed out")), ms)),
+  ]);
 }
 
 /** Gets this browser's FCM token and registers it for the user. Assumes permission is already granted. */
@@ -109,7 +127,7 @@ export async function requestWebPushPermission(userId: string): Promise<PushPerm
       if (result === "denied") return "denied";
       if (result !== "granted") return "inconclusive";
     }
-    return (await registerWebPushToken(userId)) ? "granted" : "inconclusive";
+    return (await withTimeout(registerWebPushToken(userId), 20_000)) ? "granted" : "inconclusive";
   } catch (err) {
     console.error("[web-push] enabling push failed", err);
     return "inconclusive";

@@ -77,14 +77,16 @@ export default function TransactionsPage() {
   return (
     <div className="flex flex-col min-h-[100dvh] bg-background">
       {/* Top Bar */}
-      <div className="sticky top-0 z-50 px-5 h-16 flex items-center gap-3 bg-background/80 backdrop-blur-md border-b border-gold/10">
-        <IconButton onClick={() => router.back()} className="-ml-2"><ArrowLeft /></IconButton>
-        <h1 className="text-xl font-display font-semibold text-foreground">
-          {t("transactions.title", "Wallet History")}
-        </h1>
+      <div className="sticky top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-gold/10">
+        <div className="page-container h-full flex items-center gap-3">
+          <IconButton onClick={() => router.back()} className="-ml-2"><ArrowLeft /></IconButton>
+          <h1 className="text-xl font-display font-semibold text-foreground">
+            {t("transactions.title", "Wallet History")}
+          </h1>
+        </div>
       </div>
 
-      <div className="flex-1 p-5 max-w-lg mx-auto w-full flex flex-col gap-4">
+      <div className="flex-1 page-container py-5 flex flex-col gap-4">
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-gold/40 animate-spin" />
@@ -100,7 +102,7 @@ export default function TransactionsPage() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 md:grid page-grid">
             {transactions.map(txn => {
               const positive = isCredit(txn);
               const pending = txn.kind === "recharge" && txn.status !== "paid";

@@ -16,7 +16,7 @@ export default function DecisionResultView({ result }: { result: DecisionResult 
   const subtitle = result.kind === "decision" ? result.question : result.place.name;
 
   return (
-    <div className="space-y-4" data-testid="decision-result">
+    <div className="space-y-4 page-cols md:col-span-full" data-testid="decision-result">
       <Card className="p-4 border-gold/15 space-y-1">
         <p className="text-sm font-semibold text-gold">{t(categoryKey(result.kind, result.category))}</p>
         {subtitle && <p className="text-sm text-foreground/85">{subtitle}</p>}

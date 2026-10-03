@@ -10,6 +10,7 @@ import ThemeSwitch from "@/components/ThemeSwitch";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { api } from "@/lib/api";
+import { hasAppChrome } from "@/lib/app-chrome";
 import { onForegroundPush } from "@/lib/push-events";
 import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
@@ -24,17 +25,10 @@ import WalletBalance from "@/components/ui/WalletBalance";
  * header (profile, settings, payment, reports/[id], etc.) still get this
  * bar too, stacked above their own header row — the same pattern already
  * established for ai-chat and reports/[id]. Only routes that are
- * structurally incompatible are excluded below:
- *   - exact: pre-auth (sign-in/sign-up) and the onboarding wizard — no
- *     completed user session/profile exists yet for wallet/notifications
- *     to reflect.
- *   - prefix: /legal (public, reachable pre-auth per AuthGuard's
- *     PUBLIC_PATHS) and /admin (a separate internal-tool experience with
- *     its own layout, never shown to a customer session).
+ * structurally incompatible are excluded — see `hasAppChrome` in
+ * lib/app-chrome.ts, the rule the bottom bar and the desktop side rail share.
  * Each visible route opts into a right-side slot via `useTopBarRightContent`.
  */
-const HIDDEN_TOPBAR_EXACT_ROUTES = ["/sign-in", "/sign-up", "/onboarding"];
-const HIDDEN_TOPBAR_PREFIXES = ["/legal", "/admin"];
 
 /**
  * Rendered once in the root layout (like BottomNavigation) rather than per
@@ -69,15 +63,17 @@ export default function TopBar() {
   // server-side — light the dot without re-fetching.
   useEffect(() => onForegroundPush(() => setHasUnread(true)), []);
 
-  const hidden =
-    HIDDEN_TOPBAR_EXACT_ROUTES.includes(pathname) ||
-    HIDDEN_TOPBAR_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  if (hidden) return null;
+  if (!hasAppChrome(pathname)) return null;
 
   return (
     <>
       <div className="sticky top-0 z-20 w-full bg-background/90 backdrop-blur-xl">
-        <div className="flex justify-between items-center px-5 pt-[calc(2rem+var(--sat))] pb-4 relative w-full max-w-lg mx-auto">
+        {/* page-container, not its own max width: the menu button and wallet
+            sit on the same edges as the page content at every screen size. */}
+        <div
+          className="page-container flex justify-between items-center pt-[calc(2rem+var(--sat))] pb-4 relative"
+          data-testid="topbar-row"
+        >
           <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
             <Menu size={20} />
           </IconButton>
@@ -107,7 +103,7 @@ export default function TopBar() {
           </div>
         </div>
         {rightContent && (
-          <div className="w-full max-w-lg mx-auto px-5 pb-2 relative">{rightContent}</div>
+          <div className="page-container pb-2 relative">{rightContent}</div>
         )}
       </div>
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />

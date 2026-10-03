@@ -14,7 +14,7 @@ function RewardsContent() {
 
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe">
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />

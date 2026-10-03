@@ -31,10 +31,22 @@ import { filterByFeature } from "@/lib/feature-filter";
 // filterable array only controls WHETHER a section renders, never how.
 // GreetingHeader is deliberately NOT one of these: it's identity chrome
 // (who's signed in), not a togglable feature, so it always renders first.
+//
+// Side padding comes from the page container, not from each section. On a
+// phone the sections stack exactly as before; from 768px a run of card
+// sections sits side by side (see SectionRun below) and every `md:` class
+// here only shapes that wider layout. `md:empty:hidden` drops the wrapper of
+// a card that rendered nothing, so it can't leave a hole in the row.
+
+const CARD_SECTION = "mt-6 md:flex-1 md:basis-80 md:min-w-0 md:empty:hidden";
+const PROMO_SECTION = "mt-8 mb-6 md:mb-0 md:flex-1 md:basis-80 md:min-w-0";
+// The slider runs off the right edge on a phone (-mr-5 cancels the container's
+// padding); from 768px it is a grid inside the page width.
+const SLIDER_SECTION = "-mr-5 md:mr-0 mt-8";
 
 function TodayReadingSection() {
   return (
-    <div className="px-5 mt-6">
+    <div className={CARD_SECTION}>
       <TodayReading />
     </div>
   );
@@ -42,7 +54,7 @@ function TodayReadingSection() {
 
 function AstroWeatherSection() {
   return (
-    <div className="px-5 mt-6">
+    <div className={CARD_SECTION}>
       <AstroWeatherCard />
     </div>
   );
@@ -50,7 +62,7 @@ function AstroWeatherSection() {
 
 function BondsSection() {
   return (
-    <div className="px-5 mt-6">
+    <div className={CARD_SECTION}>
       <BondsCard />
     </div>
   );
@@ -58,7 +70,7 @@ function BondsSection() {
 
 function JournalPromptSection() {
   return (
-    <div className="px-5 mt-6">
+    <div className={CARD_SECTION}>
       <JournalPromptCard />
     </div>
   );
@@ -66,7 +78,7 @@ function JournalPromptSection() {
 
 function KundliCardSection() {
   return (
-    <div className="px-5 mt-6" data-tour="kundli-summary">
+    <div className={CARD_SECTION} data-tour="kundli-summary">
       <KundliCard />
     </div>
   );
@@ -77,8 +89,8 @@ function KundliCardSection() {
 function HoroscopeSliderSection() {
   const { t } = useTranslation();
   return (
-    <div className="pl-5 pr-0 mt-8" data-tour="daily-horoscope">
-      <div className="flex justify-between items-center pr-5 mb-4">
+    <div className={SLIDER_SECTION} data-tour="daily-horoscope">
+      <div className="flex justify-between items-center pr-5 md:pr-0 mb-4">
         <h2 className="text-lg font-display text-foreground">{t("home.moonSignHoroscope")}</h2>
         <Link href="/horoscope" className="text-gold text-sm flex items-center gap-1">
           {t("common.seeAll")} <span className="text-[10px]">▶</span>
@@ -95,8 +107,8 @@ function HoroscopeSliderSection() {
 function ReportsSliderSection() {
   const { t } = useTranslation();
   return (
-    <div className="pl-5 pr-0 mt-8">
-      <div className="flex justify-between items-center pr-5 mb-4">
+    <div className={SLIDER_SECTION}>
+      <div className="flex justify-between items-center pr-5 md:pr-0 mb-4">
         <h2 className="text-lg font-display text-foreground">{t("reports.title")}</h2>
         <Link href="/reports" className="text-gold text-sm flex items-center gap-1">
           {t("common.seeAll")} <span className="text-[10px]">▶</span>
@@ -109,7 +121,7 @@ function ReportsSliderSection() {
 
 function MatchMakingSection() {
   return (
-    <div className="px-5 mt-8 mb-6">
+    <div className={PROMO_SECTION}>
       <MatchMakingCard />
     </div>
   );
@@ -117,7 +129,7 @@ function MatchMakingSection() {
 
 function VastuCardSection() {
   return (
-    <div className="px-5 mt-8 mb-6">
+    <div className={PROMO_SECTION}>
       <VastuCard />
     </div>
   );
@@ -125,7 +137,7 @@ function VastuCardSection() {
 
 function PalmReadingSection() {
   return (
-    <div className="px-5 mt-8 mb-6">
+    <div className={PROMO_SECTION}>
       <PalmReadingCard />
     </div>
   );
@@ -133,7 +145,7 @@ function PalmReadingSection() {
 
 function ShlokasSection() {
   return (
-    <div className="px-5 mt-8 mb-6">
+    <div className={PROMO_SECTION}>
       <ShlokasCard />
     </div>
   );
@@ -141,7 +153,7 @@ function ShlokasSection() {
 
 function RemediesSection() {
   return (
-    <div className="px-5 mt-8 mb-6" data-tour="remedies-card">
+    <div className={PROMO_SECTION} data-tour="remedies-card">
       <RemediesCard />
     </div>
   );
@@ -153,6 +165,8 @@ interface HomeSection {
   Component: ComponentType;
   /** A ship-dark roadmap section: a key missing from /v1/me hides it instead of showing it. */
   isNew?: true;
+  /** Takes the full page width on its own row (the sliders) instead of joining a row of cards. */
+  wide?: true;
 }
 
 /** Order here IS render order — preserves the exact pre-existing sequence. */
@@ -163,14 +177,42 @@ const HOME_SECTIONS: HomeSection[] = [
   { id: "bonds", featureKey: "home.bondsCard", Component: BondsSection, isNew: true },
   { id: "journalPrompt", featureKey: "home.journalPrompt", Component: JournalPromptSection, isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
-  { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection },
-  { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection },
+  { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection, wide: true },
+  { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection, wide: true },
   { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
   { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
   { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
   { id: "shlokas", featureKey: "home.shlokas", Component: ShlokasSection },
   { id: "remedies", featureKey: "home.remedies", Component: RemediesSection },
 ];
+
+/**
+ * Consecutive card sections, grouped so they can share a row on wide screens.
+ * On a phone this wrapper is a plain block, so the sections' margins behave
+ * exactly as if it weren't there. From 768px it is a wrapping flex row whose
+ * cards grow to fill it — a row is never left with an empty slot, however
+ * many sections the feature flags leave visible.
+ */
+function SectionRun({ sections }: { sections: HomeSection[] }) {
+  return (
+    <div className="md:flex md:flex-wrap md:items-start md:gap-x-6">
+      {sections.map(({ id, Component }) => (
+        <Component key={id} />
+      ))}
+    </div>
+  );
+}
+
+/** Splits the visible sections into runs of cards and stand-alone wide sections, keeping their order. */
+function groupSections(sections: HomeSection[]): HomeSection[][] {
+  const groups: HomeSection[][] = [];
+  for (const section of sections) {
+    const last = groups[groups.length - 1];
+    if (last && !section.wide && !last[0]!.wide) last.push(section);
+    else groups.push([section]);
+  }
+  return groups;
+}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -204,13 +246,17 @@ export default function HomePage() {
       <SplashScreen onDone={() => setSplashDone(true)} />
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
 
-      <div className="relative z-10">
+      <div className="relative z-10 page-container">
         {/* Personalized greeting header — identity chrome, always shown */}
         <GreetingHeader />
 
-        {visibleSections.map(({ id, Component }) => (
-          <Component key={id} />
-        ))}
+        {groupSections(visibleSections).map((group) =>
+          group[0]!.wide ? (
+            group.map(({ id, Component }) => <Component key={id} />)
+          ) : (
+            <SectionRun key={group[0]!.id} sections={group} />
+          ),
+        )}
       </div>
     </main>
   );

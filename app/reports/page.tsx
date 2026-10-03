@@ -78,7 +78,7 @@ function ReportsCatalogue() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4">
+      <div className="page-container pt-4">
         <SectionTitle title={t("reports.title")} subtitle={t("reports.subtitle")} />
         <ProfileSwitchTrigger className="mb-4 -mt-2" />
 
@@ -108,7 +108,7 @@ function ReportsCatalogue() {
         ) : activeList.length === 0 ? (
           <p className="text-xs text-muted text-center py-10">{t("reports.empty")}</p>
         ) : (
-          <div className="flex flex-col gap-3" data-tour="reports-list">
+          <div className="flex flex-col gap-3 md:grid page-grid" data-tour="reports-list">
             {activeList.slice(0, gemstoneIndex).map((entry) => (
               <ReportCard
                 key={entry.key}

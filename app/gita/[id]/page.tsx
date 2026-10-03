@@ -47,7 +47,7 @@ function GitaDetail({ id }: { id: string }) {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -66,7 +66,7 @@ function GitaDetail({ id }: { id: string }) {
               {CATEGORY_GLOSS[verse.mainCategory] && ` (${CATEGORY_GLOSS[verse.mainCategory]})`}
             </p>
 
-            <Card className="p-5">
+            <Card className="p-5 md:row-span-2">
               <p className="text-lg font-display text-foreground leading-loose whitespace-pre-line text-center">
                 {verse.sanskrit}
               </p>

@@ -196,7 +196,7 @@ export default function ProfilePage() {
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
 
-      <div className="relative z-10 px-5 pt-8">
+      <div className="relative z-10 page-container pt-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
@@ -214,6 +214,8 @@ export default function ProfilePage() {
           )}
         </div>
 
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+        <div>
         <Card className="p-4 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-gold" />
@@ -277,6 +279,9 @@ export default function ProfilePage() {
           <ShareOptionsSheet open={shareOpen} onClose={() => setShareOpen(false)} code={user.referralCode} />
         )}
 
+        </div>
+
+        <div>
         <div className="text-center mb-2">
           <span className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium">
             You can edit your profile only once
@@ -426,6 +431,8 @@ export default function ProfilePage() {
         )}
 
         {submitErr && <p className="mt-3 text-[12px] text-red-400 text-center">{submitErr}</p>}
+        </div>
+        </div>
       </div>
     </main>
   );

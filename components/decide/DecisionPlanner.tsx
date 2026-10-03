@@ -144,7 +144,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto space-y-4">
+      <div className="relative z-10 page-container pt-8 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -163,7 +163,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
         </div>
 
         {locked ? (
-          <PassLock feature={t(`${ns}.title`)} />
+          <PassLock feature={t(`${ns}.title`)} className="md:col-span-full" />
         ) : result ? (
           <>
             <DecisionResultView result={result} />

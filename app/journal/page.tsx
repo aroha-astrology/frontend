@@ -178,7 +178,7 @@ function JournalPage() {
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto space-y-4">
+      <div className="relative z-10 page-container pt-8 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -193,7 +193,7 @@ function JournalPage() {
         </div>
 
         {date && (
-          <Card className="p-4 border-gold/15 space-y-4" data-testid="journal-checkin">
+          <Card className="p-4 border-gold/15 space-y-4 md:row-span-2" data-testid="journal-checkin">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-semibold text-gold">
                 {date === today ? t("journal.today") : dayLabel(date, i18n.language)}

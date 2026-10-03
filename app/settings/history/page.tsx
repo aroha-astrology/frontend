@@ -154,7 +154,7 @@ export default function PaymentHistoryPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe bg-background">
-      <div className="px-5 pt-8">
+      <div className="page-container pt-8">
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -169,7 +169,7 @@ export default function PaymentHistoryPage() {
             <p className="text-sm text-muted">{t("paymentHistory.empty")}</p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 page-grid">
             {transactions.map((txn) => (
               <TransactionRow key={txn.id} txn={txn} t={t} />
             ))}

@@ -223,7 +223,7 @@ export default function ReportThemeCard({ entry, index = 0, onBuy, onAddMonths }
       transition={{ delay: index * 0.05 }}
       onClick={cardOnClick}
       className={cn(
-        "min-w-[160px] max-w-[160px] p-0 flex-shrink-0 overflow-hidden border-gold/10 hover:border-gold/30 transition-transform relative",
+        "min-w-[160px] max-w-[160px] md:min-w-0 md:max-w-none p-0 flex-shrink-0 overflow-hidden border-gold/10 hover:border-gold/30 transition-transform relative",
         tappable && "cursor-pointer active:scale-95",
       )}
     >

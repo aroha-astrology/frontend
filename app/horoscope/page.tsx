@@ -174,7 +174,7 @@ export default function HoroscopePage() {
   return (
     <FeatureGuard featureKey="nav.horoscope">
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4">
+      <div className="page-container pt-4">
         <h1 className="text-3xl font-bold text-center text-gold font-display">{t("horoscope.title")}</h1>
 
         {/* Closes the accuracy loop: asks whether a past dated window actually
@@ -241,7 +241,7 @@ export default function HoroscopePage() {
           <p className="text-xs text-muted mb-4">{t("horoscope.moonSignSectionHint")}</p>
 
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="p-4 border-gold/10 animate-pulse">
                   <div className="h-8 w-8 rounded-full bg-gold/10 mb-2" />
@@ -257,7 +257,7 @@ export default function HoroscopePage() {
               </button>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
               {forecasts.map((sign, index) => (
                 <Card
                   key={sign.name}

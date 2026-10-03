@@ -12,10 +12,11 @@ import { useFeature } from "@/hooks/useFeature";
 import { getUserMoonSign } from "@/lib/kundli-helpers";
 import { zodiacSignLabel } from "@/data/zodiac";
 import SignHindiName from "@/components/horoscope/SignHindiName";
+import { SLIDER_ROW } from "@/components/ui/slider-row";
 
 function SkeletonCard() {
   return (
-    <Card className="min-w-[160px] max-w-[160px] p-4 border-gold/10 flex-shrink-0 animate-pulse">
+    <Card className="min-w-[160px] max-w-[160px] md:min-w-0 md:max-w-none p-4 border-gold/10 flex-shrink-0 animate-pulse">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gold/10" />
         <div className="space-y-1.5">
@@ -61,7 +62,7 @@ export default function HoroscopeSlider() {
 
   if (loading) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
+      <div className={SLIDER_ROW}>
         {[...Array(5)].map((_, i) => (
           <SkeletonCard key={i} />
         ))}
@@ -71,7 +72,7 @@ export default function HoroscopeSlider() {
 
   if (allFailed) {
     return (
-      <div className="pb-4 pr-5">
+      <div className="pb-4 pr-5 md:pr-0">
         <Card className="p-4 border-gold/10 text-center" data-testid="signs-error">
           <p className="text-xs text-muted">{t("common.somethingWentWrong")}</p>
           <button onClick={retry} className="mt-1.5 text-xs font-semibold text-gold underline underline-offset-4">
@@ -84,7 +85,7 @@ export default function HoroscopeSlider() {
 
   return (
     <>
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
+      <div className={SLIDER_ROW}>
         {orderedForecasts.map((sign, index) => {
           const isUserSign = !!userMoonSign && sign.name.toLowerCase() === userMoonSign.toLowerCase();
           return (
@@ -93,7 +94,7 @@ export default function HoroscopeSlider() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`min-w-[160px] max-w-[160px] p-4 flex-shrink-0 cursor-pointer active:scale-95 transition-transform ${
+            className={`min-w-[160px] max-w-[160px] md:min-w-0 md:max-w-none p-4 flex-shrink-0 cursor-pointer active:scale-95 transition-transform ${
               isUserSign ? "border-gold/50" : "border-gold/10 hover:border-gold/30"
             }`}
             onClick={() => (sign.failed ? retry() : setSelected(index))}

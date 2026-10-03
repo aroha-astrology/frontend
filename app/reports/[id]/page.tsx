@@ -264,7 +264,7 @@ export default function ReportDetailPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4">
         {designed ? (
           <div data-tour="report-header">
           <ReportHero
@@ -330,7 +330,7 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && designed && (
           <>
-            <div data-tour="report-body" className="flex flex-col gap-6">
+            <div data-tour="report-body" className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
               <designed.View data={data} />
             </div>
             {/* The 10 designed screens compose their own cards and never call
@@ -391,7 +391,7 @@ export default function ReportDetailPage() {
               <ReportScoreFacts scores={data.scores} />
             </div>
 
-            <div className="space-y-6" data-tour="report-sections">{data.sections.map(renderSection)}</div>
+            <div className="space-y-6 lg:columns-2 lg:gap-10 [&>section]:break-inside-avoid" data-tour="report-sections">{data.sections.map(renderSection)}</div>
 
             {isReportVerdict(data.scores.verdict) && (
               <div data-tour="report-verdict">

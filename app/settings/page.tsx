@@ -148,7 +148,7 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe bg-background">
-      <div className="px-5 pt-8">
+      <div className="page-container pt-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
@@ -157,6 +157,10 @@ export default function SettingsPage() {
           <h1 className="text-lg font-display text-foreground">{t("settings.title")}</h1>
         </div>
 
+        {/* Each section is its own block so they can sit two-up from 768px;
+            on a phone the blocks stack exactly as the flat list did. */}
+        <div className="md:grid md:grid-cols-2 md:gap-x-8 md:items-start">
+        <div>
         {/* Preferences */}
         <SectionLabel>{t("settings.preferences")}</SectionLabel>
         <div className="space-y-2.5 mb-6">
@@ -188,16 +192,19 @@ export default function SettingsPage() {
             />
           )}
         </div>
+        </div>
 
         {feedbackOpen && <FeedbackSheet onClose={() => setFeedbackOpen(false)} />}
 
+        <div>
         {/* Notifications — which optional pushes to get, and quiet hours */}
         <SectionLabel>{t("settings.notifications")}</SectionLabel>
         <NotificationSettings />
+        </div>
 
         {/* Profiles */}
         {profiles !== null && (
-          <>
+          <div>
             <SectionLabel>{t("settings.profiles")}</SectionLabel>
             <div className="space-y-2.5 mb-6">
               {profiles.map((profile) => (
@@ -211,22 +218,27 @@ export default function SettingsPage() {
                 />
               ))}
             </div>
-          </>
+          </div>
         )}
 
+        <div className="md:empty:hidden">
         {/* Birth-time rectification. Lives in settings rather than a reading
             surface because it is a correction to the user's own data, and it
             deliberately only SUGGESTS — nothing is applied automatically. */}
         <BirthTimeConfidenceCard className="mb-6" />
         <BirthTimeRectifyCard className="mb-6" />
+        </div>
 
+        <div>
         {/* Legal */}
         <SectionLabel>{t("settings.legal")}</SectionLabel>
         <div className="space-y-2.5 mb-6">
           <ListRow href="/legal/terms" icon={<ScrollText size={16} />} label={t("legal.terms")} />
           <ListRow href="/legal/privacy" icon={<ShieldCheck size={16} />} label={t("legal.privacy")} />
         </div>
+        </div>
 
+        <div>
         {/* Account */}
         <SectionLabel>{t("settings.account")}</SectionLabel>
         <div className="space-y-2.5 mb-2.5">
@@ -250,6 +262,8 @@ export default function SettingsPage() {
             <span className="text-sm font-medium">{t("settings.deleteAccount")}</span>
           </button>
         </Card>
+        </div>
+        </div>
       </div>
 
       {showDeleteConfirm && (

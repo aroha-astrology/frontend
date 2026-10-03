@@ -335,7 +335,7 @@ export default function CompatibilityPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-10">
+      <div className="page-container pt-10">
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -358,7 +358,7 @@ export default function CompatibilityPage() {
         )}
 
         {showForm && !matchReportUnavailable && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-4 lg:mx-auto lg:max-w-3xl">
             <label
               className={cn(
                 "flex items-start gap-2.5 px-1 text-xs leading-relaxed",
@@ -535,7 +535,7 @@ export default function CompatibilityPage() {
             <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-2 px-1">
               {t("compatibilityPage.savedReports")}
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2 page-grid">
               {matchReportEntry.purchases.map((p, i) => (
                 <button
                   key={p.id}

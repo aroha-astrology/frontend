@@ -11,11 +11,12 @@ import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { filterVisibleReports, sortNewFirst } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
+import { SLIDER_ROW } from "@/components/ui/slider-row";
 
 /** Sized for ReportThemeCard's fixed 160px card — a distinct shape from HoroscopeSlider's SkeletonCard (gradient header band + stacked text/CTA), not a reuse of it. */
 function SkeletonThemeCard() {
   return (
-    <Card className="min-w-[160px] max-w-[160px] p-0 flex-shrink-0 overflow-hidden border-gold/10 animate-pulse">
+    <Card className="min-w-[160px] max-w-[160px] md:min-w-0 md:max-w-none p-0 flex-shrink-0 overflow-hidden border-gold/10 animate-pulse">
       <div className="h-16 w-full bg-gold/10 flex items-center justify-center">
         <div className="w-10 h-10 rounded-full bg-gold/15" />
       </div>
@@ -67,7 +68,7 @@ export default function ReportsSlider() {
 
   if (loading && !visible) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
+      <div className={SLIDER_ROW}>
         {[...Array(4)].map((_, i) => (
           <SkeletonThemeCard key={i} />
         ))}
@@ -82,7 +83,7 @@ export default function ReportsSlider() {
 
   return (
     <>
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pr-5">
+      <div className={SLIDER_ROW}>
         {visible.map((entry, index) => (
           <ReportThemeCard
             key={entry.key}

@@ -862,7 +862,14 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       </div>
 
       {/* Messages — the only scrolling element on this screen. */}
-      <div ref={messagesContainerRef} className="flex-1 px-4 space-y-4 overflow-y-auto pb-4" data-tour="chat-messages">
+      {/* lg: padding — the pane scrolls edge to edge, but the conversation
+          itself stays in the same centred 56rem column as the input bar below;
+          lines of chat running the full width of a desktop are unreadable. */}
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 px-4 lg:px-[max(1rem,calc((100%-56rem)/2))] space-y-4 overflow-y-auto pb-4"
+        data-tour="chat-messages"
+      >
         {/* Specialty + disclosure — lives inside the scroll container so it
             genuinely scrolls away with the rest of the conversation once
             there's enough history, instead of permanently eating vertical
@@ -1112,7 +1119,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           distance above the bottom tab bar that the old `fixed bottom-` did,
           now via ordinary flex spacing instead. */}
       <div className="flex-shrink-0 px-4 py-3 mb-[calc(var(--tab-bar-h)+1rem)]" style={{ background: "var(--background)" }}>
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg md:max-w-none lg:max-w-4xl mx-auto">
           {passQuestionsLeft > 0 ? (
             <p className="text-center text-[11px] text-gold/90 mb-1.5" data-testid="chat-pass-quota">
               {t("pass.chatPass", { count: passQuestionsLeft })}

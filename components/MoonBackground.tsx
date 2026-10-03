@@ -41,7 +41,7 @@ export default function MoonBackground({
       <motion.div
         animate={{ y: [-8, 8, -8] }}
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
-        className="absolute -top-[80px] -left-[160px] w-[460px] h-[460px] transition-opacity duration-300"
+        className="absolute -top-[80px] -left-[160px] lg:left-[calc(var(--side-nav-w)-160px)] w-[460px] h-[460px] transition-opacity duration-300"
         style={{
           opacity: isLight ? 0.08 : 0.7,
         }}

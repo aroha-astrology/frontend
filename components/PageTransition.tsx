@@ -3,9 +3,10 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { NAV_ITEMS } from "@/lib/nav-items";
 
-/** Bottom-nav tab order — determines slide direction between them. */
-const TAB_ORDER = ["/", "/vastu", "/ai-chat", "/horoscope", "/panchang"];
+/** Nav tab order — determines slide direction between them. */
+const TAB_ORDER = NAV_ITEMS.map((item) => item.href);
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -52,13 +53,18 @@ export default function PageTransition({ children }: { children: React.ReactNode
     // gate closed so the new page never mounts at all). Dropping the exit
     // animation avoids both: the old page unmounts instantly, the new one
     // still slides in on its `key` change.
-    <motion.div
-      key={pathname}
-      initial={{ x: direction * 24, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
+    // The wrapper clips the 24px slide so it can't flash a horizontal scrollbar
+    // for a fifth of a second on desktop (clip, unlike hidden, makes no scroll
+    // container, so position: sticky inside the page keeps working).
+    <div className="overflow-x-clip">
+      <motion.div
+        key={pathname}
+        initial={{ x: direction * 24, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 }

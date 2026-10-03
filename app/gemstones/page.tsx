@@ -26,7 +26,7 @@ export default function GemstonesPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -48,7 +48,7 @@ export default function GemstonesPage() {
         {state === "ready" && data && (
           <>
             {data.intro && <p className="text-xs text-foreground/90 leading-relaxed">{data.intro}</p>}
-            <div className="space-y-3">
+            <div className="space-y-3 page-grid">
               {gems.map((gem) => (
                 <GemRow key={gem.planet} gem={gem} />
               ))}

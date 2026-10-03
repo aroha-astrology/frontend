@@ -50,14 +50,16 @@ export default function ReportHistoryPage() {
   return (
     <FeatureGuard featureKey="home.reportsSection">
       <div className="flex flex-col min-h-[100dvh] bg-background">
-        <div className="sticky top-0 z-50 px-5 h-16 flex items-center gap-3 bg-background/80 backdrop-blur-md border-b border-gold/10">
-          <IconButton onClick={() => router.back()} className="-ml-2">
-            <ArrowLeft />
-          </IconButton>
-          <h1 className="text-xl font-display font-semibold text-foreground">{t("reports.history.title")}</h1>
+        <div className="sticky top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-gold/10">
+          <div className="page-container h-full flex items-center gap-3">
+            <IconButton onClick={() => router.back()} className="-ml-2">
+              <ArrowLeft />
+            </IconButton>
+            <h1 className="text-xl font-display font-semibold text-foreground">{t("reports.history.title")}</h1>
+          </div>
         </div>
 
-        <div className="flex-1 p-5 max-w-lg mx-auto w-full flex flex-col gap-6">
+        <div className="flex-1 page-container py-5 flex flex-col gap-6">
           {loading ? (
             <div className="flex-1 flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-gold/40 animate-spin" />
@@ -76,7 +78,7 @@ export default function ReportHistoryPage() {
             grouped.map(([bucket, rows]) => (
               <div key={bucket} className="flex flex-col gap-3">
                 <p className="text-[11px] uppercase tracking-wider text-muted px-1">{bucket}</p>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 md:grid page-grid">
                   {rows.map((entry) => {
                     const ready = entry.status === "ready";
                     return (

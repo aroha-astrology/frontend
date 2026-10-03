@@ -191,7 +191,7 @@ function BondsPage() {
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto space-y-4">
+      <div className="relative z-10 page-container pt-8 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => (openId ? open(null) : router.back())} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -209,7 +209,7 @@ function BondsPage() {
           </div>
         </div>
 
-        {error === "pass" && <PassLock feature={t("bonds.title")} />}
+        {error === "pass" && <PassLock feature={t("bonds.title")} className="md:col-span-full" />}
         {error && error !== "pass" && <p className="py-10 text-center text-sm text-muted">{t(`bonds.${error}`)}</p>}
         {!error && !list && <p className="py-10 text-center text-sm text-muted">{t("bonds.loading")}</p>}
 
@@ -220,7 +220,7 @@ function BondsPage() {
         {!error && !openId && list && (
           <>
             {list.length === 0 && <p className="text-sm text-foreground/85">{t("bonds.empty")}</p>}
-            <div className="space-y-2">
+            <div className="space-y-2 page-grid md:col-span-full">
               {list.map((b) => (
                 <button
                   key={b.profileId}
@@ -245,7 +245,7 @@ function BondsPage() {
             </div>
             <Link
               href="/onboarding?mode=new-profile"
-              className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-gold/30 text-sm font-medium text-gold"
+              className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-gold/30 text-sm font-medium text-gold md:col-span-full md:mx-auto md:max-w-sm"
             >
               <Plus size={16} />
               {t("bonds.add")}

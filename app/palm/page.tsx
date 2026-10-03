@@ -38,7 +38,7 @@ export default function PalmPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4">
         <SectionTitle title={t("palm.title")} subtitle={t("palm.subtitle")} />
         <ProfileSwitchTrigger className="mb-4 -mt-2" />
 
@@ -62,7 +62,7 @@ export default function PalmPage() {
             <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 px-1">
               {t("palm.history")}
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2 page-grid">
               {readings.map((r) => (
                 <button
                   key={r.id}

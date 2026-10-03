@@ -85,7 +85,7 @@ export default function PalmReadingPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-5">
+      <div className="page-container pt-4 space-y-5">
         {(state === "idle" || state === "loading" || state === "generating") && (
           <>
             <GeneratingSpinner label={t("palm.view.generatingTitle")} size={40} className="py-16" />

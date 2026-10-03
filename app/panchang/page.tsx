@@ -248,9 +248,14 @@ export default function PanchangPage() {
     <FeatureGuard featureKey="nav.panchang">
     {geo.status === "requesting" && <LocationSearchOverlay />}
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-4">
+      <div className="page-container pt-4">
         <PanchangHeader subtitle={data?.date ?? ""} />
 
+        {/* From 1280px: the calendar and its controls stay in view on the left
+            while the chosen day's details scroll on the right. Below that the
+            two wrappers are plain blocks and everything stacks as before. */}
+        <div className="xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:gap-8 xl:items-start">
+        <div className="xl:sticky xl:top-[calc(var(--topbar-h)+0.5rem)]">
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
@@ -322,7 +327,9 @@ export default function PanchangPage() {
             region={region}
           />
         </div>
+        </div>
 
+        <div>
         {state === "loading" && (
           <div className="mt-6 space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -457,6 +464,8 @@ export default function PanchangPage() {
             </p>
           </div>
         )}
+        </div>
+        </div>
       </div>
 
       <PurchasePlanModal

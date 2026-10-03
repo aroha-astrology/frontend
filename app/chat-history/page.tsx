@@ -74,7 +74,7 @@ export default function ChatHistoryPage() {
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
-      <div className="relative z-10 px-5 pt-8">
+      <div className="relative z-10 page-container pt-8">
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -83,7 +83,7 @@ export default function ChatHistoryPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 max-w-2xl w-full mx-auto">
+      <div className="flex-1 overflow-y-auto page-container px-4 md:px-8 py-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="animate-spin text-gold w-8 h-8" />
@@ -96,7 +96,7 @@ export default function ChatHistoryPage() {
             <p>No chat history found.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 page-grid">
             {sessions.map((session) => (
               <div
                 key={session.id}

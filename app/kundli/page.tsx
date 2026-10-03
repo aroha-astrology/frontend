@@ -485,11 +485,11 @@ export default function KundliPage() {
 
   return (
     <main className="min-h-screen pb-tab-safe bg-background">
-      <div className="px-5 pt-4 max-w-lg mx-auto space-y-4">
+      <div className="page-container pt-4 space-y-4">
 
         {/* ── CHART VIEW ── */}
         {hasData && chartData && (
-          <div className="space-y-4">
+          <div className="space-y-4 page-cols">
             {/* 1. Header card */}
             {(ascendant || planets.length > 0) && (
               <div data-tour="kundli-header">
@@ -616,7 +616,7 @@ export default function KundliPage() {
 
         {/* ── FORM (no chart yet) ── */}
         {!hasData && (
-          <>
+          <div className="space-y-4 md:mx-auto md:max-w-xl">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -691,7 +691,7 @@ export default function KundliPage() {
                 />
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </main>

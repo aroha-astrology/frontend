@@ -88,7 +88,7 @@ function RelocationPage() {
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto space-y-4">
+      <div className="relative z-10 page-container pt-8 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -102,7 +102,7 @@ function RelocationPage() {
           </div>
         </div>
 
-        {locked && <PassLock feature={t("relocation.title")} />}
+        {locked && <PassLock feature={t("relocation.title")} className="md:col-span-full" />}
         {loadError && <p className="py-10 text-center text-sm text-muted">{t("relocation.error")}</p>}
         {!locked && !loadError && !status && (
           <p className="py-10 text-center text-sm text-muted">{t("relocation.loading")}</p>

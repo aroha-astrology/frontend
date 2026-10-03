@@ -72,7 +72,7 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-x-0 bottom-0 z-[100] bg-background border-t border-border rounded-t-[2.5rem] p-6 max-h-[85vh] overflow-y-auto pb-[calc(3rem+var(--sab))]"
+            className="fixed inset-x-0 bottom-0 z-[100] bg-background border-t border-border rounded-t-[2.5rem] p-6 max-h-[85vh] overflow-y-auto pb-[calc(3rem+var(--sab))] sm:mx-auto sm:max-w-lg sm:border-x"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">

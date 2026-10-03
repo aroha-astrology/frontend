@@ -334,10 +334,10 @@ function RemediesContent() {
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
-      <div className="px-5 pt-10">
+      <div className="page-container pt-10">
         <SectionTitle title={t("remediesPage.title")} subtitle={t("remediesPage.subtitle")} />
 
-        <div className="mt-2 space-y-4">
+        <div className="mt-2 space-y-4 page-cols">
           {loading ? (
             [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
           ) : data.remedies.length === 0 ? (
@@ -362,7 +362,7 @@ function RemediesContent() {
 
               {planets.length > 0 && (
                 <>
-                  <div data-tour="remedies-debts">
+                  <div data-tour="remedies-debts" className="md:col-span-full md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-4 md:items-start">
                   <ChapterCard
                     heading={`⚖️ ${t("remediesPage.debtsHeading")}`}
                     dek={t("remediesPage.debtsDek")}

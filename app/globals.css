@@ -50,6 +50,17 @@
      right-content row via useTopBarRightContent, TopBar grows taller than
      this constant accounts for. */
   --topbar-h: calc(5.5rem + var(--sat));
+  /* Width of the desktop left rail (components/SideNavigation.tsx). */
+  --side-nav-w: 15rem;
+}
+
+/* From 1024px the bottom tab bar is replaced by the left rail, so nothing has
+   to reserve room for it: pb-tab-safe, the chat input's bottom margin and the
+   sheet spacer all read --tab-bar-h and collapse on their own. */
+@media (min-width: 1024px) {
+  :root {
+    --tab-bar-h: 0px;
+  }
 }
 
 /* ── Light theme — luxury editorial, ivory paper ── */
@@ -146,6 +157,67 @@
 
 .light .hero-bg {
   background: radial-gradient(circle at top, rgba(255, 210, 130, 0.18) 0%, transparent 60%);
+}
+
+/* ── Page layout ──
+   .page-container is the one width every customer page and the TopBar share,
+   so the header always lines up with the content. Phone layout is untouched:
+   everything else here only does anything from 768px up. In the components
+   layer so a utility on the same element (px-4, a col-span) still wins. */
+@layer components {
+  .page-container {
+    width: 100%;
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .page-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    /* A vertical stack of cards laid out as two columns. The page header
+       (first child) and loose lines of text span both; add md:col-span-full
+       to anything else that should. */
+    .page-cols {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 1.5rem;
+      align-items: start;
+    }
+    .page-cols > :first-child,
+    .page-cols > p {
+      grid-column: 1 / -1;
+    }
+
+    /* A list of same-shaped cards: two columns, three from 1280px. */
+    .page-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem 1rem;
+      align-items: start;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .page-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+/* The stacks these grids replace space their children with space-y-* or
+   flex gap on a phone. Deliberately outside the layer, after the utilities:
+   the grid gap takes over, so the stack margin has to be switched off. */
+@media (min-width: 768px) {
+  .page-cols > :not([hidden]) ~ :not([hidden]),
+  .page-grid > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0;
+  }
 }
 
 /* ── Hide scrollbar (horizontal sliders) ── */

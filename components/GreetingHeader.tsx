@@ -45,7 +45,7 @@ export default function GreetingHeader() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="px-5 pt-8 pb-2 flex items-center gap-3"
+      className="pt-8 pb-2 flex items-center gap-3"
     >
       <Avatar name={displayName} size="md" />
       <div>

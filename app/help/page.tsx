@@ -98,7 +98,7 @@ export default function HelpPage() {
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
 
-      <div className="relative z-10 px-5 pt-8">
+      <div className="relative z-10 page-container pt-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
@@ -109,6 +109,7 @@ export default function HelpPage() {
 
         <p className="text-sm text-muted mb-5">{t("help.subtitle")}</p>
 
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
         {/* Form */}
         <Card className="p-4 mb-6">
           <label className="text-[11px] text-muted uppercase tracking-wider mb-2 block">
@@ -145,6 +146,7 @@ export default function HelpPage() {
           </button>
         </Card>
 
+        <div>
         {/* Ticket history */}
         <h2 className="text-sm font-semibold text-foreground mb-3">{t("help.historyTitle")}</h2>
 
@@ -239,6 +241,8 @@ export default function HelpPage() {
             </div>
           )
         )}
+        </div>
+        </div>
       </div>
     </main>
   );

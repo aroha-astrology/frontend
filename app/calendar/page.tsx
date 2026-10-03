@@ -48,7 +48,7 @@ function CalendarPage() {
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto space-y-4">
+      <div className="relative z-10 page-container pt-8 space-y-4 page-cols">
         <div className="flex items-center gap-3">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -62,7 +62,7 @@ function CalendarPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar md:col-span-full">
           {FILTERS.map((f) => (
             <button
               key={f}

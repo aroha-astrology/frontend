@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/providers/auth-provider";
 import { resolveFeature } from "@/hooks/useFeature";
 import { filterByFeature } from "@/lib/feature-filter";
+import { hasAppChrome } from "@/lib/app-chrome";
 import { NAV_ITEMS, type NavItem } from "@/lib/nav-items";
 
 /**
@@ -67,8 +68,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const hidden = ["/onboarding", "/sign-in", "/sign-up", "/legal"].some((p) => pathname.startsWith(p));
-  if (hidden) return null;
+  if (!hasAppChrome(pathname)) return null;
 
   // Resolved once per render (not one useFeature() call per item, which
   // would call a hook from inside a filter callback) — see
@@ -83,8 +83,10 @@ export default function BottomNavigation() {
   const gridColsClass = GRID_COLS[items.length] ?? GRID_COLS[5];
 
   return (
+    // lg:hidden — from 1024px components/SideNavigation.tsx takes over.
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-tab-bar pb-sab rounded-t-[2.5rem] transform-gpu"
+      data-testid="bottom-nav"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-surface/95 backdrop-blur-xl h-tab-bar pb-sab rounded-t-[2.5rem] transform-gpu lg:hidden"
       style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
     >
       {/* h-full resolves against the nav's content box, which excludes pb-sab —

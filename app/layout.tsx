@@ -13,6 +13,8 @@ import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
 import TopBar from "@/components/TopBar";
 import BottomNavigationGate from "@/components/BottomNavigationGate";
+import SideNavigation from "@/components/SideNavigation";
+import AppFrame from "@/components/AppFrame";
 import TourHost from "@/components/tour/TourHost";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
@@ -72,6 +74,9 @@ export const metadata: Metadata = {
   title: "Aroha Astrology",
   description: "Vedic Astrology & AI Astrologer",
   manifest: "/manifest.json",
+  // iPhone Safari uses this for "Add to Home Screen", which is also what lets
+  // iPhone users receive web push.
+  icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
   // App, not the marketing site — keep it out of search results.
   robots: { index: false, follow: false },
 };
@@ -107,8 +112,11 @@ export default function RootLayout({
                               every prompt below defers to `tourActive` so nothing
                               renders underneath a running tour's scrim. */}
                           <TourProvider>
-                            <TopBar />
-                            <PageTransition>{children}</PageTransition>
+                            <AppFrame>
+                              <TopBar />
+                              <PageTransition>{children}</PageTransition>
+                            </AppFrame>
+                            <SideNavigation />
                             <BottomNavigationGate />
                             <PermissionsPrompt />
                             <TourHost />

@@ -17,6 +17,12 @@ import { track } from "@/lib/analytics";
 import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
 import { maybeRequestReview, PLAY_STORE_URL } from "@/lib/app-review";
 
+/** Bare 10-digit national number, whatever shape the stored number is in. */
+function toIndianMobile(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+
 function TopUpCard({
   amount,
   selected,
@@ -58,8 +64,10 @@ export default function PaymentPage() {
   const [packsLoading, setPacksLoading] = useState(true);
   const [selectedAmountId, setSelectedAmountId] = useState<string | null>(null);
 
+  const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [playAvailable, setPlayAvailable] = useState(false);
   const [iosNative, setIosNative] = useState(false);
+  const [platformReady, setPlatformReady] = useState(false);
 
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
@@ -68,24 +76,29 @@ export default function PaymentPage() {
   useEffect(() => {
     api
       .billingTopUpAmounts()
-      .then(({ amounts }) => {
+      .then(({ amounts, razorpayEnabled }) => {
         setAmounts(amounts);
+        setRazorpayEnabled(Boolean(razorpayEnabled));
         setSelectedAmountId((prev) => prev ?? amounts.find((p) => p.popular)?.id ?? amounts[0]?.id ?? null);
       })
       .catch(() => setAmounts([]))
       .finally(() => setPacksLoading(false));
   }, []);
 
-  // Google Play Billing is the only way to add money (Razorpay was removed on
-  // 2026-09-24), and it only exists inside the native Android build. The web
-  // app points people at the Android app; the iOS build gets a plain notice,
-  // since Apple's rules don't allow sending iPhone users elsewhere to pay.
+  // Inside the Android app money is added with Google Play Billing. In a plain
+  // browser tab (app.arohaastrology.in) it is Razorpay. The iOS build offers
+  // neither: Apple's rules don't allow Razorpay there, nor sending iPhone users
+  // elsewhere to pay, so it gets a plain notice.
   useEffect(() => {
     Promise.all([isNativeAndroid(), isNativeIOS()]).then(([android, ios]) => {
       setPlayAvailable(android);
       setIosNative(ios);
+      setPlatformReady(true);
     });
   }, []);
+
+  const razorpayAvailable = razorpayEnabled && platformReady && !playAvailable && !iosNative;
+  const canPay = playAvailable || razorpayAvailable;
 
   // A completed top-up is the clearest "this app was worth paying for" moment we
   // get, so it's one of the milestones that offers Google's review card.
@@ -104,21 +117,50 @@ export default function PaymentPage() {
     if (!selectedAmount) return;
     setPaying(true);
     setPayError(null);
-    track("topup_started", { amountPaise: selectedAmount.amountPaise, method: "google_play" });
+    const method = playAvailable ? "google_play" : "razorpay";
+    track("topup_started", { amountPaise: selectedAmount.amountPaise, method });
     try {
-      await api.checkout(selectedAmount.id);
-      const { PlayBilling } = await import("@/lib/play-billing");
-      const purchase = await PlayBilling.purchaseProduct({
-        productId: selectedAmount.id,
-        userId: user?.id,
-      });
-      await api.confirmGooglePlayOrder({
-        purchaseToken: purchase.purchaseToken,
-        productId: purchase.productId,
-      });
+      if (method === "google_play") {
+        await api.checkout(selectedAmount.id);
+        const { PlayBilling } = await import("@/lib/play-billing");
+        const purchase = await PlayBilling.purchaseProduct({
+          productId: selectedAmount.id,
+          userId: user?.id,
+        });
+        await api.confirmGooglePlayOrder({
+          purchaseToken: purchase.purchaseToken,
+          productId: purchase.productId,
+        });
+      } else {
+        const { order, razorpayOrderId, razorpayKeyId } = await api.razorpayCheckout(selectedAmount.id);
+        const { payWithRazorpay } = await import("@/lib/razorpay");
+        const result = await payWithRazorpay({
+          keyId: razorpayKeyId,
+          razorpayOrderId,
+          amountPaise: order.finalAmountPaise,
+          currency: order.currency,
+          name: "Aroha Astrology",
+          description: t("payment.rechargeDescription"),
+          prefill: {
+            ...(user?.displayName ? { name: user.displayName } : {}),
+            // Razorpay's contact field renders its own +91 selector and wants the
+            // bare 10-digit national number; anything else is silently dropped.
+            ...(user?.phoneE164 ? { contact: toIndianMobile(user.phoneE164) } : {}),
+            ...(user?.email ? { email: user.email } : {}),
+          },
+        });
+        // User closed the modal without paying: nothing happened, no error.
+        if (!result) return;
+        await api.verifyRazorpayPayment({
+          orderId: order.id,
+          razorpayOrderId: result.razorpay_order_id,
+          razorpayPaymentId: result.razorpay_payment_id,
+          razorpaySignature: result.razorpay_signature,
+        });
+      }
 
       await refreshUser();
-      track("topup_succeeded", { amountPaise: selectedAmount.amountPaise, method: "google_play" });
+      track("topup_succeeded", { amountPaise: selectedAmount.amountPaise, method });
       setSuccess({ walletBalancePaise: selectedAmount.amountPaise });
     } catch (err) {
       const isUserCancelled =
@@ -139,7 +181,7 @@ export default function PaymentPage() {
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
       <ParticleBackground />
 
-      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto">
+      <div className="relative z-10 page-container pt-8">
         <div className="flex items-center gap-3 mb-6">
           <IconButton onClick={() => router.back()} aria-label={t("common.back")}>
             <ArrowLeft size={18} />
@@ -147,8 +189,9 @@ export default function PaymentPage() {
           <h1 className="text-lg font-display text-foreground flex-1">{t("payment.title")}</h1>
         </div>
 
+        <div className="md:flex md:items-start md:gap-4">
         {/* Current balance */}
-        <Card className="p-4 mb-5 flex items-center justify-between">
+        <Card className="p-4 mb-5 flex items-center justify-between md:flex-1">
           <div className="flex items-center gap-2">
             <Wallet size={16} className="text-gold" />
             <span className="text-xs text-muted">{t("payment.currentBalance")}</span>
@@ -157,7 +200,8 @@ export default function PaymentPage() {
         </Card>
 
         {/* The Aroha Pass — a Google Play subscription, never paid from this wallet. */}
-        <PassSummaryCard className="mb-6" />
+        <PassSummaryCard className="mb-6 md:flex-1" />
+        </div>
 
         {success ? (
           <motion.div
@@ -192,7 +236,7 @@ export default function PaymentPage() {
                 <Loader2 size={24} className="animate-spin text-gold" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
                 {amounts.map((amount) => (
                   <TopUpCard
                     key={amount.id}
@@ -204,7 +248,7 @@ export default function PaymentPage() {
               </div>
             )}
 
-            {selectedAmount && playAvailable && (
+            {selectedAmount && canPay && (
               <Card className="p-4 mb-4">
                 <div className="flex justify-between text-sm font-bold text-foreground">
                   <span>{t("payment.total")}</span>
@@ -213,7 +257,7 @@ export default function PaymentPage() {
               </Card>
             )}
 
-            {!playAvailable && !packsLoading && (
+            {!canPay && platformReady && !packsLoading && (
               <Card className="p-4 mb-4 text-center">
                 <p className="text-sm text-foreground leading-relaxed">
                   {t(iosNative ? "payment.iosComingSoon" : "payment.androidOnly")}
@@ -238,8 +282,8 @@ export default function PaymentPage() {
 
             <button
               onClick={handlePay}
-              disabled={!selectedAmount || paying || !playAvailable}
-              className="w-full h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
+              disabled={!selectedAmount || paying || !canPay}
+              className="w-full md:max-w-sm md:mx-auto h-14 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
             >
               {paying ? (
                 <>
@@ -253,7 +297,7 @@ export default function PaymentPage() {
             </button>
 
             <p className="text-[10px] text-muted text-center mt-3 px-4 leading-relaxed">
-              {t("payment.gatewayNote")}
+              {t(playAvailable ? "payment.gatewayNote" : "payment.gatewayNoteWeb")}
             </p>
           </>
         )}

@@ -1393,7 +1393,7 @@ export const api = {
 
   /** Purchasable top-up amounts. */
   billingTopUpAmounts: () =>
-    request<{ amounts: TopUpAmount[] }>("/v1/billing/top-up-amounts", {
+    request<{ amounts: TopUpAmount[]; razorpayEnabled?: boolean }>("/v1/billing/top-up-amounts", {
       auth: true,
     }),
 
@@ -1414,6 +1414,26 @@ export const api = {
   confirmOrder: (orderId: string) =>
     request<{ order: Order; walletBalancePaise: number }>(`/v1/billing/orders/${orderId}/confirm`, {
       method: "POST",
+      auth: true,
+    }),
+
+  /** Web only: create a pending order plus its Razorpay order, everything checkout.js needs to open the modal. */
+  razorpayCheckout: (packId: string) =>
+    request<{ order: Order; razorpayOrderId: string; razorpayKeyId: string }>(
+      "/v1/billing/razorpay/order",
+      { method: "POST", body: { packId }, auth: true },
+    ),
+
+  /** Web only: hand Razorpay's payment ids back to the server, which verifies the signature before granting. */
+  verifyRazorpayPayment: (params: {
+    orderId: string;
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }) =>
+    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/razorpay/verify", {
+      method: "POST",
+      body: params,
       auth: true,
     }),
 

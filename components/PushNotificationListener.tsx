@@ -49,7 +49,22 @@ export default function PushNotificationListener() {
     (async () => {
       try {
         const { Capacitor } = await import("@capacitor/core");
-        if (cancelled || !Capacitor.isNativePlatform()) return;
+        if (cancelled) return;
+
+        if (!Capacitor.isNativePlatform()) {
+          // Browser tab: only once the user has already allowed notifications here.
+          const web = await import("@/lib/web-push");
+          if ((await web.getWebPushState()) !== "granted" || cancelled) return;
+          web.listenForForegroundWebPush();
+          if (userId && isPushRefreshDue(userId)) {
+            try {
+              await web.registerWebPushToken(userId);
+            } catch (err) {
+              console.error("[PushNotificationListener] web token refresh failed", err);
+            }
+          }
+          return;
+        }
 
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
 

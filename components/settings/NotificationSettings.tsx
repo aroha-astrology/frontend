@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Sun, Orbit, CalendarDays, Gift, BellOff } from "lucide-react";
 import ListRow from "@/components/ui/ListRow";
+import WebPushSetting from "@/components/settings/WebPushSetting";
 import Switch from "@/components/ui/Switch";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type NotificationPrefs, type QuietHours } from "@/lib/api";
@@ -98,6 +99,7 @@ export default function NotificationSettings() {
           />
         }
       />
+      <WebPushSetting />
       <p className="text-[11px] text-muted leading-relaxed px-1">{t("settings.notifFootnote")}</p>
       {error && <p className="text-xs text-red-400 px-1">{t("settings.notifSaveError")}</p>}
     </div>

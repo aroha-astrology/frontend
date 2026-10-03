@@ -14,7 +14,12 @@ const firebaseConfig = {
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_AUTH_PROJECT_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_AUTH_APP_ID,
+  // Only web push (lib/web-push.ts) needs the sender id; auth works without it.
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_AUTH_MESSAGING_SENDER_ID,
 };
+
+/** The same config, for lib/web-push.ts and the push service worker. */
+export const firebaseWebConfig = firebaseConfig;
 
 /** True when the minimum web config needed for auth is present. */
 export const isFirebaseConfigured = Boolean(
@@ -38,6 +43,11 @@ if (
 }
 
 let authInstance: Auth | null = null;
+
+/** The shared Firebase app (created on first use); browser-only. */
+export function getFirebaseApp(): FirebaseApp {
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
 
 /**
  * E2E only (frontend/e2e, playwright.config.ts): set at BUILD time to point
@@ -63,8 +73,7 @@ function unsignedEmulatorToken(uid: string): string {
 /** Get the Firebase Auth instance, initialising the app on first call. */
 export function getFirebaseAuth(): Auth {
   if (authInstance) return authInstance;
-  const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  authInstance = getAuth(app);
+  authInstance = getAuth(getFirebaseApp());
   if (AUTH_EMULATOR_HOST) {
     const auth = authInstance;
     connectAuthEmulator(auth, `http://${AUTH_EMULATOR_HOST}`, { disableWarnings: true });

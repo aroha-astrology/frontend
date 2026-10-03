@@ -34,19 +34,29 @@ export default function PermissionRewards() {
   const locationFeature = useFeature("rewards.locationGrant");
 
   const [platform, setPlatform] = useState<string | null>(null);
+  // Browser only: whether this browser can take notifications at all.
+  const [webNotifOk, setWebNotifOk] = useState(false);
   const [busy, setBusy] = useState<"notifications" | "location" | null>(null);
 
   useLocationRewardClaim(geo.status);
 
-  // Native-only, same gate as PermissionsPrompt: push does not exist in a
-  // plain browser tab, so neither reward is earnable there.
+  // Native shows both rows. A browser tab shows location always, and
+  // notifications only when this browser can actually receive web push.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const { Capacitor } = await import("@capacitor/core");
         if (cancelled) return;
-        setPlatform(Capacitor.isNativePlatform() ? Capacitor.getPlatform() : null);
+        if (Capacitor.isNativePlatform()) {
+          setPlatform(Capacitor.getPlatform());
+          return;
+        }
+        const { getWebPushState } = await import("@/lib/web-push");
+        const state = await getWebPushState();
+        if (cancelled) return;
+        setWebNotifOk(state === "default" || state === "granted");
+        setPlatform("web");
       } catch {
         // @capacitor/core not resolvable (plain web build) — stays null, renders nothing.
       }
@@ -132,7 +142,7 @@ export default function PermissionRewards() {
 
   const rows: Array<{ show: boolean; node: React.ReactNode }> = [
     {
-      show: notifFeature.enabled,
+      show: notifFeature.enabled && (platform !== "web" || webNotifOk),
       node: (
         <ListRow
           key="notifications"

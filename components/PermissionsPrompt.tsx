@@ -33,12 +33,15 @@ import {
 // gates anything.
 const ASKED_AT_KEY = "aroha:permissionsAskedAt:v3";
 const DENIED_KEY = "aroha:permissionsDenied:v3";
+// In a browser tab there is no "every login" campaign: after "Not now" the
+// prompt stays quiet for a week.
+const WEB_REASK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * "Enable location + notifications" prompt, shown on every signed-in,
  * onboarded user's app launch while the OS still reports the permission as
- * not granted. Native-only — gated on Capacitor.isNativePlatform() so it
- * never renders in a plain browser tab.
+ * not granted. In a plain browser tab it shows once, only if the browser has
+ * never been asked about notifications on this site.
  */
 export default function PermissionsPrompt() {
   const { t } = useTranslation();
@@ -83,7 +86,21 @@ export default function PermissionsPrompt() {
         const { Capacitor } = await import("@capacitor/core");
         if (cancelled) return;
         if (!Capacitor.isNativePlatform()) {
-          markResolved();
+          if (!user?.profileCompletedAt) return;
+          // Browser tab: ask only when the browser has never been asked here, and
+          // not again for a week after "Not now". A browser-level "Block" is
+          // handled by Settings → Notifications, since the dialog cannot re-show.
+          const { getWebPushState } = await import("@/lib/web-push");
+          const state = await getWebPushState();
+          if (cancelled) return;
+          const askedAt = Number(window.localStorage.getItem(ASKED_AT_KEY) ?? 0);
+          if (state !== "default" || Date.now() - askedAt < WEB_REASK_MS) {
+            markResolved();
+            return;
+          }
+          setPlatform("web");
+          setDeniedState(false);
+          setVisible(true);
           return;
         }
         if (!user?.profileCompletedAt) return;

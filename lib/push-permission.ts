@@ -34,6 +34,11 @@ export async function requestPushPermission(userId: string): Promise<PushPermiss
   let FirebaseMessaging: typeof import("@capacitor-firebase/messaging").FirebaseMessaging;
   try {
     ({ Capacitor } = await import("@capacitor/core"));
+    // A plain browser tab (app.arohaastrology.in outside the Android app) uses web push.
+    if (!Capacitor.isNativePlatform()) {
+      const { requestWebPushPermission } = await import("@/lib/web-push");
+      return await requestWebPushPermission(userId);
+    }
     ({ FirebaseMessaging } = await import("@capacitor-firebase/messaging"));
   } catch (err) {
     console.error("[push-permission] plugin import failed", err);

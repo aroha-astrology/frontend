@@ -50,6 +50,12 @@ export async function isUpdateAvailable(): Promise<boolean> {
  */
 export const PLAY_SUBSCRIPTIONS_BUILD = 16;
 
+/**
+ * First Android build (1.14) that can move a subscriber up to a higher Aroha Pass.
+ * An older build would try to buy a second subscription, which Play refuses.
+ */
+export const PLAY_PASS_UPGRADE_BUILD = 17;
+
 /** The installed Android versionCode, or null on the web / iOS / when it can't be read. */
 export async function installedAndroidBuild(): Promise<number | null> {
   try {

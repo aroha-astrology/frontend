@@ -11,8 +11,9 @@ import { shortDate } from "@/lib/calendar-format";
 import { passApi, PLAY_SUBSCRIPTIONS_URL, type PassStatus } from "@/lib/pass-api";
 
 /**
- * The subscription on the payment page: the running Aroha Pass (renewal date,
- * questions left, manage in Google Play), or the offer with a link to /pass.
+ * The subscription on the payment page: the running Aroha Pass (its tier, renewal
+ * date, questions left, manage in Google Play), or the tiers on offer (from the
+ * cheapest price) with a link to /pass.
  * The Pass is paid through Google Play only, never from the wallet shown above
  * it. Renders nothing while the Pass (nav.arohaPass) is off or can't be offered.
  */
@@ -29,8 +30,10 @@ export default function PassSummaryCard({ className = "" }: { className?: string
       .catch(() => setStatus(null));
   }, [enabled]);
 
-  if (!enabled || !status || (!status.pass && !status.offer)) return null;
-  const { pass, offer } = status;
+  if (!enabled || !status || (!status.pass && status.offers.length === 0)) return null;
+  const { pass, offers } = status;
+  const cheapest = offers[0];
+  const top = offers[offers.length - 1];
 
   return (
     <div className={className} data-testid="pass-summary">
@@ -39,30 +42,42 @@ export default function PassSummaryCard({ className = "" }: { className?: string
         <div className="flex items-center justify-between gap-2">
           <p className="flex items-center gap-2 text-sm font-semibold text-gold">
             <Crown size={15} />
-            {t("pass.title")}
+            {pass?.tier ? t(`pass.tier.${pass.tier}`) : t("pass.title")}
           </p>
           {pass ? (
             <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
               {t("pass.summary.active")}
             </span>
           ) : (
-            offer && <span className="text-sm font-semibold text-foreground">{t("pass.perMonth", { price: formatRupees(offer.pricePaise) })}</span>
+            cheapest && (
+              <span className="text-sm font-semibold text-foreground">
+                {t(offers.length > 1 ? "pass.from" : "pass.perMonth", { price: formatRupees(cheapest.pricePaise) })}
+              </span>
+            )
           )}
         </div>
 
         {pass ? (
           <>
-            <p className="text-sm text-foreground/90">
-              {pass.source === "google_play" && pass.autoRenew
-                ? t("pass.active.renews", { date: shortDate(pass.periodEnd.slice(0, 10), i18n.language) })
-                : t("pass.active.until", { date: shortDate(pass.periodEnd.slice(0, 10), i18n.language) })}
-            </p>
+            {pass.source !== "group" && (
+              <p className="text-sm text-foreground/90">
+                {pass.source === "google_play" && pass.autoRenew
+                  ? t("pass.active.renews", { date: shortDate(pass.periodEnd.slice(0, 10), i18n.language) })
+                  : t("pass.active.until", { date: shortDate(pass.periodEnd.slice(0, 10), i18n.language) })}
+              </p>
+            )}
             <p className="flex items-center gap-1.5 text-sm text-foreground/90">
               <MessageCircle size={14} className="text-gold" />
-              {t("pass.active.questionsLeft", { count: pass.questionsLeft, total: status.benefits.questionsPerPeriod })}
+              {t("pass.active.questionsLeft", { count: pass.questionsLeft, total: pass.questionsPerPeriod })}
             </p>
             <p className="text-[11px] text-muted">
-              {pass.source === "google_play" ? t("pass.active.sourcePlay") : t("pass.active.walletEnds")}
+              {t(
+                pass.source === "google_play"
+                  ? "pass.active.sourcePlay"
+                  : pass.source === "group"
+                    ? "pass.active.sourceGroup"
+                    : "pass.active.walletEnds",
+              )}
             </p>
             <div className="flex items-center justify-between pt-1">
               {pass.source === "google_play" ? (
@@ -81,7 +96,7 @@ export default function PassSummaryCard({ className = "" }: { className?: string
         ) : (
           <>
             <p className="text-sm text-foreground/85 leading-relaxed">
-              {t("pass.summary.pitch", { count: status.benefits.questionsPerPeriod })}
+              {t("pass.summary.pitch", { count: top?.questionsPerPeriod ?? 0 })}
             </p>
             <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>
             <Link

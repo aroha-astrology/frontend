@@ -6,11 +6,14 @@ import { formatRupees } from "@/lib/format";
 import { passApi, type PassStats } from "@/lib/pass-api";
 
 /**
- * Admin overview: Aroha Pass subscribers (by how they pay and by price
- * variant), the last 30 days' starts, cancellations/expiries and wallet
+ * Admin overview: Aroha Pass subscribers (by how they pay and by tier),
+ * the last 30 days' starts, cancellations/expiries and wallet
  * revenue, and Question Pack sales. Quietly absent on a backend that doesn't
  * have the endpoint yet.
  */
+/** user_subscriptions.price_variant → its tier. "none" is a Pass from before the tiers. */
+const TIER_NAMES: Record<string, string> = { A: "Silver", B: "Gold", C: "Platinum", none: "Before tiers" };
+
 export default function PassStatsCard() {
   const [stats, setStats] = useState<PassStats | null>(null);
 
@@ -22,9 +25,9 @@ export default function PassStatsCard() {
   }, []);
 
   if (!stats) return null;
-  const entries = (o: Record<string, number>) =>
+  const entries = (o: Record<string, number>, names: Record<string, string> = {}) =>
     Object.entries(o)
-      .map(([k, v]) => `${k}: ${v}`)
+      .map(([k, v]) => `${names[k] ?? k}: ${v}`)
       .join(" · ") || "—";
 
   return (
@@ -38,8 +41,8 @@ export default function PassStatsCard() {
             <dd className="text-[11px] text-muted">{entries(stats.active.bySource)}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-muted uppercase tracking-wide">By price variant</dt>
-            <dd className="text-sm text-foreground">{entries(stats.active.byVariant)}</dd>
+            <dt className="text-[11px] text-muted uppercase tracking-wide">By tier</dt>
+            <dd className="text-sm text-foreground">{entries(stats.active.byVariant, TIER_NAMES)}</dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted uppercase tracking-wide">Last 30 days</dt>

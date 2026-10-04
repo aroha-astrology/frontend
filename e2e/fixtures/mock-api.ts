@@ -28,15 +28,48 @@ export type Handlers = Record<string, Handler>;
 /** What an Aroha Pass-only route answers for someone without a live Pass. */
 export const PASS_REQUIRED: Reply = { status: 403, json: { error: { code: "FORBIDDEN", message: "PASS_REQUIRED" } } };
 
-/** A GET /v1/pass body: the Pass on offer at ₹299 through Google Play, not yet bought. */
+const passPlay = (basePlanId: string) => ({ productId: "aroha_pass_monthly", basePlanId });
+
+/** The three Aroha Pass tiers as GET /v1/pass offers them. */
+export const PASS_OFFERS = [
+  {
+    tier: "silver",
+    variant: "A",
+    pricePaise: 19900,
+    play: passPlay("pass-199"),
+    questionsPerPeriod: 15,
+    reportDiscountPct: 10,
+    features: ["timeline", "bonds"],
+  },
+  {
+    tier: "gold",
+    variant: "B",
+    pricePaise: 29900,
+    play: passPlay("pass-299"),
+    questionsPerPeriod: 30,
+    reportDiscountPct: 20,
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime"],
+  },
+  {
+    tier: "platinum",
+    variant: "C",
+    pricePaise: 39900,
+    play: passPlay("pass-399"),
+    questionsPerPeriod: 60,
+    reportDiscountPct: 30,
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "relocation"],
+  },
+];
+
+/** A GET /v1/pass body: all three tiers on offer through Google Play, none bought yet. */
 export function passStatus(extra: Record<string, unknown> = {}) {
   return {
     enabled: true,
-    offer: { variant: "B", pricePaise: 29900, play: { productId: "aroha_pass_monthly", basePlanId: "pass-299" } },
+    offers: PASS_OFFERS,
     pass: null,
     questionCredits: 0,
     packs: [],
-    benefits: { questionsPerPeriod: 30, periodDays: 30, reportDiscountPct: 20 },
+    periodDays: 30,
     ...extra,
   };
 }

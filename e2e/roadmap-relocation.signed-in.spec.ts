@@ -125,7 +125,9 @@ test.describe("Aroha Relocation (roadmap step 12)", () => {
     });
     await signIn(page, "/relocation");
     const lock = page.getByTestId("pass-lock");
-    await expect(lock.getByText("Aroha Relocation is part of Aroha Pass")).toBeVisible();
+    // Relocation is in the top tier only.
+    await expect(lock.getByText("Aroha Relocation is part of Aroha Pass Platinum")).toBeVisible();
+    await expect(lock.getByText("₹399 / 30 days · Google Play subscription")).toBeVisible();
     await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
     await expect(page.getByPlaceholder("Search any city")).toHaveCount(0);
     await expect(page.getByRole("button", { name: /Unlock/ })).toHaveCount(0);

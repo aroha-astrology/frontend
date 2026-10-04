@@ -163,7 +163,7 @@ export default function DecisionPlanner({ kind }: { kind: DecisionKind }) {
         </div>
 
         {locked ? (
-          <PassLock feature={t(`${ns}.title`)} className="md:col-span-full" />
+          <PassLock feature={t(`${ns}.title`)} need={kind === "decision" ? "decisions" : "findMyDate"} className="md:col-span-full" />
         ) : result ? (
           <>
             <DecisionResultView result={result} />

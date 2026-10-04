@@ -12,9 +12,15 @@ import PassBenefits from "@/components/pass/PassBenefits";
 import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
-import { passApi, PLAY_SUBSCRIPTIONS_URL, type PassStatus, type QuestionPack } from "@/lib/pass-api";
+import {
+  passApi,
+  PLAY_SUBSCRIPTIONS_URL,
+  type PassOffer,
+  type PassStatus,
+  type QuestionPack,
+} from "@/lib/pass-api";
 import { isNativeAndroid, isNativeIOS, PlayBilling } from "@/lib/play-billing";
-import { installedAndroidBuild, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
+import { installedAndroidBuild, PLAY_PASS_UPGRADE_BUILD, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -26,11 +32,28 @@ function isUserCancelled(err: unknown): boolean {
   return err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
 }
 
+function StoreLink({ label }: { label: string }) {
+  return (
+    <a
+      href={PLAY_STORE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold"
+    >
+      {label}
+      <ExternalLink size={14} />
+    </a>
+  );
+}
+
 /**
- * The Aroha Pass is a Google Play subscription only: it is never paid from
- * the wallet. Android (app 1.13+) subscribes here; older Android builds are
- * asked to update; the web points to the Android app; iOS gets a plain
- * notice, since Apple's rules don't allow sending iPhone users elsewhere to pay.
+ * The Aroha Pass comes in three tiers (Silver, Gold, Platinum): more questions,
+ * more of the Pass-only features and a bigger report discount at each step. It
+ * is a Google Play subscription only: it is never paid from the wallet. Android
+ * (app 1.13+) subscribes here, and app 1.14+ can move a subscriber up a tier;
+ * older Android builds are asked to update; the web points to the Android app;
+ * iOS gets a plain notice, since Apple's rules don't allow sending iPhone users
+ * elsewhere to pay.
  */
 function PassPage() {
   const { t, i18n } = useTranslation();
@@ -41,8 +64,8 @@ function PassPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ActionError | null>(null);
   const [platform, setPlatform] = useState<Platform | null>(null);
-  // An app build from before Play subscriptions (1.12 and older) can't buy one.
-  const [playReady, setPlayReady] = useState(false);
+  // The installed Android build: 1.12 and older can't buy a subscription, 1.13 can't change tier.
+  const [build, setBuild] = useState<number | null>(null);
   const [packNote, setPackNote] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,7 +76,7 @@ function PassPage() {
     void Promise.all([isNativeAndroid(), isNativeIOS()]).then(([android, ios]) =>
       setPlatform(android ? "android" : ios ? "ios" : "web"),
     );
-    void installedAndroidBuild().then((b) => setPlayReady(b != null && b >= PLAY_SUBSCRIPTIONS_BUILD));
+    void installedAndroidBuild().then(setBuild);
   }, []);
 
   /** Runs a purchase; true when it went through. */
@@ -77,15 +100,22 @@ function PassPage() {
     [refresh],
   );
 
-  async function subscribeWithPlay() {
-    const play = status?.offer?.play;
-    if (!play) return;
+  /** Subscribes to `offer`, or with `upgrade` swaps the subscription held now for it. */
+  async function buyWithPlay(offer: PassOffer, upgrade: boolean) {
     await run(async () => {
+      let oldPurchaseToken: string | undefined;
+      if (upgrade) {
+        const { purchases } = await PlayBilling.queryActiveSubscriptions();
+        oldPurchaseToken = purchases.find((p) => p.productId === offer.play.productId)?.purchaseToken;
+        // Nothing to swap on this Play account: buying now would start a second subscription.
+        if (!oldPurchaseToken) throw new Error("No Play subscription to upgrade");
+      }
       const purchase = await PlayBilling.purchaseProduct({
-        productId: play.productId,
+        productId: offer.play.productId,
         userId: user?.id,
         productType: "subs",
-        basePlanId: play.basePlanId,
+        basePlanId: offer.play.basePlanId,
+        oldPurchaseToken,
       });
       return passApi.confirmPlay(purchase.productId, purchase.purchaseToken);
     });
@@ -94,8 +124,9 @@ function PassPage() {
   async function restorePlay() {
     await run(async () => {
       const { purchases } = await PlayBilling.queryActiveSubscriptions();
+      const productId = status?.offers[0]?.play.productId;
       let latest = await passApi.status();
-      for (const p of purchases.filter((x) => x.productId === status?.offer?.play.productId)) {
+      for (const p of purchases.filter((x) => x.productId === productId)) {
         latest = await passApi.confirmPlay(p.productId, p.purchaseToken);
       }
       return latest;
@@ -108,6 +139,16 @@ function PassPage() {
   }
 
   const lang = i18n.language;
+  const pass = status?.pass ?? null;
+  const offers = status?.offers ?? [];
+  const canSubscribe = platform === "android" && build != null && build >= PLAY_SUBSCRIPTIONS_BUILD;
+  const canUpgrade = platform === "android" && build != null && build >= PLAY_PASS_UPGRADE_BUILD;
+  // Where the user's own Pass sits among the tiers on offer; -1 without a tiered Pass.
+  const ownIndex = pass?.tier ? offers.findIndex((o) => o.tier === pass.tier) : -1;
+  // Only a Google Play Pass can be swapped for a higher one.
+  const upgradable = pass?.source === "google_play" && ownIndex >= 0;
+  const hasHigher = upgradable && ownIndex < offers.length - 1;
+  const hasLower = upgradable && ownIndex > 0;
 
   return (
     <main className="cosmic-bg min-h-screen pb-tab-safe relative overflow-hidden text-foreground">
@@ -131,29 +172,30 @@ function PassPage() {
 
         {status && (
           <>
-            {status.pass ? (
+            {pass && (
               <Card className="p-5 border-gold/30 space-y-2" data-testid="pass-active">
                 <p className="flex items-center gap-2 text-base font-semibold text-gold">
                   <Crown size={16} />
-                  {t("pass.active.title")}
+                  {pass.tier
+                    ? t("pass.active.titleTier", { pass: t(`pass.tier.${pass.tier}`) })
+                    : t("pass.active.title")}
                 </p>
-                <p className="text-sm text-foreground/90">
-                  {status.pass.source === "google_play" && status.pass.autoRenew
-                    ? t("pass.active.renews", { date: shortDate(status.pass.periodEnd.slice(0, 10), lang) })
-                    : t("pass.active.until", { date: shortDate(status.pass.periodEnd.slice(0, 10), lang) })}
-                </p>
+                {pass.source !== "group" && (
+                  <p className="text-sm text-foreground/90">
+                    {pass.source === "google_play" && pass.autoRenew
+                      ? t("pass.active.renews", { date: shortDate(pass.periodEnd.slice(0, 10), lang) })
+                      : t("pass.active.until", { date: shortDate(pass.periodEnd.slice(0, 10), lang) })}
+                  </p>
+                )}
                 <p className="flex items-center gap-1.5 text-sm text-foreground/90">
                   <MessageCircle size={14} className="text-gold" />
-                  {t("pass.active.questionsLeft", {
-                    count: status.pass.questionsLeft,
-                    total: status.benefits.questionsPerPeriod,
-                  })}
+                  {t("pass.active.questionsLeft", { count: pass.questionsLeft, total: pass.questionsPerPeriod })}
                 </p>
-                {status.pass.source === "google_play" ? (
+                {pass.source === "google_play" ? (
                   <>
                     <p className="text-[11px] text-muted">
                       {t("pass.active.sourcePlay")} ·{" "}
-                      {t(status.pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
+                      {t(pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
                     </p>
                     <a
                       href={PLAY_SUBSCRIPTIONS_URL}
@@ -163,72 +205,130 @@ function PassPage() {
                     </a>
                   </>
                 ) : (
-                  <p className="text-[11px] text-muted">{t("pass.active.walletEnds")}</p>
+                  <p className="text-[11px] text-muted">
+                    {t(pass.source === "group" ? "pass.active.sourceGroup" : "pass.active.walletEnds")}
+                  </p>
                 )}
               </Card>
-            ) : status.offer ? (
-              <Card className="p-5 border-gold/30 space-y-4" data-testid="pass-offer">
-                <div className="space-y-1">
-                  <p className="text-2xl font-display text-foreground">
-                    {t("pass.perMonth", { price: formatRupees(status.offer.pricePaise) })}
-                  </p>
-                  <p className="text-xs text-muted">{t("pass.renewNote")}</p>
+            )}
+
+            {pass && (
+              <Card className="p-4 border-gold/10 space-y-2" data-testid="pass-included">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("pass.benefitsTitle")}</p>
+                <PassBenefits benefits={pass} showMissing />
+              </Card>
+            )}
+
+            {!pass && offers.length === 0 && status.enabled && (
+              <p className="text-sm text-muted">{t("pass.notAvailable")}</p>
+            )}
+
+            {offers.length > 0 && (
+              <div className="space-y-3 md:col-span-full" data-testid="pass-tiers">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gold">
+                  {t(pass ? "pass.compareTitle" : "pass.chooseTitle")}
+                </p>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {offers.map((offer, i) => {
+                    const own = i === ownIndex;
+                    // Gold is the one to lead with while the user hasn't picked a Pass.
+                    const recommended = !pass && offer.tier === "gold" && offers.length > 1;
+                    return (
+                      <Card
+                        key={offer.tier}
+                        className={`flex flex-col gap-3 p-5 ${own || recommended ? "border-gold/50" : "border-gold/15"}`}
+                        data-testid={`pass-tier-${offer.tier}`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="flex items-center gap-1.5 text-sm font-semibold text-gold">
+                              <Crown size={14} />
+                              {t(`pass.tier.${offer.tier}`)}
+                            </p>
+                            {(own || recommended) && (
+                              <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-gold">
+                                {t(own ? "pass.yourPass" : "pass.recommended")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-2xl font-display text-foreground">
+                            {t("pass.perMonth", { price: formatRupees(offer.pricePaise) })}
+                          </p>
+                        </div>
+                        <PassBenefits benefits={offer} showMissing />
+                        {!pass && canSubscribe && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void buyWithPlay(offer, false)}
+                            className="mt-auto w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
+                          >
+                            {t("pass.buyPlay")}
+                          </button>
+                        )}
+                        {upgradable && i > ownIndex && canUpgrade && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void buyWithPlay(offer, true)}
+                            className="mt-auto w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
+                          >
+                            {t("pass.upgradeTo", { pass: t(`pass.tier.${offer.tier}`) })}
+                          </button>
+                        )}
+                      </Card>
+                    );
+                  })}
                 </div>
 
-                {platform === "android" && playReady && (
-                  <>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void subscribeWithPlay()}
-                      className="w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
-                    >
-                      {t("pass.buyPlay")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void restorePlay()}
-                      className="mx-auto block text-[11px] text-muted underline underline-offset-2"
-                    >
-                      {t("pass.restore")}
-                    </button>
-                  </>
-                )}
-                {platform === "android" && !playReady && (
-                  <div className="space-y-2 text-center" data-testid="pass-update-app">
-                    <p className="text-sm text-foreground/90">{t("pass.playNeedsUpdate")}</p>
-                    <a
-                      href={PLAY_STORE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold"
-                    >
-                      {t("pass.updateApp")}
-                      <ExternalLink size={14} />
-                    </a>
+                {!pass && (
+                  <div className="space-y-2 text-center">
+                    {canSubscribe && (
+                      <>
+                        <p className="text-xs text-muted">{t("pass.renewNote")}</p>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void restorePlay()}
+                          className="mx-auto block text-[11px] text-muted underline underline-offset-2"
+                        >
+                          {t("pass.restore")}
+                        </button>
+                      </>
+                    )}
+                    {platform === "android" && !canSubscribe && (
+                      <div className="space-y-2" data-testid="pass-update-app">
+                        <p className="text-sm text-foreground/90">{t("pass.playNeedsUpdate")}</p>
+                        <StoreLink label={t("pass.updateApp")} />
+                      </div>
+                    )}
+                    {platform === "web" && (
+                      <div className="space-y-2" data-testid="pass-android-only">
+                        <p className="text-sm text-foreground/90">{t("pass.androidOnly")}</p>
+                        <StoreLink label={t("pass.getAndroidApp")} />
+                      </div>
+                    )}
+                    {platform === "ios" && <p className="text-sm text-foreground/90">{t("pass.iosSoon")}</p>}
+                    <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>
                   </div>
                 )}
-                {platform === "web" && (
-                  <div className="space-y-2 text-center" data-testid="pass-android-only">
-                    <p className="text-sm text-foreground/90">{t("pass.androidOnly")}</p>
-                    <a
-                      href={PLAY_STORE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold"
-                    >
-                      {t("pass.getAndroidApp")}
-                      <ExternalLink size={14} />
-                    </a>
-                  </div>
-                )}
-                {platform === "ios" && <p className="text-center text-sm text-foreground/90">{t("pass.iosSoon")}</p>}
 
-                <p className="text-center text-[11px] text-muted">{t("pass.playOnly")}</p>
-              </Card>
-            ) : (
-              status.enabled && <p className="text-sm text-muted">{t("pass.notAvailable")}</p>
+                {(hasHigher || hasLower) && (
+                  <div className="space-y-2 text-center" data-testid="pass-change">
+                    {hasHigher && canUpgrade && <p className="text-xs text-muted">{t("pass.upgradeNote")}</p>}
+                    {hasHigher && platform === "android" && !canUpgrade && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-foreground/90">{t("pass.upgradeNeedsUpdate")}</p>
+                        <StoreLink label={t("pass.updateApp")} />
+                      </div>
+                    )}
+                    {hasHigher && platform === "web" && (
+                      <p className="text-sm text-foreground/90">{t("pass.upgradeAndroidOnly")}</p>
+                    )}
+                    {hasLower && <p className="text-[11px] text-muted">{t("pass.downgradeNote")}</p>}
+                  </div>
+                )}
+              </div>
             )}
 
             {error && (
@@ -240,13 +340,6 @@ function PassPage() {
                   </Link>
                 )}
               </p>
-            )}
-
-            {status.enabled && (
-              <Card className="p-4 border-gold/10 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("pass.benefitsTitle")}</p>
-                <PassBenefits benefits={status.benefits} />
-              </Card>
             )}
 
             {status.packs.length > 0 && (

@@ -65,7 +65,7 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       .catch(() => setJournalEvents([]));
   }, [formOpen, journalOn, ownProfile]);
 
-  if (enabled && locked) return <PassLock feature={t("birthTime.title")} compact className={className} />;
+  if (enabled && locked) return <PassLock feature={t("birthTime.title")} need="birthTime" compact className={className} />;
   if (!enabled || !status) return null;
 
   const usable = events.filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date));

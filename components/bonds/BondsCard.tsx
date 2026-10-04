@@ -39,7 +39,7 @@ export default function BondsCard() {
     };
   }, [enabled]);
 
-  if (enabled && locked) return <PassLock feature={t("bonds.title")} compact />;
+  if (enabled && locked) return <PassLock feature={t("bonds.title")} need="bonds" compact />;
   if (!enabled || bonds === null) return null;
   const ready = bonds.filter((b) => b.ready).slice(0, 3);
 

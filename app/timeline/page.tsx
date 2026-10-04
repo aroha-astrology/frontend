@@ -204,7 +204,7 @@ function TimelinePage() {
         </div>
 
         {!data && !error && <p className="py-10 text-center text-sm text-muted">{t("timeline.loading")}</p>}
-        {error === "pass" && <PassLock feature={t("timeline.title")} />}
+        {error === "pass" && <PassLock feature={t("timeline.title")} need="timeline" />}
         {error && error !== "pass" && <p className="py-10 text-center text-sm text-muted">{t(`timeline.${error}`)}</p>}
 
         {data && (

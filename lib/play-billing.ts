@@ -17,6 +17,11 @@ interface PlayBillingPluginInterface {
     /** "subs" buys a subscription (the Aroha Pass) on `basePlanId`; default is a one-time top-up. */
     productType?: "inapp" | "subs";
     basePlanId?: string;
+    /**
+     * Moving up to a higher Aroha Pass: the token of the subscription held now. Play swaps
+     * it at once and charges only the difference for the days left. Needs app 1.14+.
+     */
+    oldPurchaseToken?: string;
   }): Promise<PlayBillingPurchase>;
   queryUnconsumedPurchases(): Promise<{ purchases: PlayBillingPurchase[] }>;
   /** Needs the app release that added subscriptions (1.13+); older builds reject. */

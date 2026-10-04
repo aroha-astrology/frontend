@@ -209,7 +209,7 @@ function BondsPage() {
           </div>
         </div>
 
-        {error === "pass" && <PassLock feature={t("bonds.title")} className="md:col-span-full" />}
+        {error === "pass" && <PassLock feature={t("bonds.title")} need="bonds" className="md:col-span-full" />}
         {error && error !== "pass" && <p className="py-10 text-center text-sm text-muted">{t(`bonds.${error}`)}</p>}
         {!error && !list && <p className="py-10 text-center text-sm text-muted">{t("bonds.loading")}</p>}
 

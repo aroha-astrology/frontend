@@ -102,7 +102,7 @@ function RelocationPage() {
           </div>
         </div>
 
-        {locked && <PassLock feature={t("relocation.title")} className="md:col-span-full" />}
+        {locked && <PassLock feature={t("relocation.title")} need="relocation" className="md:col-span-full" />}
         {loadError && <p className="py-10 text-center text-sm text-muted">{t("relocation.error")}</p>}
         {!locked && !loadError && !status && (
           <p className="py-10 text-center text-sm text-muted">{t("relocation.loading")}</p>

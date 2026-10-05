@@ -100,7 +100,7 @@ export default function AdminReportRatingsPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-gold mb-1">Report Ratings</h1>
-      <p className="text-sm text-muted mb-4">Every rating a user has left on a report — a rating under 3 stars auto-refunds 100% of the price paid, shown in the Refunded column.</p>
+      <p className="text-sm text-muted mb-4">Every rating a user has left on a report. Low ratings no longer refund; the Refunded column only shows refunds from before that change.</p>
 
       {nextReportVotes && <NextReportVotesCard votes={nextReportVotes} />}
 

@@ -2019,6 +2019,7 @@ export const resources = {
       reportRating: {
         title: "Rate this report",
         prompt: "How was this report?",
+        whatWentWrong: "Sorry about that. What went wrong? (optional)",
         refunded: "We're sorry to hear that — {{amount}} has been added to your wallet.",
       },
       nextReportVote: {

@@ -102,7 +102,7 @@ export default function ReportRatingSheet({
               onChange={(e) => setComment(e.target.value)}
               maxLength={2000}
               rows={4}
-              placeholder={t("feedback.commentPlaceholder")}
+              placeholder={rating < 3 ? t("reportRating.whatWentWrong") : t("feedback.commentPlaceholder")}
               className="w-full rounded-2xl border border-gold/20 bg-surface px-4 py-3 text-base text-foreground placeholder:text-muted/60 resize-none outline-none focus:border-gold/50"
             />
           )}

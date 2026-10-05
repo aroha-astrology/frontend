@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Clock, Star } from "lucide-react";
 import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
+import Masonry from "@/components/ui/Masonry";
 import ReportScoreFacts from "@/components/reports/ReportScoreFacts";
 import ReportHeaderCard from "@/components/reports/ReportHeaderCard";
 import ReportVerdictCard from "@/components/reports/ReportVerdictCard";
@@ -339,9 +340,9 @@ export default function ReportDetailPage() {
 
         {state === "ready" && data && designed && (
           <>
-            <div data-tour="report-body" className="flex flex-col gap-6 lg:block lg:columns-2 lg:gap-6 lg:[&>*]:mb-6 lg:[&>*]:break-inside-avoid">
+            <Masonry data-tour="report-body">
               <designed.View data={data} />
-            </div>
+            </Masonry>
             {/* The 10 designed screens compose their own cards and never call
                 ReportScoreFacts, so the strength card is appended once here rather than
                 pasted into each View. It sits last deliberately — it is supporting chart

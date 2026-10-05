@@ -2012,6 +2012,8 @@ export const resources = {
         commentPlaceholder: "Tell us what you think (optional)",
         submit: "Submit",
         thanks: "Thank you for your feedback!",
+        reward: "Rate your experience and we'll add {{amount}} to your wallet.",
+        thanksReward: "Thank you! {{amount}} has been added to your wallet.",
         starLabel: "Rate {{n}} out of 5",
       },
       reportRating: {
@@ -4100,6 +4102,8 @@ export const resources = {
         commentPlaceholder: "अपनी राय लिखें (वैकल्पिक)",
         submit: "भेजें",
         thanks: "आपकी प्रतिक्रिया के लिए धन्यवाद!",
+        reward: "अपना अनुभव रेट करें, हम आपके वॉलेट में {{amount}} जोड़ देंगे।",
+        thanksReward: "धन्यवाद! {{amount}} आपके वॉलेट में जुड़ गए।",
         starLabel: "5 में से {{n}} रेट करें",
       },
       reportRating: {
@@ -6442,6 +6446,8 @@ export const resources = {
         commentPlaceholder: "আপনার মতামত লিখুন (ঐচ্ছিক)",
         submit: "পাঠান",
         thanks: "আপনার মতামতের জন্য ধন্যবাদ!",
+        reward: "আপনার অভিজ্ঞতা রেট করুন, আমরা আপনার ওয়ালেটে {{amount}} যোগ করব।",
+        thanksReward: "ধন্যবাদ! আপনার ওয়ালেটে {{amount}} যোগ হয়েছে।",
         starLabel: "৫-এর মধ্যে {{n}} রেট করুন",
       },
       reportRating: {
@@ -8779,6 +8785,8 @@ export const resources = {
         commentPlaceholder: "तुमचे मत लिहा (ऐच्छिक)",
         submit: "पाठवा",
         thanks: "तुमच्या अभिप्रायाबद्दल धन्यवाद!",
+        reward: "तुमचा अनुभव रेट करा, आम्ही तुमच्या वॉलेटमध्ये {{amount}} जमा करू.",
+        thanksReward: "धन्यवाद! तुमच्या वॉलेटमध्ये {{amount}} जमा झाले.",
         starLabel: "5 पैकी {{n}} रेट करा",
       },
       reportRating: {
@@ -11113,6 +11121,8 @@ export const resources = {
         commentPlaceholder: "మీ అభిప్రాయం రాయండి (ఐచ్ఛికం)",
         submit: "పంపండి",
         thanks: "మీ అభిప్రాయానికి ధన్యవాదాలు!",
+        reward: "మీ అనుభవాన్ని రేట్ చేయండి, మీ వాలెట్‌లో {{amount}} జమ చేస్తాము.",
+        thanksReward: "ధన్యవాదాలు! మీ వాలెట్‌లో {{amount}} జమ అయ్యాయి.",
         starLabel: "5లో {{n}} రేట్ చేయండి",
       },
       reportRating: {
@@ -13451,6 +13461,8 @@ export const resources = {
         commentPlaceholder: "உங்கள் கருத்தை எழுதுங்கள் (விருப்பத்தேர்வு)",
         submit: "அனுப்பு",
         thanks: "உங்கள் கருத்துக்கு நன்றி!",
+        reward: "உங்கள் அனுபவத்தை மதிப்பிடுங்கள், உங்கள் பணப்பையில் {{amount}} சேர்ப்போம்.",
+        thanksReward: "நன்றி! உங்கள் பணப்பையில் {{amount}} சேர்க்கப்பட்டது.",
         starLabel: "5-இல் {{n}} மதிப்பிடுங்கள்",
       },
       reportRating: {
@@ -15786,6 +15798,8 @@ export const resources = {
         commentPlaceholder: "તમારો અભિપ્રાય લખો (વૈકલ્પિક)",
         submit: "મોકલો",
         thanks: "તમારા અભિપ્રાય બદલ આભાર!",
+        reward: "તમારો અનુભવ રેટ કરો, અમે તમારા વોલેટમાં {{amount}} ઉમેરીશું.",
+        thanksReward: "આભાર! તમારા વોલેટમાં {{amount}} ઉમેરાયા છે.",
         starLabel: "5માંથી {{n}} રેટ કરો",
       },
       reportRating: {

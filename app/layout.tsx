@@ -69,15 +69,27 @@ const notoDevanagari = Noto_Sans_Devanagari({
   display: "swap",
 });
 
+const APP_DESCRIPTION =
+  "Aroha Astrology in your browser: free Kundli, daily Panchang, Kundli matching and personalised reports. Sign in with the same account as the Android app.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app.arohaastrology.in"),
   title: "Aroha Astrology",
-  description: "Vedic Astrology & AI Astrologer",
+  description: APP_DESCRIPTION,
   manifest: "/manifest.json",
   // iPhone Safari uses this for "Add to Home Screen", which is also what lets
   // iPhone users receive web push.
   icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
-  // App, not the marketing site — keep it out of search results.
-  robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    siteName: "Aroha Astrology",
+    title: "Aroha Astrology",
+    description: APP_DESCRIPTION,
+    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "Aroha Astrology" }],
+  },
+  // Only / and /sign-in are meant to be indexed. Everything else gets an
+  // X-Robots-Tag noindex header in next.config.ts, which wins over this.
+  robots: { index: true, follow: true },
 };
 
 export const viewport = {

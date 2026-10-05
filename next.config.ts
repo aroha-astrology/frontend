@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Only / and /sign-in are meant to show in search (see app/robots.ts).
+        // Every other page is signed-in app UI, so it is marked noindex here;
+        // most of them are client components and can't set robots metadata.
+        // Build output and files with an extension (images, manifest) are
+        // left alone.
+        source: "/((?!_next/|sign-in/?$|.*\\.[a-zA-Z0-9]+$).+)",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
         source: "/models/:path*.glb",
         headers: [
           // ponytail: immutable means a same-filename model swap won't reach

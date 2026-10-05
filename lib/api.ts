@@ -223,6 +223,8 @@ export interface RegisterDeviceTokenBody {
 /** PATCH /v1/me body — all fields optional, additionalProperties:false. */
 export interface UpdateMeBody {
   displayName?: string;
+  /** App language code the user picked (e.g. "hi") — lets the admin count users per language. */
+  contentLanguage?: string;
   gender?: Gender;
   dateOfBirth?: string; // YYYY-MM-DD
   timeOfBirth?: string; // HH:mm[:ss]

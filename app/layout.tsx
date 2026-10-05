@@ -3,6 +3,7 @@ import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond,
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
+import { LanguageSync } from "@/components/LanguageSync";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ActivityHeartbeatProvider } from "@/providers/activity-heartbeat-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
@@ -127,6 +128,7 @@ export default function RootLayout({
                       <PushNotificationListener />
                       <PushForegroundBanner />
                       <ReferralCapture />
+                      <LanguageSync />
                       <GooglePlayPurchaseReconciler />
                     </BackHandlerProvider>
                   </PermissionsPromptProvider>

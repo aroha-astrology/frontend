@@ -60,6 +60,7 @@ function formatDemographicsLabel(label: string): string {
 /** One labelled count table in the User Demographics row. `buckets` is null while the
  *  single fetch for the whole row is still in flight. */
 function languageName(code: string): string {
+  if (code === "unknown") return "Unknown";
   try {
     return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code;
   } catch {

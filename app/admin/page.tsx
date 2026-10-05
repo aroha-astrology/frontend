@@ -59,12 +59,22 @@ function formatDemographicsLabel(label: string): string {
 
 /** One labelled count table in the User Demographics row. `buckets` is null while the
  *  single fetch for the whole row is still in flight. */
+function languageName(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 function DemographicsCard({
   title,
   buckets,
+  formatLabel = formatDemographicsLabel,
 }: {
   title: string;
   buckets: AdminDemographicsBucket[] | null;
+  formatLabel?: (label: string) => string;
 }) {
   return (
     <Card className="p-4">
@@ -76,7 +86,7 @@ function DemographicsCard({
           <tbody>
             {buckets.map((b) => (
               <tr key={b.label} className="border-t border-border first:border-t-0">
-                <td className="py-1.5 text-foreground">{formatDemographicsLabel(b.label)}</td>
+                <td className="py-1.5 text-foreground">{formatLabel(b.label)}</td>
                 <td className="py-1.5 text-right text-foreground">{b.count.toLocaleString()}</td>
               </tr>
             ))}
@@ -403,6 +413,11 @@ function AdminOverviewContent() {
                 <DemographicsCard
                   title="Household Income"
                   buckets={demographics?.familyIncomeBrackets ?? null}
+                />
+                <DemographicsCard
+                  title="App Language"
+                  buckets={demographics?.languages ?? null}
+                  formatLabel={languageName}
                 />
               </div>
               <p className="text-[11px] text-muted mt-2 max-w-2xl">

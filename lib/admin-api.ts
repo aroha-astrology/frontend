@@ -348,6 +348,8 @@ export interface AdminUserDemographicsResponse {
    *  against — so "Not Asked" is by far the largest bucket and that is expected. */
   incomeBrackets: AdminDemographicsBucket[];
   familyIncomeBrackets: AdminDemographicsBucket[];
+  /** App language each user picked (ISO code, e.g. "hi"), most-used first. */
+  languages: AdminDemographicsBucket[];
 }
 
 

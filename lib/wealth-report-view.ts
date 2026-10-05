@@ -45,6 +45,11 @@ export interface IncomePath {
   /** True for the single `strongestIncomeSource` the backend picked. Ties are already broken
    * server-side (salaried > business > property), so at most one path is flagged. */
   strongest: boolean;
+  /** True for the path the READER says they earn from today (their answer to the pre-purchase
+   * question, `scores.readerSituation.earnsBy`) — shown next to the chart's own pick so the card
+   * never reads as "this is your income". False on every path when they skipped the question,
+   * and for an answer that is none of the three (freelance, not earning). */
+  yours: boolean;
 }
 
 export interface Significator {
@@ -116,9 +121,11 @@ function readIncomePaths(scores: Record<string, unknown>): IncomePath[] {
   const map = scores.incomeSourceStrengths;
   if (!isRecord(map)) return [];
   const strongest = scores.strongestIncomeSource;
+  const reader = scores.readerSituation;
+  const earnsBy = isRecord(reader) ? reader.earnsBy : null;
   return INCOME_SOURCES.flatMap((key) => {
     const strength = readStrength(map[key]);
-    return strength ? [{ key, strength, strongest: strongest === key }] : [];
+    return strength ? [{ key, strength, strongest: strongest === key, yours: earnsBy === key }] : [];
   });
 }
 

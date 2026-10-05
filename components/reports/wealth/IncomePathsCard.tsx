@@ -56,6 +56,14 @@ export default function IncomePathsCard({ paths }: { paths: IncomePath[] }) {
                       {t("wealthReport.income.strongest")}
                     </span>
                   )}
+                  {/* What the reader told us they earn from, beside the chart's pick: the two
+                      often differ, and without this the card reads as "this is your income". */}
+                  {path.yours && (
+                    <span className="text-foreground font-semibold">
+                      {" · "}
+                      {t("wealthReport.income.yours")}
+                    </span>
+                  )}
                 </p>
               </div>
               <StatusPill tone={strengthPillTone(path.strength)}>

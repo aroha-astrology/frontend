@@ -72,6 +72,25 @@ describe("buildWealthView", () => {
     expect(paths.some((p) => p.strongest)).toBe(false);
   });
 
+  it("marks the path the reader says they earn from, separately from the chart's pick", () => {
+    const paths = buildWealthView(
+      scores({
+        strongestIncomeSource: "property",
+        readerSituation: { earnsBy: "salaried", ownsProperty: "no" },
+      }),
+    ).incomePaths;
+    expect(paths.filter((p) => p.yours).map((p) => p.key)).toEqual(["salaried"]);
+    expect(paths.filter((p) => p.strongest).map((p) => p.key)).toEqual(["property"]);
+  });
+
+  it("marks no path as the reader's when they skipped the question or earn another way", () => {
+    expect(buildWealthView(scores()).incomePaths.some((p) => p.yours)).toBe(false);
+    const freelance = buildWealthView(
+      scores({ readerSituation: { earnsBy: "self_employed", ownsProperty: null } }),
+    ).incomePaths;
+    expect(freelance.some((p) => p.yours)).toBe(false);
+  });
+
   it("degrades to nulls and empties on an empty scores bag rather than throwing", () => {
     expect(buildWealthView({})).toEqual({
       score: null,

@@ -1055,6 +1055,7 @@ const SEPARATELY_RENDERED_KEYS = new Set([
   "header",
   "verdict",
   "userAnswers",
+  "readerSituation",
   "currentName",
   "variants",
   "vargas",

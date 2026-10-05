@@ -147,7 +147,7 @@ export default function AdminReportRatingsPage() {
                       </td>
                       <td className="px-4 py-2 text-foreground">{r.reportKey}</td>
                       <td className="px-4 py-2 text-foreground">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</td>
-                      <td className="px-4 py-2 text-muted max-w-xs truncate">{r.comment ?? "—"}</td>
+                      <td className="px-4 py-2 text-muted max-w-md whitespace-normal break-words">{r.comment ?? "—"}</td>
                       <td className="px-4 py-2">
                         {r.refundedPaise ? (
                           <span className="text-red-400">{formatRupees(r.refundedPaise)}</span>

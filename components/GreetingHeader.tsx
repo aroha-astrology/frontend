@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
@@ -8,6 +8,8 @@ import { useAuth } from "@/providers/auth-provider";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 import Avatar from "@/components/ui/Avatar";
 import DailyStoriesAvatar from "@/components/stories/DailyStoriesAvatar";
+import StoryHint from "@/components/stories/StoryHint";
+import { markHintClosed, readHintClosed } from "@/lib/stories/hint";
 import { useNewFeature } from "@/hooks/useFeature";
 
 function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "night" {
@@ -31,13 +33,23 @@ function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "nigh
  *
  * With Daily Stories on (`home.dailyStories`) the avatar wears the story ring
  * and is its own button that opens today's stories; only the name beside it
- * opens the profile switcher then.
+ * opens the profile switcher then. Until the reader closes it or opens the
+ * stories once, a small bubble under the avatar says what the ring is for.
  */
 export default function GreetingHeader() {
   const { t } = useTranslation();
   const { user, profiles, activeProfile } = useAuth();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const stories = useNewFeature("home.dailyStories").enabled;
+  // False until localStorage has been read on the client, so the bubble never flashes at someone who closed it.
+  const [hint, setHint] = useState(false);
+
+  useEffect(() => setHint(stories && !readHintClosed()), [stories]);
+
+  const closeHint = useCallback(() => {
+    markHintClosed();
+    setHint(false);
+  }, []);
 
   const displayName = activeProfile?.displayName ?? user?.displayName;
   const firstName = displayName?.trim().split(/\s+/)[0] ?? null;
@@ -77,7 +89,7 @@ export default function GreetingHeader() {
           transition={{ duration: 0.4 }}
           className="pt-8 pb-2 flex items-center gap-3"
         >
-          <DailyStoriesAvatar name={displayName} />
+          <DailyStoriesAvatar name={displayName} onOpen={closeHint} />
           {profiles === null ? (
             words
           ) : (
@@ -91,6 +103,7 @@ export default function GreetingHeader() {
             </button>
           )}
         </motion.div>
+        <StoryHint show={hint} onClose={closeHint} />
         {profiles !== null && <ProfileSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />}
       </>
     );

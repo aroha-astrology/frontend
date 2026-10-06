@@ -13,9 +13,10 @@ import StoryViewer from "./StoryViewer";
 /**
  * The Home avatar with its story ring (flag `home.dailyStories`). Tapping it
  * plays today's stories from the first one not yet seen; the ring glows until
- * all four have been opened, and again the next morning.
+ * all four have been opened, and again the next morning. `onOpen` tells the
+ * header a tap happened, so it can put the one-time hint bubble away.
  */
-export default function DailyStoriesAvatar({ name }: { name?: string | null }) {
+export default function DailyStoriesAvatar({ name, onOpen }: { name?: string | null; onOpen?: () => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const data = useDailyStories(true, open);
@@ -39,7 +40,10 @@ export default function DailyStoriesAvatar({ name }: { name?: string | null }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          onOpen?.();
+        }}
         aria-label={t("stories.open")}
         data-testid="story-ring-button"
         className="shrink-0 appearance-none rounded-full border-0 bg-transparent p-0"

@@ -120,6 +120,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nYour daily panchang, hora and Gita verse on Aroha Astrology:\n{{url}}",
       },
       card: { tagline: "Your daily Vedic guide", getApp: "Free on Google Play" },
+      hint: { title: "New: Daily Stories", body: "Tap here to see today's Panchang, Hora, deity and Gita verse. New every day." },
     },
   },
   hi: {
@@ -236,6 +237,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nरोज़ का पंचांग, होरा और गीता का श्लोक Aroha Astrology पर:\n{{url}}",
       },
       card: { tagline: "आपका रोज़ का वैदिक मार्गदर्शक", getApp: "Google Play पर मुफ़्त" },
+      hint: { title: "नया: रोज़ की स्टोरीज़", body: "आज का पंचांग, होरा, देवता और गीता का श्लोक देखने के लिए यहाँ टैप करें। रोज़ नई।" },
     },
   },
   bn: {
@@ -352,6 +354,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nরোজকার পঞ্জিকা, হোরা ও গীতার শ্লোক Aroha Astrology-তে:\n{{url}}",
       },
       card: { tagline: "আপনার রোজকার বৈদিক পথপ্রদর্শক", getApp: "Google Play-তে বিনামূল্যে" },
+      hint: { title: "নতুন: রোজকার স্টোরি", body: "আজকের পঞ্জিকা, হোরা, দেবতা ও গীতার শ্লোক দেখতে এখানে ট্যাপ করুন। রোজ নতুন।" },
     },
   },
   mr: {
@@ -468,6 +471,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nरोजचे पंचांग, होरा आणि गीतेचा श्लोक Aroha Astrology वर:\n{{url}}",
       },
       card: { tagline: "तुमचा रोजचा वैदिक मार्गदर्शक", getApp: "Google Play वर मोफत" },
+      hint: { title: "नवीन: रोजच्या स्टोरीज", body: "आजचे पंचांग, होरा, देवता आणि गीतेचा श्लोक पाहण्यासाठी इथे टॅप करा. रोज नवीन." },
     },
   },
   te: {
@@ -584,6 +588,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nరోజువారీ పంచాంగం, హోర, గీతా శ్లోకం Aroha Astrologyలో:\n{{url}}",
       },
       card: { tagline: "మీ రోజువారీ వేద మార్గదర్శి", getApp: "Google Playలో ఉచితం" },
+      hint: { title: "కొత్తది: రోజువారీ స్టోరీలు", body: "నేటి పంచాంగం, హోర, దైవం, గీతా శ్లోకం చూడటానికి ఇక్కడ నొక్కండి. ప్రతి రోజూ కొత్తవి." },
     },
   },
   ta: {
@@ -700,6 +705,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nதினசரி பஞ்சாங்கம், ஹோரை மற்றும் கீதை ஸ்லோகம் Aroha Astrology-இல்:\n{{url}}",
       },
       card: { tagline: "உங்கள் தினசரி வேத வழிகாட்டி", getApp: "Google Play-இல் இலவசம்" },
+      hint: { title: "புதியது: தினசரி ஸ்டோரிகள்", body: "இன்றைய பஞ்சாங்கம், ஹோரை, தெய்வம், கீதை ஸ்லோகம் பார்க்க இங்கே தட்டவும். தினமும் புதியவை." },
     },
   },
   gu: {
@@ -816,6 +822,7 @@ export const storiesBundle: RoadmapBundle = {
         caption: "{{text}}\n\nરોજનું પંચાંગ, હોરા અને ગીતાનો શ્લોક Aroha Astrology પર:\n{{url}}",
       },
       card: { tagline: "તમારો રોજનો વૈદિક માર્ગદર્શક", getApp: "Google Play પર મફત" },
+      hint: { title: "નવું: રોજની સ્ટોરીઝ", body: "આજનું પંચાંગ, હોરા, દેવતા અને ગીતાનો શ્લોક જોવા અહીં ટૅપ કરો. રોજ નવી." },
     },
   },
 };

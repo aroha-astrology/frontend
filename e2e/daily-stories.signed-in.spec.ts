@@ -72,6 +72,7 @@ async function openHome(page: Page, features: Record<string, typeof ON> = FEATUR
 
 const viewer = (page: Page) => page.getByTestId("story-viewer");
 const ring = (page: Page) => page.getByTestId("story-ring");
+const hint = (page: Page) => page.getByTestId("story-hint");
 
 /** A tap on the right (next) or left (previous) part of the story. */
 async function tap(page: Page, side: "next" | "previous") {
@@ -86,6 +87,7 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     const api = await openHome(page, {});
 
     await expect(ring(page)).toHaveCount(0);
+    await expect(hint(page)).toHaveCount(0);
     expect(callsTo(api, "GET /v1/panchang")).toHaveLength(0);
     expect(reported(api)).toHaveLength(0);
 
@@ -167,6 +169,50 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     await expect(viewer(page)).toHaveAttribute("data-story", "hora");
     await page.getByTestId("story-close").click();
     expect(reported(api)).toEqual(views);
+  });
+
+  test("a bubble under the avatar introduces the stories until it is closed, and never returns", async ({ page }) => {
+    const api = await openHome(page);
+
+    await expect(hint(page)).toBeVisible();
+    await expect(hint(page).getByText("New: Daily Stories")).toBeVisible();
+    await expect(
+      hint(page).getByText("Tap here to see today's Panchang, Hora, deity and Gita verse. New every day."),
+    ).toBeVisible();
+
+    await page.getByTestId("story-hint-close").click();
+    await expect(hint(page)).toHaveCount(0);
+    // Closing the bubble is not watching a story.
+    await expect(ring(page)).toHaveAttribute("data-unseen", "true");
+    expect(reported(api)).toHaveLength(0);
+
+    await page.reload();
+    await expect(page.getByText(/Asha/).first()).toBeVisible();
+    await expect(ring(page)).toHaveAttribute("data-unseen", "true");
+    await expect(hint(page)).toHaveCount(0);
+
+    // Not the next day either.
+    await page.clock.setSystemTime(new Date("2026-10-07T08:00:00+05:30"));
+    await page.reload();
+    await expect(page.getByText(/Asha/).first()).toBeVisible();
+    await expect(ring(page)).toHaveAttribute("data-unseen", "true");
+    await expect(hint(page)).toHaveCount(0);
+  });
+
+  test("opening the stories puts the bubble away for good", async ({ page }) => {
+    await openHome(page);
+
+    await expect(hint(page)).toBeVisible();
+    await page.getByTestId("story-ring-button").click();
+    await expect(viewer(page)).toHaveAttribute("data-story", "panchang");
+    await page.getByTestId("story-close").click();
+    await expect(viewer(page)).toHaveCount(0);
+    await expect(hint(page)).toHaveCount(0);
+
+    await page.reload();
+    await expect(page.getByText(/Asha/).first()).toBeVisible();
+    await expect(ring(page)).toHaveAttribute("data-unseen", "true");
+    await expect(hint(page)).toHaveCount(0);
   });
 
   test("closing part-way keeps the ring glowing and reopens on the first unseen story", async ({ page }) => {

@@ -9,11 +9,12 @@ import {
 } from "react";
 import { I18nextProvider } from "react-i18next";
 import i18n from "@/i18n/config";
+import { switchLanguage } from "@/i18n/switch-language";
 
 /**
- * Supported languages: English + the 6 most-spoken Indian languages
- * (by number of native speakers). Add more by appending here AND adding a
- * matching block in i18n/resources.ts — the picker reads this list directly.
+ * Supported languages: English, 7 Indian languages and 7 world languages.
+ * Hand-written bundles live in i18n/resources.ts; the rest are generated into
+ * i18n/generated/<code>.json and loaded by i18n/switch-language.ts — the picker reads this list directly.
  */
 export const LANGUAGES = [
   { code: "en", label: "English", native: "English" },
@@ -23,6 +24,14 @@ export const LANGUAGES = [
   { code: "te", label: "Telugu", native: "తెలుగు" },
   { code: "ta", label: "Tamil", native: "தமிழ்" },
   { code: "gu", label: "Gujarati", native: "ગુજરાતી" },
+  { code: "kn", label: "Kannada", native: "ಕನ್ನಡ" },
+  { code: "es", label: "Spanish", native: "Español" },
+  { code: "fr", label: "French", native: "Français" },
+  { code: "de", label: "German", native: "Deutsch" },
+  { code: "pt", label: "Portuguese", native: "Português" },
+  { code: "it", label: "Italian", native: "Italiano" },
+  { code: "ru", label: "Russian", native: "Русский" },
+  { code: "ja", label: "Japanese", native: "日本語" },
 ] as const;
 
 export type LangCode = (typeof LANGUAGES)[number]["code"];
@@ -48,14 +57,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const saved = window.localStorage.getItem(STORAGE_KEY) as LangCode | null;
     if (saved && LANGUAGES.some((l) => l.code === saved)) {
       setLangState(saved);
-      i18n.changeLanguage(saved);
+      void switchLanguage(saved);
       document.documentElement.lang = saved;
     }
   }, []);
 
   const setLang = (code: LangCode) => {
     setLangState(code);
-    i18n.changeLanguage(code); // <- this is what actually re-renders translated text
+    void switchLanguage(code); // <- this is what actually re-renders translated text
     if (typeof window !== "undefined") {
       window.localStorage.setItem(STORAGE_KEY, code);
       document.documentElement.lang = code;

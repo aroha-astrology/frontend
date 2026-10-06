@@ -28,6 +28,14 @@ const LANG_BCP47: Record<LangCode, string[]> = {
   te: ["te-IN", "te"],
   ta: ["ta-IN", "ta-LK", "ta"],
   gu: ["gu-IN", "gu"],
+  kn: ["kn-IN", "kn"],
+  es: ["es-ES", "es-MX", "es"],
+  fr: ["fr-FR", "fr-CA", "fr"],
+  de: ["de-DE", "de"],
+  pt: ["pt-BR", "pt-PT", "pt"],
+  it: ["it-IT", "it"],
+  ru: ["ru-RU", "ru"],
+  ja: ["ja-JP", "ja"],
 };
 
 let cachedVoices: SpeechSynthesisVoice[] | null = null;

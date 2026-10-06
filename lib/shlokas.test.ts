@@ -14,7 +14,8 @@ import { TAG_ORDER } from "@/components/shlokas/tag-meta";
 
 const PUBLIC = join(process.cwd(), "public", "shlokas");
 const shlokas: Shloka[] = JSON.parse(readFileSync(join(PUBLIC, "shlokas.json"), "utf8"));
-const CODES = LANGUAGES.map((l) => l.code);
+// The verses are hand-written in these seven; other app languages fall back to English (see pick()).
+const CODES = LANGUAGES.map((l) => l.code).filter((c) => ["en", "hi", "bn", "mr", "te", "ta", "gu"].includes(c));
 
 /** Filled by the size assertion so it only stats each distinct file once. */
 const imgFiles = new Set(shlokas.map((s) => s.img));

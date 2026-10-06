@@ -9,7 +9,7 @@ import type { LangCode } from "@/providers/language-provider";
  * letters at all keeps the app language.
  */
 export function speechLangFor(text: string, appLang: LangCode): LangCode {
-  const counts: Record<string, number> = { deva: 0, beng: 0, taml: 0, telu: 0, gujr: 0, latn: 0 };
+  const counts: Record<string, number> = { deva: 0, beng: 0, taml: 0, telu: 0, gujr: 0, knda: 0, cyrl: 0, jpan: 0, latn: 0 };
   for (const ch of text) {
     const c = ch.codePointAt(0)!;
     if (c >= 0x0900 && c <= 0x097f) counts.deva!++;
@@ -17,6 +17,9 @@ export function speechLangFor(text: string, appLang: LangCode): LangCode {
     else if (c >= 0x0b80 && c <= 0x0bff) counts.taml!++;
     else if (c >= 0x0c00 && c <= 0x0c7f) counts.telu!++;
     else if (c >= 0x0a80 && c <= 0x0aff) counts.gujr!++;
+    else if (c >= 0x0c80 && c <= 0x0cff) counts.knda!++;
+    else if (c >= 0x0400 && c <= 0x04ff) counts.cyrl!++;
+    else if ((c >= 0x3040 && c <= 0x30ff) || (c >= 0x4e00 && c <= 0x9fff)) counts.jpan!++;
     else if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a)) counts.latn!++;
   }
   const [script, n] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]!;
@@ -32,7 +35,14 @@ export function speechLangFor(text: string, appLang: LangCode): LangCode {
       return "te";
     case "gujr":
       return "gu";
+    case "knda":
+      return "kn";
+    case "cyrl":
+      return "ru";
+    case "jpan":
+      return "ja";
     default:
-      return "en";
+      // Latin text: keep a Latin-script app language (Spanish, French…), otherwise English.
+      return ["es", "fr", "de", "pt", "it"].includes(appLang) ? appLang : "en";
   }
 }

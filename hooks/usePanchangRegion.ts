@@ -14,6 +14,7 @@ const LANGUAGE_TO_REGION: Record<string, RegionId> = {
   gu: "gujarat",
   te: "south",
   ta: "tamil",
+  kn: "south",
 };
 
 /**

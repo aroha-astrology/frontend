@@ -16,7 +16,7 @@ import type { LangCode } from "@/providers/language-provider";
  */
 
 /** A field whose text differs per app language. `sanskrit`/`iast` are not among them. */
-export type Localized = Record<LangCode, string>;
+export type Localized = { en: string } & Partial<Record<LangCode, string>>;
 
 export interface Shloka {
   id: number;

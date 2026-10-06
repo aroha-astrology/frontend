@@ -105,7 +105,7 @@ export function wallpaperSvg(spec: YantraSpec, text: WallpaperText, width = 1080
 }
 
 /** Devanagari → another Brahmic script, for the scripts whose Unicode block mirrors Devanagari's. */
-const SCRIPT_OFFSET: Record<string, number> = { bn: 0x80, gu: 0x180, te: 0x300 };
+const SCRIPT_OFFSET: Record<string, number> = { bn: 0x80, gu: 0x180, te: 0x300, kn: 0x380 };
 
 /**
  * The beej mantra in the reader's own script. Hindi and Marathi read

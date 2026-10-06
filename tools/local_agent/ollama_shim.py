@@ -33,6 +33,19 @@ def _fix(body: bytes, no_think: bool) -> bytes:
         if isinstance(m, dict) and m.get("role") == "assistant" and m.get("content") is None:
             m["content"] = ""
             changed = True
+    # Hide write_to_file's optional ArtifactMetadata argument: qwen3:8b fills it in for ordinary
+    # source files, and the harness then rejects the whole call ("not a valid artifact path").
+    for tool in data.get("tools") or []:
+        params = (tool.get("function") or {}).get("parameters") if isinstance(tool, dict) else None
+        if not isinstance(params, dict):
+            continue
+        props = params.get("properties")
+        if isinstance(props, dict) and props.pop("ArtifactMetadata", None) is not None:
+            changed = True
+        required = params.get("required")
+        if isinstance(required, list) and "ArtifactMetadata" in required:
+            required.remove("ArtifactMetadata")
+            changed = True
     return json.dumps(data).encode() if changed else body
 
 

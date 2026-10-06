@@ -1,13 +1,24 @@
 # Local Result
 
-> Written by the LOCAL CODER after each run. The cloud planner must verify these claims against `git diff` and its own test runs.
+_Corrected by the cloud planner on 2026-10-06 to match what is actually in the repository._
 
-Status: no local run yet.
+Last delegation: Daily Stories task 5, `lib/stories/share.ts`.
 
 ## What changed
+- Created `lib/stories/share.ts` with `storyShareUrl` and `textShareLink`, as specified.
+
 ## Files changed
+- `lib/stories/share.ts`
+
 ## Tests executed
-## Test results
+- None by the local coder (the handoff asked for none).
+- By the planner afterwards: `pnpm exec vitest run lib/stories` (all pass), `pnpm exec tsc --noEmit` (clean).
+
 ## Errors encountered
+- None on this task. Earlier tasks in the same feature are summarised in `PROGRESS.md`.
+
 ## Unresolved issues
+- None.
+
 ## Recommended next action
+- None. The feature was finished and verified by the planner.

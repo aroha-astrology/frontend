@@ -20,3 +20,11 @@
 - `tools/local_agent/ollama_shim.py` loopback proxy: adds `content: ""` to empty assistant turns (SDK issue #225) and sets `reasoning_effort: none` so Qwen3 thinking does not exhaust tokens.
 - Tools limited to file tools + run_command; file tools workspace-confined; run_command regex denies installs, deletions, destructive git, `.env` (an 8B model tried `npm install` unprompted).
 - `mcp` pinned `<2` (v2 renamed FastMCP).
+
+## 2026-10-06 - Daily Stories (flag `home.dailyStories`)
+- The four stories are the same for every profile and built in the frontend from routes that already exist (`/v1/panchang`, `/v1/gita/verses`, `public/shlokas/shlokas.json`). No new backend route; the backend only registers the flag.
+- "Seen" is kept per device in localStorage (`aroha:stories:seen:v1`), keyed by the device's calendar day. Not synced to the server.
+- Stories carry their own fixed dark palette (`components/stories/story-theme.ts`), not the theme tokens: they are shared as pictures and must look the same in the light theme.
+- A story's content component is drawn twice: on screen (`mode="view"`) and inside the 360x640 share card (`mode="card"`), which is captured at 3x into a 1080x1920 PNG with modern-screenshot.
+- Picture sharing from inside the Android app needs the native `StoryShare` plugin (app 1.15, build 18). Older builds and desktop browsers send the caption and link only.
+- Home never opens a location prompt for the stories: they use the device's position only when it was already granted, otherwise the Delhi reference timings (and say so).

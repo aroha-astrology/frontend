@@ -263,6 +263,30 @@
   .animate-rudraksha-grow-ring {
     animation: rudraksha-grow-ring 2.2s ease-out infinite;
   }
+
+  /* ── Daily Stories ring (components/stories/StoryRing.tsx) — the gradient
+     turns slowly and a soft halo breathes behind it while a story is unseen. ── */
+  @keyframes story-ring-spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-story-ring-spin {
+    animation: story-ring-spin 5s linear infinite;
+  }
+  @keyframes story-ring-halo {
+    0%, 100% { opacity: 0.45; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.12); }
+  }
+  .animate-story-ring-halo {
+    animation: story-ring-halo 2.4s ease-in-out infinite;
+  }
+}
+
+/* ── Daily Stories progress bar (components/stories/StoryViewer.tsx). Not
+   gated on reduced motion: it is the story's timer, and the viewer simply
+   doesn't run it for a reader who prefers no motion. ── */
+@keyframes story-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 /* ── Light theme: readable accent text ──

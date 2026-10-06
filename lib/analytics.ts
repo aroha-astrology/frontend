@@ -16,6 +16,11 @@ export type AnalyticsEvent =
   | "pdf_downloaded"
   | "chat_message_sent"
   | "referral_share_clicked"
+  // Daily Stories (the story ring on the Home avatar).
+  | "story_opened"
+  | "story_viewed"
+  | "story_cta_clicked"
+  | "story_share_clicked"
   | "push_opened"
   | "push_received_foreground"
   | "notification_settings_changed"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock, CalendarDays, MapPin, Navigation, ChevronDown } from "lucide-react";
 import { api, type PanchangData, type PurchasePlan } from "@/lib/api";
@@ -64,14 +64,26 @@ function CollapsibleSection({
   title,
   subtitle,
   children,
+  id,
 }: {
   title: string;
   subtitle: string;
   children: React.ReactNode;
+  /** Lets a link land on this section: `/panchang#<id>` scrolls to it and opens it. */
+  id?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Arriving on "#hora" (the Hora story's "See all horas"): open and bring into view.
+  useEffect(() => {
+    if (!id || window.location.hash !== `#${id}`) return;
+    setOpen(true);
+    ref.current?.scrollIntoView({ block: "start" });
+  }, [id]);
+
   return (
-    <Card className="border-gold/10 overflow-hidden p-0">
+    <Card ref={ref} id={id} className="border-gold/10 overflow-hidden p-0 scroll-mt-24">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between px-4 py-3">
         <div className="text-left">
           <p className="text-xs font-display text-foreground">{title}</p>
@@ -398,7 +410,7 @@ export default function PanchangPage() {
 
             {/* Hora — kept as an accordion, out of scope for this redesign */}
             {data.hora && (
-              <CollapsibleSection title={t("horoscope.panchang.horaTitle")} subtitle={t("horoscope.panchang.horaSubtitle")}>
+              <CollapsibleSection id="hora" title={t("horoscope.panchang.horaTitle")} subtitle={t("horoscope.panchang.horaSubtitle")}>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {data.hora.map((h, i) => {
                     const active = isCurrentlyActive(h.startTime, h.endTime);

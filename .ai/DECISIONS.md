@@ -28,3 +28,8 @@
 - A story's content component is drawn twice: on screen (`mode="view"`) and inside the 360x640 share card (`mode="card"`), which is captured at 3x into a 1080x1920 PNG with modern-screenshot.
 - Picture sharing from inside the Android app needs the native `StoryShare` plugin (app 1.15, build 18). Older builds and desktop browsers send the caption and link only.
 - Home never opens a location prompt for the stories: they use the device's position only when it was already granted, otherwise the Delhi reference timings (and say so).
+
+## 2026-10-07 - Daily Stories numbers for the admin dashboard
+- PostHog events alone could not feed the admin dashboard (it reads our own database, and PostHog only records users who agreed to analytics), so the app also reports to the backend: `POST /v1/stories/events`.
+- A view is reported once per story per day (the first opening), and the backend also refuses a second one. A share is reported at the tap on a place in the share sheet, whatever happens next; the dashboard says so.
+- The card follows the Overview page's date range, unlike the Pass card, which is fixed at 30 days.

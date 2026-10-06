@@ -410,6 +410,32 @@ export interface AudiencePreview {
 
 // ─── Client ────────────────────────────────────────────────────────────────
 
+// ─── Daily Stories ─────────────────────────────────────────────────────────
+
+/** One story's numbers. Mirrors backend modules/stories/stories.service.ts. */
+export interface AdminStoryStatsRow {
+  storyId: string;
+  /** Different users who opened this story. */
+  viewers: number;
+  /** Share taps on this story. */
+  shares: number;
+  /** Share channel → taps, e.g. { whatsapp: 7 }. */
+  shareChannels: Record<string, number>;
+}
+
+export interface AdminStoryStats {
+  /** Different users who opened at least one story. */
+  visitors: number;
+  /** Story openings: each story counts once per user per day. */
+  views: number;
+  /** Different users who tapped a share option. */
+  sharers: number;
+  /** Share taps in all. */
+  shares: number;
+  shareChannels: Record<string, number>;
+  stories: AdminStoryStatsRow[];
+}
+
 export interface AdminDateRangeParams {
   preset: AdminDateRangePreset;
   /** YYYY-MM-DD — required only when preset === 'custom'. */
@@ -426,6 +452,13 @@ export const adminApi = {
         // Narrows the LLM cost breakdown only — the revenue and funnel figures
         // in the same response stay business-wide.
         (params.userId ? `&userId=${encodeURIComponent(params.userId)}` : ""),
+      { auth: true },
+    ),
+
+  /** Daily Stories: visitors, views per story and share taps by channel, for the same range as the overview. */
+  storyStats: (params: AdminDateRangeParams) =>
+    request<AdminStoryStats>(
+      `/v1/admin/story-stats?${buildAdminRangeQuery(params.preset, params.from, params.to)}`,
       { auth: true },
     ),
 

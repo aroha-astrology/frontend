@@ -1,6 +1,6 @@
 # Current Task
 
-Status: none active. (Last: Daily Stories, flag `home.dailyStories`, finished 2026-10-06. See `PROGRESS.md`.)
+Status: none active. (Last: Daily Stories admin numbers, finished 2026-10-07. See `PROGRESS.md`.)
 
 ## Objective
 (planner fills this in)

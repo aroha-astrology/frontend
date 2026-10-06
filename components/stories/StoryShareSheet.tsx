@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Copy, Instagram, MessageSquare, Share2, X } from "lucide-react";
 import type { DailyStoriesData } from "@/hooks/useDailyStories";
 import { track } from "@/lib/analytics";
+import { reportStoryEvent } from "@/lib/stories/report";
 import { storyShareUrl } from "@/lib/stories/share";
 import { captureCard, shareStory, type ShareOutcome } from "@/lib/stories/share-image";
 import type { ShareTarget, StoryId } from "@/lib/stories/types";
@@ -86,6 +87,8 @@ export default function StoryShareSheet({
   async function share(target: ShareTarget) {
     if (busy) return;
     setBusy(target);
+    // Counted at the tap, whatever happens next: the admin dashboard asks which places people pick.
+    reportStoryEvent("share", storyId, target);
     setMessage(target === "copy" || target === "sms" ? null : t("stories.sheet.preparing"));
     try {
       const outcome = await shareStory({ target, caption, fileName: `aroha-${storyId}-${data.day}.png`, getPng });

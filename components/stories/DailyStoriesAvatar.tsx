@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Avatar from "@/components/ui/Avatar";
 import { useDailyStories } from "@/hooks/useDailyStories";
+import { reportStoryEvent } from "@/lib/stories/report";
 import { hasUnseen, localDayIso, markSeen, readSeen } from "@/lib/stories/seen";
 import { STORY_IDS, type StoryId } from "@/lib/stories/types";
 import StoryRing from "./StoryRing";
@@ -24,7 +25,12 @@ export default function DailyStoriesAvatar({ name }: { name?: string | null }) {
 
   useEffect(() => setSeen(readSeen(data.day)), [data.day]);
 
-  const onSeen = useCallback((id: StoryId) => setSeen(markSeen(localDayIso(new Date()), id)), []);
+  const onSeen = useCallback((id: StoryId) => {
+    const day = localDayIso(new Date());
+    // The admin dashboard counts a story once per person per day: report the first opening only.
+    if (!readSeen(day).includes(id)) reportStoryEvent("view", id);
+    setSeen(markSeen(day, id));
+  }, []);
   const close = useCallback(() => setOpen(false), []);
 
   const firstUnseen = STORY_IDS.findIndex((id) => !seen?.includes(id));

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { test, expect, type Page } from "@playwright/test";
-import { mockApi, callsTo, type Handlers } from "./fixtures/mock-api";
+import { mockApi, callsTo, type Handlers, type MockState } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
@@ -53,7 +53,11 @@ const VERSES = [
 const STORY_API: Handlers = {
   "GET /v1/panchang": () => ({ json: PANCHANG }),
   "GET /v1/gita/verses": () => ({ json: { verses: VERSES } }),
+  "POST /v1/stories/events": () => ({ json: { ok: true } }),
 };
+
+/** What the app told the backend to count, in order. */
+const reported = (api: MockState) => callsTo(api, "POST /v1/stories/events").map((c) => c.body);
 
 test.use({ timezoneId: "Asia/Kolkata" });
 
@@ -83,13 +87,14 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
 
     await expect(ring(page)).toHaveCount(0);
     expect(callsTo(api, "GET /v1/panchang")).toHaveLength(0);
+    expect(reported(api)).toHaveLength(0);
 
     await page.getByRole("button", { name: "Switch Profile" }).click();
     await expect(page.getByRole("heading", { name: "Switch Profile" })).toBeVisible();
   });
 
   test("the ring glows, plays the four stories in order and settles once all are seen", async ({ page }) => {
-    await openHome(page);
+    const api = await openHome(page);
 
     await expect(ring(page)).toHaveAttribute("data-unseen", "true");
     await page.getByTestId("story-ring-button").click();
@@ -147,9 +152,21 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     await expect(viewer(page)).toHaveCount(0);
     await expect(ring(page)).toHaveAttribute("data-unseen", "false");
 
+    // Each story was reported to the backend once, on its first opening; going back to Hora did not count again.
+    const views = ["panchang", "hora", "deity", "gita"].map((storyId) => ({ kind: "view", storyId }));
+    await expect.poll(() => reported(api)).toEqual(views);
+
     await page.reload();
     await expect(page.getByText(/Asha/).first()).toBeVisible();
     await expect(ring(page)).toHaveAttribute("data-unseen", "false");
+
+    // Watching them again the same day is not a new visit.
+    await page.getByTestId("story-ring-button").click();
+    await expect(viewer(page)).toHaveAttribute("data-story", "panchang");
+    await tap(page, "next");
+    await expect(viewer(page)).toHaveAttribute("data-story", "hora");
+    await page.getByTestId("story-close").click();
+    expect(reported(api)).toEqual(views);
   });
 
   test("closing part-way keeps the ring glowing and reopens on the first unseen story", async ({ page }) => {
@@ -211,7 +228,7 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     // The WhatsApp link must never leave the test machine.
     await context.route("https://wa.me/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "ok" }));
-    await openHome(page);
+    const api = await openHome(page);
 
     await page.getByTestId("story-ring-button").click();
     await tap(page, "next");
@@ -247,6 +264,14 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     expect(new URL(popup.url()).origin).toBe("https://wa.me");
     expect(new URL(popup.url()).searchParams.get("text")).toBe(copied);
     await expect(page.getByTestId("story-share-status")).toHaveText("Picture saved. Add it from your gallery.");
+
+    // Both taps were reported with the place chosen, for the admin dashboard's share counts.
+    await expect
+      .poll(() => reported(api).filter((e) => (e as { kind: string }).kind === "share"))
+      .toEqual([
+        { kind: "share", storyId: "hora", channel: "copy" },
+        { kind: "share", storyId: "hora", channel: "whatsapp" },
+      ]);
   });
 
   test("a new day brings the glow back", async ({ page }) => {

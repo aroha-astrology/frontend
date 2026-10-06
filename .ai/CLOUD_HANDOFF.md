@@ -3,7 +3,7 @@
 > Written by the CLOUD PLANNER before every delegation. The local coder treats this as its instructions.
 > No secrets, tokens, or `.env` values. Keep this file under 3000 characters: anything past that is cut off.
 
-Status: no task delegated. (Last: Daily Stories task 5, `lib/stories/share.ts`, 2026-10-06.)
+Status: no task delegated. (Last: Daily Stories admin share formatter, `lib/stories/admin-format.ts`, 2026-10-07.)
 
 ## Objective
 ## Context

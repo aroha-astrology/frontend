@@ -22,6 +22,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "What's included",
       benefits: {
         questions: "{{count}} questions to Aroha every 30 days",
+        voiceCall: "Voice call with Yogi Baba: 3 free minutes every month",
         timeline: "Your whole-life Life Timeline",
         bonds: "Detailed insight for every bond",
         decisions: "Decision Astrology and Find My Date results",
@@ -108,6 +109,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "इसमें क्या शामिल है",
       benefits: {
         questions: "हर 30 दिन में Aroha से {{count}} सवाल",
+        voiceCall: "योगी बाबा से वॉयस कॉल: हर महीने 3 मिनट मुफ़्त",
         timeline: "आपकी पूरी जीवन टाइमलाइन",
         bonds: "हर रिश्ते की विस्तृत जानकारी",
         decisions: "निर्णय ज्योतिष और मेरी तारीख़ खोजें के परिणाम",
@@ -194,6 +196,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "কী কী থাকছে",
       benefits: {
         questions: "প্রতি 30 দিনে Aroha-কে {{count}}টি প্রশ্ন",
+        voiceCall: "যোগী বাবার সঙ্গে ভয়েস কল: প্রতি মাসে 3 মিনিট বিনামূল্যে",
         timeline: "আপনার সম্পূর্ণ জীবন টাইমলাইন",
         bonds: "প্রতিটি সম্পর্কের বিস্তারিত",
         decisions: "সিদ্ধান্ত জ্যোতিষ ও আমার তারিখ খুঁজুন-এর ফলাফল",
@@ -280,6 +283,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "यात काय समाविष्ट आहे",
       benefits: {
         questions: "दर 30 दिवसांत Aroha ला {{count}} प्रश्न",
+        voiceCall: "योगी बाबांशी व्हॉइस कॉल: दर महिन्याला 3 मिनिटे मोफत",
         timeline: "तुमची संपूर्ण जीवन टाइमलाइन",
         bonds: "प्रत्येक नात्याची सविस्तर माहिती",
         decisions: "निर्णय ज्योतिष आणि माझी तारीख शोधा यांचे निकाल",
@@ -366,6 +370,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "ఇందులో ఏమేమి ఉన్నాయి",
       benefits: {
         questions: "ప్రతి 30 రోజులకు Aroha ని {{count}} ప్రశ్నలు",
+        voiceCall: "యోగి బాబాతో వాయిస్ కాల్: ప్రతి నెల 3 నిమిషాలు ఉచితం",
         timeline: "మీ మొత్తం జీవిత టైమ్‌లైన్",
         bonds: "ప్రతి బంధానికి వివరమైన అంతర్దృష్టి",
         decisions: "నిర్ణయ జ్యోతిష్యం, నా తేదీ కనుగొనండి ఫలితాలు",
@@ -452,6 +457,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "இதில் என்ன அடங்கும்",
       benefits: {
         questions: "ஒவ்வொரு 30 நாட்களுக்கும் Aroha-விடம் {{count}} கேள்விகள்",
+        voiceCall: "யோகி பாபாவுடன் குரல் அழைப்பு: ஒவ்வொரு மாதமும் 3 நிமிடங்கள் இலவசம்",
         timeline: "உங்கள் முழு வாழ்க்கை காலவரிசை",
         bonds: "ஒவ்வொரு பிணைப்புக்கும் விரிவான பார்வை",
         decisions: "முடிவு ஜோதிடம், என் தேதியைக் கண்டறி முடிவுகள்",
@@ -538,6 +544,7 @@ export const passBundle: RoadmapBundle = {
       benefitsTitle: "શું શામેલ છે",
       benefits: {
         questions: "દર 30 દિવસે Aroha ને {{count}} પ્રશ્નો",
+        voiceCall: "યોગી બાબા સાથે વૉઇસ કૉલ: દર મહિને 3 મિનિટ મફત",
         timeline: "તમારી આખી જીવન ટાઇમલાઇન",
         bonds: "દરેક સંબંધની વિગતવાર સમજ",
         decisions: "નિર્ણય જ્યોતિષ અને મારી તારીખ શોધો ના પરિણામો",

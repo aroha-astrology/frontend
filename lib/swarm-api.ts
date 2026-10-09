@@ -505,8 +505,13 @@ export interface VoiceGrant {
   /** Epoch ms at which this minute's socket stops accepting audio. */
   expiresAt: number;
   minutesUsed: number;
+  /** Whole minutes that can still follow this one: free Pass minutes plus what the wallet covers. */
   minutesRemaining: number;
   pricePerMinutePaise: number;
+  /** This minute came from the member's free Pass minutes. Absent from a server older than the Pass rule. */
+  freeMinute?: boolean;
+  /** Free Pass minutes left in the current Pass period. Absent from a server older than the Pass rule. */
+  freeMinutesLeft?: number;
 }
 
 async function voicePost<T>(
@@ -546,7 +551,10 @@ async function voicePost<T>(
 }
 
 /**
- * Starts a session and buys its first minute.
+ * Starts a session and takes its first minute.
+ *
+ * Throws 403 `PASS_REQUIRED` when the user has no Aroha Pass that includes
+ * voice call — the caller should show the Pass lock.
  *
  * Throws a `SwarmApiError` with code `VOICE_CONSENT_REQUIRED` (403) when the
  * user has not yet agreed to voice recording — the caller should open the
@@ -561,7 +569,9 @@ export function startVoiceSession(locale: string): Promise<VoiceGrant> {
  *
  * `resumptionHandle` is the handle Gemini issued over the socket; passing it
  * back is what makes the new minute continue the same conversation instead of
- * restarting it. Throws 409 once the server-side ceiling is reached.
+ * restarting it. Throws 409 when the wallet cannot pay for the minute
+ * (`VOICE_OUT_OF_CREDIT`) or the call reached the safety ceiling
+ * (`VOICE_SESSION_LIMIT`), and 403 `PASS_REQUIRED` if the Pass has ended.
  */
 export function extendVoiceSession(
   voiceSessionId: string,

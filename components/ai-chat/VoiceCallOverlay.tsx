@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { PhoneOff, Loader2 } from "lucide-react";
+import { PhoneOff, Loader2, Wallet } from "lucide-react";
 import { ASTROLOGER } from "@/lib/personas";
+import { formatRupees } from "@/lib/format";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import type { VoiceCall } from "@/hooks/useVoiceCall";
 
@@ -15,9 +17,13 @@ import type { VoiceCall } from "@/hooks/useVoiceCall";
  * mic button showed above the composer.
  *
  * It stays mounted for one beat after the call ends if the call ended with a
- * message worth reading ("3-minute limit reached", "not enough credits"). The
+ * message worth reading ("your wallet ran out", "you left the app"). The
  * session is already gone by then — `call.active` is false — so this renders as
  * a dismissible ended-call card rather than a live call.
+ *
+ * While the call runs it also says what the minute costs (a free Pass minute,
+ * or the wallet price), warns when little talk time is left so the member can
+ * recharge, and says that minimizing the app ends the call.
  *
  * **The portal is load-bearing, not stylistic.** The trigger that renders this
  * lives inside the chat header's `-translate-y-1/2` wrapper, and a transformed
@@ -31,6 +37,7 @@ import type { VoiceCall } from "@/hooks/useVoiceCall";
  */
 export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
   const { t } = useTranslation();
+  const router = useRouter();
 
   // `document` does not exist during SSR, and portalling on the very first
   // client render would not match the server-rendered markup — so mount first,
@@ -41,6 +48,15 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
   const open = call.active || call.error !== null;
   const speaking = call.state === "speaking";
   const connecting = call.state === "connecting";
+  const price = formatRupees(call.pricePerMinutePaise);
+
+  // The wallet can only be topped up on the payment page, and a call does not
+  // outlive its screen — so recharging means ending the call first. The button
+  // says so, rather than leaving the member to find out by losing the call.
+  const endAndRecharge = () => {
+    call.stop();
+    router.push("/payment");
+  };
 
   const status = connecting
     ? t("aiChatPage.voiceCallConnecting")
@@ -103,9 +119,30 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                   seconds: String(call.secondsLeft % 60).padStart(2, "0"),
                 })}
               </p>
-              <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }}>
-                {t("aiChatPage.voiceChatRateInfo")}
+              <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }} data-testid="voice-rate">
+                {call.freeMinute
+                  ? t("aiChatPage.voiceCallFreeMinute", { price })
+                  : t("aiChatPage.voiceCallPaidMinute", { price })}
               </p>
+
+              {call.lowBalance && (
+                <div
+                  role="status"
+                  data-testid="voice-low-balance"
+                  className="mt-5 flex max-w-xs flex-col items-center gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-center"
+                >
+                  <p className="text-xs leading-snug text-amber-300">
+                    {t("aiChatPage.voiceCallLowBalance", { minutes: Math.max(1, Math.ceil(call.secondsLeft / 60)) })}
+                  </p>
+                  <button
+                    onClick={endAndRecharge}
+                    className="flex items-center gap-1.5 rounded-full border border-amber-500/50 px-3 py-1.5 text-[11px] font-semibold text-amber-200"
+                  >
+                    <Wallet size={13} />
+                    {t("aiChatPage.voiceCallRecharge")}
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={call.stop}
@@ -116,6 +153,9 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
               </button>
               <p className="mt-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
                 {t("aiChatPage.voiceCallHint")}
+              </p>
+              <p className="mt-6 max-w-xs text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
+                {t("aiChatPage.voiceCallKeepOpen")}
               </p>
             </>
           ) : (

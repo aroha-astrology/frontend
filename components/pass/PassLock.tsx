@@ -11,8 +11,8 @@ import { formatRupees } from "@/lib/format";
 import { offerFor, passApi, type PassFeature, type PassStatus } from "@/lib/pass-api";
 
 /**
- * Stands in for an Aroha Pass-only feature (Life Timeline, Bonds, Decisions,
- * Find My Date, the birth-time check, Relocation) when the server answers
+ * Stands in for an Aroha Pass-only feature (voice call, Life Timeline, Bonds,
+ * Decisions, Find My Date, the birth-time check, Relocation) when the server answers
  * PASS_REQUIRED: the user has no Pass, or one whose tier doesn't include
  * `need`. It names the cheapest Pass that does. The Pass is a Google Play
  * subscription and is never paid from the wallet, so the button only goes to

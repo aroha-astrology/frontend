@@ -6,6 +6,7 @@ import type { PassFeature, PassTierBenefits } from "@/lib/pass-api";
 
 /** Every Pass-only feature, in the order the tiers add them. Find My Date shares a line with Decisions. */
 const FEATURE_LINES: Array<{ feature: PassFeature; key: string }> = [
+  { feature: "voiceCall", key: "pass.benefits.voiceCall" },
   { feature: "timeline", key: "pass.benefits.timeline" },
   { feature: "bonds", key: "pass.benefits.bonds" },
   { feature: "decisions", key: "pass.benefits.decisions" },

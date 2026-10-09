@@ -6,7 +6,14 @@ export type QuestionPack = "small" | "medium" | "large";
 export type PassTier = "silver" | "gold" | "platinum";
 
 /** The Pass-only features; each tier unlocks some of them. */
-export type PassFeature = "timeline" | "bonds" | "decisions" | "findMyDate" | "birthTime" | "relocation";
+export type PassFeature =
+  | "timeline"
+  | "bonds"
+  | "decisions"
+  | "findMyDate"
+  | "birthTime"
+  | "relocation"
+  | "voiceCall";
 
 /** What one tier gives. */
 export interface PassTierBenefits {

@@ -12,7 +12,7 @@ import {
   SwarmApiError,
   type VoiceGrant,
 } from "@/lib/swarm-api";
-import { GeminiLiveSession, type VoiceSessionState } from "@/lib/voice/gemini-live-client";
+import { GeminiLiveSession, VoiceCallError, type VoiceSessionState } from "@/lib/voice/gemini-live-client";
 
 /** `"idle"` is this hook's own resting state, not one the live client reports. */
 export type VoiceCallState = VoiceSessionState | "idle";
@@ -164,7 +164,16 @@ export function useVoiceCall(locale: string): VoiceCall {
         // rather than waiting up to a second for the next tick.
         onMinuteGranted: () => recomputeSecondsLeft(),
         onError: (err) => {
-          setError(err.message);
+          // `err.message` carries the raw close code and is for the console
+          // (the client logs it). The reader gets a sentence in their language.
+          const kind = err instanceof VoiceCallError ? err.kind : null;
+          setError(
+            kind === "microphone"
+              ? t("aiChatPage.voiceCallMicError")
+              : kind === "dropped"
+                ? t("aiChatPage.voiceCallDropped")
+                : t("aiChatPage.voiceChatError"),
+          );
           void teardown();
         },
         onClosed: () => {

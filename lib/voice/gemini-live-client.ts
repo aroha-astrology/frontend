@@ -77,6 +77,26 @@ export interface VoiceGrantLike {
 
 export type VoiceSessionState = "connecting" | "listening" | "speaking" | "closed";
 
+/**
+ * Why a call failed, so the UI can pick a translated sentence instead of
+ * showing `message` — which is written for the console and carries the raw
+ * close code.
+ *
+ *   - "microphone": the mic could not be opened.
+ *   - "refused": the server closed the socket before the call was set up.
+ *   - "dropped": a call that was running was closed from the other end.
+ */
+export type VoiceCallErrorKind = "microphone" | "refused" | "dropped";
+
+export class VoiceCallError extends Error {
+  readonly kind: VoiceCallErrorKind;
+  constructor(kind: VoiceCallErrorKind, message: string) {
+    super(message);
+    this.name = "VoiceCallError";
+    this.kind = kind;
+  }
+}
+
 export interface GeminiLiveSessionOptions {
   /**
    * Buys the next minute. Return the new grant to continue, or null to stop
@@ -165,8 +185,6 @@ export class GeminiLiveSession {
   private renewTimer: ReturnType<typeof setTimeout> | null = null;
   private resumptionHandle: string | undefined;
   private stopped = false;
-  /** Set while swapping tokens, so the outgoing socket's close isn't treated as a hangup. */
-  private renewing = false;
   /**
    * Whether Google has acknowledged the setup frame on the CURRENT socket.
    * Distinguishes a call that ran and ended from one the server refused before
@@ -213,7 +231,8 @@ export class GeminiLiveSession {
       console.warn("voice: getUserMedia failed", err instanceof Error ? err.name : err, err);
       this.setState("closed");
       this.opts.onError(
-        new Error(
+        new VoiceCallError(
+          "microphone",
           `Microphone unavailable: ${err instanceof Error ? err.message : String(err)}`,
         ),
       );
@@ -291,18 +310,23 @@ export class GeminiLiveSession {
       ws.send(JSON.stringify({ setup: { model: `models/${grant.model}` } }));
     };
 
+    // Every handler below first checks that `ws` is still the session's
+    // socket. A minute renewal replaces the socket, and the replaced one keeps
+    // reporting for a moment afterwards: `close()` only starts the closing
+    // handshake, so its close event arrives after the new socket is in place.
+    // A flag set around the swap cannot cover that, because the event fires
+    // long after the swap has returned — which is how every call used to end
+    // itself with "connection refused (code 1000)" at its first renewal.
     ws.onmessage = (evt) => {
+      if (this.ws !== ws) return;
       void this.handleMessage(evt.data);
     };
 
     ws.onerror = () => {
-      // The WebSocket error event carries no useful detail (by spec); onclose
-      // fires right after with the code and reason that actually explain
-      // anything, so this only logs that an error preceded it rather than
-      // trying to report the error itself.
+      // The WebSocket error event carries no useful detail (by spec), and a
+      // close event always follows it with the code and reason that actually
+      // explain anything. So this only logs; onclose does the reporting.
       console.warn("voice: socket error (see the close event that follows for detail)");
-      if (this.stopped || this.renewing) return;
-      this.opts.onError(new Error("Voice connection error"));
     };
 
     ws.onclose = (evt) => {
@@ -315,12 +339,12 @@ export class GeminiLiveSession {
         reason: evt.reason || "(none)",
         setupCompleted: this.setupCompleted,
         stopped: this.stopped,
-        renewing: this.renewing,
+        replaced: this.ws !== ws,
       });
 
-      // A close during a token swap is expected — the next socket is already
-      // being opened, so it must not tear the session down.
-      if (this.stopped || this.renewing) return;
+      // A socket that a renewal already replaced is expected to close — the
+      // next one is in place, so this must not tear the session down.
+      if (this.stopped || this.ws !== ws) return;
 
       // Closing BEFORE `setupComplete` means the server refused the connection
       // rather than the call having ended. Report the code and reason: this
@@ -335,7 +359,8 @@ export class GeminiLiveSession {
       // identical to the user hanging up on themselves; it now surfaces too,
       // for the same reason: silence here is indistinguishable from success.
       this.opts.onError(
-        new Error(
+        new VoiceCallError(
+          this.setupCompleted ? "dropped" : "refused",
           `Voice ${this.setupCompleted ? "call ended unexpectedly" : "connection refused"} (code ${evt.code}${evt.reason ? `: ${evt.reason}` : ""})`,
         ),
       );
@@ -475,17 +500,15 @@ export class GeminiLiveSession {
     this.grant = next;
     this.opts.onMinuteGranted?.(next);
 
-    // Swap sockets without disturbing the mic or the playback queue.
-    this.renewing = true;
-    try {
-      if (this.ws && this.ws.readyState < WebSocket.CLOSING) {
-        this.ws.close(1000, "minute boundary");
-      }
-      this.ws = null;
-      this.connect(next);
-    } finally {
-      this.renewing = false;
+    // Swap sockets without disturbing the mic or the playback queue. The old
+    // socket's close event arrives later and is ignored by its own handler,
+    // which sees it is no longer `this.ws` (see `connect`).
+    const old = this.ws;
+    this.ws = null;
+    if (old && old.readyState < WebSocket.CLOSING) {
+      old.close(1000, "minute boundary");
     }
+    this.connect(next);
   }
 
   private clearRenewTimer(): void {

@@ -1261,6 +1261,8 @@ export const resources = {
         voiceChatConsentDecline: "Not now",
         voiceChatError: "Could not start voice session. Please try again.",
         voiceChatLimitReached: "15-minute limit reached. Session ended.",
+        voiceCallDropped: "The call got disconnected. Please try again.",
+        voiceCallMicError: "Aroha could not use your microphone. Allow microphone access and try again.",
         voiceCallConnecting: "Connecting…",
         voiceCallListening: "Listening…",
         voiceCallSpeaking: "Speaking…",

@@ -12,6 +12,10 @@ import NumerologyReportView from "./numerology/NumerologyReportView";
 import BabyNameReportView from "./baby-name/BabyNameReportView";
 import ProgenyReportView from "./progeny/ProgenyReportView";
 import KpReportView from "./kp/KpReportView";
+import RemediesReportView from "./remedies/RemediesReportView";
+import RelationshipReportView from "./relationship/RelationshipReportView";
+import MatchReportView from "./match/MatchReportView";
+import NameChangeReportView from "./name-change/NameChangeReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
@@ -23,8 +27,11 @@ export interface DesignedScreen {
 }
 
 /**
- * Report types that have a bespoke, fully designed screen. Everything not listed here
- * renders through the generic path in app/reports/[id]/page.tsx, unchanged.
+ * Report types that have a bespoke, fully designed screen. Every report type the backend
+ * sells is listed here (16 as of 2026-10); the generic path in app/reports/[id]/page.tsx
+ * is what a NEW report type gets until its screen is built, and it prints nothing from
+ * `scores` that has not been labelled for the reader (lib/report-score-facts.ts's
+ * isReaderFacingKey). e2e/report-layout opens every one of these on a small phone.
  *
  * This table replaced a pair of `isMarriage`/`isKundliMilan` booleans once the third
  * screen landed — deliberately later than a registry-first instinct would have built it.
@@ -115,5 +122,25 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: KpReportView,
     artSrc: "/reports/kp_annual.png",
     subtitleKey: "kpReport.subtitle",
+  },
+  remedies: {
+    View: RemediesReportView,
+    artSrc: "/reports/remedies.png",
+    subtitleKey: "remediesReport.subtitle",
+  },
+  relationship_monthly: {
+    View: RelationshipReportView,
+    artSrc: "/reports/relationship_monthly.png",
+    subtitleKey: "relationshipReport.subtitle",
+  },
+  match_report: {
+    View: MatchReportView,
+    artSrc: "/reports/match_report.png",
+    subtitleKey: "matchReport.subtitle",
+  },
+  name_change: {
+    View: NameChangeReportView,
+    artSrc: "/reports/name_change.png",
+    subtitleKey: "nameChangeReport.subtitle",
   },
 };

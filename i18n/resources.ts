@@ -665,7 +665,7 @@ export const resources = {
       },
       numerologyReport: {
         subtitle: "Your numbers, and what they carry",
-        core: { title: "Your Core Numbers", mulank: "Mulank", bhagyank: "Bhagyank", lifePath: "Life Path", expression: "Expression", soulUrge: "Soul Urge", personality: "Personality" },
+        core: { title: "Your Core Numbers", mulank: "Mulank", bhagyank: "Bhagyank", lifePath: "Life Path", expression: "Expression", soulUrge: "Soul Urge", personality: "Personality", chaldean: "Name Number" },
         lucky: { title: "Lucky Numbers" },
         loShu: { title: "Lo Shu Grid" },
         namePlanes: { title: "Name Planes" },
@@ -706,6 +706,26 @@ export const resources = {
         analysis: { title: "Detailed Analysis" },
         strengths: "Strengths",
         cautions: "Cautions",
+      },
+      relationshipReport: {
+        subtitle: "Your love month, read from the chart",
+        outlook: { title: "This Month's Outlook" },
+        subPeriods: { title: "Within the Month" },
+        analysis: { title: "Detailed Analysis" },
+        strengths: "Strengths",
+        cautions: "Cautions",
+      },
+      remediesReport: {
+        subtitle: "Lal Kitab remedies for your chart",
+        analysis: { title: "Detailed Analysis" },
+      },
+      matchReport: {
+        subtitle: "Two charts, eight areas of life",
+      },
+      nameChangeReport: {
+        subtitle: "Spellings that suit your numbers",
+        targets: { title: "Name Numbers That Suit You" },
+        analysis: { title: "Detailed Analysis" },
       },
       financeReport: {
         subtitle: "Your money month, read from the chart",

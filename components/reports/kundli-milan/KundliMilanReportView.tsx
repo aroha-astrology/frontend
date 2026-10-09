@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { buildKundliMilanView, SECTION_ICON } from "@/lib/kundli-milan-report-view";
+import { buildKundliMilanView, SECTION_ICON as KUNDLI_MILAN_SECTION_ICON } from "@/lib/kundli-milan-report-view";
 import {
   isDoshaYogaSummary,
   isRemedyPlacementArray,
@@ -45,10 +45,21 @@ import type { ReportReady } from "@/hooks/useReport";
  *     ui/VargaChartTabs takes, and drawing them would mean shipping untranslated planet
  *     and sign names — the app's known open i18n gap. Left out rather than half-done.
  *
- * Every other report type still renders through the generic path in
- * app/reports/[id]/page.tsx; this component is reached only for reportKey "kundli_milan".
+ * Also the body of the Compatibility Match Report (components/reports/match/), whose
+ * `scores` are these same ones plus the risk areas the Life Areas grid already reads. It
+ * passes its own section icons and heading namespace; everything else is shared.
  */
-export default function KundliMilanReportView({ data }: { data: ReportReady }) {
+export default function KundliMilanReportView({
+  data,
+  sectionIcon = KUNDLI_MILAN_SECTION_ICON,
+  headingKeyPrefix,
+}: {
+  data: ReportReady;
+  /** Canonical section id -> lucide icon name. Defaults to Kundli Milan's own sections. */
+  sectionIcon?: Record<string, string>;
+  /** Where section headings are translated; see AnalysisAccordion. */
+  headingKeyPrefix?: string;
+}) {
   const { t } = useTranslation();
   const scores = data.scores;
   const view = buildKundliMilanView(scores);
@@ -91,8 +102,9 @@ export default function KundliMilanReportView({ data }: { data: ReportReady }) {
 
       <AnalysisAccordion
         sections={data.sections}
-        sectionIcon={SECTION_ICON}
+        sectionIcon={sectionIcon}
         titleKey="kundliMilanReport.analysis.title"
+        headingKeyPrefix={headingKeyPrefix}
       />
 
       {isDoshaYogaSummary(scores.primaryDoshaYoga) && (

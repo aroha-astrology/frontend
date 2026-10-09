@@ -269,7 +269,8 @@ export default function KpReportView({ data }: { data: ReportReady }) {
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted">
             {(["peak", "active", "quiet"] as Tone[]).map((tone) => (
               <span key={tone} className="inline-flex items-center gap-1.5">
-                <span className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[tone]}`} />
+                {/* A quiet month is an empty cell in the table; here it needs an outline to be seen at all. */}
+                <span className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[tone]} ${tone === "quiet" ? "border border-foreground/40" : ""}`} />
                 {t(`kpReport.tone.${tone}`, tone)}
               </span>
             ))}

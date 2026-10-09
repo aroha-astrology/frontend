@@ -2,12 +2,13 @@
 
 import { useTranslation } from "react-i18next";
 import { isReportHeader, isReportVerdict } from "@/lib/report-score-facts";
-import { shortDate } from "@/lib/calendar-format";
+import { shortDateWithYear, shortMonthYear } from "@/lib/calendar-format";
 import Card from "@/components/ui/Card";
 import ReportHeaderCard from "../ReportHeaderCard";
 import ReportVerdictCard from "../ReportVerdictCard";
 import AnalysisAccordion from "../AnalysisAccordion";
 import PlanetIcon from "../PlanetIcon";
+import ScrollTable from "../blocks/ScrollTable";
 import type { ReportReady } from "@/hooks/useReport";
 
 /**
@@ -19,6 +20,11 @@ import type { ReportReady } from "@/hooks/useReport";
  *
  * Every field is read defensively: an older or partial report renders the cards it
  * has and skips the rest.
+ *
+ * This report covers twelve months from the day it was bought, so it always runs
+ * into the next calendar year. Every date here therefore carries its year, and
+ * the month table is split by year — a bare "Apr" or "26 Apr" left the reader
+ * guessing which April.
  */
 
 type Tone = "peak" | "active" | "quiet";
@@ -125,7 +131,13 @@ export default function KpReportView({ data }: { data: ReportReady }) {
       return iso.slice(5, 7);
     }
   };
+  const yearOf = (iso: string) => iso.slice(0, 4);
   const areaKeys = areas.map((a) => a.key);
+  // "Sep 2026 – Aug 2027": first and last month of the table, each with its year.
+  const monthsRange =
+    months.length > 0
+      ? `${shortMonthYear(months[0]!.start, lang)} – ${shortMonthYear(months[months.length - 1]!.start, lang)}`
+      : null;
 
   return (
     <>
@@ -150,7 +162,7 @@ export default function KpReportView({ data }: { data: ReportReady }) {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted">
-            {t("kpReport.now.adEnds", "This bhukti runs until {{date}}.", { date: shortDate(now.adEnds, lang) })}
+            {t("kpReport.now.adEnds", "This bhukti runs until {{date}}.", { date: shortDateWithYear(now.adEnds, lang) })}
           </p>
           {ruling.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gold/10 pt-3">
@@ -187,7 +199,7 @@ export default function KpReportView({ data }: { data: ReportReady }) {
                 {a.bestWindow ? (
                   <p className="text-xs text-foreground">
                     <span className="text-muted">{t("kpReport.areas.best", "Best window")}: </span>
-                    {shortDate(a.bestWindow.start, lang)} – {shortDate(a.bestWindow.end, lang)}
+                    {shortDateWithYear(a.bestWindow.start, lang)} – {shortDateWithYear(a.bestWindow.end, lang)}
                   </p>
                 ) : (
                   <p className="text-xs text-muted">{t("kpReport.areas.noWindow", "No standout window this year")}</p>
@@ -204,43 +216,56 @@ export default function KpReportView({ data }: { data: ReportReady }) {
       )}
 
       {months.length > 0 && areaKeys.length > 0 && (
-        <Card className="p-4">
+        <Card className="p-4" data-testid="kp-months">
           <Title>{t("kpReport.months.title", "Month by month")}</Title>
-          <div className="overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[420px] text-xs">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-muted">
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.months.month", "Month")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.months.bhukti", "Bhukti")}</th>
-                  {areaKeys.map((k) => (
-                    <th key={k} className="px-1 py-1 text-center font-medium">
-                      {areaName(k)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((m) => (
-                  <tr key={m.index} className="border-t border-gold/10">
-                    <td className="py-2 pr-2 font-medium text-foreground">{monthName(m.start)}</td>
-                    <td className="py-2 pr-2 text-muted">{m.dasha?.ad ?? ""}</td>
-                    {areaKeys.map((k) => {
-                      const tone = (m.tones?.[k] ?? "quiet") as Tone;
-                      return (
-                        <td key={k} className="px-1 py-2 text-center">
-                          <span
-                            className={`inline-block h-2.5 w-2.5 rounded-full ${TONE_DOT[tone]} ${m.focus === k ? "ring-2 ring-gold/60 ring-offset-1 ring-offset-card" : ""}`}
-                            title={t(`kpReport.tone.${tone}`, tone)}
-                          />
-                          <span className="sr-only">{t(`kpReport.tone.${tone}`, tone)}</span>
-                        </td>
-                      );
-                    })}
-                  </tr>
+          {monthsRange && <p className="-mt-2 mb-3 text-xs text-muted">{monthsRange}</p>}
+          <ScrollTable tableClassName="min-w-[420px]">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted">
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.months.month", "Month")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.months.bhukti", "Bhukti")}</th>
+                {areaKeys.map((k) => (
+                  <th key={k} className="px-1 py-1 text-center font-medium">
+                    {areaName(k)}
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </tr>
+            </thead>
+            <tbody>
+              {months.flatMap((m, i) => [
+                // A year row before the first month of each calendar year.
+                ...(i === 0 || yearOf(m.start) !== yearOf(months[i - 1]!.start)
+                  ? [
+                      <tr key={`year-${yearOf(m.start)}`} className="border-t border-gold/10">
+                        <th
+                          scope="rowgroup"
+                          colSpan={2 + areaKeys.length}
+                          className="pb-1 pt-3 text-left text-[11px] font-semibold tracking-wider text-gold"
+                        >
+                          {yearOf(m.start)}
+                        </th>
+                      </tr>,
+                    ]
+                  : []),
+                <tr key={m.index} className="border-t border-gold/10">
+                  <td className="py-2 pr-2 font-medium text-foreground">{monthName(m.start)}</td>
+                  <td className="py-2 pr-2 text-muted">{m.dasha?.ad ?? ""}</td>
+                  {areaKeys.map((k) => {
+                    const tone = (m.tones?.[k] ?? "quiet") as Tone;
+                    return (
+                      <td key={k} className="px-1 py-2 text-center">
+                        <span
+                          className={`inline-block h-2.5 w-2.5 rounded-full ${TONE_DOT[tone]} ${m.focus === k ? "ring-2 ring-gold/60 ring-offset-1 ring-offset-card" : ""}`}
+                          title={t(`kpReport.tone.${tone}`, tone)}
+                        />
+                        <span className="sr-only">{t(`kpReport.tone.${tone}`, tone)}</span>
+                      </td>
+                    );
+                  })}
+                </tr>,
+              ])}
+            </tbody>
+          </ScrollTable>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted">
             {(["peak", "active", "quiet"] as Tone[]).map((tone) => (
               <span key={tone} className="inline-flex items-center gap-1.5">
@@ -267,7 +292,7 @@ export default function KpReportView({ data }: { data: ReportReady }) {
                   {t("kpReport.shifts.row", "{{ad}} bhukti begins", { ad: s.ad })}
                   <span className="text-muted"> · {s.md}</span>
                 </span>
-                <span className="text-xs text-gold">{shortDate(s.date, lang)}</span>
+                <span className="text-xs text-gold">{shortDateWithYear(s.date, lang)}</span>
               </li>
             ))}
           </ol>
@@ -279,31 +304,29 @@ export default function KpReportView({ data }: { data: ReportReady }) {
       {cusps.length > 0 && (
         <Card className="p-4">
           <Title>{t("kpReport.cusps.title", "Your 12 cusps")}</Title>
-          <div className="overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[420px] text-xs">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-muted">
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.house", "House")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.sign", "Sign")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.star", "Star lord")}</th>
-                  <th className="py-1 text-left font-medium">{t("kpReport.col.sub", "Sub lord")}</th>
+          <ScrollTable tableClassName="min-w-[420px]">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted">
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.house", "House")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.sign", "Sign")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.star", "Star lord")}</th>
+                <th className="py-1 text-left font-medium">{t("kpReport.col.sub", "Sub lord")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cusps.map((c) => (
+                <tr key={c.house} className="border-t border-gold/10">
+                  <td className="py-1.5 pr-2 font-semibold text-gold">
+                    {c.house}
+                    {sensitive.has(c.house) && <span className="ml-1 text-amber-400" title={t("kpReport.cusps.sensitive", "Sub lord could change with a small birth-time shift")}>*</span>}
+                  </td>
+                  <td className="py-1.5 pr-2 text-foreground">{c.sign}</td>
+                  <td className="py-1.5 pr-2 text-foreground">{c.starLord}</td>
+                  <td className="py-1.5 text-foreground">{c.subLord}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {cusps.map((c) => (
-                  <tr key={c.house} className="border-t border-gold/10">
-                    <td className="py-1.5 pr-2 font-semibold text-gold">
-                      {c.house}
-                      {sensitive.has(c.house) && <span className="ml-1 text-amber-400" title={t("kpReport.cusps.sensitive", "Sub lord could change with a small birth-time shift")}>*</span>}
-                    </td>
-                    <td className="py-1.5 pr-2 text-foreground">{c.sign}</td>
-                    <td className="py-1.5 pr-2 text-foreground">{c.starLord}</td>
-                    <td className="py-1.5 text-foreground">{c.subLord}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </ScrollTable>
           {sensitive.size > 0 && (
             <p className="mt-2 text-[11px] text-muted">
               * {t("kpReport.cusps.sensitive", "Sub lord could change with a small birth-time shift")}
@@ -315,36 +338,34 @@ export default function KpReportView({ data }: { data: ReportReady }) {
       {planets.length > 0 && (
         <Card className="p-4">
           <Title>{t("kpReport.planets.title", "Your planets in KP")}</Title>
-          <div className="overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[480px] text-xs">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-muted">
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.planet", "Planet")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.house", "House")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.star", "Star lord")}</th>
-                  <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.sub", "Sub lord")}</th>
-                  <th className="py-1 text-left font-medium">{t("kpReport.col.signifies", "Signifies")}</th>
+          <ScrollTable tableClassName="min-w-[480px]">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted">
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.planet", "Planet")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.house", "House")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.star", "Star lord")}</th>
+                <th className="py-1 pr-2 text-left font-medium">{t("kpReport.col.sub", "Sub lord")}</th>
+                <th className="py-1 text-left font-medium">{t("kpReport.col.signifies", "Signifies")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planets.map((p) => (
+                <tr key={p.planet} className="border-t border-gold/10">
+                  <td className="py-1.5 pr-2">
+                    <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+                      <PlanetIcon planet={planetKey(p.planet)} size={22} />
+                      {p.planet}
+                      {p.retrograde && <span className="text-[10px] text-amber-400">℞</span>}
+                    </span>
+                  </td>
+                  <td className="py-1.5 pr-2 text-foreground">{p.house}</td>
+                  <td className="py-1.5 pr-2 text-foreground">{p.starLord}</td>
+                  <td className="py-1.5 pr-2 text-foreground">{p.subLord}</td>
+                  <td className="py-1.5 text-muted">{(p.signifies ?? []).join(", ")}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {planets.map((p) => (
-                  <tr key={p.planet} className="border-t border-gold/10">
-                    <td className="py-1.5 pr-2">
-                      <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
-                        <PlanetIcon planet={planetKey(p.planet)} size={22} />
-                        {p.planet}
-                        {p.retrograde && <span className="text-[10px] text-amber-400">℞</span>}
-                      </span>
-                    </td>
-                    <td className="py-1.5 pr-2 text-foreground">{p.house}</td>
-                    <td className="py-1.5 pr-2 text-foreground">{p.starLord}</td>
-                    <td className="py-1.5 pr-2 text-foreground">{p.subLord}</td>
-                    <td className="py-1.5 text-muted">{(p.signifies ?? []).join(", ")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </ScrollTable>
         </Card>
       )}
 

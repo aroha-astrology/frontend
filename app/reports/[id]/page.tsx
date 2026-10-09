@@ -270,7 +270,14 @@ export default function ReportDetailPage() {
       : {};
 
   return (
-    <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>
+    // `overflow-x-clip`: nothing inside a report may make the page wider than the
+    // screen. On Android Chrome a wider page drags every fixed element with it —
+    // the bottom tab bar and the rating sheet slid off to the right on the KP
+    // report (see blocks/ScrollTable.tsx). Each card is expected to fit on its
+    // own, and e2e/report-layout checks that; this is the net under them, for
+    // every report type at once. `clip`, not `hidden`, so nothing here becomes a
+    // scroll container and sticky headers keep working.
+    <main className="min-h-screen overflow-x-clip pb-tab-safe" style={{ background: "var(--background)" }}>
       <PdfCapturingContext.Provider value={pdf.capturing}>
       <div ref={pdf.targetRef} className="page-container pt-4 space-y-4">
         {designed ? (

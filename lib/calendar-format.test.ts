@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { buildIcs, eventGroup, eventTitle, groupByMonth, istToday, pickNextWindow } from "./calendar-format";
+import {
+  buildIcs,
+  eventGroup,
+  eventTitle,
+  groupByMonth,
+  istToday,
+  pickNextWindow,
+  shortDate,
+  shortDateWithYear,
+  shortMonthYear,
+} from "./calendar-format";
 import type { CalendarEvent } from "./insights-api";
 
 const t = (key: string, vars?: Record<string, unknown>) =>
@@ -94,5 +104,29 @@ describe("googleCalendarUrl", () => {
     const url = new URL(googleCalendarUrl(ev({ date: "2026-10-05" }), "Saturn enters Aries", "Why"));
     expect(url.searchParams.get("dates")).toBe("20261005/20261006");
     expect(url.searchParams.get("text")).toBe("Saturn enters Aries");
+  });
+});
+
+describe("dates that need their year", () => {
+  // A year-ahead report bought in September 2026 has its April in 2027.
+  it("shortDateWithYear names the year a bare day and month leaves out", () => {
+    expect(shortDate("2027-04-26", "en-IN")).toBe("26 Apr");
+    expect(shortDateWithYear("2027-04-26", "en-IN")).toBe("26 Apr 2027");
+  });
+
+  it("shortMonthYear gives the month with its year", () => {
+    expect(shortMonthYear("2026-10-14", "en-IN")).toBe("Oct 2026");
+    expect(shortMonthYear("2027-08-14", "en-IN")).toBe("Aug 2027");
+  });
+
+  it("does not shift a date across midnight in a timezone west of UTC", () => {
+    // Formatted in UTC whatever the machine's zone is, so the 1st stays the 1st.
+    expect(shortDateWithYear("2027-01-01", "en-US")).toBe("Jan 1, 2027");
+    expect(shortMonthYear("2027-01-01", "en-US")).toBe("Jan 2027");
+  });
+
+  it("hands back what it was given when that is not a date", () => {
+    expect(shortDateWithYear("soon", "en")).toBe("soon");
+    expect(shortMonthYear("", "en")).toBe("");
   });
 });

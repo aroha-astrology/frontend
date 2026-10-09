@@ -112,6 +112,34 @@ export function shortDate(date: string, lang: string): string {
   }
 }
 
+/**
+ * 'YYYY-MM-DD' → a short localized date with its year ("12 Oct 2026").
+ *
+ * For any date the reader cannot place in a year on their own: a report that
+ * covers twelve months from the day it was bought runs into the next calendar
+ * year, and "26 Apr" there reads as this April, or as "April 2026".
+ */
+export function shortDateWithYear(date: string, lang: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return date;
+  try {
+    return new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(d);
+  } catch {
+    return date;
+  }
+}
+
+/** 'YYYY-MM-DD' → the short month and its year ("Oct 2026"). */
+export function shortMonthYear(date: string, lang: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return date.slice(0, 7);
+  try {
+    return new Intl.DateTimeFormat(lang, { month: "short", year: "numeric", timeZone: "UTC" }).format(d);
+  } catch {
+    return date.slice(0, 7);
+  }
+}
+
 /** 'YYYY-MM' → a localized month heading ("October 2026"). */
 export function monthHeading(month: string, lang: string): string {
   const d = new Date(`${month}-01T00:00:00Z`);

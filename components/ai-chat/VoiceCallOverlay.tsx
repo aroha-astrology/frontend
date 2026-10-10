@@ -23,7 +23,7 @@ import type { VoiceCall } from "@/hooks/useVoiceCall";
  *
  * While the call runs it also says what the minute costs (a free Pass minute,
  * or the wallet price), warns when little talk time is left so the member can
- * recharge, and says that minimizing the app ends the call.
+ * recharge, and says the call ends after ten seconds of silence.
  *
  * **The portal is load-bearing, not stylistic.** The trigger that renders this
  * lives inside the chat header's `-translate-y-1/2` wrapper, and a transformed
@@ -155,7 +155,7 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                 {t("aiChatPage.voiceCallHint")}
               </p>
               <p className="mt-6 max-w-xs text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
-                {t("aiChatPage.voiceCallKeepOpen")}
+                {t("aiChatPage.voiceCallIdleHint")}
               </p>
             </>
           ) : (

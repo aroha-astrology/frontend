@@ -46,7 +46,7 @@ test("someone without a Pass who taps the call icon gets the Pass lock, not an e
   expect(callsTo(api, "POST /v1/voice/sessions")).toHaveLength(1);
 });
 
-test("the consent sheet states the Pass price rule and that minimizing ends the call", async ({ page }) => {
+test("the consent sheet states the Pass price rule and the 10-second silence rule", async ({ page }) => {
   await skipLaunchOverlays(page);
   await mockApi(page, {
     user: { features: FEATURES },
@@ -62,10 +62,12 @@ test("the consent sheet states the Pass price rule and that minimizing ends the 
   await page.getByRole("button", { name: "Start voice chat" }).click();
 
   await expect(page.getByText("Start a voice conversation")).toBeVisible();
-  // One paragraph carries both: what it costs, and that minimizing ends the call.
+  // One paragraph carries both: what it costs, and when the call hangs up on its own.
   await expect(
-    page.getByText(/3 free minutes each Pass month, then ₹20 a minute from your wallet.*The call ends if you minimize the app\./),
+    page.getByText(/3 free minutes each Pass month, then ₹20 a minute from your wallet.*The call ends if you do not speak for 10 seconds\./),
   ).toBeVisible();
+  // Minimizing no longer ends it, and the sheet must not say it does.
+  await expect(page.getByText(/minimi[sz]e/i)).toHaveCount(0);
   await expect(page.getByText("With Aroha Pass: 3 free minutes each month, then ₹20/min")).toBeVisible();
   // The old ceiling is gone from the wording.
   await expect(page.getByText(/3 min max|15-minute/)).toHaveCount(0);

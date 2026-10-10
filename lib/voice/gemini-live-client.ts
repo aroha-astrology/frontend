@@ -57,6 +57,35 @@ const RENEW_LEAD_MS = 5_000;
 const PLAYBACK_LEAD_S = 0.08;
 
 /**
+ * How long a call may go with nobody speaking before it is hung up (owner's
+ * rule, 2026-10-10: "if no user input in last 10 sec then disconnect call").
+ *
+ * What counts as the user speaking, any one of:
+ *   - Google transcribed some of their speech back to us (`inputTranscription`);
+ *   - they talked over the Baba (`interrupted`);
+ *   - the microphone is loud enough to be a voice (see SPEECH_RMS).
+ * The first is the reliable one, because it is Google's own voice detection;
+ * the last is the backstop for a transcription that never comes.
+ *
+ * And the clock does not run while the Baba is speaking. Counting from the
+ * user's last word would hang up in the middle of any answer longer than ten
+ * seconds, on someone who is simply listening, after they have paid for it.
+ * So the ten seconds start when the Baba finishes, and each thing the user says
+ * starts them again.
+ */
+const IDLE_TIMEOUT_MS = 10_000;
+/** How often the idle clock is read. Browsers run a hidden page's timers about once a second anyway. */
+const IDLE_CHECK_MS = 1_000;
+/**
+ * Loudness of one microphone frame (RMS, 0 to 1 of full scale) that counts as a
+ * voice. Speech through the phone's echo canceller sits around 0.05 to 0.2 and a
+ * quiet room well under 0.01; automatic gain control can lift the room toward
+ * 0.02, so this sits above that. Raise it if hang-ups never happen in a noisy
+ * room; lower it if a quiet speaker is being hung up on.
+ */
+const SPEECH_RMS = 0.03;
+
+/**
  * Synthetic first turn sent right after `setupComplete`, so the model speaks
  * a greeting instead of sitting in silence waiting for the user's mic. Not a
  * real user utterance — the backend's voice system instruction (see
@@ -78,15 +107,16 @@ export interface VoiceGrantLike {
 export type VoiceSessionState = "connecting" | "listening" | "speaking" | "closed";
 
 /**
- * Why a call failed, so the UI can pick a translated sentence instead of
+ * Why a call ended badly, so the UI can pick a translated sentence instead of
  * showing `message` — which is written for the console and carries the raw
  * close code.
  *
  *   - "microphone": the mic could not be opened.
  *   - "refused": the server closed the socket before the call was set up.
  *   - "dropped": a call that was running was closed from the other end.
+ *   - "idle": nobody spoke for IDLE_TIMEOUT_MS, so we hung up.
  */
-export type VoiceCallErrorKind = "microphone" | "refused" | "dropped";
+export type VoiceCallErrorKind = "microphone" | "refused" | "dropped" | "idle";
 
 export class VoiceCallError extends Error {
   readonly kind: VoiceCallErrorKind;
@@ -183,6 +213,10 @@ export class GeminiLiveSession {
   private nextPlayAt = 0;
 
   private renewTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Reads the idle clock; runs only between `setupComplete` and the end of the call. */
+  private idleTimer: ReturnType<typeof setInterval> | null = null;
+  /** When someone last spoke (or the Baba last did), epoch ms. */
+  private lastActivityAt = 0;
   private resumptionHandle: string | undefined;
   private stopped = false;
   /**
@@ -269,6 +303,7 @@ export class GeminiLiveSession {
   async stop(): Promise<void> {
     this.stopped = true;
     this.clearRenewTimer();
+    this.stopIdleWatch();
     this.stopPlayback();
 
     if (this.ws && this.ws.readyState < WebSocket.CLOSING) {
@@ -389,6 +424,10 @@ export class GeminiLiveSession {
       if (!this.greetingSent) {
         this.greetingSent = true;
         this.sendGreetingTrigger();
+        // The call starts here, not at the first minute's mint: the ten seconds
+        // are for someone to answer the greeting, and a slow connection must not
+        // eat them.
+        this.startIdleWatch();
       }
       this.setState("listening");
       return;
@@ -408,12 +447,14 @@ export class GeminiLiveSession {
     // queued is now stale and must be dropped, or they'll hear the tail of an
     // answer they interrupted seconds ago.
     if (content.interrupted) {
+      this.markActivity();
       this.stopPlayback();
       this.setState("listening");
       return;
     }
 
     if (content.inputTranscription?.text) {
+      this.markActivity();
       this.transcript.append(content.inputTranscription.text, "user");
       this.opts.onTranscript?.(content.inputTranscription.text, "user");
     }
@@ -437,6 +478,9 @@ export class GeminiLiveSession {
   }
 
   private sendAudio(buf: ArrayBuffer): void {
+    // Before the socket check: a frame heard while a minute is being renewed is
+    // still someone speaking.
+    if (frameRms(buf) >= SPEECH_RMS) this.markActivity();
     if (this.ws?.readyState !== WebSocket.OPEN) return;
     // `realtimeInput.audio`, a single Blob — NOT the `mediaChunks` array this
     // used to send. Google now answers that shape with close code 1007,
@@ -468,6 +512,44 @@ export class GeminiLiveSession {
         },
       }),
     );
+  }
+
+  // ── Silence hang-up ───────────────────────────────────────────────────────
+
+  private markActivity(): void {
+    this.lastActivityAt = Date.now();
+  }
+
+  /** The Baba is still talking: audio is queued that has not finished playing. */
+  private modelIsSpeaking(): boolean {
+    return this.playbackCtx !== null && this.nextPlayAt > this.playbackCtx.currentTime;
+  }
+
+  private startIdleWatch(): void {
+    this.stopIdleWatch();
+    this.markActivity();
+    this.idleTimer = setInterval(() => {
+      if (this.stopped) return;
+      if (this.modelIsSpeaking()) {
+        this.markActivity();
+        return;
+      }
+      if (Date.now() - this.lastActivityAt < IDLE_TIMEOUT_MS) return;
+
+      // Same shape as every other way a call ends: a terminal error the owner of
+      // the session turns into a message, then the teardown.
+      this.opts.onError(
+        new VoiceCallError("idle", `Voice call hung up: nobody spoke for ${IDLE_TIMEOUT_MS / 1000} seconds`),
+      );
+      void this.stop();
+    }, IDLE_CHECK_MS);
+  }
+
+  private stopIdleWatch(): void {
+    if (this.idleTimer) {
+      clearInterval(this.idleTimer);
+      this.idleTimer = null;
+    }
   }
 
   // ── Per-minute token renewal ──────────────────────────────────────────────
@@ -596,6 +678,15 @@ export class GeminiLiveSession {
   getTranscript(): TranscriptTurn[] {
     return this.transcript.getTurns();
   }
+}
+
+/** Loudness of one 16-bit microphone frame: RMS as a fraction of full scale. */
+function frameRms(buf: ArrayBuffer): number {
+  const samples = new Int16Array(buf);
+  if (samples.length === 0) return 0;
+  let sum = 0;
+  for (let i = 0; i < samples.length; i++) sum += samples[i]! * samples[i]!;
+  return Math.sqrt(sum / samples.length) / 0x8000;
 }
 
 function base64FromBuffer(buf: ArrayBuffer): string {

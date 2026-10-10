@@ -13,6 +13,7 @@ import {
   type VoiceGrant,
 } from "@/lib/swarm-api";
 import { GeminiLiveSession, VoiceCallError, type VoiceSessionState } from "@/lib/voice/gemini-live-client";
+import { startBackgroundCall, stopBackgroundCall } from "@/lib/voice/background-call";
 
 /** `"idle"` is this hook's own resting state, not one the live client reports. */
 export type VoiceCallState = VoiceSessionState | "idle";
@@ -133,6 +134,7 @@ export function useVoiceCall(locale: string): VoiceCall {
     // reference, so this does not depend on stop()'s internals staying inert.
     const transcript = session?.getTranscript();
     await session?.stop();
+    void stopBackgroundCall();
 
     if (grant) {
       // Best-effort: each minute was settled when it was granted, so a failure
@@ -194,6 +196,7 @@ export function useVoiceCall(locale: string): VoiceCall {
     return () => {
       const transcript = sessionRef.current?.getTranscript();
       void sessionRef.current?.stop();
+      void stopBackgroundCall();
       const grant = grantRef.current;
       if (grant) {
         void endVoiceSession(grant.voiceSessionId, hasConnectedRef.current, transcript).catch(() => {});
@@ -201,24 +204,15 @@ export function useVoiceCall(locale: string): VoiceCall {
     };
   }, []);
 
-  // Nor may it run in the background. A minimized app keeps the mic open and
-  // keeps taking a minute from the wallet every minute, with nobody looking at
-  // the countdown — so the call ends when the app is minimized or the tab is
-  // hidden, and the call screen says why when they come back.
+  // Minimizing the app does NOT end the call (owner's rule, 2026-10-10; this
+  // replaced an earlier version that hung up on `visibilitychange`). What ends a
+  // call is the wallet running out, the user hanging up, or ten seconds of
+  // silence (gemini-live-client.ts) — and the silence rule is also what stops a
+  // background call whose microphone the phone has silenced, or one left
+  // running by mistake, from taking a minute from the wallet every minute.
   //
-  // Armed only once the conversation is under way. While connecting, Android
-  // puts its microphone-permission dialog over the app, and that must not
-  // count as leaving.
-  useEffect(() => {
-    if (!inConversation) return;
-    const onHide = () => {
-      if (document.visibilityState !== "hidden") return;
-      setError(t("aiChatPage.voiceCallMinimized"));
-      void teardown();
-    };
-    document.addEventListener("visibilitychange", onHide);
-    return () => document.removeEventListener("visibilitychange", onHide);
-  }, [inConversation, t, teardown]);
+  // Keeping the microphone alive in the background on Android is the foreground
+  // service started in `begin` below (lib/voice/background-call.ts).
 
   const begin = useCallback(
     async (firstGrant: VoiceGrant) => {
@@ -243,7 +237,9 @@ export function useVoiceCall(locale: string): VoiceCall {
               ? t("aiChatPage.voiceCallMicError")
               : kind === "dropped"
                 ? t("aiChatPage.voiceCallDropped")
-                : t("aiChatPage.voiceChatError"),
+                : kind === "idle"
+                  ? t("aiChatPage.voiceCallIdle")
+                  : t("aiChatPage.voiceChatError"),
           );
           void teardown();
         },
@@ -294,6 +290,14 @@ export function useVoiceCall(locale: string): VoiceCall {
 
       sessionRef.current = session;
       await session.start(firstGrant);
+
+      // After `start`, not before: Android refuses a microphone foreground
+      // service until the microphone is allowed, and on a first call that is
+      // decided inside `start` (the permission prompt). A failed start has
+      // already ended the call by here, so there is nothing to keep alive.
+      if (sessionRef.current === session) {
+        void startBackgroundCall(t("aiChatPage.voiceCallOngoing"), t("aiChatPage.voiceCallOngoingBody"));
+      }
     },
     [locale, noteGrant, recomputeSecondsLeft, t, teardown],
   );

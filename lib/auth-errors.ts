@@ -2,6 +2,7 @@
 // Pass the result to t(). Falls back to a generic message.
 
 import posthog from "posthog-js";
+import { reportAuthError, type AuthStep } from "@/lib/auth-error-report";
 
 const CODE_TO_KEY: Record<string, string> = {
   "auth/invalid-phone-number": "auth.phoneError",
@@ -20,8 +21,12 @@ const CODE_TO_KEY: Record<string, string> = {
   "auth/unauthorized-domain": "auth.googleUnavailable",
 };
 
-/** Returns the i18n key for a Firebase auth error (or unknown error). */
-export function authErrorKey(err: unknown): string {
+/**
+ * Returns the i18n key for a Firebase auth error (or unknown error). `step`
+ * is where in sign-in it happened — it travels with the report of an
+ * unmapped error, since the same code means different things at each step.
+ */
+export function authErrorKey(err: unknown, step: AuthStep): string {
   const code = (err as { code?: string } | null)?.code ?? "";
   const key = CODE_TO_KEY[code] ?? "auth.genericError";
 
@@ -32,8 +37,14 @@ export function authErrorKey(err: unknown): string {
   // every report and unreproducible on a locally-signed build. Report the raw
   // code so the next one is a lookup, not an investigation. No-op when the
   // user declined analytics — posthog is never init'd then.
+  if (key === "auth.genericError") {
+    // The same failure, in full, to the ops Telegram chat. Not analytics —
+    // it names no person — so it does not wait on the analytics consent.
+    reportAuthError(err, step);
+  }
   if (key === "auth.genericError" && posthog.__loaded) {
     posthog.capture("auth_error_unmapped", {
+      step,
       code: code || "(none)",
       // Native plugin errors put the useful detail here ("10: ..." for
       // DEVELOPER_ERROR). Firebase's own messages carry no PII; anything

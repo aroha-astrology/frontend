@@ -72,7 +72,7 @@ export function usePhoneAuth() {
       confirmationRef.current = result;
       return { ok: true };
     } catch (err) {
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "otp-send"));
       resetRecaptcha();
       return { ok: false };
     } finally {
@@ -82,7 +82,12 @@ export function usePhoneAuth() {
 
   async function confirmOtp(code: string): Promise<ConfirmResult> {
     if (!confirmationRef.current) {
-      setErrorKey("auth.genericError");
+      // Verify pressed with no OTP request on record. Reported like any other
+      // unmapped failure — it shows the same generic message.
+      const err = Object.assign(new Error("No pending OTP confirmation to verify against"), {
+        code: "app/no-pending-otp",
+      });
+      setErrorKey(authErrorKey(err, "otp-verify"));
       return { ok: false };
     }
     setErrorKey(null);
@@ -93,7 +98,7 @@ export function usePhoneAuth() {
       const session = await establishSession();
       return { ok: true, created: session.created };
     } catch (err) {
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "otp-verify"));
       return { ok: false };
     } finally {
       setVerifying(false);

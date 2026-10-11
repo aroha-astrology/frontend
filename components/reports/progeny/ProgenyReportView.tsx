@@ -15,21 +15,20 @@ import TopWindowCard from "../TopWindowCard";
 import ProgenyOutlookCard from "./ProgenyOutlookCard";
 import CapacityCard from "./CapacityCard";
 import ChildSequenceCard from "./ChildSequenceCard";
-import ChildrenCard from "./ChildrenCard";
 import ProgenyMantraCard from "./ProgenyMantraCard";
 import type { ReportReady } from "@/hooks/useReport";
 
 /**
  * The bespoke Progeny screen -- built entirely on shared components plus five report-specific
- * ones (ProgenyOutlookCard, CapacityCard, ChildSequenceCard, ChildrenCard, ProgenyMantraCard),
+ * ones (ProgenyOutlookCard, CapacityCard, ChildSequenceCard, ProgenyMantraCard),
  * the same "mostly reuse" shape as WealthReportView.
  *
  * Presentation only: every value comes from the `scores`/`sections` the API already returns,
  * mapped by lib/progeny-report-view.ts. No extra fetches, no backend fields added here.
  *
- * `ChildrenCard` (the 35+ retrospective card) is the one block whose absence IS the feature --
- * `view.childrenCard` is `null` for every reader under 35 (see the backend's
- * `computeChildrenCard` doc comment), so this screen needs no age check of its own.
+ * The 35+ children card and the son/daughter pills were removed by the engine audit (SF2): no old
+ * text gives a rule for the sex or the number of children, and announcing either is a legal and
+ * reputational risk. The backend still sends the fields; nothing here shows them.
  */
 export default function ProgenyReportView({ data }: { data: ReportReady }) {
   const scores = data.scores;
@@ -41,8 +40,6 @@ export default function ProgenyReportView({ data }: { data: ReportReady }) {
       {isReportHeader(scores.header) && <ReportHeaderCard header={scores.header} />}
 
       <ProgenyOutlookCard band={view.coupleConvergence} />
-
-      <ChildrenCard card={view.childrenCard} />
 
       <CapacityCard mother={view.motherPromise} father={view.fatherPromise} />
 

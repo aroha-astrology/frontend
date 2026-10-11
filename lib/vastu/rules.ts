@@ -8,10 +8,12 @@
  * VASTU_RULE_SET. Bump both (and the shared snapshot) whenever a rule changes.
  */
 export const VASTU_RULE_SET = {
-  id: "aroha-traditional-v1",
+  id: "aroha-traditional-v2",
   name: "Aroha Traditional Vastu",
-  version: "1.0",
+  version: "2.0",
 } as const;
+// v2: water follows the Brihat Samhita 52.117 — good in the north and north-east, harmful in
+// the other six directions (v1 rated east and north-west acceptable and left west unrated).
 
 export interface VastuRule {
   room: string;
@@ -132,8 +134,8 @@ export const VASTU_RULES: VastuRule[] = [
   {
     room: "water_tank",
     idealDirections: ["NE", "N"],
-    acceptableDirections: ["E", "NW"],
-    avoidDirections: ["SE", "S", "SW"],
+    acceptableDirections: [],
+    avoidDirections: ["E", "SE", "S", "SW", "W", "NW"],
     weight: 6,
     reason:
       "Water in NE supports prosperity and health. Water in SE clashes with the fire element and causes friction.",

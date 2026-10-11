@@ -7,7 +7,7 @@ import { VASTU_RULES, VASTU_RULE_SET, evaluateRoomPlacement, classifyPlacement }
 // repos test against the same snapshot (backend test/fixtures/, identical
 // bytes), so a rule changed on one side fails CI until the other follows.
 const snapshot = JSON.parse(
-  readFileSync(path.join(__dirname, "__fixtures__/vastu-rules.aroha-traditional-v1.json"), "utf8"),
+  readFileSync(path.join(__dirname, "__fixtures__/vastu-rules.aroha-traditional-v2.json"), "utf8"),
 ) as { ruleSetId: string; rules: unknown[] };
 
 describe("rules table", () => {
@@ -37,5 +37,15 @@ describe("rules table", () => {
     expect(one.roomScores).toHaveLength(1);
     expect(two.roomScores).toHaveLength(2);
     expect(two.overallScore).toBeLessThan(one.overallScore);
+  });
+});
+
+describe("water (rule set v2, Brihat Samhita 52.117)", () => {
+  it("is ideal in the north and north-east and harmful in the other six directions", () => {
+    expect(VASTU_RULE_SET.id).toBe("aroha-traditional-v2");
+    for (const dir of ["N", "NE"]) expect(classifyPlacement("water_tank", dir)?.score).toBe(100);
+    for (const dir of ["E", "SE", "S", "SW", "W", "NW"]) {
+      expect(classifyPlacement("water_tank", dir)?.score).toBe(15);
+    }
   });
 });

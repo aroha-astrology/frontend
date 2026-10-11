@@ -85,8 +85,8 @@ test.describe("Aroha Relocation (roadmap step 12)", () => {
     await expect(page.getByRole("button", { name: "Remove London, United Kingdom" })).toBeVisible();
     await compare.click();
 
+    await expect.poll(() => callsTo(api, "POST /v1/relocation/compare").length).toBe(1);
     const sent = callsTo(api, "POST /v1/relocation/compare");
-    expect(sent).toHaveLength(1);
     expect(sent[0]!.body).toEqual({ places: [{ name: "London, United Kingdom", lat: 51.5074, lon: -0.1278 }] });
 
     const table = page.getByTestId("relocation-results");
@@ -128,7 +128,7 @@ test.describe("Aroha Relocation (roadmap step 12)", () => {
     // Relocation is in the top tier only.
     await expect(lock.getByText("Aroha Relocation is part of Aroha Pass Platinum")).toBeVisible();
     await expect(lock.getByText("₹399 / 30 days · Google Play subscription")).toBeVisible();
-    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(lock.getByRole("link", { name: "Unlock with Aroha Pass Platinum" })).toHaveAttribute("href", "/pass?tier=platinum");
     await expect(page.getByPlaceholder("Search any city")).toHaveCount(0);
     await expect(page.getByRole("button", { name: /Unlock/ })).toHaveCount(0);
     expect(callsTo(api, "POST /v1/relocation/unlock")).toHaveLength(0);

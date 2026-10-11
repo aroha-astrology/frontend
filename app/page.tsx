@@ -20,6 +20,7 @@ import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
+import PassLaunchModal from "@/components/pass/PassLaunchModal";
 import { useAuth } from "@/providers/auth-provider";
 import { useTourReady } from "@/providers/tour-provider";
 import { resolveFeature } from "@/hooks/useFeature";
@@ -245,6 +246,7 @@ export default function HomePage() {
       <MoonBackground planet="mercury" />
       <SplashScreen onDone={() => setSplashDone(true)} />
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
+      <PassLaunchModal ready={splashDone && welcomeDone} />
 
       <div className="relative z-10 page-container">
         {/* Personalized greeting header — identity chrome, always shown */}

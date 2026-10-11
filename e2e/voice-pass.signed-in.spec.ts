@@ -36,7 +36,11 @@ test("someone without a Pass who taps the call icon gets the Pass lock, not an e
   // Every tier includes voice call, so the lock names the Pass, not a tier.
   await expect(lock.getByText("Voice Chat is part of Aroha Pass")).toBeVisible();
   await expect(lock.getByText("Voice call with Yogi Baba: 3 free minutes every month")).toBeVisible();
-  await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+  // What a Pass gives for calls, and what a minute costs after the free ones.
+  await expect(
+    lock.getByText("Every Pass includes 3 free minutes each month. After that it is ₹20 a minute from your wallet."),
+  ).toBeVisible();
+  await expect(lock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
 
   // No call screen left behind, no failure message, and they were not asked to
   // agree to voice recording for a call they cannot make.

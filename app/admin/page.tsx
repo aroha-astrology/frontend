@@ -33,6 +33,7 @@ import SpendByFeatureBarChart from "@/components/admin/SpendByFeatureBarChart";
 import Card from "@/components/ui/Card";
 import CostSplitBar from "@/components/admin/CostSplitBar";
 import PassStatsCard from "@/components/admin/PassStatsCard";
+import PassLaunchCard from "@/components/admin/PassLaunchCard";
 import StoryStatsCard from "@/components/admin/StoryStatsCard";
 
 function isoDate(d: Date): string {
@@ -432,6 +433,8 @@ function AdminOverviewContent() {
             </section>
 
             <PassStatsCard />
+
+            <PassLaunchCard />
 
             <StoryStatsCard range={range} canFetch={canFetch} />
 

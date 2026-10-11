@@ -42,6 +42,8 @@ import { zodiacSignLabel } from "@/data/zodiac";
 import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
+import { usePassStatus } from "@/hooks/usePassStatus";
+import { offerFor, type PassFeature } from "@/lib/pass-api";
 import LanguagePicker from "@/components/LanguagePicker";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
@@ -68,6 +70,22 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: passEnabled } = useNewFeature("nav.arohaPass");
   const { enabled: yantraEnabled } = useNewFeature("nav.digitalYantra");
   const { enabled: relocationEnabled } = useNewFeature("nav.relocation");
+  const passStatus = usePassStatus();
+  /** The Pass a Pass-only entry needs, shown to a user whose own Pass (if any) doesn't include it. */
+  const passTag = (need: PassFeature) => {
+    if (!passStatus || passStatus.pass?.features.includes(need)) return undefined;
+    const offer = offerFor(passStatus, need);
+    if (!offer) return undefined;
+    return (
+      <span
+        data-testid={`menu-pass-tag-${need}`}
+        className="inline-flex shrink-0 items-center gap-1 rounded-full border border-gold/40 bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-gold"
+      >
+        <Crown size={10} />
+        {t(`pass.tierShort.${offer.tier}`)}
+      </span>
+    );
+  };
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -281,6 +299,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     label={t("timeline.menu")}
                     href="/timeline"
                     onClick={onClose}
+                    right={passTag("timeline")}
                   />
                 )}
                 {decisionsEnabled && (
@@ -289,6 +308,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     label={t("decide.menu")}
                     href="/decide"
                     onClick={onClose}
+                    right={passTag("decisions")}
                   />
                 )}
                 {findDateEnabled && (
@@ -297,6 +317,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     label={t("findDate.menu")}
                     href="/find-date"
                     onClick={onClose}
+                    right={passTag("findMyDate")}
                   />
                 )}
                 {bondsEnabled && (
@@ -305,6 +326,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     label={t("bonds.menu")}
                     href="/bonds"
                     onClick={onClose}
+                    right={passTag("bonds")}
                   />
                 )}
                 {journalEnabled && (
@@ -345,6 +367,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                     label={t("relocation.menu")}
                     href="/relocation"
                     onClick={onClose}
+                    right={passTag("relocation")}
                   />
                 )}
                 {rewardsEnabled && (

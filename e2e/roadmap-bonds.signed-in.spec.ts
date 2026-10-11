@@ -106,7 +106,7 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
 
     const homeLock = page.getByTestId("pass-lock");
     await expect(homeLock.getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
-    await expect(homeLock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(homeLock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
     await expect(page.getByTestId("bonds-card")).toHaveCount(0);
 
     await page.goto(`/bonds?id=${PRIYA}`);

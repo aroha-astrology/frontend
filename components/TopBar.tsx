@@ -15,6 +15,7 @@ import { onForegroundPush } from "@/lib/push-events";
 import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
 import WalletBalance from "@/components/ui/WalletBalance";
+import PassChip from "@/components/pass/PassChip";
 
 /**
  * Opt-OUT model, not opt-in: every route gets this shared header by default
@@ -74,9 +75,13 @@ export default function TopBar() {
           className="page-container flex justify-between items-center pt-[calc(2rem+var(--sat))] pb-4 relative lg:h-[4.25rem] lg:py-0"
           data-testid="topbar-row"
         >
-          <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
-            <Menu size={20} />
-          </IconButton>
+          <div className="flex items-center gap-2 min-w-0">
+            <IconButton aria-label={t("menu.title")} onClick={() => setMenuOpen(true)}>
+              <Menu size={20} />
+            </IconButton>
+            {/* The member's tier, or "Get Pass" while the Aroha Pass is on sale. */}
+            <PassChip />
+          </div>
           <div className="flex items-center gap-2">
             <ThemeSwitch />
             {user && (

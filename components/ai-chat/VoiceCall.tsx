@@ -6,6 +6,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import PassLock from "@/components/pass/PassLock";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { formatRupees } from "@/lib/format";
+import { PASS_VOICE_FREE_MINUTES } from "@/lib/pass-api";
 import VoiceCallOverlay from "./VoiceCallOverlay";
 import VoiceConsentSheet from "./VoiceConsentSheet";
 
@@ -59,7 +60,12 @@ export default function VoiceCall({ locale }: { locale: string }) {
             </h2>
           }
         >
-          <PassLock feature={t("aiChatPage.voiceChatTitle")} need="voiceCall" className="border-0 p-0" />
+          <PassLock
+            feature={t("aiChatPage.voiceChatTitle")}
+            need="voiceCall"
+            note={t("pass.lock.voiceTerms", { minutes: PASS_VOICE_FREE_MINUTES, price })}
+            className="border-0 p-0"
+          />
         </BottomSheetModal>
       )}
     </>

@@ -165,6 +165,24 @@ export interface MatchReportScores {
   riskFactors: MatchRiskFactor[];
 }
 
+/** One rule behind a report, from the backend provenance registry (rules/report-basis.ts). */
+export interface ReportBasisRule {
+  id: string;
+  name: string;
+  label: string;
+}
+
+/** What a report is built from and how it is to be read — absent on reports cached before the audit. */
+export interface ReportBasis {
+  calculation_basis: string;
+  source_profile: string;
+  traditional_rules: ReportBasisRule[];
+  modern_rules: ReportBasisRule[];
+  aroha_proprietary_rules: ReportBasisRule[];
+  unverified_rules: ReportBasisRule[];
+  safety_classification: string;
+}
+
 export type ReportDetailResult =
   | { status: "generating" }
   | { status: "failed"; error: string | null }
@@ -175,6 +193,7 @@ export type ReportDetailResult =
       /** Shape differs per reportKey — see components/reports/ReportScoreFacts.tsx for the generic renderer. */
       scores: Record<string, unknown>;
       sections: ReportSection[];
+      basis?: ReportBasis;
     };
 
 /** GET /v1/reports/stats — real ready generation count per report key, cached server-side ~5 min. */

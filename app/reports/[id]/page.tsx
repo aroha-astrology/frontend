@@ -16,6 +16,7 @@ import Checklist from "@/components/reports/blocks/Checklist";
 import NameSuggestionCard from "@/components/reports/NameSuggestionCard";
 import ReportHero from "@/components/reports/ReportHero";
 import PlanetStrengthCard from "@/components/reports/PlanetStrengthCard";
+import ReportBasisCard from "@/components/reports/ReportBasisCard";
 import { DESIGNED_SCREENS } from "@/components/reports/designed-screens";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { useTour, useTourReady } from "@/providers/tour-provider";
@@ -410,6 +411,8 @@ export default function ReportDetailPage() {
             )}
           </>
         )}
+
+        {ready && data?.basis && <ReportBasisCard basis={data.basis} />}
 
         {/* Buttons, so not part of the saved PDF. */}
         {ready && !pdf.capturing && (

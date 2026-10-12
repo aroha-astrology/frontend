@@ -257,7 +257,27 @@ export type ProfileRelationship =
   | "sibling"
   | "friend"
   | "other"
-  | "business_partner";
+  | "business_partner"
+  // Aroha Bonds v2 — offered in the add-a-person picker while nav.bonds is on.
+  | "fiance"
+  | "situationship"
+  | "crush"
+  | "first_love"
+  | "fwb"
+  | "soulmate"
+  | "ex"
+  | "manager"
+  | "employee"
+  | "colleague"
+  | "investor"
+  | "competitor"
+  | "cousin"
+  | "mother_in_law"
+  | "father_in_law"
+  | "roommate"
+  | "travel_buddy"
+  | "creative_partner"
+  | "gym_partner";
 
 /** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
 export interface Profile {

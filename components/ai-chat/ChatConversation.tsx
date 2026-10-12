@@ -249,8 +249,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // presses send themselves. Read from window, not useSearchParams, so this
   // page needs no Suspense boundary for static rendering.
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("q");
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
     if (q) setInput(q.slice(0, 500));
+    // Aroha Bonds hands over the saved person the question is about, so the
+    // first reply is grounded in that person's chart (compareProfileId).
+    const about = params.get("profile");
+    if (q && about) pendingCompareProfileIdRef.current = about;
   }, []);
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);

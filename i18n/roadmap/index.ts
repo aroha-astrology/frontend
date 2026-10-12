@@ -8,6 +8,7 @@ import { timelineBundle } from "./timeline";
 import { askBundle } from "./ask";
 import { decideBundle } from "./decide";
 import { bondsBundle } from "./bonds";
+import { bondsV2Bundle } from "./bonds-v2";
 import { journalBundle } from "./journal";
 import { practiceBundle } from "./practice";
 import { passBundle } from "./pass";
@@ -21,7 +22,7 @@ import { storiesBundle } from "./stories";
 import { callHistoryBundle } from "./call-history";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

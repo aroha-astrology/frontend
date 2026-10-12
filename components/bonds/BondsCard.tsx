@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, HeartHandshake } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useNewFeature } from "@/hooks/useFeature";
-import { bondsApi, PHASE_CLASS, type BondSummary } from "@/lib/bonds-api";
+import { bondsApi, categoryOf, PHASE_CLASS, type BondSummary } from "@/lib/bonds-api";
 import { isPassRequired } from "@/lib/pass-api";
-import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
+import { CATEGORY_ICON, relationLabel } from "@/components/bonds/category";
 import PassLock from "@/components/pass/PassLock";
 
 /**
@@ -56,13 +56,15 @@ export default function BondsCard() {
       ) : (
         <ul className="space-y-2">
           {ready.map((b) => {
+            const Icon = CATEGORY_ICON[categoryOf(b)];
             const row = (
               <>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+                  <Icon size={14} />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-foreground">{b.name || t("bonds.unnamed")}</span>
-                  <span className="block text-[11px] text-muted">
-                    {b.relationship ? t(RELATIONSHIP_KEYS[b.relationship]) : ""}
-                  </span>
+                  <span className="block truncate text-[11px] text-muted">{relationLabel(t, b)}</span>
                 </span>
                 {b.compatibility && <span className="text-sm font-semibold text-gold">{b.compatibility.pct}%</span>}
                 {b.phase && (

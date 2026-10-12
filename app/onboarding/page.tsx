@@ -22,6 +22,8 @@ import {
   type PlaceOfBirth,
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import RelationshipPicker from "@/components/bonds/RelationshipPicker";
+import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
 import {
@@ -429,9 +431,9 @@ function OnboardingPageInner() {
     { key: "sibling", label: t("profileSwitcher.relationship.sibling") },
     { key: "friend", label: t("profileSwitcher.relationship.friend") },
     { key: "other", label: t("profileSwitcher.relationship.other") },
-    // Aroha Bonds (nav.bonds, ships off) is what gives a business partner a reading.
-    ...(bondsOn ? [{ key: "business_partner" as const, label: t("profileSwitcher.relationship.business_partner") }] : []),
   ];
+  // With Aroha Bonds on (nav.bonds, ships off) the step shows RelationshipPicker
+  // instead: a group first, then every kind of bond Bonds can read.
 
   const handleRelationship = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ relationship: key }); return; }
@@ -773,7 +775,8 @@ function OnboardingPageInner() {
           )}
 
           {/* RELATIONSHIP_STEP: relationship-to-you (new-profile mode only) */}
-          {isNewProfileMode && step === RELATIONSHIP_STEP && (
+          {isNewProfileMode && step === RELATIONSHIP_STEP && bondsOn && <RelationshipPicker onPick={handleRelationship} />}
+          {isNewProfileMode && step === RELATIONSHIP_STEP && !bondsOn && (
             <div className="grid grid-cols-2 gap-2">
               {RELATIONSHIPS.map((r) => (
                 <button
@@ -876,7 +879,7 @@ function OnboardingPageInner() {
                 { label: t("onboarding.labelPlace"),   value: answers.place, step: 5 },
                 { label: t("onboarding.labelGender"),  value: answers.gender, step: 6 },
                 isNewProfileMode
-                  ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label, step: RELATIONSHIP_STEP }
+                  ? { label: t("onboarding.labelRelation"), value: answers.relationship ? t(RELATIONSHIP_KEYS[answers.relationship as ProfileRelationship]) : undefined, step: RELATIONSHIP_STEP }
                   : { label: t("onboarding.labelStatus"),  value: answers.status, step: 7 },
               ].map(({ label, value, step: fieldStep }) => value ? (
                 <div key={label} className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gold/10 bg-surface">

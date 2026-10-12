@@ -129,6 +129,9 @@ function bondApi(extra: Record<string, unknown> = {}) {
   };
 }
 
+/** The Home section that comes straight after the Kundli card. */
+const BELOW_KUNDLI = '[data-tour="kundli-summary"] + div';
+
 const sidewaysScroll = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 test.describe("Aroha Bonds (roadmap step 7)", () => {
@@ -149,6 +152,7 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
     const card = page.getByTestId("bonds-card");
     await expect(card.getByText("Priya")).toBeVisible();
     await expect(card.getByText("74%")).toBeVisible();
+    await expect(page.locator(BELOW_KUNDLI).getByTestId("bonds-card")).toBeVisible();
     await expect(card.getByText("Ma")).toHaveCount(0); // not ready yet, so not on Home
     await card.getByRole("link", { name: /See all/ }).click();
     await page.waitForURL("**/bonds");
@@ -284,9 +288,9 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
     await expect(page.getByTestId("bond-periods").getByText("No stand-out periods in the next three years.")).toBeVisible();
   });
 
-  test("without the Pass, the page and the Home card are locked behind the subscription", async ({ page }) => {
+  test("without the Pass, Home shows no Bonds card and the page is locked behind the subscription", async ({ page }) => {
     await skipLaunchOverlays(page);
-    await mockApi(page, {
+    const api = await mockApi(page, {
       user: {
         features: { ...BONDS_ON, "nav.arohaPass": ON, "paid.arohaPassB": { ...ON, pricePaise: 29900 } },
       },
@@ -298,13 +302,18 @@ test.describe("Aroha Bonds (roadmap step 7)", () => {
     });
     await signIn(page, "/");
 
-    const homeLock = page.getByTestId("pass-lock");
-    await expect(homeLock.getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
-    await expect(homeLock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
+    // Home shows the Bonds card to Pass members only: nothing in its place, not even the subscribe card.
+    await expect(page.locator('[data-tour="kundli-summary"]')).toBeVisible();
+    await expect.poll(() => callsTo(api, "GET /v1/bonds").length).toBeGreaterThan(0);
+    // Give the refusal time to reach the screen, so "no card" is not just "not yet".
+    await page.waitForTimeout(500);
+    await expect(page.getByTestId("pass-lock")).toHaveCount(0);
     await expect(page.getByTestId("bonds-card")).toHaveCount(0);
 
     await page.goto(`/bonds?id=${PRIYA}`);
-    await expect(page.getByTestId("pass-lock").getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
+    const lock = page.getByTestId("pass-lock");
+    await expect(lock.getByText("Aroha Bonds is part of Aroha Pass")).toBeVisible();
+    await expect(lock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
     await expect(page.getByTestId("bond-detail")).toHaveCount(0);
   });
 

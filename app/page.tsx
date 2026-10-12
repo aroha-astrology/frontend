@@ -172,12 +172,13 @@ interface HomeSection {
 
 /** Order here IS render order — preserves the exact pre-existing sequence. */
 // Your Day and Next important window now live on the Panchang page (2026-09-25).
+// Aroha Bonds sits right below the Kundli card (2026-10-12).
 const HOME_SECTIONS: HomeSection[] = [
   { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
   { id: "astroWeather", featureKey: "home.astroWeather", Component: AstroWeatherSection, isNew: true },
-  { id: "bonds", featureKey: "home.bondsCard", Component: BondsSection, isNew: true },
   { id: "journalPrompt", featureKey: "home.journalPrompt", Component: JournalPromptSection, isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
+  { id: "bonds", featureKey: "home.bondsCard", Component: BondsSection, isNew: true },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection, wide: true },
   { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection, wide: true },
   { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },

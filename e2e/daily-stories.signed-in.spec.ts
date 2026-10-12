@@ -80,7 +80,53 @@ async function tap(page: Page, side: "next" | "previous") {
   await page.mouse.click(box.x + box.width * (side === "next" ? 0.8 : 0.1), box.y + box.height / 2);
 }
 
+/**
+ * How vivid the ring's own drawing is at a point across it (0 = left edge,
+ * 0.5 = middle), with the avatar taken away so only the ring's layers are
+ * left: the gap between the strongest and weakest colour channel. The ring's
+ * colours are far apart there; the page behind it is close to grey.
+ */
+async function ringVividness(page: Page, across: number) {
+  const el = ring(page);
+  await el.evaluate((node) => ((node.lastElementChild as HTMLElement).style.visibility = "hidden"));
+  const png = await el.screenshot();
+  await el.evaluate((node) => ((node.lastElementChild as HTMLElement).style.visibility = ""));
+  return page.evaluate(
+    async ({ b64, at }) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const [r, g, b] = ctx.getImageData(Math.round(img.width * at), img.height >> 1, 1, 1).data;
+      return Math.max(r!, g!, b!) - Math.min(r!, g!, b!);
+    },
+    { b64: png.toString("base64"), at: across },
+  );
+}
+
 test.describe("Daily Stories (the story ring on the Home avatar)", () => {
+  // Some phones draw the turning ring over the avatar. Drawn as a filled circle it hid the
+  // initials there; as a band it has nothing to hide them with.
+  test("the ring is a thin band around the avatar, never a filled circle over it", async ({ page }) => {
+    // No fixed clock here: with one the greeting's fade-in never finishes, and this test reads what is drawn.
+    await skipLaunchOverlays(page);
+    await mockApi(page, { user: { features: FEATURES }, overrides: STORY_API });
+    await signIn(page, "/");
+    await expect(ring(page)).toHaveAttribute("data-unseen", "true");
+    await expect(ring(page).getByText("A", { exact: true })).toBeVisible();
+    await expect(ring(page).locator("xpath=ancestor::div[1]")).toHaveCSS("opacity", "1");
+
+    // 1.5px in from the left of a 54px ring is on the 3px band; a quarter and a half of the way across is the avatar's place.
+    expect(await ringVividness(page, 1.5 / 54)).toBeGreaterThan(90);
+    expect(await ringVividness(page, 0.25)).toBeLessThan(40);
+    expect(await ringVividness(page, 0.5)).toBeLessThan(40);
+  });
+
+
   test("with the flag off there is no ring, no story request, and the greeting still opens the profile switcher", async ({
     page,
   }) => {

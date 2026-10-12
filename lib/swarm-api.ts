@@ -514,6 +514,14 @@ export interface VoiceGrant {
   freeMinutesLeft?: number;
 }
 
+/**
+ * The largest body sent with `keepalive`. A browser refuses a keepalive request
+ * over 64 KiB (counted across every keepalive request still in flight), and it
+ * refuses by failing the fetch, not by sending it without the flag. Kept a
+ * little under the limit so one other small request in flight still fits.
+ */
+const KEEPALIVE_MAX_BYTES = 60_000;
+
 async function voicePost<T>(
   path: string,
   body: Record<string, unknown>,
@@ -523,18 +531,23 @@ async function voicePost<T>(
   const idToken = await auth.currentUser?.getIdToken();
   if (!idToken) throw new Error("Not authenticated");
 
+  const payload = JSON.stringify(body);
+  // Only end() asks for this (see below) — it's the one call that can fire as
+  // the screen goes away, where a plain fetch may be cancelled. The transcript
+  // of a long call is bigger than a keepalive request may be, and sent that
+  // way it never left the browser: the call stayed open on the server and its
+  // transcript was lost. So a body that size goes as an ordinary request.
+  const keepalive =
+    opts?.keepalive === true && new TextEncoder().encode(payload).length <= KEEPALIVE_MAX_BYTES;
+
   const res = await fetch(`${BASE_URL}/v1/voice/${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
-    // Only end() sets this (see below) — it's the one call fired from an
-    // unload handler, where a plain fetch gets cancelled the instant the page
-    // goes away. The transcript riding along on that call is a few KB, well
-    // under the browser's ~64KB keepalive body cap.
-    ...(opts?.keepalive ? { keepalive: true } : {}),
+    body: payload,
+    ...(keepalive ? { keepalive: true } : {}),
   });
 
   if (!res.ok) {
@@ -595,8 +608,9 @@ export function extendVoiceSession(
  * `transcript` is the whole call's turns (see GeminiLiveSession.getTranscript)
  * — the server saves it as a chat-history session and mines it for durable
  * facts, same as text chat. Omitted (or empty) when the call never connected;
- * there's nothing to save. `keepalive: true` because this is the one call
- * that also fires from a page-unload handler.
+ * there's nothing to save. Asks for `keepalive` because this is the one call
+ * that also fires as the screen goes away; `voicePost` drops the flag when the
+ * transcript is too big for it.
  */
 export function endVoiceSession(
   voiceSessionId: string,

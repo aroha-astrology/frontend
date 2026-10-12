@@ -18,9 +18,10 @@ import { relocationBundle } from "./relocation";
 import { vastuStudioBundle } from "./vastu-studio";
 import { pdfBundle } from "./pdf";
 import { storiesBundle } from "./stories";
+import { callHistoryBundle } from "./call-history";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

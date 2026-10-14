@@ -30,6 +30,29 @@ const DEFAULT_MINUTE_PRICE_PAISE = 2000;
  */
 const LOW_BALANCE_SECONDS = 180;
 
+/** A call shorter than this (counted from when it connected) is not asked "how was your call?". */
+const FEEDBACK_MIN_CALL_MS = 30_000;
+
+/** The local day the after-call question was last shown, so it is asked at most once a day. */
+const FEEDBACK_ASKED_KEY = "aroha:callFeedbackAsked:v1";
+
+function localDay(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+/** True when the question was not shown yet today; marks today as asked. Storage blocked = ask. */
+function claimFeedbackAsk(): boolean {
+  try {
+    const today = localDay();
+    if (window.localStorage.getItem(FEEDBACK_ASKED_KEY) === today) return false;
+    window.localStorage.setItem(FEEDBACK_ASKED_KEY, today);
+  } catch {
+    // Private mode or blocked storage: asking again later is the lesser harm.
+  }
+  return true;
+}
+
 export interface VoiceCall {
   /** False when the feature is off or nobody is signed in — render no entry point at all. */
   available: boolean;
@@ -70,6 +93,14 @@ export interface VoiceCall {
   dismissConsent: () => void;
   dismissPassLock: () => void;
   dismissError: () => void;
+  /**
+   * The call just ended and should be asked "how was your call?": its session
+   * id, else null. Set only when the `chat.voiceFeedback` switch is on, the call
+   * connected and ran FEEDBACK_MIN_CALL_MS or more, and the question was not
+   * shown yet today.
+   */
+  feedbackFor: string | null;
+  dismissFeedback: () => void;
 }
 
 /** The server names its refusals in the error message (`PASS_REQUIRED`, `VOICE_OUT_OF_CREDIT`, ...). */
@@ -103,6 +134,12 @@ export function useVoiceCall(locale: string): VoiceCall {
   const { user, refresh } = useAuth();
   const feature = useFeature("paid.voiceChat");
   const trial = useNewFeature("chat.voiceTrial");
+  const feedbackSwitch = useNewFeature("chat.voiceFeedback");
+  // Read inside `teardown` through a ref, so the switch loading late does not
+  // rebuild the call callbacks while a call is running.
+  const feedbackOnRef = useRef(false);
+  feedbackOnRef.current = feedbackSwitch.enabled;
+  const [feedbackFor, setFeedbackFor] = useState<string | null>(null);
 
   const [showConsent, setShowConsent] = useState(false);
   const [showPassLock, setShowPassLock] = useState(false);
@@ -137,6 +174,8 @@ export function useVoiceCall(locale: string): VoiceCall {
    * the server's grace-window refund is checking against.
    */
   const hasConnectedRef = useRef(false);
+  /** When this call first reached a conversation (epoch ms), for the after-call question's length rule. */
+  const connectedAtRef = useRef<number | null>(null);
 
   const active = state !== "idle" && state !== "closed";
   const inConversation = state === "listening" || state === "speaking";
@@ -177,7 +216,18 @@ export function useVoiceCall(locale: string): VoiceCall {
       // `transcript` rides along so the server can save the call to chat
       // history and mine it for facts, same as text chat.
       await endVoiceSession(grant.voiceSessionId, hasConnectedRef.current, transcript).catch(() => {});
+
+      const connectedAt = connectedAtRef.current;
+      if (
+        feedbackOnRef.current &&
+        connectedAt !== null &&
+        Date.now() - connectedAt >= FEEDBACK_MIN_CALL_MS &&
+        claimFeedbackAsk()
+      ) {
+        setFeedbackFor(grant.voiceSessionId);
+      }
     }
+    connectedAtRef.current = null;
 
     setState("idle");
     setSecondsLeft(0);
@@ -251,10 +301,15 @@ export function useVoiceCall(locale: string): VoiceCall {
     async (firstGrant: VoiceGrant) => {
       noteGrant(firstGrant);
       hasConnectedRef.current = false;
+      connectedAtRef.current = null;
+      setFeedbackFor(null);
 
       const session = new GeminiLiveSession({
         onStateChange: (s) => {
-          if (s === "listening" || s === "speaking") hasConnectedRef.current = true;
+          if (s === "listening" || s === "speaking") {
+            hasConnectedRef.current = true;
+            connectedAtRef.current ??= Date.now();
+          }
           setState(s);
         },
         // `onNeedNextMinute` below already stores the new grant (with the full
@@ -407,5 +462,7 @@ export function useVoiceCall(locale: string): VoiceCall {
     dismissConsent: () => setShowConsent(false),
     dismissPassLock: () => setShowPassLock(false),
     dismissError: () => setError(null),
+    feedbackFor,
+    dismissFeedback: () => setFeedbackFor(null),
   };
 }

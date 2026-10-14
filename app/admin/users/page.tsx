@@ -16,7 +16,13 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 
 const LIMIT = 20;
 
-type SortColumn = "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise";
+type SortColumn =
+  | "createdAt"
+  | "lastActiveAt"
+  | "walletBalancePaise"
+  | "claimedAt"
+  | "totalPaidPaise"
+  | "voiceSeconds";
 type ContactType = "all" | "phone" | "email";
 
 function formatDate(iso: string | null): string {
@@ -322,6 +328,16 @@ export default function AdminUsersPage() {
                         {sortBy === "totalPaidPaise" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
+                    <th className="px-4 py-2 font-medium text-right">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("voiceSeconds")}
+                        className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Voice Calls
+                        {sortBy === "voiceSeconds" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                      </button>
+                    </th>
                     <th className="px-4 py-2 font-medium text-right">Today</th>
                     <th className="px-4 py-2 font-medium text-right">Yesterday</th>
                     <th className="px-4 py-2 font-medium text-right">Week</th>
@@ -387,6 +403,21 @@ export default function AdminUsersPage() {
                               {formatRupees(u.totalPaidPaise)}
                             </div>
                             <div className="text-muted text-[11px]">{formatDate(u.lastPaidAt)}</div>
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right" data-testid="voice-calls-cell">
+                        {(u.voiceCalls ?? 0) > 0 ? (
+                          <div>
+                            <div className="text-foreground text-xs font-medium">
+                              {formatDuration(u.voiceSeconds ?? 0)}
+                            </div>
+                            <div className="text-muted text-[11px]">
+                              {u.voiceCalls} {u.voiceCalls === 1 ? "call" : "calls"}
+                              {u.voiceRating != null && <span className="text-gold"> · ★ {u.voiceRating}</span>}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-muted text-xs">—</span>

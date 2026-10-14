@@ -8,6 +8,7 @@ import PassLock from "@/components/pass/PassLock";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { formatRupees } from "@/lib/format";
 import { PASS_VOICE_FREE_MINUTES, VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
+import VoiceCallFeedbackSheet from "./VoiceCallFeedbackSheet";
 import VoiceCallOverlay from "./VoiceCallOverlay";
 import VoiceConsentSheet from "./VoiceConsentSheet";
 
@@ -79,6 +80,11 @@ export default function VoiceCall({ locale }: { locale: string }) {
           onAccept={call.acceptConsent}
           onClose={call.dismissConsent}
         />
+      )}
+
+      {/* After the call screen has closed (an end-of-call message is read first) and no Pass lock is up. */}
+      {call.feedbackFor && !call.active && call.error === null && !call.showPassLock && (
+        <VoiceCallFeedbackSheet voiceSessionId={call.feedbackFor} onClose={call.dismissFeedback} />
       )}
 
       {call.showPassLock && (

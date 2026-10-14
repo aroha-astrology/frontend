@@ -634,6 +634,28 @@ export function endVoiceSession(
   );
 }
 
+/** The quick answers on the after-call sheet; the backend accepts exactly these (VOICE_FEEDBACK_TAGS). */
+export const VOICE_FEEDBACK_GOOD_TAGS = ["clearVoice", "helpfulAnswers", "understoodMe", "feltNatural"] as const;
+export const VOICE_FEEDBACK_BAD_TAGS = [
+  "hardToHear",
+  "callCut",
+  "didntUnderstand",
+  "wrongLanguage",
+  "notHelpful",
+  "slowReplies",
+] as const;
+export type VoiceFeedbackTag =
+  | (typeof VOICE_FEEDBACK_GOOD_TAGS)[number]
+  | (typeof VOICE_FEEDBACK_BAD_TAGS)[number];
+
+/** Answers "how was your call?" for a finished call. One answer per call; the server ignores a second. */
+export function rateVoiceSession(
+  voiceSessionId: string,
+  feedback: { rating: number; tags: VoiceFeedbackTag[]; comment?: string },
+): Promise<{ ok: true }> {
+  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/feedback`, feedback);
+}
+
 /**
  * Grants voice consent. Routed through the same audited consent pipeline as
  * every other grant (PATCH /v1/me writes a user_consent_log row), rather than a

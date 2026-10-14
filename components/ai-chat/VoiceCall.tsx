@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Phone } from "lucide-react";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import PassLock from "@/components/pass/PassLock";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { formatRupees } from "@/lib/format";
-import { PASS_VOICE_FREE_MINUTES } from "@/lib/pass-api";
+import { PASS_VOICE_FREE_MINUTES, VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
 import VoiceCallOverlay from "./VoiceCallOverlay";
 import VoiceConsentSheet from "./VoiceConsentSheet";
 
@@ -19,34 +20,65 @@ import VoiceConsentSheet from "./VoiceConsentSheet";
  * inside the header costs nothing in layout terms and saves routing the call
  * state through context to reach a second mount point.
  *
- * Voice call is an Aroha Pass benefit. The icon is shown to everyone; for
- * someone without a Pass the server refuses the call and the tap opens the
+ * Voice call is an Aroha Pass benefit, and every user gets a few minutes free
+ * once (the trial). The icon is shown to everyone; for someone with neither a
+ * Pass nor trial minutes left the server refuses the call and the tap opens the
  * same Pass lock the other Pass-only features use.
+ *
+ * `/ai-chat?call=1` (the trial launch notification) points the icon out with a
+ * pulse and a "free minutes" bubble. It does not start the call itself: the
+ * browser only opens the microphone and plays audio after a tap.
  */
 export default function VoiceCall({ locale }: { locale: string }) {
   const { t } = useTranslation();
   const call = useVoiceCall(locale);
 
+  // Read from window, not useSearchParams, like the page's own `?q=` (no Suspense boundary needed).
+  const [pointedTo, setPointedTo] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("call") === "1") setPointedTo(true);
+  }, []);
+  const showBubble = pointedTo && call.trialOffered && !call.active;
+
   if (!call.available) return null;
 
   const price = formatRupees(call.pricePerMinutePaise);
+  const start = () => {
+    setPointedTo(false);
+    call.start();
+  };
 
   return (
     <>
       <button
-        onClick={call.start}
+        onClick={start}
         aria-label={t("aiChatPage.voiceChatStart")}
         title={t("aiChatPage.voiceChatRateInfo", { price })}
-        className="h-10 w-10 shrink-0 rounded-full border flex items-center justify-center text-gold transition-colors active:bg-gold/10"
+        className={`relative h-10 w-10 shrink-0 rounded-full border flex items-center justify-center text-gold transition-colors active:bg-gold/10${showBubble ? " ring-2 ring-yellow-500/70 animate-pulse" : ""}`}
         style={{ borderColor: "var(--border)" }}
       >
         <Phone size={18} />
       </button>
 
+      {showBubble && (
+        <button
+          onClick={start}
+          data-testid="voice-trial-bubble"
+          className="absolute left-0 top-full z-10 mt-2 whitespace-nowrap rounded-full bg-yellow-500 px-3 py-1.5 text-[11px] font-semibold text-black shadow-lg"
+        >
+          {t("aiChatPage.voiceTrialBubble", { minutes: VOICE_TRIAL_MINUTES })}
+        </button>
+      )}
+
       <VoiceCallOverlay call={call} />
 
       {call.showConsent && (
-        <VoiceConsentSheet price={price} onAccept={call.acceptConsent} onClose={call.dismissConsent} />
+        <VoiceConsentSheet
+          price={price}
+          trialMinutes={call.trialOffered ? VOICE_TRIAL_MINUTES : undefined}
+          onAccept={call.acceptConsent}
+          onClose={call.dismissConsent}
+        />
       )}
 
       {call.showPassLock && (
@@ -60,6 +92,11 @@ export default function VoiceCall({ locale }: { locale: string }) {
             </h2>
           }
         >
+          {call.trialUsed && (
+            <p className="mb-3 text-sm leading-snug text-amber-300" data-testid="voice-trial-used">
+              {t("aiChatPage.voiceTrialUsed", { minutes: VOICE_TRIAL_MINUTES })}
+            </p>
+          )}
           <PassLock
             feature={t("aiChatPage.voiceChatTitle")}
             need="voiceCall"

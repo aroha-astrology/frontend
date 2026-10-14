@@ -11,6 +11,9 @@ import { formatRupees } from "@/lib/format";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import type { VoiceCall } from "@/hooks/useVoiceCall";
 
+/** In a trial call's last minute the screen says the free call is ending and points to the Pass. */
+const TRIAL_ENDING_SECONDS = 60;
+
 /**
  * The in-call screen: a full-bleed overlay that takes over the chat while a
  * voice session is live, in place of the small countdown strip the old inline
@@ -120,10 +123,22 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                 })}
               </p>
               <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }} data-testid="voice-rate">
-                {call.freeMinute
-                  ? t("aiChatPage.voiceCallFreeMinute", { price })
-                  : t("aiChatPage.voiceCallPaidMinute", { price })}
+                {call.trialMinute
+                  ? t("aiChatPage.voiceTrialMinute")
+                  : call.freeMinute
+                    ? t("aiChatPage.voiceCallFreeMinute", { price })
+                    : t("aiChatPage.voiceCallPaidMinute", { price })}
               </p>
+
+              {call.trialCall && call.secondsLeft > 0 && call.secondsLeft <= TRIAL_ENDING_SECONDS && (
+                <p
+                  role="status"
+                  data-testid="voice-trial-ending"
+                  className="mt-5 max-w-xs rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-center text-xs leading-snug text-amber-300"
+                >
+                  {t("aiChatPage.voiceTrialEnding")}
+                </p>
+              )}
 
               {call.lowBalance && (
                 <div

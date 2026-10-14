@@ -512,6 +512,13 @@ export interface VoiceGrant {
   freeMinute?: boolean;
   /** Free Pass minutes left in the current Pass period. Absent from a server older than the Pass rule. */
   freeMinutesLeft?: number;
+  /** This minute came from the one-time free trial every user gets. Absent from a server older than the trial. */
+  trialMinute?: boolean;
+  /**
+   * False on a trial call by someone without a Pass: it ends with the trial and
+   * recharging cannot extend it. Absent from a server older than the trial.
+   */
+  passMember?: boolean;
 }
 
 /**

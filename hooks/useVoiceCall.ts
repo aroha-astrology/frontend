@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useFeature } from "@/hooks/useFeature";
+import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import {
   startVoiceSession,
@@ -37,10 +37,21 @@ export interface VoiceCall {
   active: boolean;
   /** Whole-call time left in seconds (current minute + the free and wallet minutes still to come). */
   secondsLeft: number;
-  /** Little talk time left: the call screen shows the recharge notice. */
+  /** Little talk time left on a member's call: the call screen shows the recharge notice. */
   lowBalance: boolean;
   /** The minute now running is one of the member's free Pass minutes. */
   freeMinute: boolean;
+  /** The minute now running is one of the user's one-time free trial minutes. */
+  trialMinute: boolean;
+  /**
+   * A trial call by someone without a Pass: the countdown is the trial alone,
+   * and in its last minute the call screen says to get a Pass, not to recharge.
+   */
+  trialCall: boolean;
+  /** The Pass lock is open because the user's free trial minutes are spent. */
+  trialUsed: boolean;
+  /** The free trial is switched on (admin `chat.voiceTrial`), so the app may mention it. */
+  trialOffered: boolean;
   /** What a wallet minute costs, in paise, for the labels. */
   pricePerMinutePaise: number;
   error: string | null;
@@ -75,13 +86,17 @@ function refusedWith(err: unknown, code: string): boolean {
  * the wallet; returning null there ends the call, which is how an empty wallet
  * surfaces: as the server declining to grant the next minute.
  *
- * Voice call is an Aroha Pass benefit. The server decides that, not this hook:
- * a start refused with PASS_REQUIRED opens the Pass lock instead of an error.
+ * Voice call is an Aroha Pass benefit, and every user also gets a few minutes
+ * free once (the trial). The server decides both, not this hook: a start or a
+ * next minute refused with PASS_REQUIRED opens the Pass lock instead of an
+ * error. With the trial switched on, that refusal can only mean the trial is
+ * spent, so the lock then says so.
  */
 export function useVoiceCall(locale: string): VoiceCall {
   const { t } = useTranslation();
   const { user, refresh } = useAuth();
   const feature = useFeature("paid.voiceChat");
+  const trial = useNewFeature("chat.voiceTrial");
 
   const [showConsent, setShowConsent] = useState(false);
   const [showPassLock, setShowPassLock] = useState(false);
@@ -94,7 +109,14 @@ export function useVoiceCall(locale: string): VoiceCall {
    * `minutesRemaining` counted down a fixed 3-minute ceiling, so "3 minutes
    * left" there meant the start of every call, not a low wallet.
    */
-  const [minute, setMinute] = useState<{ free: boolean; allowanceKnown: boolean; pricePaise: number } | null>(null);
+  const [minute, setMinute] = useState<{
+    free: boolean;
+    trial: boolean;
+    /** False only when the server says so; a server older than the trial leaves it out. */
+    passMember: boolean;
+    allowanceKnown: boolean;
+    pricePaise: number;
+  } | null>(null);
 
   const sessionRef = useRef<GeminiLiveSession | null>(null);
   const grantRef = useRef<VoiceGrant | null>(null);
@@ -115,6 +137,8 @@ export function useVoiceCall(locale: string): VoiceCall {
     grantRef.current = grant;
     setMinute({
       free: grant.freeMinute === true,
+      trial: grant.trialMinute === true,
+      passMember: grant.passMember !== false,
       allowanceKnown: grant.freeMinutesLeft !== undefined,
       pricePaise: grant.pricePerMinutePaise,
     });
@@ -266,7 +290,8 @@ export function useVoiceCall(locale: string): VoiceCall {
             noteGrant(next);
             return next;
           } catch (err) {
-            // The Pass ended while they were talking: same lock as at the start.
+            // The trial ran out, or the Pass ended, while they were talking:
+            // the same lock as at the start.
             if (refusedWith(err, "PASS_REQUIRED")) {
               setShowPassLock(true);
               return null;
@@ -343,9 +368,20 @@ export function useVoiceCall(locale: string): VoiceCall {
     state,
     active,
     secondsLeft,
+    // A trial call is three minutes long from the start, so "little left" would
+    // show for all of it, and recharging cannot extend it: members only.
     lowBalance:
-      inConversation && minute?.allowanceKnown === true && secondsLeft > 0 && secondsLeft <= LOW_BALANCE_SECONDS,
+      inConversation &&
+      minute?.allowanceKnown === true &&
+      minute.passMember &&
+      secondsLeft > 0 &&
+      secondsLeft <= LOW_BALANCE_SECONDS,
     freeMinute: minute?.free === true,
+    trialMinute: minute?.trial === true,
+    trialCall: minute?.passMember === false,
+    // With the trial on, the server only refuses someone who has spent it.
+    trialUsed: showPassLock && trial.enabled,
+    trialOffered: trial.enabled,
     pricePerMinutePaise: minute?.pricePaise ?? feature.pricePaise ?? DEFAULT_MINUTE_PRICE_PAISE,
     error,
     showConsent,

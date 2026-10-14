@@ -18,6 +18,9 @@ export type PassFeature =
 /** Free voice-call minutes every Pass gives each period. Mirrors backend modules/pass/pass.config.ts. */
 export const PASS_VOICE_FREE_MINUTES = 3;
 
+/** Free voice-call minutes every user gets once, Pass or not. Mirrors backend VOICE_TRIAL_MINUTES. */
+export const VOICE_TRIAL_MINUTES = 3;
+
 /** What one tier gives. */
 export interface PassTierBenefits {
   questionsPerPeriod: number;

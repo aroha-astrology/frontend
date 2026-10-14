@@ -5,9 +5,10 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { PhoneOff, Loader2, Wallet } from "lucide-react";
+import { PhoneOff, Loader2, Wallet, Gift } from "lucide-react";
 import { ASTROLOGER } from "@/lib/personas";
 import { formatRupees } from "@/lib/format";
+import { VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import type { VoiceCall } from "@/hooks/useVoiceCall";
 
@@ -88,6 +89,20 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
           {/* Avatar. The rings are the only feedback that the line is actually
               open — there is no waveform, because the audio never passes
               through this app on its way to Google. */}
+          {/* A trial call says so loudly, so nobody wonders whether the wallet is being used. */}
+          {call.active && call.trialMinute && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              data-testid="voice-trial-badge"
+              className="mb-6 flex items-center gap-2 rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-black shadow-[0_0_24px_rgba(234,179,8,0.55)]"
+            >
+              <Gift size={15} strokeWidth={2.5} />
+              {t("aiChatPage.voiceTrialBadge")}
+            </motion.div>
+          )}
+
           <div className="relative flex items-center justify-center mb-8">
             <AnimatePresence>
               {speaking &&
@@ -122,13 +137,22 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                   seconds: String(call.secondsLeft % 60).padStart(2, "0"),
                 })}
               </p>
-              <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }} data-testid="voice-rate">
-                {call.trialMinute
-                  ? t("aiChatPage.voiceTrialMinute")
-                  : call.freeMinute
+              {call.trialMinute ? (
+                <p className="mt-2 text-base font-bold text-yellow-400" data-testid="voice-rate">
+                  {call.trialMinuteNumber !== null
+                    ? t("aiChatPage.voiceTrialMinuteOf", {
+                        current: call.trialMinuteNumber,
+                        total: VOICE_TRIAL_MINUTES,
+                      })
+                    : t("aiChatPage.voiceTrialMinute")}
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }} data-testid="voice-rate">
+                  {call.freeMinute
                     ? t("aiChatPage.voiceCallFreeMinute", { price })
                     : t("aiChatPage.voiceCallPaidMinute", { price })}
-              </p>
+                </p>
+              )}
 
               {call.trialCall && call.secondsLeft > 0 && call.secondsLeft <= TRIAL_ENDING_SECONDS && (
                 <p

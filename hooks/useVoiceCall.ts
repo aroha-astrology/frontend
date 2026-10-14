@@ -14,6 +14,7 @@ import {
 } from "@/lib/swarm-api";
 import { GeminiLiveSession, VoiceCallError, type VoiceSessionState } from "@/lib/voice/gemini-live-client";
 import { startBackgroundCall, stopBackgroundCall } from "@/lib/voice/background-call";
+import { VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
 
 /** `"idle"` is this hook's own resting state, not one the live client reports. */
 export type VoiceCallState = VoiceSessionState | "idle";
@@ -48,6 +49,11 @@ export interface VoiceCall {
    * and in its last minute the call screen says to get a Pass, not to recharge.
    */
   trialCall: boolean;
+  /**
+   * On a trial call, which of the trial minutes is running now (1 to
+   * VOICE_TRIAL_MINUTES), for the "Free minute 2 of 3" line; null otherwise.
+   */
+  trialMinuteNumber: number | null;
   /** The Pass lock is open because the user's free trial minutes are spent. */
   trialUsed: boolean;
   /** The free trial is switched on (admin `chat.voiceTrial`), so the app may mention it. */
@@ -115,6 +121,8 @@ export function useVoiceCall(locale: string): VoiceCall {
     /** False only when the server says so; a server older than the trial leaves it out. */
     passMember: boolean;
     allowanceKnown: boolean;
+    /** Free minutes left after this one; on a trial call, trial minutes only. */
+    freeLeft: number | null;
     pricePaise: number;
   } | null>(null);
 
@@ -140,6 +148,7 @@ export function useVoiceCall(locale: string): VoiceCall {
       trial: grant.trialMinute === true,
       passMember: grant.passMember !== false,
       allowanceKnown: grant.freeMinutesLeft !== undefined,
+      freeLeft: grant.freeMinutesLeft ?? null,
       pricePaise: grant.pricePerMinutePaise,
     });
   }, []);
@@ -379,6 +388,12 @@ export function useVoiceCall(locale: string): VoiceCall {
     freeMinute: minute?.free === true,
     trialMinute: minute?.trial === true,
     trialCall: minute?.passMember === false,
+    // Without a Pass, the free minutes left are trial minutes only, so the one
+    // running is the trial's last minus what is left after it.
+    trialMinuteNumber:
+      minute?.passMember === false && minute.trial && minute.freeLeft !== null
+        ? Math.min(VOICE_TRIAL_MINUTES, Math.max(1, VOICE_TRIAL_MINUTES - minute.freeLeft))
+        : null,
     // With the trial on, the server only refuses someone who has spent it.
     trialUsed: showPassLock && trial.enabled,
     trialOffered: trial.enabled,

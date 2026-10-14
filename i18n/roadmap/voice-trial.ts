@@ -9,6 +9,8 @@ import type { RoadmapBundle } from "./types";
 export const voiceTrialBundle: RoadmapBundle = {
   en: {
     aiChatPage: {
+      voiceTrialBadge: "Free trial call",
+      voiceTrialMinuteOf: "Free minute {{current}} of {{total}}",
       voiceTrialConsent: "Your first {{minutes}} minutes are free, a gift for everyone.",
       voiceTrialMinute: "Free trial minute",
       voiceTrialEnding: "Your free call ends soon. Get Aroha Pass to keep talking.",
@@ -18,6 +20,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   hi: {
     aiChatPage: {
+      voiceTrialBadge: "मुफ़्त ट्रायल कॉल",
+      voiceTrialMinuteOf: "मुफ़्त मिनट {{current}} / {{total}}",
       voiceTrialConsent: "आपके पहले {{minutes}} मिनट मुफ़्त हैं, सबके लिए एक उपहार।",
       voiceTrialMinute: "मुफ़्त ट्रायल मिनट",
       voiceTrialEnding: "आपकी मुफ़्त कॉल जल्द खत्म होगी। बात जारी रखने के लिए Aroha Pass लें।",
@@ -27,6 +31,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   bn: {
     aiChatPage: {
+      voiceTrialBadge: "বিনামূল্যে ট্রায়াল কল",
+      voiceTrialMinuteOf: "বিনামূল্যে মিনিট {{current}} / {{total}}",
       voiceTrialConsent: "আপনার প্রথম {{minutes}} মিনিট বিনামূল্যে, সবার জন্য একটি উপহার।",
       voiceTrialMinute: "বিনামূল্যে ট্রায়াল মিনিট",
       voiceTrialEnding: "আপনার বিনামূল্যের কল শিগগির শেষ হবে। কথা চালিয়ে যেতে Aroha Pass নিন।",
@@ -36,6 +42,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   mr: {
     aiChatPage: {
+      voiceTrialBadge: "मोफत ट्रायल कॉल",
+      voiceTrialMinuteOf: "मोफत मिनिट {{current}} / {{total}}",
       voiceTrialConsent: "तुमची पहिली {{minutes}} मिनिटे मोफत आहेत, सर्वांसाठी एक भेट.",
       voiceTrialMinute: "मोफत ट्रायल मिनिट",
       voiceTrialEnding: "तुमचा मोफत कॉल लवकरच संपेल. बोलणे सुरू ठेवण्यासाठी Aroha Pass घ्या.",
@@ -45,6 +53,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   te: {
     aiChatPage: {
+      voiceTrialBadge: "ఉచిత ట్రయల్ కాల్",
+      voiceTrialMinuteOf: "ఉచిత నిమిషం {{current}} / {{total}}",
       voiceTrialConsent: "మీ మొదటి {{minutes}} నిమిషాలు ఉచితం, అందరికీ ఒక కానుక.",
       voiceTrialMinute: "ఉచిత ట్రయల్ నిమిషం",
       voiceTrialEnding: "మీ ఉచిత కాల్ త్వరలో ముగుస్తుంది. మాట్లాడటం కొనసాగించడానికి Aroha Pass తీసుకోండి.",
@@ -54,6 +64,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   ta: {
     aiChatPage: {
+      voiceTrialBadge: "இலவச சோதனை அழைப்பு",
+      voiceTrialMinuteOf: "இலவச நிமிடம் {{current}} / {{total}}",
       voiceTrialConsent: "உங்கள் முதல் {{minutes}} நிமிடங்கள் இலவசம், அனைவருக்கும் ஒரு பரிசு.",
       voiceTrialMinute: "இலவச சோதனை நிமிடம்",
       voiceTrialEnding: "உங்கள் இலவச அழைப்பு விரைவில் முடியும். தொடர்ந்து பேச Aroha Pass பெறுங்கள்.",
@@ -63,6 +75,8 @@ export const voiceTrialBundle: RoadmapBundle = {
   },
   gu: {
     aiChatPage: {
+      voiceTrialBadge: "મફત ટ્રાયલ કૉલ",
+      voiceTrialMinuteOf: "મફત મિનિટ {{current}} / {{total}}",
       voiceTrialConsent: "તમારી પહેલી {{minutes}} મિનિટ મફત છે, સૌ માટે એક ભેટ.",
       voiceTrialMinute: "મફત ટ્રાયલ મિનિટ",
       voiceTrialEnding: "તમારો મફત કૉલ જલ્દી પૂરો થશે. વાત ચાલુ રાખવા Aroha Pass લો.",

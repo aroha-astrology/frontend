@@ -109,7 +109,9 @@ test("a trial call counts down from 3:00, says the minute is free, and never ask
   await expect(callScreen(page)).toBeVisible();
 
   await expect(callScreen(page).getByText(/^(3:00|2:5\d) remaining$/)).toBeVisible();
-  await expect(page.getByTestId("voice-rate")).toHaveText("Free trial minute");
+  // Loud enough that nobody wonders whether the wallet is being used.
+  await expect(page.getByTestId("voice-trial-badge")).toHaveText("Free trial call");
+  await expect(page.getByTestId("voice-rate")).toHaveText("Free minute 1 of 3");
   await expect(page.getByTestId("voice-low-balance")).toHaveCount(0);
   await expect(page.getByTestId("voice-trial-ending")).toHaveCount(0);
 
@@ -127,7 +129,8 @@ test("when the trial is spent the call ends with the Pass lock, saying the free 
   await page.getByRole("button", { name: "Start voice chat" }).click();
   await expect(callScreen(page)).toBeVisible();
 
-  // The last trial minute says the free call is ending and points to the Pass.
+  // The counter follows the minutes, and the last one says the free call is ending.
+  await expect(page.getByTestId("voice-rate")).toHaveText("Free minute 3 of 3", { timeout: 20_000 });
   await expect(page.getByTestId("voice-trial-ending")).toHaveText(
     "Your free call ends soon. Get Aroha Pass to keep talking.",
     { timeout: 20_000 },
@@ -234,6 +237,7 @@ test("a member's call is unchanged: the wallet counts, and little time left asks
   await page.getByRole("button", { name: "Start voice chat" }).click();
 
   await expect(page.getByTestId("voice-rate")).toHaveText("₹20/min from your wallet");
+  await expect(page.getByTestId("voice-trial-badge")).toHaveCount(0);
   await expect(page.getByTestId("voice-low-balance")).toBeVisible();
   await expect(page.getByTestId("voice-trial-ending")).toHaveCount(0);
   await page.getByRole("button", { name: "End call", exact: true }).click();

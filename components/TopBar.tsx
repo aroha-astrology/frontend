@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Menu, Bell } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
-import ThemeSwitch from "@/components/ThemeSwitch";
 import NotificationsSheet from "@/components/NotificationsSheet";
 import AppMenuDrawer from "@/components/AppMenuDrawer";
 import { api } from "@/lib/api";
@@ -83,7 +82,6 @@ export default function TopBar() {
             <PassChip />
           </div>
           <div className="flex items-center gap-2">
-            <ThemeSwitch />
             {user && (
               <Link
                 href="/payment"

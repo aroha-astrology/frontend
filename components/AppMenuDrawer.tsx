@@ -45,6 +45,7 @@ import ListRow from "@/components/ui/ListRow";
 import { usePassStatus } from "@/hooks/usePassStatus";
 import { offerFor, type PassFeature } from "@/lib/pass-api";
 import LanguagePicker from "@/components/LanguagePicker";
+import ThemeSwitch from "@/components/ThemeSwitch";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 
@@ -171,7 +172,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold/80 to-purple-600/60 flex items-center justify-center text-[#1a0e00] font-display text-xl shrink-0">
                     {initial}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-foreground font-medium text-base truncate">
                       {user?.displayName ?? t("menu.guest")}
                     </div>
@@ -179,6 +180,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                       <div className="text-muted text-xs truncate">{user?.phoneE164 ?? user?.email}</div>
                     )}
                   </div>
+                  <ThemeSwitch />
                 </div>
 
                 {(user?.dateOfBirth || user?.timeOfBirth || user?.placeOfBirth?.name) && (

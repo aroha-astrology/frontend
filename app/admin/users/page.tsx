@@ -32,6 +32,22 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+/** A call's start in India time, e.g. "14 Oct, 3:30 pm"; the year is added when it isn't this year's. */
+function formatCallTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const tz = "Asia/Kolkata";
+  const year = (x: Date) => x.toLocaleDateString("en-IN", { timeZone: tz, year: "numeric" });
+  const day = d.toLocaleDateString("en-IN", {
+    timeZone: tz,
+    day: "numeric",
+    month: "short",
+    ...(year(d) !== year(new Date()) && { year: "numeric" }),
+  });
+  const time = d.toLocaleTimeString("en-IN", { timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true });
+  return `${day}, ${time}`;
+}
+
 function formatDuration(totalSeconds: number): string {
   if (totalSeconds < 60) return `${totalSeconds}s`;
   const hours = Math.floor(totalSeconds / 3600);
@@ -418,6 +434,11 @@ export default function AdminUsersPage() {
                               {u.voiceCalls} {u.voiceCalls === 1 ? "call" : "calls"}
                               {u.voiceRating != null && <span className="text-gold"> · ★ {u.voiceRating}</span>}
                             </div>
+                            {(u.voiceLastCalls ?? []).map((at) => (
+                              <div key={at} className="text-muted text-[11px] whitespace-nowrap" data-testid="voice-call-time">
+                                {formatCallTime(at)}
+                              </div>
+                            ))}
                           </div>
                         ) : (
                           <span className="text-muted text-xs">—</span>

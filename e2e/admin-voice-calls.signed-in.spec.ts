@@ -2,7 +2,11 @@ import { test, expect } from "@playwright/test";
 import { mockApi, callsTo, type Handlers } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
-function userRow(id: string, name: string, voice: { calls: number; seconds: number; rating: number | null }) {
+function userRow(
+  id: string,
+  name: string,
+  voice: { calls: number; seconds: number; rating: number | null; lastCalls?: string[] },
+) {
   return {
     id,
     displayName: name,
@@ -26,11 +30,20 @@ function userRow(id: string, name: string, voice: { calls: number; seconds: numb
     voiceCalls: voice.calls,
     voiceSeconds: voice.seconds,
     voiceRating: voice.rating,
+    voiceLastCalls: voice.lastCalls ?? [],
   };
 }
 
+const YEAR = new Date().getFullYear();
+
 const USERS = [
-  userRow("u-caller", "Asha Caller", { calls: 3, seconds: 754, rating: 4.5 }),
+  userRow("u-caller", "Asha Caller", {
+    calls: 5,
+    seconds: 754,
+    rating: 4.5,
+    // IST 15 Oct 12:15 am, 14 Oct 3:30 pm, 2 Oct 9:05 am, this year so the page leaves the year out
+    lastCalls: [`${YEAR}-10-14T18:45:00Z`, `${YEAR}-10-14T10:00:00Z`, `${YEAR}-10-02T03:35:00Z`],
+  }),
   userRow("u-quiet", "Ravi Quiet", { calls: 0, seconds: 0, rating: null }),
 ];
 
@@ -68,7 +81,9 @@ test("Admin → Users shows who used voice calls, for how long, and sorts by it"
 
   const cells = page.getByTestId("voice-calls-cell");
   await expect(cells).toHaveCount(2);
-  await expect(cells.nth(0)).toHaveText(/12m\s*3 calls · ★ 4\.5/);
+  await expect(cells.nth(0)).toContainText(/12m\s*5 calls · ★ 4\.5/);
+  const times = cells.nth(0).getByTestId("voice-call-time");
+  await expect(times).toHaveText(["15 Oct, 12:15 am", "14 Oct, 3:30 pm", "2 Oct, 9:05 am"]);
   await expect(cells.nth(1)).toHaveText("—");
 
   await page.getByRole("button", { name: "Voice Calls" }).click();

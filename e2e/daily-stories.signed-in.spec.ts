@@ -296,7 +296,7 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     await expect(viewer(page)).toHaveAttribute("data-story", "gita");
 
     await page.getByTestId("story-cta").click();
-    await page.waitForURL((url) => url.pathname === "/gita/ch2-v47");
+    await page.waitForURL((url) => url.pathname === "/shlokas/mala" && url.searchParams.get("verse") === "ch2-v47");
     await expect(viewer(page)).toHaveCount(0);
   });
 

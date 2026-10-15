@@ -2,7 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { DailyStoriesData } from "@/hooks/useDailyStories";
-import { CATEGORY_GLOSS, TAG_GLOSS } from "@/lib/gita";
+import { CATEGORY_GLOSS, TAG_GLOSS, splitGitaVerse } from "@/lib/gita";
 import { STORY_CAPS, StorySkeleton, StoryUnavailable, type StoryMode } from "../StoryFrame";
 
 /**
@@ -19,11 +19,9 @@ export default function GitaSlide({ data }: { data: DailyStoriesData; mode: Stor
   if (!verse) return <StoryUnavailable message={t("stories.unavailable")} />;
 
   const gloss = CATEGORY_GLOSS[verse.mainCategory];
-  // The source separates the padas with blank lines; one line each reads better at this size.
-  const lines = verse.sanskrit
-    .split("\n")
-    .filter((line) => line.trim())
-    .join("\n");
+  // One pada per line, without the speaker heading (named under the verse number instead).
+  const { speaker, lines: padas } = splitGitaVerse(verse.sanskrit);
+  const lines = padas.join("\n");
 
   return (
     <div className="flex flex-col items-center text-center" data-testid="story-gita">
@@ -42,6 +40,11 @@ export default function GitaSlide({ data }: { data: DailyStoriesData; mode: Stor
         <span className="font-devanagari">{verse.mainCategory}</span>
         {gloss && ` · ${gloss}`}
       </p>
+      {speaker && (
+        <p className="mt-1 text-xs" style={{ color: "var(--story-accent)" }}>
+          {t(`gita.speaker.${speaker}`)}
+        </p>
+      )}
 
       <div className="mt-6 flex w-full items-center gap-3" aria-hidden>
         <span className="h-px flex-1 bg-white/15" />

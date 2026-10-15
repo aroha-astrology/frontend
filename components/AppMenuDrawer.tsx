@@ -43,6 +43,7 @@ import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
 import { usePassStatus } from "@/hooks/usePassStatus";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import { offerFor, type PassFeature } from "@/lib/pass-api";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
@@ -57,6 +58,7 @@ import ShareOptionsSheet from "@/components/ShareOptionsSheet";
  */
 export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const appVersion = useAppVersion();
   const referralAmounts = useReferralAmounts();
   const router = useRouter();
   const { user, signOut } = useAuth();
@@ -422,7 +424,7 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   </Link>
                 </div>
                 <p className="text-[10px] text-muted/60">
-                  {t("menu.appVersion", { version: process.env.NEXT_PUBLIC_APP_VERSION ?? "" })}
+                  {t("menu.appVersion", { version: appVersion })}
                 </p>
               </div>
             </div>

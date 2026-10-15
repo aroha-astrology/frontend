@@ -2299,6 +2299,12 @@ export const resources = {
         count: "{{n}} Mantras",
       },
       gita: {
+        speaker: {
+          krishna: "Krishna says",
+          arjuna: "Arjuna says",
+          sanjaya: "Sanjaya says",
+          dhritarashtra: "Dhritarashtra says",
+        },
         title: "Bhagavad Gita",
         desc: "All 701 verses in Sanskrit, browsable by theme or by what you're going through.",
         loading: "Loading verses…",
@@ -4668,6 +4674,12 @@ export const resources = {
         count: "{{n}} मंत्र",
       },
       gita: {
+        speaker: {
+          krishna: "श्रीकृष्ण कहते हैं",
+          arjuna: "अर्जुन कहते हैं",
+          sanjaya: "संजय कहते हैं",
+          dhritarashtra: "धृतराष्ट्र कहते हैं",
+        },
         title: "श्रीमद्भगवद्गीता",
         desc: "संस्कृत में सभी 701 श्लोक, विषय अनुसार या आपकी स्थिति के अनुसार देखें।",
         loading: "श्लोक लोड हो रहे हैं…",
@@ -7025,6 +7037,12 @@ export const resources = {
         count: "{{n}} মন্ত্র",
       },
       gita: {
+        speaker: {
+          krishna: "শ্রীকৃষ্ণ বলছেন",
+          arjuna: "অর্জুন বলছেন",
+          sanjaya: "সঞ্জয় বলছেন",
+          dhritarashtra: "ধৃতরাষ্ট্র বলছেন",
+        },
         title: "শ্রীমদ্ভগবদ্গীতা",
         desc: "সংস্কৃতে সমস্ত ৭০১টি শ্লোক, বিষয় অনুসারে বা আপনার পরিস্থিতি অনুসারে দেখুন।",
         loading: "শ্লোক লোড হচ্ছে…",
@@ -9383,6 +9401,12 @@ export const resources = {
         count: "{{n}} मंत्र",
       },
       gita: {
+        speaker: {
+          krishna: "श्रीकृष्ण म्हणतात",
+          arjuna: "अर्जुन म्हणतात",
+          sanjaya: "संजय म्हणतात",
+          dhritarashtra: "धृतराष्ट्र म्हणतात",
+        },
         title: "श्रीमद्भगवद्गीता",
         desc: "संस्कृतमधील सर्व 701 श्लोक, विषयानुसार किंवा तुमच्या परिस्थितीनुसार पहा.",
         loading: "श्लोक लोड होत आहेत…",
@@ -11737,6 +11761,12 @@ export const resources = {
         count: "{{n}} మంత్రాలు",
       },
       gita: {
+        speaker: {
+          krishna: "శ్రీకృష్ణుడు చెబుతున్నాడు",
+          arjuna: "అర్జునుడు చెబుతున్నాడు",
+          sanjaya: "సంజయుడు చెబుతున్నాడు",
+          dhritarashtra: "ధృతరాష్ట్రుడు చెబుతున్నాడు",
+        },
         title: "శ్రీమద్భగవద్గీత",
         desc: "సంస్కృతంలో మొత్తం 701 శ్లోకాలు, అంశం వారీగా లేదా మీ పరిస్థితి వారీగా చూడండి.",
         loading: "శ్లోకాలు లోడ్ అవుతున్నాయి…",
@@ -14097,6 +14127,12 @@ export const resources = {
         count: "{{n}} மந்திரங்கள்",
       },
       gita: {
+        speaker: {
+          krishna: "ஸ்ரீ கிருஷ்ணர் சொல்கிறார்",
+          arjuna: "அர்ஜுனன் சொல்கிறார்",
+          sanjaya: "சஞ்சயன் சொல்கிறார்",
+          dhritarashtra: "திருதராஷ்டிரன் சொல்கிறார்",
+        },
         title: "ஸ்ரீமத் பகவத் கீதை",
         desc: "சமஸ்கிருதத்தில் அனைத்து 701 ஸ்லோகங்களும், கருப்பொருள் வாரியாக அல்லது உங்கள் நிலைமை வாரியாக பாருங்கள்.",
         loading: "ஸ்லோகங்கள் ஏற்றப்படுகின்றன…",
@@ -16449,6 +16485,12 @@ export const resources = {
         count: "{{n}} મંત્રો",
       },
       gita: {
+        speaker: {
+          krishna: "શ્રીકૃષ્ણ કહે છે",
+          arjuna: "અર્જુન કહે છે",
+          sanjaya: "સંજય કહે છે",
+          dhritarashtra: "ધૃતરાષ્ટ્ર કહે છે",
+        },
         title: "શ્રીમદ્ ભગવદ્ ગીતા",
         desc: "સંસ્કૃતમાં તમામ 701 શ્લોકો, વિષય મુજબ અથવા તમારી પરિસ્થિતિ મુજબ જુઓ.",
         loading: "શ્લોક લોડ થઈ રહ્યા છે…",

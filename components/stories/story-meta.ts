@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import type { DailyStoriesData } from "@/hooks/useDailyStories";
+import { gitaChantHref } from "@/lib/gita";
 import { pick } from "@/lib/shlokas";
 import { formatClock } from "@/lib/stories/format";
 import { horaGuideKeys } from "@/lib/stories/hora";
@@ -85,7 +86,11 @@ export function buildStoryMeta(id: StoryId, data: DailyStoriesData, t: TFunction
       const ref = verse ? `${verse.chapter}.${verse.verse}` : "";
       return {
         theme: storyTheme("gita"),
-        cta: links.gita && verse ? { label: t("stories.gita.cta"), href: `/gita/${verse.id}` } : null,
+        // The verse opens on the chant screen, which lives under the Shlokas page.
+        cta:
+          links.gita && links.shlokas && verse
+            ? { label: t("stories.gita.cta"), href: gitaChantHref(verse.id) }
+            : null,
         shareText: verse ? `${t("stories.gita.shareText", { ref })}\n${verse.sanskrit}` : t("stories.names.gita"),
         shareable: !!verse,
       };

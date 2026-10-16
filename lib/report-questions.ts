@@ -29,6 +29,18 @@ export interface ReportQuestion {
    * e.g. baby_name's `childGender` only makes sense once `hasChild` is "yes". One level only,
    * no chained conditions needed for the question sets configured today. */
   showIf?: { questionId: string; value: string };
+  /** Skipping this leaves the report no less personal, because it only overrides something the
+   * account already holds (numerology's phone number). Such a question gets no "why we ask" note
+   * and never triggers the general-report warning. */
+  overridesAccount?: true;
+}
+
+/** True when the reader is about to buy a report without answering any of the questions that
+ * make it about their life, so the drawer should warn that the report will be general. One rule
+ * for every report: a new report's questions get the warning without any change here. */
+export function answeredNone(questions: ReportQuestion[], answers: Record<string, string>): boolean {
+  if (!questions.some((q) => !q.overridesAccount)) return false;
+  return !questions.some((q) => (answers[q.id] ?? "").trim() !== "");
 }
 
 // ── Questions shared by more than one report ────────────────────────────────
@@ -150,7 +162,9 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   // own phone number (users.phone_e164) for its phone-numerology section, so this exists only
   // to let a reader without a phone on file — or who wants to check a different number —
   // override it. See jyotish-backend's resolvePhone (astro-engine/reports/numerology.ts).
-  numerology: [{ id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber" }],
+  numerology: [
+    { id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber", overridesAccount: true },
+  ],
   true_love: [RELATIONSHIP_NOW],
   progeny: [CHILDREN],
   wealth: [

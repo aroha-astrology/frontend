@@ -295,7 +295,7 @@ function PlainDashaCard({ dasha }: { dasha: any }) {
   );
 }
 
-/** Yoga + Dosha stat row with tap-to-expand */
+/** Yoga + Dosha stat row. Both lists start open: closed, nothing said the boxes could be tapped. */
 function YogaDoshaSection({
   yogas,
   doshas,
@@ -306,8 +306,8 @@ function YogaDoshaSection({
   mode: ViewMode;
 }) {
   const { t } = useTranslation();
-  const [showYogas, setShowYogas] = useState(false);
-  const [showDoshas, setShowDoshas] = useState(false);
+  const [showYogas, setShowYogas] = useState(true);
+  const [showDoshas, setShowDoshas] = useState(true);
 
   const presentYogas = yogas.filter((y) => y.present);
   const presentDoshaCount = doshas

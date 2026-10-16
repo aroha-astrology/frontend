@@ -11,6 +11,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import SegmentedToggle from "@/components/ui/SegmentedToggle";
 import { api, ApiError, type SupportTicket } from "@/lib/api";
+import { appVersion } from "@/lib/app-version";
 
 type HelpCategory = "billing" | "chart_accuracy" | "technical_issue" | "other";
 
@@ -83,7 +84,7 @@ export default function HelpPage() {
         category,
         message: trimmed,
         locale: i18n.language,
-        appVersion: process.env.NEXT_PUBLIC_APP_VERSION,
+        appVersion: await appVersion(),
       });
       setTickets((prev) => (prev ? [ticket, ...prev] : [ticket]));
       setMessage("");

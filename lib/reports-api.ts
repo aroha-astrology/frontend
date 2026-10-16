@@ -45,6 +45,10 @@ export interface ReportCatalogueEntry {
    * 70% off) — null means no discount is configured, render `pricePaise`
    * plainly. Only meaningful when it's strictly greater than `pricePaise`. */
   originalPricePaise: number | null;
+  /** The price before the user's Aroha Pass discount. Absent on a server from before the price steps. */
+  listPricePaise?: number;
+  /** Percent the user's Aroha Pass takes off `listPricePaise`; 0 without a Pass. */
+  passDiscountPct?: number;
   purchases: ReportPurchaseSummary[];
   /** marriage only — the most recently purchased marriage report's own stored spouse birth
    * details, for pre-filling the optional spouse-details section on a later purchase. Null for

@@ -12,7 +12,7 @@ import LotusSilhouette from "@/components/LotusSilhouette";
 import ChantRing from "@/components/shlokas/ChantRing";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, MALA_COUNT, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
-import { gitaAudioUrl, loadGitaVerses, type GitaVerse } from "@/lib/gita";
+import { gitaAudioUrl, loadGitaVerses, splitGitaVerse, type GitaVerse } from "@/lib/gita";
 import { isFav, toggleFav, pushHistory } from "@/lib/shlokas-prefs";
 
 /**
@@ -36,7 +36,7 @@ interface ChantItem {
   audioSrc: string | null;
   defaultTarget: number;
   slug?: string;
-  detailHref: string;
+  detailHref: string | null;
 }
 
 function MalaScreen() {
@@ -77,13 +77,17 @@ function MalaScreen() {
     if (isGita) {
       const v = gitaVerses?.find((g) => g.id === verseId);
       if (!v) return null;
+      const { speaker, lines } = splitGitaVerse(v.sanskrit);
       return {
         key: `gita:${v.id}`,
-        sanskrit: v.sanskrit,
-        subtitle: `${t("gita.title")} ${v.chapter}.${v.verse}`,
+        sanskrit: lines.join("\n"),
+        subtitle: [`${t("gita.title")} ${v.chapter}.${v.verse}`, speaker && t(`gita.speaker.${speaker}`)]
+          .filter(Boolean)
+          .join(" · "),
         audioSrc: gitaAudioUrl(v.id),
         defaultTarget: MALA_COUNT,
-        detailHref: `/gita/${v.id}`,
+        // No link out: this screen is the Gita verse's page.
+        detailHref: null,
       };
     }
     const s = shlokas?.find((x) => x.slug === slug);
@@ -172,15 +176,17 @@ function MalaScreen() {
               )}
             </Card>
 
-            <div className="flex justify-center">
-              <Link
-                href={item.detailHref}
-                className="flex items-center gap-2 px-4 h-11 rounded-full border border-gold/30 bg-card text-sm text-gold font-medium"
-              >
-                <LotusSilhouette className="h-4 w-4 text-gold" opacity={0.9} />
-                {t("shlokas.viewFullVerse")}
-              </Link>
-            </div>
+            {item.detailHref && (
+              <div className="flex justify-center">
+                <Link
+                  href={item.detailHref}
+                  className="flex items-center gap-2 px-4 h-11 rounded-full border border-gold/30 bg-card text-sm text-gold font-medium"
+                >
+                  <LotusSilhouette className="h-4 w-4 text-gold" opacity={0.9} />
+                  {t("shlokas.viewFullVerse")}
+                </Link>
+              </div>
+            )}
           </>
         )}
       </div>

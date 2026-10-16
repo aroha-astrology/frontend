@@ -113,6 +113,13 @@ export interface AdminUserRow {
   timeSpentWeekSec: number;
   timeSpentMonthSec: number;
   timeSpentYearSec: number;
+  /** Voice calls with at least one minute granted, and their total length. Optional until the API that sends them is live. */
+  voiceCalls?: number;
+  voiceSeconds?: number;
+  /** Start times (ISO) of the 3 latest of those calls, newest first. */
+  voiceLastCalls?: string[];
+  /** Average "how was your call?" stars, null when never answered. */
+  voiceRating?: number | null;
 }
 
 export interface AdminUsersResponse {
@@ -190,6 +197,30 @@ export interface AdminReportGenerationRow {
 export interface AdminReportGenerationsResponse {
   reports: AdminReportGenerationRow[];
   total: number;
+  offset: number;
+  limit: number;
+}
+
+// ─── Voice call feedback ────────────────────────────────────────────────────
+
+export interface AdminVoiceFeedbackRow {
+  voiceSessionId: string;
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  rating: number;
+  tags: string[];
+  comment: string | null;
+  minutesCharged: number;
+  callStartedAt: string;
+  callEndedAt: string | null;
+  feedbackAt: string;
+}
+
+export interface AdminVoiceFeedbackResponse {
+  feedback: AdminVoiceFeedbackRow[];
+  total: number;
+  averageRating: number | null;
   offset: number;
   limit: number;
 }
@@ -493,7 +524,7 @@ export const adminApi = {
       contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise" | "voiceSeconds";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {
@@ -602,6 +633,14 @@ export const adminApi = {
     qs.set("offset", String(params.offset ?? 0));
     qs.set("limit", String(params.limit ?? 50));
     return request<AdminReportRatingsResponse>(`/v1/admin/report-ratings?${qs.toString()}`, { auth: true });
+  },
+
+  /** Every "how was your call?" answer, newest first, with the overall average. */
+  listVoiceFeedback: (params: { offset?: number; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    qs.set("offset", String(params.offset ?? 0));
+    qs.set("limit", String(params.limit ?? 50));
+    return request<AdminVoiceFeedbackResponse>(`/v1/admin/voice-feedback?${qs.toString()}`, { auth: true });
   },
 
   /** Vote counts for "which report should we prepare next", most-requested first. */

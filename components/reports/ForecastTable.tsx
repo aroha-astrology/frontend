@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { ForecastRow } from "@/lib/report-score-facts";
+import ScrollTable from "./blocks/ScrollTable";
 
 export interface ForecastColumn {
   key: string;
@@ -19,29 +20,27 @@ export default function ForecastTable({ rows, columns }: { rows: ForecastRow[]; 
   const { t } = useTranslation();
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-gold/15 bg-card">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-gold/15">
+    <ScrollTable className="rounded-2xl border border-gold/15 bg-card">
+      <thead>
+        <tr className="border-b border-gold/15">
+          {columns.map((c) => (
+            <th key={c.key} className="whitespace-nowrap px-3 py-2 text-left font-medium uppercase tracking-wider text-[10px] text-muted">
+              {t(c.labelKey)}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-border/50">
+        {rows.map((row, i) => (
+          <tr key={i}>
             {columns.map((c) => (
-              <th key={c.key} className="whitespace-nowrap px-3 py-2 text-left font-medium uppercase tracking-wider text-[10px] text-muted">
-                {t(c.labelKey)}
-              </th>
+              <td key={c.key} className="whitespace-nowrap px-3 py-2 text-foreground/90">
+                {row[c.key]}
+              </td>
             ))}
           </tr>
-        </thead>
-        <tbody className="divide-y divide-border/50">
-          {rows.map((row, i) => (
-            <tr key={i}>
-              {columns.map((c) => (
-                <td key={c.key} className="whitespace-nowrap px-3 py-2 text-foreground/90">
-                  {row[c.key]}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </ScrollTable>
   );
 }

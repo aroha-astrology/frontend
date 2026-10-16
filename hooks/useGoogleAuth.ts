@@ -73,7 +73,7 @@ export function useGoogleAuth() {
       return { ok: true, created: session.created };
     } catch (err) {
       console.error("Google sign-in failed", err);
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "google"));
       return { ok: false };
     } finally {
       setBusy(false);

@@ -8,17 +8,23 @@ import { timelineBundle } from "./timeline";
 import { askBundle } from "./ask";
 import { decideBundle } from "./decide";
 import { bondsBundle } from "./bonds";
+import { bondsV2Bundle } from "./bonds-v2";
 import { journalBundle } from "./journal";
 import { practiceBundle } from "./practice";
 import { passBundle } from "./pass";
+import { passGoLiveBundle } from "./pass-golive";
+import { birthTimeBundle } from "./birth-time";
 import { yantraBundle } from "./yantra";
 import { relocationBundle } from "./relocation";
 import { vastuStudioBundle } from "./vastu-studio";
 import { pdfBundle } from "./pdf";
 import { storiesBundle } from "./stories";
+import { callHistoryBundle } from "./call-history";
+import { voiceTrialBundle } from "./voice-trial";
+import { callFeedbackBundle } from "./call-feedback";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, journalBundle, practiceBundle, passBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

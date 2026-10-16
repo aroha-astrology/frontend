@@ -59,15 +59,25 @@ describe("TranscriptBuffer", () => {
     expect(buf.getTurns()[0]?.content.length).toBe(8000);
   });
 
-  it("caps total turns at 60, keeping the most recent", () => {
+  it("keeps every turn of a long call", () => {
     const buf = new TranscriptBuffer();
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 150; i++) {
       buf.append(`turn${i}`, i % 2 === 0 ? "user" : "model");
     }
     const turns = buf.getTurns();
-    expect(turns).toHaveLength(60);
+    expect(turns).toHaveLength(150);
+    expect(turns[0]?.content).toBe("turn0");
+  });
+
+  it("caps total turns at 400, keeping the most recent", () => {
+    const buf = new TranscriptBuffer();
+    for (let i = 0; i < 410; i++) {
+      buf.append(`turn${i}`, i % 2 === 0 ? "user" : "model");
+    }
+    const turns = buf.getTurns();
+    expect(turns).toHaveLength(400);
     expect(turns[0]?.content).toBe("turn10");
-    expect(turns[59]?.content).toBe("turn69");
+    expect(turns[399]?.content).toBe("turn409");
   });
 
   it("returns an empty array when nothing was ever appended", () => {

@@ -6,22 +6,20 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, HeartHandshake } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useNewFeature } from "@/hooks/useFeature";
-import { bondsApi, PHASE_CLASS, type BondSummary } from "@/lib/bonds-api";
-import { isPassRequired } from "@/lib/pass-api";
-import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
-import PassLock from "@/components/pass/PassLock";
+import { bondsApi, categoryOf, PHASE_CLASS, type BondSummary } from "@/lib/bonds-api";
+import { CATEGORY_ICON, relationLabel } from "@/components/bonds/category";
 
 /**
  * Home's Aroha Bonds card (home.bondsCard, ships off): up to three people with
- * a score and where the bond stands. Aroha Pass only — without the Pass it
- * shows the compact subscribe lock instead.
+ * a score and where the bond stands. For Aroha Pass members only: without a
+ * Pass that includes Bonds the server refuses the list and Home shows nothing
+ * here, not even a subscribe card (the /bonds page is where the lock lives).
  */
 export default function BondsCard() {
   const { t } = useTranslation();
   const { enabled } = useNewFeature("home.bondsCard");
   const { enabled: pageOn } = useNewFeature("nav.bonds");
   const [bonds, setBonds] = useState<BondSummary[] | null>(null);
-  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -29,17 +27,12 @@ export default function BondsCard() {
     bondsApi
       .list()
       .then((res) => !cancelled && setBonds(res.bonds))
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setBonds(null);
-        setLocked(isPassRequired(err));
-      });
+      .catch(() => !cancelled && setBonds(null));
     return () => {
       cancelled = true;
     };
   }, [enabled]);
 
-  if (enabled && locked) return <PassLock feature={t("bonds.title")} need="bonds" compact />;
   if (!enabled || bonds === null) return null;
   const ready = bonds.filter((b) => b.ready).slice(0, 3);
 
@@ -56,13 +49,15 @@ export default function BondsCard() {
       ) : (
         <ul className="space-y-2">
           {ready.map((b) => {
+            const Icon = CATEGORY_ICON[categoryOf(b)];
             const row = (
               <>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+                  <Icon size={14} />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-foreground">{b.name || t("bonds.unnamed")}</span>
-                  <span className="block text-[11px] text-muted">
-                    {b.relationship ? t(RELATIONSHIP_KEYS[b.relationship]) : ""}
-                  </span>
+                  <span className="block truncate text-[11px] text-muted">{relationLabel(t, b)}</span>
                 </span>
                 {b.compatibility && <span className="text-sm font-semibold text-gold">{b.compatibility.pct}%</span>}
                 {b.phase && (

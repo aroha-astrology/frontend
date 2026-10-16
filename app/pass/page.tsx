@@ -23,6 +23,7 @@ import { isNativeAndroid, isNativeIOS, PlayBilling } from "@/lib/play-billing";
 import { installedAndroidBuild, PLAY_PASS_UPGRADE_BUILD, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
+import { refreshPassStatus } from "@/hooks/usePassStatus";
 
 type ActionError = "funds" | "failed";
 type Platform = "android" | "ios" | "web";
@@ -67,6 +68,8 @@ function PassPage() {
   // The installed Android build: 1.12 and older can't buy a subscription, 1.13 can't change tier.
   const [build, setBuild] = useState<number | null>(null);
   const [packNote, setPackNote] = useState<string | null>(null);
+  // `/pass?tier=gold` (a Pass lock's button) leads with that tier instead of the usual recommendation.
+  const [wanted, setWanted] = useState<string | null>(null);
 
   useEffect(() => {
     passApi
@@ -77,7 +80,14 @@ function PassPage() {
       setPlatform(android ? "android" : ios ? "ios" : "web"),
     );
     void installedAndroidBuild().then(setBuild);
+    setWanted(new URLSearchParams(window.location.search).get("tier"));
   }, []);
+
+  // Bring the asked-for tier into view once the tiers are drawn (they stack on a phone).
+  useEffect(() => {
+    if (!wanted || !status) return;
+    document.querySelector(`[data-testid="pass-tier-${wanted}"]`)?.scrollIntoView({ block: "center" });
+  }, [wanted, status]);
 
   /** Runs a purchase; true when it went through. */
   const run = useCallback(
@@ -86,6 +96,7 @@ function PassPage() {
       setError(null);
       try {
         setStatus(await action());
+        refreshPassStatus();
         void refresh();
         return true;
       } catch (err) {
@@ -223,6 +234,12 @@ function PassPage() {
               <p className="text-sm text-muted">{t("pass.notAvailable")}</p>
             )}
 
+            {!pass && offers.length > 0 && (
+              <p className="text-xl font-display leading-snug text-foreground md:col-span-full" data-testid="pass-hero">
+                {t("pass.hero")}
+              </p>
+            )}
+
             {offers.length > 0 && (
               <div className="space-y-3 md:col-span-full" data-testid="pass-tiers">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gold">
@@ -232,7 +249,8 @@ function PassPage() {
                   {offers.map((offer, i) => {
                     const own = i === ownIndex;
                     // Gold is the one to lead with while the user hasn't picked a Pass.
-                    const recommended = !pass && offer.tier === "gold" && offers.length > 1;
+                    const asked = offers.some((o) => o.tier === wanted) ? wanted : "gold";
+                    const recommended = !pass && offer.tier === asked && offers.length > 1;
                     return (
                       <Card
                         key={offer.tier}

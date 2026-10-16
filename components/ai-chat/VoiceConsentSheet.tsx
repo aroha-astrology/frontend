@@ -19,9 +19,15 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
  * pays must always be visible before they commit to it.
  */
 export default function VoiceConsentSheet({
+  price,
+  trialMinutes,
   onAccept,
   onClose,
 }: {
+  /** What a wallet minute costs, already formatted ("₹20"). */
+  price: string;
+  /** The free trial minutes everyone gets, when the trial is on; the sheet then says so. */
+  trialMinutes?: number;
   /** Records consent, then starts the call. Rejects if the grant fails. */
   onAccept: () => Promise<void>;
   onClose: () => void;
@@ -57,11 +63,17 @@ export default function VoiceConsentSheet({
       }
     >
       <p className="text-sm leading-relaxed text-[var(--text-muted)] mb-4">
-        {t("aiChatPage.voiceChatConsentBody")}
+        {t("aiChatPage.voiceChatConsentBody", { price })}
       </p>
 
+      {trialMinutes ? (
+        <p className="text-sm font-medium text-gold mb-2" data-testid="voice-trial-consent">
+          {t("aiChatPage.voiceTrialConsent", { minutes: trialMinutes })}
+        </p>
+      ) : null}
+
       <p className="text-xs text-[var(--text-muted)]/80 mb-4">
-        {t("aiChatPage.voiceChatRateInfo")}
+        {t("aiChatPage.voiceChatRateInfo", { price })}
       </p>
 
       {failed && (

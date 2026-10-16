@@ -74,7 +74,7 @@ export function useAppleAuth() {
       const session = await establishSession();
       return { ok: true, created: session.created };
     } catch (err) {
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "apple"));
       return { ok: false };
     } finally {
       setBusy(false);

@@ -61,10 +61,13 @@ export default function DailyRewardLadder() {
 
   const { ladder, currentDay, claimedToday, todayAmountPaise, nextDayAmountPaise } = state;
   // The ladder only exposes each day's total; the bonus-only portion of day 7's amount is the
-  // difference from what the plain +₹1/day progression would have paid — see rewards.service.ts's
-  // amountForDay (base + (day-1)*100, plus the bonus only on day 7).
+  // difference from what the plain daily step would have paid — see rewards.service.ts's
+  // amountForDay (base + (day-1)*step, plus the bonus only on day 7). The step is admin-set
+  // (rewards.dailyStep), so read it off days 1 and 2 rather than assuming ₹1.
   const bonusOnlyPaise =
-    ladder.length === 7 ? ladder[6]!.amountPaise - (ladder[5]!.amountPaise + 100) : 0;
+    ladder.length === 7
+      ? ladder[6]!.amountPaise - (ladder[5]!.amountPaise + (ladder[1]!.amountPaise - ladder[0]!.amountPaise))
+      : 0;
 
   return (
     <Card className="p-5">

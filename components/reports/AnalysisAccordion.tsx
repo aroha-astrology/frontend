@@ -71,6 +71,13 @@ export interface AnalysisAccordionProps {
   sectionIcon: Record<string, string>;
   /** i18n key for the list's heading — each report names its own analysis section. */
   titleKey: string;
+  /**
+   * Where the section headings are translated. Section ids are unique across
+   * reports and share one flat namespace, except match_report's: those are bare
+   * life-area names ("wealth", "health") and live under
+   * `reports.sectionHeading.match_report`.
+   */
+  headingKeyPrefix?: string;
 }
 
 /**
@@ -88,6 +95,7 @@ export default function AnalysisAccordion({
   sections,
   sectionIcon,
   titleKey,
+  headingKeyPrefix = "reports.sectionHeading",
 }: AnalysisAccordionProps) {
   const { t } = useTranslation();
   if (sections.length === 0) return null;
@@ -98,7 +106,7 @@ export default function AnalysisAccordion({
       <div className="flex flex-col gap-2">
         {sections.map((section, i) => {
           const heading = section.id
-            ? t(`reports.sectionHeading.${section.id}`, { defaultValue: section.heading })
+            ? t(`${headingKeyPrefix}.${section.id}`, { defaultValue: section.heading })
             : section.heading;
           const Icon = (section.id && ICONS[sectionIcon[section.id] ?? ""]) || FileText;
 

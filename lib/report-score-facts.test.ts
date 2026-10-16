@@ -17,6 +17,7 @@ import {
   isLifeContext,
   isReportHeader,
   isReportVerdict,
+  isReaderFacingKey,
   type RankedWindow,
   type AgeBand,
   type DecadeBand,
@@ -84,8 +85,8 @@ describe("buildScoreFacts", () => {
   });
 
   it("renders a boolean as a boolean fact", () => {
-    const facts = buildScoreFacts({ isManglik: true });
-    expect(facts).toEqual([{ key: "isManglik", label: "Is Manglik", type: "boolean", value: true }]);
+    const facts = buildScoreFacts({ manglik: true });
+    expect(facts).toEqual([{ key: "manglik", label: "Manglik", type: "boolean", value: true }]);
   });
 
   it("renders a nested object as a nested fact with humanized entry labels", () => {
@@ -99,7 +100,7 @@ describe("buildScoreFacts", () => {
   });
 
   it("renders an array as a nested fact rather than skipping it", () => {
-    const facts = buildScoreFacts({ upcomingWindows: ["2026-08-01", "2026-09-14"] });
+    const facts = buildScoreFacts({ riskFactors: ["2026-08-01", "2026-09-14"] });
     expect(facts).toHaveLength(1);
     expect(facts[0].type).toBe("nested");
   });
@@ -133,8 +134,8 @@ describe("buildScoreFacts", () => {
   });
 
   it("does not crash on a large non-score number and falls back to a raw fact", () => {
-    const facts = buildScoreFacts({ weirdCount: 500 });
-    expect(facts).toEqual([{ key: "weirdCount", label: "Weird Count", type: "raw", value: "500" }]);
+    const facts = buildScoreFacts({ venusHouse: 500 });
+    expect(facts).toEqual([{ key: "venusHouse", label: "Venus House", type: "raw", value: "500" }]);
   });
 
   it("skips null/undefined/empty-string values rather than rendering an empty fact", () => {
@@ -147,16 +148,67 @@ describe("buildScoreFacts", () => {
       marriageScore: 82,
       band: "strong",
       manglik: { isManglik: true, cancelled: true },
-      timingWindows: ["2027-01", "2027-06"],
+      riskFactors: ["2027-01", "2027-06"],
     });
     // marriageScore is dropped — reports show no numeric scores.
     expect(facts).toHaveLength(3);
-    expect(facts.map((f) => f.key)).toEqual(["band", "manglik", "timingWindows"]);
+    expect(facts.map((f) => f.key)).toEqual(["band", "manglik", "riskFactors"]);
   });
 
   it("preserves the original scores object's key order", () => {
-    const facts = buildScoreFacts({ z: "one", a: "two" });
-    expect(facts.map((f) => f.key)).toEqual(["z", "a"]);
+    const facts = buildScoreFacts({ tone: "one", band: "two" });
+    expect(facts.map((f) => f.key)).toEqual(["tone", "band"]);
+  });
+});
+
+describe("a plain value is shown only when its key has a reader-facing label", () => {
+  // What the remedies report printed under "VAKRI FACTS": lines the server writes for the
+  // model and attaches to every report's scores.
+  const VAKRI_FACTS = [
+    "Jupiter is retrograde in house 11 (Virgo) with motional speed -0.1149°/day.",
+    "Jupiter possesses 60 Virupas Cheshta Bala (maximum motional capacity).",
+    "Classical Uttara Kalamrita modifier: enhanced_intensity.",
+  ];
+  const BIRTH_TIME_CAVEAT =
+    'BIRTH TIME NOT KNOWN: this person could only say they were born in the morning. Do NOT state the Ascendant, do NOT say "your Nth house".';
+
+  it("never shows vakriFacts", () => {
+    expect(buildScoreFacts({ band: "steady", vakriFacts: VAKRI_FACTS }).map((f) => f.key)).toEqual(["band"]);
+  });
+
+  it("never shows the birth-time instructions written for the model", () => {
+    const facts = buildScoreFacts({
+      birthTimeCaveat: BIRTH_TIME_CAVEAT,
+      partnerBirthTimeCaveat: `PARTNER — ${BIRTH_TIME_CAVEAT}`,
+    });
+    expect(facts).toEqual([]);
+  });
+
+  it("drops a key nobody has labelled yet, whatever the server adds next", () => {
+    const facts = buildScoreFacts({
+      somethingNewForTheModel: ["A line the reader was never meant to see."],
+      anotherNewThing: { rule: "enhanced_intensity", weight: 3 },
+      aNewFlag: true,
+      aNewCount: 4,
+      aNewWord: "steady",
+    });
+    expect(facts).toEqual([]);
+  });
+
+  it("still shows the designed shapes under any key — they are recognised by structure", () => {
+    const facts = buildScoreFacts({
+      someNewWindows: [sampleWindow],
+      someNewArchetype: sampleArchetype,
+      vakriFacts: VAKRI_FACTS,
+    });
+    expect(facts.map((f) => f.type)).toEqual(["timingWindows", "archetype"]);
+  });
+
+  it("isReaderFacingKey is true only for labelled keys, not for inherited object properties", () => {
+    expect(isReaderFacingKey("band")).toBe(true);
+    expect(isReaderFacingKey("vakriFacts")).toBe(false);
+    expect(isReaderFacingKey("toString")).toBe(false);
+    expect(isReaderFacingKey("constructor")).toBe(false);
   });
 });
 
@@ -291,12 +343,11 @@ describe("cross-matching guard across all 3 array shapes + generic arrays", () =
     expect(isAgeBandArray(conjunctPlanets)).toBe(false);
     expect(isDecadeBandArray(conjunctPlanets)).toBe(false);
 
-    const facts = buildScoreFacts({ conjunctPlanets });
-    expect(facts).toEqual([{ key: "conjunctPlanets", label: "Conjunct Planets", type: "nested", entries: [
+    expect(buildScoreFact("conjunctPlanets", conjunctPlanets)).toEqual({ key: "conjunctPlanets", label: "Conjunct Planets", type: "nested", entries: [
       { label: "1", display: "Mars" },
       { label: "2", display: "Rahu" },
       { label: "3", display: "Ketu" },
-    ] }]);
+    ] });
   });
 
   it("none of the 3 detectors misclassify baby_name's startingSyllables: string[]", () => {
@@ -305,8 +356,7 @@ describe("cross-matching guard across all 3 array shapes + generic arrays", () =
     expect(isAgeBandArray(startingSyllables)).toBe(false);
     expect(isDecadeBandArray(startingSyllables)).toBe(false);
 
-    const facts = buildScoreFacts({ startingSyllables });
-    expect(facts[0].type).toBe("nested");
+    expect(buildScoreFact("startingSyllables", startingSyllables)?.type).toBe("nested");
   });
 });
 
@@ -396,7 +446,7 @@ describe("no regression on pre-existing generic classification", () => {
   });
 
   it("a plain string array still classifies as 'nested', not as one of the 5 new types", () => {
-    const facts = buildScoreFacts({ upcomingWindows: ["2026-08-01", "2026-09-14"] });
+    const facts = buildScoreFacts({ riskFactors: ["2026-08-01", "2026-09-14"] });
     expect(facts[0].type).toBe("nested");
   });
 
@@ -405,7 +455,7 @@ describe("no regression on pre-existing generic classification", () => {
   });
 
   it("a boolean still classifies as 'boolean'", () => {
-    const facts = buildScoreFacts({ isManglik: true });
+    const facts = buildScoreFacts({ manglik: true });
     expect(facts[0].type).toBe("boolean");
   });
 });

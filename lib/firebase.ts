@@ -80,6 +80,11 @@ export function getFirebaseAuth(): Auth {
     // Lets a Playwright test sign in without the phone-OTP UI.
     (window as unknown as { __arohaE2E?: unknown }).__arohaE2E = {
       signIn: (uid: string) => signInWithCustomToken(auth, unsignedEmulatorToken(uid)).then(() => undefined),
+      // connectAuthEmulator swaps reCAPTCHA for Firebase's own mock. A test of
+      // the phone-OTP UI turns that off so the page's `grecaptcha` is used.
+      usePageRecaptcha: () => {
+        auth.settings.appVerificationDisabledForTesting = false;
+      },
     };
   }
   return authInstance;

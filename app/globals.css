@@ -265,7 +265,9 @@
   }
 
   /* ── Daily Stories ring (components/stories/StoryRing.tsx) — the gradient
-     turns slowly and a soft halo breathes behind it while a story is unseen. ── */
+     turns slowly and a soft halo breathes behind it while a story is unseen.
+     The halo is a shadow that starts at its own edge, so it never grows past
+     the ring: any larger and a dark gap opens between the two. ── */
   @keyframes story-ring-spin {
     to { transform: rotate(360deg); }
   }
@@ -273,8 +275,8 @@
     animation: story-ring-spin 5s linear infinite;
   }
   @keyframes story-ring-halo {
-    0%, 100% { opacity: 0.45; transform: scale(1); }
-    50% { opacity: 0.9; transform: scale(1.12); }
+    0%, 100% { opacity: 0.45; transform: scale(0.94); }
+    50% { opacity: 0.9; transform: scale(1); }
   }
   .animate-story-ring-halo {
     animation: story-ring-halo 2.4s ease-in-out infinite;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, ChevronDown, List, Repeat } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Play, Pause, Heart, Flame, ArrowUpDown, ChevronDown, List } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import LanguagePicker from "@/components/LanguagePicker";
 import FeatureGuard from "@/components/FeatureGuard";
@@ -14,7 +14,16 @@ import { tagMeta } from "@/components/shlokas/tag-meta";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, IMG_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
 import { getFavs, toggleFav, getHistory, playShlokaAudio, pauseShlokaAudio, isShlokaAudioPlaying } from "@/lib/shlokas-prefs";
-import { CATEGORY_GLOSS, CATEGORY_ORDER, TAG_GLOSS, gitaAudioUrl, loadGitaVerses, type GitaVerse } from "@/lib/gita";
+import {
+  CATEGORY_GLOSS,
+  CATEGORY_ORDER,
+  TAG_GLOSS,
+  gitaChantHref,
+  gitaImage,
+  loadGitaVerses,
+  splitGitaVerse,
+  type GitaVerse,
+} from "@/lib/gita";
 
 /**
  * The Shlokas & Japs library — reproduces the reference mockup's list screen
@@ -98,52 +107,67 @@ function ShlokaRow({
   );
 }
 
-/** Mirrors ShlokaRow's shell exactly (numbered badge, first line, tag pills,
- * play button) so the Gita tab reads as the same list, not a bolted-on
- * second UI. No favorite heart — favorites weren't asked for on Gita, and
- * lib/shlokas-prefs.ts's favorites store is keyed by shloka slug, a
- * different id space than "ch2-v47". */
-function GitaRow({ v, playing, onTogglePlay }: { v: GitaVerse; playing: boolean; onTogglePlay: () => void }) {
+/** A Gita verse in the list: art, the verse number and who speaks, the verse
+ * itself (not just its first line, which for a speech is only "अर्जुन उवाच")
+ * and its theme. Play and the card both open the chant screen with the bead
+ * counter. No favorite heart — lib/shlokas-prefs.ts's favorites store is
+ * keyed by shloka slug, a different id space than "ch2-v47". */
+function GitaRow({ v }: { v: GitaVerse }) {
   const { t } = useTranslation();
+  const { speaker, lines } = splitGitaVerse(v.sanskrit);
+  const href = gitaChantHref(v.id);
+  const gloss = CATEGORY_GLOSS[v.mainCategory];
   return (
-    <div className="rounded-2xl border border-gold/15 bg-card p-4 flex gap-3">
-      <div className="min-w-9 px-1 h-7 rounded-full border border-gold/30 flex items-center justify-center text-[10px] text-gold font-medium shrink-0 mt-0.5">
-        {v.chapter}.{v.verse}
-      </div>
-
-      <Link href={`/gita/${v.id}`} className="min-w-0 flex-1">
-        <p className="font-devanagari text-base text-foreground truncate">{v.sanskrit.split("\n")[0]}</p>
-        {v.tags.length > 0 && (
-          <div className="flex gap-1.5 mt-2">
-            {v.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-gold/20 text-muted"
-              >
-                {TAG_GLOSS[tag] ?? tag}
+    <div className="rounded-2xl border border-gold/15 bg-card p-3 flex gap-3" data-testid="gita-row">
+      <Link href={href} className="min-w-0 flex-1 flex gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={gitaImage(v)}
+          alt=""
+          loading="lazy"
+          className="w-14 h-20 rounded-xl object-cover object-top border border-gold/20 shrink-0"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 h-5 rounded-full border border-gold/30 flex items-center text-[10px] text-gold font-medium shrink-0">
+              {v.chapter}.{v.verse}
+            </span>
+            {speaker && (
+              <span className="text-[11px] text-gold/80 truncate" data-testid="gita-speaker">
+                {t(`gita.speaker.${speaker}`)}
               </span>
-            ))}
+            )}
           </div>
-        )}
+          <p className="mt-1.5 font-devanagari text-[15px] leading-relaxed text-foreground whitespace-pre-line line-clamp-3">
+            {lines.join("\n")}
+          </p>
+          {(gloss || v.tags.length > 0) && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {gloss && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-gold/20 text-muted">
+                  {gloss}
+                </span>
+              )}
+              {v.tags.slice(0, 1).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-gold/20 text-muted font-devanagari"
+                >
+                  {TAG_GLOSS[tag] ?? tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </Link>
 
-      <div className="flex flex-col items-center gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={onTogglePlay}
-          aria-label={t(playing ? "shlokas.pauseAria" : "shlokas.playAria")}
-          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
-        >
-          {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
-        </button>
-        <Link
-          href={`/shlokas/mala?verse=${v.id}&type=gita`}
-          aria-label={t("shlokas.chantAria")}
-          className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold"
-        >
-          <Repeat size={14} />
-        </Link>
-      </div>
+      <Link
+        href={href}
+        aria-label={t("shlokas.chantAria")}
+        className="w-9 h-9 rounded-full border border-gold/30 flex items-center justify-center text-gold shrink-0 self-center"
+      >
+        <Play size={14} className="ml-0.5" />
+      </Link>
     </div>
   );
 }
@@ -170,7 +194,6 @@ function ShlokasLibrary() {
   const [gitaVerses, setGitaVerses] = useState<GitaVerse[] | null>(null);
   const [gitaFailed, setGitaFailed] = useState(false);
   const [gitaCategory, setGitaCategory] = useState<string | null>(null);
-  const [gitaPlayingId, setGitaPlayingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadShlokas().then(setShlokas).catch(() => setFailed(true));
@@ -234,17 +257,6 @@ function ShlokasLibrary() {
     }
     playShlokaAudio(src, () => setPlayingSlug(null));
     setPlayingSlug(shloka.slug);
-  }
-
-  function handleGitaTogglePlay(v: GitaVerse) {
-    const src = gitaAudioUrl(v.id);
-    if (isShlokaAudioPlaying(src)) {
-      pauseShlokaAudio();
-      setGitaPlayingId(null);
-      return;
-    }
-    playShlokaAudio(src, () => setGitaPlayingId(null));
-    setGitaPlayingId(v.id);
   }
 
   function handleTabSelect(tab: ShlokaTab) {
@@ -422,12 +434,7 @@ function ShlokasLibrary() {
 
                 <div className="space-y-3 page-grid">
                   {gitaVisible.map((v) => (
-                    <GitaRow
-                      key={v.id}
-                      v={v}
-                      playing={gitaPlayingId === v.id}
-                      onTogglePlay={() => handleGitaTogglePlay(v)}
-                    />
+                    <GitaRow key={v.id} v={v} />
                   ))}
                 </div>
               </>

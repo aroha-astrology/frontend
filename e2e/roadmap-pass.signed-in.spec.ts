@@ -74,6 +74,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("silver")).toHaveText([
       "15 questions to Aroha every 30 days",
       "10% off every report",
+      "Voice call with Yogi Baba: 3 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
     ]);
@@ -90,6 +91,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("gold")).toHaveText([
       "30 questions to Aroha every 30 days",
       "20% off every report",
+      "Voice call with Yogi Baba: 3 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
       "Decision Astrology and Find My Date results",
@@ -103,6 +105,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("platinum")).toHaveText([
       "60 questions to Aroha every 30 days",
       "30% off every report",
+      "Voice call with Yogi Baba: 3 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
       "Decision Astrology and Find My Date results",

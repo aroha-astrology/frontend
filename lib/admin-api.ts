@@ -435,6 +435,36 @@ export interface AdminDeletionActionResponse {
   deletionRequestedAt: string | null;
 }
 
+// ─── Gemini Keys ───────────────────────────────────────────────────────────
+
+export type GeminiKeyTier = "free" | "paid";
+
+export interface AdminGeminiKeyRow {
+  id: string;
+  name: string;
+  tier: GeminiKeyTier;
+  /** "env" = from the server's .env (switch off only); "admin" = pasted on this page (deletable). */
+  source: "env" | "admin";
+  enabled: boolean;
+  /** 1 = the paid key tried first. Null for a free key. */
+  paidPosition: number | null;
+  last4: string;
+  /** False for a .env key that has since been removed from .env. */
+  available: boolean;
+  coolingDown: boolean;
+  lastTestedAt: string | null;
+  lastTestOk: boolean | null;
+  lastTestMessage: string | null;
+  createdAt: string;
+}
+
+export interface GeminiKeyTestResult {
+  ok: boolean;
+  status: number | null;
+  latencyMs: number;
+  message: string;
+}
+
 // ─── Gift Campaigns ────────────────────────────────────────────────────────
 
 export interface AdminGiftCampaignRow {
@@ -715,6 +745,32 @@ export const adminApi = {
   /** Irreversible hard delete — no shell row survives. */
   hardDeleteUser: (userId: string) =>
     request<{ id: string }>(`/v1/admin/deletion-requests/${userId}`, { method: "DELETE", auth: true }),
+
+  /** Every Gemini key: free ones, then paid ones in the order they are tried. */
+  listGeminiKeys: () => request<{ keys: AdminGeminiKeyRow[] }>("/v1/admin/gemini-keys", { auth: true }),
+
+  /** Paste a new key (stored encrypted on the server). */
+  addGeminiKey: (body: { name: string; tier: GeminiKeyTier; key: string }) =>
+    request<AdminGeminiKeyRow>("/v1/admin/gemini-keys", { method: "POST", body, auth: true }),
+
+  /** Rename, switch on/off, or move a key between free and paid. */
+  updateGeminiKey: (id: string, body: { name?: string; tier?: GeminiKeyTier; enabled?: boolean }) =>
+    request<AdminGeminiKeyRow>(`/v1/admin/gemini-keys/${id}`, { method: "PATCH", body, auth: true }),
+
+  /** Make a paid key the first one used once the free keys run out. Returns the reordered list. */
+  useGeminiKeyFirst: (id: string) =>
+    request<{ keys: AdminGeminiKeyRow[] }>(`/v1/admin/gemini-keys/${id}/use-first`, {
+      method: "POST",
+      auth: true,
+    }),
+
+  /** One tiny real request on this key (a paid key is billed a few tokens). */
+  testGeminiKey: (id: string) =>
+    request<GeminiKeyTestResult>(`/v1/admin/gemini-keys/${id}/test`, { method: "POST", auth: true }),
+
+  /** Delete a pasted key (keys from .env can only be switched off). */
+  deleteGeminiKey: (id: string) =>
+    request<{ deleted: true }>(`/v1/admin/gemini-keys/${id}`, { method: "DELETE", auth: true }),
 
   /** All gift campaigns, newest first. */
   listGiftCampaigns: () =>

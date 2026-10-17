@@ -44,6 +44,7 @@ function useNativeShellCheck(): NativeCheck {
 const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/features", label: "Features" },
+  { href: "/admin/gemini-keys", label: "Gemini Keys" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/active-users", label: "Active Users" },
   { href: "/admin/groups", label: "Groups" },

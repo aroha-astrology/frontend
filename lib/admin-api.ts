@@ -340,6 +340,37 @@ export interface AdminRecurringUsersResponse {
   weeks: AdminRecurringUsersWeek[];
 }
 
+// ─── Left during onboarding ────────────────────────────────────────────────
+
+export interface AdminOnboardingDropoff {
+  id: string;
+  displayName: string | null;
+  email: string | null;
+  phoneE164: string | null;
+  signInMethod: "phone" | "email";
+  createdAt: string;
+  lastActiveAt: string | null;
+  minutesActive: number;
+  activeDays: number;
+  /** The onboarding question they were on (app/onboarding ONBOARDING_STEP_NAMES); null for sign-ups before step saving shipped. */
+  lastStep: string | null;
+  language: string | null;
+  platform: string | null;
+  country: string | null;
+  city: string | null;
+  /** Google's own test devices: Firebase Test Lab, or the Play review-device email pattern. */
+  likelyTest: "test_lab" | "play_review" | null;
+}
+
+export interface AdminOnboardingDropoffs {
+  days: number;
+  signedUp: number;
+  finished: number;
+  left: number;
+  likelyTest: number;
+  users: AdminOnboardingDropoff[];
+}
+
 // ─── Retention ─────────────────────────────────────────────────────────────
 
 export interface AdminRetentionRate {
@@ -485,6 +516,10 @@ export const adminApi = {
         (params.userId ? `&userId=${encodeURIComponent(params.userId)}` : ""),
       { auth: true },
     ),
+
+  /** Sign-ups in the last `days` days who left without finishing onboarding, newest first. */
+  onboardingDropoffs: (days: number) =>
+    request<AdminOnboardingDropoffs>(`/v1/admin/onboarding-dropoffs?days=${days}`, { auth: true }),
 
   /** Daily Stories: visitors, views per story and share taps by channel, for the same range as the overview. */
   storyStats: (params: AdminDateRangeParams) =>

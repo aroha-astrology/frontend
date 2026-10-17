@@ -35,6 +35,7 @@ import CostSplitBar from "@/components/admin/CostSplitBar";
 import PassStatsCard from "@/components/admin/PassStatsCard";
 import PassLaunchCard from "@/components/admin/PassLaunchCard";
 import StoryStatsCard from "@/components/admin/StoryStatsCard";
+import OnboardingDropoffsCard from "@/components/admin/OnboardingDropoffsCard";
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -437,6 +438,8 @@ function AdminOverviewContent() {
             <PassLaunchCard />
 
             <StoryStatsCard range={range} canFetch={canFetch} />
+
+            <OnboardingDropoffsCard />
 
             <section className="mb-8">
               <h2 className="text-sm font-semibold text-foreground mb-3">Revenue Over Time</h2>

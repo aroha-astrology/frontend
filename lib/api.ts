@@ -234,6 +234,9 @@ export interface UpdateMeBody {
   locale?: string;
   relationshipStatus?: string;
   onboardingStatus?: string;
+  /** The onboarding question the reader has reached (app/onboarding ONBOARDING_STEP_NAMES), or "done". */
+  onboardingStep?: string;
+  platform?: "web" | "android" | "ios";
   consent?: ConsentInput;
   referredByCode?: string;
   referralSource?: string;

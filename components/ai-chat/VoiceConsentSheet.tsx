@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Mic } from "lucide-react";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import { PASS_VOICE_FREE_MINUTES_RANGE } from "@/lib/pass-api";
 
 /**
  * One-time opt-in shown before a user's first voice session.
@@ -63,7 +64,7 @@ export default function VoiceConsentSheet({
       }
     >
       <p className="text-sm leading-relaxed text-[var(--text-muted)] mb-4">
-        {t("aiChatPage.voiceChatConsentBody", { price })}
+        {t("aiChatPage.voiceChatConsentBody", { price, minutes: PASS_VOICE_FREE_MINUTES_RANGE })}
       </p>
 
       {trialMinutes ? (
@@ -73,7 +74,7 @@ export default function VoiceConsentSheet({
       ) : null}
 
       <p className="text-xs text-[var(--text-muted)]/80 mb-4">
-        {t("aiChatPage.voiceChatRateInfo", { price })}
+        {t("aiChatPage.voiceChatRateInfo", { price, minutes: PASS_VOICE_FREE_MINUTES_RANGE })}
       </p>
 
       {failed && (

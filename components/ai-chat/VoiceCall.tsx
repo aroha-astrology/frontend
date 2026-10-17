@@ -7,7 +7,7 @@ import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import PassLock from "@/components/pass/PassLock";
 import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { formatRupees } from "@/lib/format";
-import { PASS_VOICE_FREE_MINUTES, VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
+import { PASS_VOICE_FREE_MINUTES_RANGE, VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
 import VoiceCallFeedbackSheet from "./VoiceCallFeedbackSheet";
 import VoiceCallOverlay from "./VoiceCallOverlay";
 import VoiceConsentSheet from "./VoiceConsentSheet";
@@ -54,7 +54,7 @@ export default function VoiceCall({ locale }: { locale: string }) {
       <button
         onClick={start}
         aria-label={t("aiChatPage.voiceChatStart")}
-        title={t("aiChatPage.voiceChatRateInfo", { price })}
+        title={t("aiChatPage.voiceChatRateInfo", { price, minutes: PASS_VOICE_FREE_MINUTES_RANGE })}
         className={`relative h-10 w-10 shrink-0 rounded-full border flex items-center justify-center text-gold transition-colors active:bg-gold/10${showBubble ? " ring-2 ring-yellow-500/70 animate-pulse" : ""}`}
         style={{ borderColor: "var(--border)" }}
       >
@@ -106,7 +106,7 @@ export default function VoiceCall({ locale }: { locale: string }) {
           <PassLock
             feature={t("aiChatPage.voiceChatTitle")}
             need="voiceCall"
-            note={t("pass.lock.voiceTerms", { minutes: PASS_VOICE_FREE_MINUTES, price })}
+            note={t("pass.lock.voiceTerms", { minutes: PASS_VOICE_FREE_MINUTES_RANGE, price })}
             className="border-0 p-0"
           />
         </BottomSheetModal>

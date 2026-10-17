@@ -15,8 +15,12 @@ export type PassFeature =
   | "relocation"
   | "voiceCall";
 
-/** Free voice-call minutes every Pass gives each period. Mirrors backend modules/pass/pass.config.ts. */
-export const PASS_VOICE_FREE_MINUTES = 3;
+/**
+ * Free voice-call minutes a Pass gives each period, for text that doesn't know
+ * the tier: Silver 10, Gold 15, Platinum 20 (backend PASS_TIERS voiceFreeMinutes,
+ * 2026-10-17). Where the tier is known, use its `voiceFreeMinutes`.
+ */
+export const PASS_VOICE_FREE_MINUTES_RANGE = "10–20";
 
 /** Free voice-call minutes every user gets once, Pass or not. Mirrors backend VOICE_TRIAL_MINUTES. */
 export const VOICE_TRIAL_MINUTES = 3;
@@ -24,6 +28,8 @@ export const VOICE_TRIAL_MINUTES = 3;
 /** What one tier gives. */
 export interface PassTierBenefits {
   questionsPerPeriod: number;
+  /** Free voice-call minutes per period (Silver 10, Gold 15, Platinum 20). Absent from a server older than 2026-10-17. */
+  voiceFreeMinutes?: number;
   reportDiscountPct: number;
   features: PassFeature[];
 }

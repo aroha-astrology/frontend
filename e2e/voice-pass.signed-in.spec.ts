@@ -35,10 +35,11 @@ test("someone without a Pass who taps the call icon gets the Pass lock, not an e
   await expect(lock).toBeVisible();
   // Every tier includes voice call, so the lock names the Pass, not a tier.
   await expect(lock.getByText("Voice Chat is part of Aroha Pass")).toBeVisible();
-  await expect(lock.getByText("Voice call with Yogi Baba: 3 free minutes every month")).toBeVisible();
+  // The lock recommends Silver, whose own minutes it lists.
+  await expect(lock.getByText("Voice call with Yogi Baba: 10 free minutes every month")).toBeVisible();
   // What a Pass gives for calls, and what a minute costs after the free ones.
   await expect(
-    lock.getByText("Every Pass includes 3 free minutes each month. After that it is ₹20 a minute from your wallet."),
+    lock.getByText("Every Pass includes 10–20 free minutes each month. After that it is ₹20 a minute from your wallet."),
   ).toBeVisible();
   await expect(lock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
 
@@ -68,11 +69,11 @@ test("the consent sheet states the Pass price rule and the 10-second silence rul
   await expect(page.getByText("Start a voice conversation")).toBeVisible();
   // One paragraph carries both: what it costs, and when the call hangs up on its own.
   await expect(
-    page.getByText(/3 free minutes each Pass month, then ₹20 a minute from your wallet.*The call ends if you do not speak for 10 seconds\./),
+    page.getByText(/10–20 free minutes each Pass month, then ₹20 a minute from your wallet.*The call ends if you do not speak for 10 seconds\./),
   ).toBeVisible();
   // Minimizing no longer ends it, and the sheet must not say it does.
   await expect(page.getByText(/minimi[sz]e/i)).toHaveCount(0);
-  await expect(page.getByText("With Aroha Pass: 3 free minutes each month, then ₹20/min")).toBeVisible();
+  await expect(page.getByText("With Aroha Pass: 10–20 free minutes each month, then ₹20/min")).toBeVisible();
   // The old ceiling is gone from the wording.
   await expect(page.getByText(/3 min max|15-minute/)).toHaveCount(0);
 });

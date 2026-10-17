@@ -651,6 +651,8 @@ export interface TopUpAmount {
   amountPaise: number;
   currency: string;
   label: string;
+  /** Extra wallet money on top of amountPaise (pay ₹250 get ₹350); absent when the pack has no offer. */
+  bonusPaise?: number;
   popular?: boolean;
 }
 

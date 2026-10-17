@@ -33,6 +33,7 @@ function TopUpCard({
   onSelect: () => void;
 }) {
   const { t } = useTranslation();
+  const bonus = amount.bonusPaise ?? 0;
   return (
     <button
       onClick={onSelect}
@@ -51,6 +52,16 @@ function TopUpCard({
         <Sparkles size={14} className="text-gold" />
         <span className="text-lg font-bold text-gold">{formatRupees(amount.amountPaise)}</span>
       </div>
+      {bonus > 0 && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">
+            {t("payment.getAmount", { amount: formatRupees(amount.amountPaise + bonus) })}
+          </span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+            {t("payment.extraAmount", { amount: formatRupees(bonus) })}
+          </span>
+        </div>
+      )}
     </button>
   );
 }
@@ -161,7 +172,7 @@ export default function PaymentPage() {
 
       await refreshUser();
       track("topup_succeeded", { amountPaise: selectedAmount.amountPaise, method });
-      setSuccess({ walletBalancePaise: selectedAmount.amountPaise });
+      setSuccess({ walletBalancePaise: selectedAmount.amountPaise + (selectedAmount.bonusPaise ?? 0) });
     } catch (err) {
       const isUserCancelled =
         err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
@@ -256,6 +267,14 @@ export default function PaymentPage() {
                   <span>{t("payment.total")}</span>
                   <span className="text-gold">{formatRupees(selectedAmount.amountPaise)}</span>
                 </div>
+                {(selectedAmount.bonusPaise ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm mt-2 text-muted">
+                    <span>{t("payment.walletGets")}</span>
+                    <span className="font-semibold text-emerald-400">
+                      {formatRupees(selectedAmount.amountPaise + (selectedAmount.bonusPaise ?? 0))}
+                    </span>
+                  </div>
+                )}
               </Card>
             )}
 

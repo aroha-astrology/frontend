@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { adminApi, type AdminFeatureRow } from "@/lib/admin-api";
+import { adminApi, type AdminFeatureRow, type FeatureAudience } from "@/lib/admin-api";
 import { ApiError } from "@/lib/api";
 import {
+  AUDIENCE_LABELS,
+  audienceOf,
+  filterFeaturesByAudience,
   filterFeaturesForBoard,
   groupFeaturesByGroup,
   isNewFeature,
@@ -17,6 +20,10 @@ import FeatureGroupSection from "@/components/admin/FeatureGroupSection";
 import FeatureRow from "@/components/admin/FeatureRow";
 import AdminPriceField from "@/components/admin/AdminPriceField";
 import ModelSelect from "@/components/admin/ModelSelect";
+import AudienceSelect from "@/components/admin/AudienceSelect";
+
+type AudienceFilter = "every" | FeatureAudience;
+const AUDIENCE_FILTERS: AudienceFilter[] = ["every", "classic", "cosmic", "all"];
 
 /** Empty string means "no draft typed yet" — same as an empty Original Price field. */
 function originalPriceDraft(paise: number | null): string {
@@ -32,6 +39,7 @@ export default function AdminFeaturesPage() {
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
   const [originalPriceDrafts, setOriginalPriceDrafts] = useState<Record<string, string>>({});
   const [newOnly, setNewOnly] = useState(false);
+  const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>("every");
 
   const fetchFeatures = useCallback(() => {
     setLoading(true);
@@ -87,6 +95,29 @@ export default function AdminFeaturesPage() {
     } catch (err) {
       setFeatures(previous);
       setRowError(row.key, err instanceof ApiError ? err.message : "Failed to update");
+    } finally {
+      setSaving(row.key, false);
+    }
+  }
+
+  async function handleAudienceChange(row: AdminFeatureRow, next: FeatureAudience) {
+    if (!features) return;
+    const previous = features;
+    setSaving(row.key, true);
+    setRowError(row.key, null);
+    setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? { ...f, audience: next } : f)));
+    try {
+      const updated = await adminApi.updateFeature({
+        key: row.key,
+        enabled: row.enabled,
+        pricePaise: row.pricePaise,
+        originalPricePaise: row.originalPricePaise,
+        audience: next,
+      });
+      setFeatures((fs) => fs && fs.map((f) => (f.key === row.key ? updated : f)));
+    } catch (err) {
+      setFeatures(previous);
+      setRowError(row.key, err instanceof ApiError ? err.message : "Failed to update who sees it");
     } finally {
       setSaving(row.key, false);
     }
@@ -188,7 +219,8 @@ export default function AdminFeaturesPage() {
       <h1 className="text-xl font-semibold text-gold mb-1">Features</h1>
       <p className="text-xs text-muted mb-6">
         Global kill-switches for nav tabs, home cards, paid features, and reports. Changes take effect immediately for
-        every user (subject to per-group overrides — see Groups).
+        every user (subject to per-group overrides — see Groups). Under each feature you pick who sees it: Everyone,
+        the Indian look only, or the International look only. A feature switched on for a group ignores that choice.
       </p>
 
       {loading && !features && <p className="text-sm text-muted text-center py-10">Loading…</p>}
@@ -204,7 +236,27 @@ export default function AdminFeaturesPage() {
               here, or for one group under Groups, to try it.
             </label>
           )}
-          {groupFeaturesByGroup(filterFeaturesForBoard(features, newOnly)).map(({ group, items }) => (
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-muted" data-testid="audience-filter">
+            <span>Show features for:</span>
+            {AUDIENCE_FILTERS.map((f) => {
+              const count = filterFeaturesByAudience(features, f).length;
+              const active = f === audienceFilter;
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setAudienceFilter(f)}
+                  className={`rounded-full border px-3 py-1 font-medium transition-colors ${
+                    active ? "border-gold/40 bg-gold/15 text-gold" : "border-border hover:text-foreground"
+                  }`}
+                >
+                  {f === "every" ? "All" : f === "all" ? "Everyone only" : `${AUDIENCE_LABELS[f]} only`} ({count})
+                </button>
+              );
+            })}
+          </div>
+          {groupFeaturesByGroup(filterFeaturesByAudience(filterFeaturesForBoard(features, newOnly), audienceFilter)).map(({ group, items }) => (
             <FeatureGroupSection key={group} group={group}>
               {items.map((row) => (
                 <FeatureRow
@@ -213,6 +265,15 @@ export default function AdminFeaturesPage() {
                   featureKey={row.key}
                   isNew={isNewFeature(row)}
                   error={rowErrors[row.key]}
+                  audience={
+                    <AudienceSelect
+                      featureKey={row.key}
+                      value={audienceOf(row)}
+                      defaultValue={row.defaultAudience ?? "all"}
+                      disabled={savingKeys.has(row.key)}
+                      onChange={(next) => handleAudienceChange(row, next)}
+                    />
+                  }
                   priceEditor={
                     row.modelOptions.length > 0 ? (
                       <ModelSelect

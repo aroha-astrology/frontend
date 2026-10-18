@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { coinify } from "./money";
 // The referral share link sends people to the Play Store listing, not the web
 // app, so a friend without the app installed lands on "install" rather than a
 // browser tab.
@@ -144,8 +145,8 @@ export function buildReferralShareText(
   t: TFunction,
   code: string,
   amounts: { referrerBonus: string; refereeBonus: string } = {
-    referrerBonus: "₹100",
-    refereeBonus: "₹50",
+    referrerBonus: coinify("₹100"),
+    refereeBonus: coinify("₹50"),
   },
   festivalTitle?: string,
 ): string {

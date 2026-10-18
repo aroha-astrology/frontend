@@ -10,6 +10,7 @@ import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/providers/auth-provider";
 import { formatRupees } from "@/lib/format";
+import { formatFiat } from "@/lib/money";
 import WalletBalance from "@/components/ui/WalletBalance";
 import PassSummaryCard from "@/components/pass/PassSummaryCard";
 import { api, ApiError, type TopUpAmount } from "@/lib/api";
@@ -23,6 +24,11 @@ function toIndianMobile(phone: string): string {
   return digits.length > 10 ? digits.slice(-10) : digits;
 }
 
+/** What a pack puts in the wallet, in paise: a coin pack its coins, an older top-up its amount plus bonus. */
+function creditPaiseOf(amount: TopUpAmount): number {
+  return amount.coins != null ? amount.coins * 100 : amount.amountPaise + (amount.bonusPaise ?? 0);
+}
+
 function TopUpCard({
   amount,
   selected,
@@ -34,6 +40,44 @@ function TopUpCard({
 }) {
   const { t } = useTranslation();
   const bonus = amount.bonusPaise ?? 0;
+  // A coin pack: what you GET is the headline and the real price sits beside it. The price is
+  // always real money (formatFiat), never coins: it is what the payment will charge.
+  if (amount.coins != null) {
+    return (
+      <button
+        onClick={onSelect}
+        data-testid={`pack-${amount.id}`}
+        className={`relative w-full text-left p-4 rounded-2xl border transition-all ${
+          selected
+            ? "border-gold bg-gold/10 shadow-[0_0_20px_rgba(223,181,100,0.15)]"
+            : "border-gold/15 bg-surface/40 hover:border-gold/35"
+        }`}
+      >
+        {amount.popular && (
+          <span className="absolute -top-2.5 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gold text-[#1a0e00]">
+            {t("payment.popular")}
+          </span>
+        )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Sparkles size={14} className="text-gold shrink-0" />
+            <span className="text-lg font-bold text-gold truncate">{formatRupees(amount.coins * 100)}</span>
+          </div>
+          <span className="text-sm font-semibold text-foreground shrink-0" data-testid={`price-${amount.id}`}>
+            {formatFiat(amount.amountPaise, amount.currency)}
+          </span>
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          {amount.name && <span className="text-xs text-muted">{amount.name}</span>}
+          {bonus > 0 && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+              {t("payment.bonusCoins", { amount: formatRupees(bonus) })}
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  }
   return (
     <button
       onClick={onSelect}
@@ -50,7 +94,7 @@ function TopUpCard({
       )}
       <div className="flex items-center gap-1.5">
         <Sparkles size={14} className="text-gold" />
-        <span className="text-lg font-bold text-gold">{formatRupees(amount.amountPaise)}</span>
+        <span className="text-lg font-bold text-gold">{formatFiat(amount.amountPaise, amount.currency)}</span>
       </div>
       {bonus > 0 && (
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -74,6 +118,13 @@ export default function PaymentPage() {
   const [amounts, setAmounts] = useState<TopUpAmount[]>([]);
   const [packsLoading, setPacksLoading] = useState(true);
   const [selectedAmountId, setSelectedAmountId] = useState<string | null>(null);
+  // The currency the website charges in: the server picks one from the buyer's country, and offers
+  // the others while money.razorpayIntl is on. The Play sheet always shows Google's own local price.
+  const [currencies, setCurrencies] = useState<string[]>(["INR"]);
+  // What the user picked (undefined until they pick one: the server then chooses), and what the
+  // server actually quoted, which is what the chips highlight.
+  const [chosenCurrency, setChosenCurrency] = useState<string | undefined>(undefined);
+  const [quotedCurrency, setQuotedCurrency] = useState<string | undefined>(undefined);
 
   const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [playAvailable, setPlayAvailable] = useState(false);
@@ -85,16 +136,23 @@ export default function PaymentPage() {
   const [success, setSuccess] = useState<{ walletBalancePaise: number } | null>(null);
 
   useEffect(() => {
+    setPacksLoading(true);
     api
-      .billingTopUpAmounts()
-      .then(({ amounts, razorpayEnabled }) => {
+      .billingTopUpAmounts(chosenCurrency)
+      .then(({ amounts, razorpayEnabled, currency: quoted, currencies: offered }) => {
         setAmounts(amounts);
         setRazorpayEnabled(Boolean(razorpayEnabled));
-        setSelectedAmountId((prev) => prev ?? amounts.find((p) => p.popular)?.id ?? amounts[0]?.id ?? null);
+        setCurrencies(offered && offered.length > 0 ? offered : ["INR"]);
+        setQuotedCurrency(quoted);
+        setSelectedAmountId((prev) =>
+          prev && amounts.some((p) => p.id === prev)
+            ? prev
+            : (amounts.find((p) => p.popular)?.id ?? amounts[0]?.id ?? null),
+        );
       })
       .catch(() => setAmounts([]))
       .finally(() => setPacksLoading(false));
-  }, []);
+  }, [chosenCurrency]);
 
   // Inside the Android app money is added with Google Play Billing. In a plain
   // browser tab (app.arohaastrology.in) it is Razorpay. The iOS build offers
@@ -143,12 +201,17 @@ export default function PaymentPage() {
           productId: purchase.productId,
         });
       } else {
-        const { order, razorpayOrderId, razorpayKeyId } = await api.razorpayCheckout(selectedAmount.id);
+        const { order, razorpayOrderId, razorpayKeyId } = await api.razorpayCheckout(
+          selectedAmount.id,
+          // Only a coin pack is charged in a chosen currency; an older top-up is always rupees.
+          selectedAmount.coins != null ? selectedAmount.currency : undefined,
+        );
         const { payWithRazorpay } = await import("@/lib/razorpay");
         const result = await payWithRazorpay({
           keyId: razorpayKeyId,
           razorpayOrderId,
-          amountPaise: order.finalAmountPaise,
+          // What is charged, in the order's own currency (a dollar order is not its rupee list price).
+          amountPaise: order.chargedMinor ?? order.finalAmountPaise,
           currency: order.currency,
           name: "Aroha Astrology",
           description: t("payment.rechargeDescription"),
@@ -172,7 +235,7 @@ export default function PaymentPage() {
 
       await refreshUser();
       track("topup_succeeded", { amountPaise: selectedAmount.amountPaise, method });
-      setSuccess({ walletBalancePaise: selectedAmount.amountPaise + (selectedAmount.bonusPaise ?? 0) });
+      setSuccess({ walletBalancePaise: creditPaiseOf(selectedAmount) });
     } catch (err) {
       const isUserCancelled =
         err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
@@ -241,6 +304,25 @@ export default function PaymentPage() {
               {t("payment.selectPack")}
             </p>
 
+            {razorpayAvailable && currencies.length > 1 && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted" data-testid="pay-currency">
+                <span>{t("payment.payIn")}</span>
+                {currencies.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={c === quotedCurrency}
+                    onClick={() => setChosenCurrency(c)}
+                    className={`rounded-full border px-3 py-1 font-semibold transition-colors ${
+                      c === quotedCurrency ? "border-gold bg-gold/15 text-gold" : "border-gold/20 hover:border-gold/40"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {packsLoading ? (
               <div className="flex justify-center py-10">
                 <Loader2 size={24} className="animate-spin text-gold" />
@@ -262,13 +344,13 @@ export default function PaymentPage() {
               <Card className="p-4 mb-4">
                 <div className="flex justify-between text-sm font-bold text-foreground">
                   <span>{t("payment.total")}</span>
-                  <span className="text-gold">{formatRupees(selectedAmount.amountPaise)}</span>
+                  <span className="text-gold">{formatFiat(selectedAmount.amountPaise, selectedAmount.currency)}</span>
                 </div>
                 {(selectedAmount.bonusPaise ?? 0) > 0 && (
                   <div className="flex justify-between text-sm mt-2 text-muted">
                     <span>{t("payment.walletGets")}</span>
                     <span className="font-semibold text-emerald-400">
-                      {formatRupees(selectedAmount.amountPaise + (selectedAmount.bonusPaise ?? 0))}
+                      {formatRupees(creditPaiseOf(selectedAmount))}
                     </span>
                   </div>
                 )}
@@ -310,7 +392,9 @@ export default function PaymentPage() {
                 </>
               ) : (
                 selectedAmount &&
-                t("payment.payButton", { amount: formatRupees(selectedAmount.amountPaise).replace("₹", "") })
+                (selectedAmount.currency === "INR"
+                  ? t("payment.payButton", { amount: (selectedAmount.amountPaise / 100).toFixed(0) })
+                  : t("payment.payAmount", { price: formatFiat(selectedAmount.amountPaise, selectedAmount.currency) }))
               )}
             </button>
 

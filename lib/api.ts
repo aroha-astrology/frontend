@@ -659,6 +659,22 @@ export interface TopUpAmount {
   /** Extra wallet money on top of amountPaise (pay ₹250 get ₹350); absent when the pack has no offer. */
   bonusPaise?: number;
   popular?: boolean;
+  /** Coin packs only: the coins the pack gives in all (paid + bonus). Then `amountPaise` is the PRICE in the minor unit of `currency`, not wallet money. */
+  coins?: number;
+  /** Coin packs only: the pack's display name. */
+  name?: string;
+}
+
+/** The pack list for the payment screen. */
+export interface TopUpListing {
+  amounts: TopUpAmount[];
+  razorpayEnabled?: boolean;
+  /** True when `amounts` are the coin packs (switch money.coinPacks). Absent on an older backend. */
+  coinPacks?: boolean;
+  /** The currency the prices are quoted in. */
+  currency?: string;
+  /** Currencies the website can charge in right now (only INR until money.razorpayIntl is on). */
+  currencies?: string[];
 }
 
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
@@ -670,6 +686,8 @@ export interface Order {
   discountPaise: number;
   finalAmountPaise: number;
   currency: string;
+  /** What the buyer is charged, in the minor unit of `currency`; null on an order from before coin packs. */
+  chargedMinor?: number | null;
   couponCode: string | null;
   status: OrderStatus;
   gatewayProvider: string;
@@ -1423,10 +1441,11 @@ export const api = {
   signupBonus: () => request<{ amountPaise: number }>("/v1/public/signup-bonus"),
 
   /** Purchasable top-up amounts. */
-  billingTopUpAmounts: () =>
-    request<{ amounts: TopUpAmount[]; razorpayEnabled?: boolean }>("/v1/billing/top-up-amounts", {
-      auth: true,
-    }),
+  billingTopUpAmounts: (currency?: string) =>
+    request<TopUpListing>(
+      `/v1/billing/top-up-amounts${currency ? `?currency=${encodeURIComponent(currency)}` : ""}`,
+      { auth: true },
+    ),
 
   /** Create the pending order a Google Play top-up is matched against. */
   checkout: (packId: string) =>
@@ -1449,10 +1468,10 @@ export const api = {
     }),
 
   /** Web only: create a pending order plus its Razorpay order, everything checkout.js needs to open the modal. */
-  razorpayCheckout: (packId: string) =>
+  razorpayCheckout: (packId: string, currency?: string) =>
     request<{ order: Order; razorpayOrderId: string; razorpayKeyId: string }>(
       "/v1/billing/razorpay/order",
-      { method: "POST", body: { packId }, auth: true },
+      { method: "POST", body: { packId, ...(currency ? { currency } : {}) }, auth: true },
     ),
 
   /** Web only: hand Razorpay's payment ids back to the server, which verifies the signature before granting. */

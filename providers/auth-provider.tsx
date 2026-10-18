@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -10,6 +11,7 @@ import {
 } from "react";
 import { onAuthStateChanged, signOut as fbSignOut, type User as FirebaseUser } from "firebase/auth";
 import posthog from "posthog-js";
+import { moneyModeFor, setMoneyMode } from "@/lib/money";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
 import {
   api,
@@ -67,7 +69,13 @@ const AuthContext = createContext<AuthContextValue>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
+  // Sets how money is written (₹ or 🪙, lib/money.ts) in the same step as the user arrives, so the
+  // screens that render with this user already show the right one.
+  const setUser = useCallback((next: User | null) => {
+    setMoneyMode(moneyModeFor(next?.features));
+    setUserState(next);
+  }, []);
   const [profiles, setProfiles] = useState<Profile[] | null>(null);
   const [loading, setLoading] = useState(true);
 

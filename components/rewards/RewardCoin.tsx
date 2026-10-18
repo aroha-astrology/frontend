@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { getMoneyMode } from "@/lib/money";
 
 /**
  * A gold rupee coin for the daily-reward ladder — replaces the earlier moon-phase
@@ -23,7 +24,8 @@ export default function RewardCoin({
       )}
       style={{ width: size, height: size, fontSize: size * 0.42 }}
     >
-      ₹
+      {/* The mark on the coin follows the mode: the rupee sign, or A for an Aroha Coin. */}
+      {getMoneyMode() === "coins" ? "A" : "₹"}
     </div>
   );
 }

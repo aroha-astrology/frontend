@@ -9,6 +9,8 @@
 
 import { getFirebaseAuth } from "./firebase";
 import type { HouseOfferInfo } from "./house-offer";
+import type { ExperienceInfo, ExperienceSkin } from "./experience";
+import type { HomeLayoutDoc } from "./home-cards";
 import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 import type { RegionId } from "@/lib/panchang/regions";
@@ -772,6 +774,8 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public requestId?: string,
+    /** What the server sent in `error.details`, e.g. the date a cooldown ends. */
+    public details?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -855,8 +859,9 @@ export async function request<T>(path: string, opts: RequestOpts = {}): Promise<
     const data = text ? safeJson(text) : null;
 
     if (!res.ok) {
-      const err = (data as { error?: { code?: string; message?: string; requestId?: string } } | null)
-        ?.error;
+      const err = (
+        data as { error?: { code?: string; message?: string; requestId?: string; details?: unknown } } | null
+      )?.error;
       // Fire-and-forget: signOut() is async, but this is a pure API-layer error path and
       // shouldn't delay (or change the shape of) the exception this call's own caller is about
       // to receive. Only for an authenticated call's real server 401 — see the handler's doc
@@ -867,6 +872,7 @@ export async function request<T>(path: string, opts: RequestOpts = {}): Promise<
         err?.code ?? "http_error",
         err?.message ?? `Request failed (${res.status})`,
         err?.requestId,
+        err?.details,
       );
     }
 
@@ -1202,6 +1208,23 @@ export const api = {
   /** Unlock every house still locked for the bundle price (house offer). Refresh the user afterwards. */
   unlockAllHouses: () =>
     request<{ success: boolean }>("/v1/me/unlock-all-houses", { method: "POST", auth: true }),
+
+  /**
+   * The look the user picked and whether they can change it now (switch experience.picker).
+   * `enabled: false` while the switch is off: no picker, no setting.
+   */
+  experience: () => request<ExperienceInfo>("/v1/me/experience", { auth: true }),
+
+  /**
+   * Pick the look the first time, or change it. Throws ApiError 409 with `details.reason =
+   * "EXPERIENCE_COOLDOWN"` and `details.nextAllowedAt` when it is too soon after the last change.
+   */
+  setExperience: (skin: ExperienceSkin) =>
+    request<ExperienceInfo>("/v1/me/experience", { method: "PUT", body: { skin }, auth: true }),
+
+  /** The owner's Home card order (switch experience.homeLayout); `layout: null` keeps the built-in order. */
+  homeLayout: () =>
+    request<{ layout: HomeLayoutDoc | null; source: "published" | "draft" | null }>("/v1/home-layout", { auth: true }),
 
   /** One interval of active-usage ping, for admin time-spent reporting. See ActivityHeartbeatProvider. */
   activityHeartbeat: () =>

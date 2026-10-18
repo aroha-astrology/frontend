@@ -36,6 +36,9 @@ import { LEGAL_VERSION } from "@/lib/legal-content";
 import { track } from "@/lib/analytics";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { useProfileQuote } from "@/hooks/useProfileQuote";
+import { useExperience } from "@/hooks/useExperience";
+import ExperienceCards, { useSkinName } from "@/components/experience/ExperienceCards";
+import { suggestedSkin, type ExperienceSkin } from "@/lib/experience";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 
@@ -91,10 +94,18 @@ const RELATIONSHIP_STEP = 2.5;
  */
 const TIME_WINDOW_STEP = 4.5;
 
+/**
+ * "Which experience do you want — Classic Vedic or Modern Cosmic?", asked of EVERY user right after
+ * the language (switch experience.picker). Fractional like the other detours so no step is renumbered.
+ * Never asked again on a move or a trip abroad; Settings is the only way to change it later.
+ */
+const EXPERIENCE_STEP = 1.5;
+
 /** The question each step asks, as saved in the user's `onboardingStep`. The
  * admin's "Left during onboarding" list reads these names, so keep them stable. */
 const ONBOARDING_STEP_NAMES: Record<number, string> = {
   1: "language",
+  [EXPERIENCE_STEP]: "experience",
   2: "name",
   3: "dob",
   4: "tob",
@@ -257,6 +268,9 @@ function OnboardingPageInner() {
   /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
   const { quote: profileQuote, costPaise: PROFILE_CREATION_COST_PAISE } = useProfileQuote();
   const { enabled: bondsOn } = useNewFeature("nav.bonds");
+  const { enabled: pickerOn } = useNewFeature("experience.picker");
+  const { info: experience, change: changeExperience } = useExperience();
+  const skinName = useSkinName();
 
   const msgId = useRef(0);
 
@@ -460,9 +474,23 @@ function OnboardingPageInner() {
     setTimeout(async () => {
       setIsTyping(false);
       setAnswers((a) => ({ ...a, language: code }));
+      // With the experience picker on, everyone is asked once which look they want, right after the
+      // language. Skipped when they have chosen already, and in new-profile mode (someone else's chart).
+      if (pickerOn && !isNewProfileMode && experience && !experience.picked) {
+        setMessages((m) => [...m, { id: nextId(), from: "bot", text: t("experience.botQuestion") }]);
+        setStep(EXPERIENCE_STEP);
+        return;
+      }
       setMessages((m) => [...m, { id: nextId(), from: "bot", text: t("onboarding.step2q") }]);
       setStep(2);
     }, 800);
+  };
+
+  // ── Experience (EXPERIENCE_STEP). The pick is saved at once; if saving fails the flow carries on and
+  // the one-time prompt on Home asks again, so a hiccup never blocks someone from finishing signup.
+  const handleExperience = async (skin: ExperienceSkin) => {
+    await changeExperience(skin);
+    await advance({}, skinName(skin), Q[1], 2);
   };
 
   // ── Relationship-to-account-owner (RELATIONSHIP_STEP — new-profile mode only)
@@ -750,6 +778,11 @@ function OnboardingPageInner() {
                 </button>
               ))}
             </div>
+          )}
+
+          {/* EXPERIENCE_STEP: Classic Vedic or Modern Cosmic */}
+          {step === EXPERIENCE_STEP && (
+            <ExperienceCards suggested={suggestedSkin(answers.language)} onPick={handleExperience} />
           )}
 
           {/* Steps 2, 3, 4: text input */}

@@ -9,6 +9,7 @@
 // fetch/auth/error-parsing logic — see that file's `request` export.
 
 import { request } from "./api";
+import type { HomeLayoutDoc, StoredHomeLayout } from "./home-cards";
 import { buildAdminRangeQuery, type AdminDateRangePreset, type AdminFeatureGroupKey } from "./admin-format";
 
 export type { AdminDateRangePreset, AdminFeatureGroupKey };
@@ -580,6 +581,20 @@ export const adminApi = {
       `/v1/admin/reports?${buildAdminRangeQuery(params.preset, params.from, params.to)}`,
       { auth: true },
     ),
+
+  /** The Home card order: the draft, the published layout and the one before it (Admin → Home Layout). */
+  homeLayout: () => request<StoredHomeLayout>("/v1/admin/home-layout", { auth: true }),
+  saveHomeLayoutDraft: (doc: HomeLayoutDoc) =>
+    request<StoredHomeLayout>("/v1/admin/home-layout/draft", { method: "PUT", body: doc, auth: true }),
+  discardHomeLayoutDraft: () =>
+    request<StoredHomeLayout>("/v1/admin/home-layout/draft", { method: "DELETE", auth: true }),
+  publishHomeLayout: () =>
+    request<StoredHomeLayout>("/v1/admin/home-layout/publish", { method: "POST", auth: true }),
+  undoHomeLayout: () =>
+    request<StoredHomeLayout>("/v1/admin/home-layout/undo", { method: "POST", auth: true }),
+  /** Give a user their free change of look back and clear the 30-day wait (support). */
+  resetExperience: (userId: string) =>
+    request<unknown>(`/v1/admin/users/${userId}/experience/reset`, { method: "POST", auth: true }),
 
   /** Every admin-controlled feature toggle, across all 4 groups (nav/home/paid/reports). */
   listFeatures: () => request<{ features: AdminFeatureRow[] }>("/v1/admin/features", { auth: true }),

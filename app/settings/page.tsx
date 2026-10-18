@@ -29,6 +29,7 @@ import { PLAY_STORE_URL } from "@/lib/app-review";
 import { isNativeAndroid } from "@/lib/play-billing";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
+import SwitchExperienceRow from "@/components/experience/SwitchExperienceRow";
 import { useAuth } from "@/providers/auth-provider";
 import { useTour } from "@/providers/tour-provider";
 import { api, type Profile } from "@/lib/api";
@@ -166,6 +167,8 @@ export default function SettingsPage() {
         <div className="space-y-2.5 mb-6">
           <ListRow icon={<Globe size={16} />} label={t("settings.language")} right={<LanguagePicker />} />
           <ListRow icon={<Moon size={16} />} label={t("settings.theme")} right={<ThemeSwitch />} />
+          {/* The two looks: shown only while experience.picker is on and the user has chosen once. */}
+          <SwitchExperienceRow />
           {/* Clears every tour's completion, server-side included, then sends
               them home with ?tour=1 so the first one starts immediately. */}
           <ListRow

@@ -21,10 +21,15 @@ import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
 import PassLaunchModal from "@/components/pass/PassLaunchModal";
+import ExperienceGate from "@/components/experience/ExperienceGate";
 import { useAuth } from "@/providers/auth-provider";
 import { useTourReady } from "@/providers/tour-provider";
 import { resolveFeature } from "@/hooks/useFeature";
 import { filterByFeature } from "@/lib/feature-filter";
+import { HOME_CARDS, arrangeCards, type HomeCardMeta } from "@/lib/home-cards";
+import { skinToLook } from "@/lib/experience";
+import { useHomeLayout } from "@/hooks/useHomeLayout";
+import { useExperience } from "@/hooks/useExperience";
 
 // ─── Home sections ──────────────────────────────────────────────────────────
 // Each section component wraps its own exact original markup (spacing,
@@ -160,33 +165,35 @@ function RemediesSection() {
   );
 }
 
-interface HomeSection {
-  id: string;
-  featureKey: string;
+const SECTION_COMPONENTS: Record<string, ComponentType> = {
+  todayReading: TodayReadingSection,
+  astroWeather: AstroWeatherSection,
+  journalPrompt: JournalPromptSection,
+  kundliCard: KundliCardSection,
+  bonds: BondsSection,
+  horoscopeSlider: HoroscopeSliderSection,
+  reportsSlider: ReportsSliderSection,
+  matchmaking: MatchMakingSection,
+  vastuCard: VastuCardSection,
+  palmReading: PalmReadingSection,
+  shlokas: ShlokasSection,
+  remedies: RemediesSection,
+};
+
+interface HomeSection extends HomeCardMeta {
   Component: ComponentType;
-  /** A ship-dark roadmap section: a key missing from /v1/me hides it instead of showing it. */
-  isNew?: true;
-  /** Takes the full page width on its own row (the sliders) instead of joining a row of cards. */
-  wide?: true;
 }
 
-/** Order here IS render order — preserves the exact pre-existing sequence. */
+/**
+ * Built-in order IS render order (lib/home-cards.ts HOME_CARDS) — preserves the exact pre-existing
+ * sequence. The owner's layout (Admin → Home Layout, switch experience.homeLayout) rearranges it.
+ */
 // Your Day and Next important window now live on the Panchang page (2026-09-25).
 // Aroha Bonds sits right below the Kundli card (2026-10-12).
-const HOME_SECTIONS: HomeSection[] = [
-  { id: "todayReading", featureKey: "home.todayReading", Component: TodayReadingSection },
-  { id: "astroWeather", featureKey: "home.astroWeather", Component: AstroWeatherSection, isNew: true },
-  { id: "journalPrompt", featureKey: "home.journalPrompt", Component: JournalPromptSection, isNew: true },
-  { id: "kundliCard", featureKey: "home.kundliCard", Component: KundliCardSection },
-  { id: "bonds", featureKey: "home.bondsCard", Component: BondsSection, isNew: true },
-  { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", Component: HoroscopeSliderSection, wide: true },
-  { id: "reportsSlider", featureKey: "home.reportsSection", Component: ReportsSliderSection, wide: true },
-  { id: "matchmaking", featureKey: "home.matchmaking", Component: MatchMakingSection },
-  { id: "vastuCard", featureKey: "home.vastuCard", Component: VastuCardSection },
-  { id: "palmReading", featureKey: "home.palmReading", Component: PalmReadingSection },
-  { id: "shlokas", featureKey: "home.shlokas", Component: ShlokasSection },
-  { id: "remedies", featureKey: "home.remedies", Component: RemediesSection },
-];
+const HOME_SECTIONS: HomeSection[] = HOME_CARDS.map((card) => ({
+  ...card,
+  Component: SECTION_COMPONENTS[card.id] ?? (() => null),
+}));
 
 /**
  * Consecutive card sections, grouped so they can share a row on wide screens.
@@ -218,6 +225,8 @@ function groupSections(sections: HomeSection[]): HomeSection[][] {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const layout = useHomeLayout();
+  const { info: experience } = useExperience();
   const [splashDone, setSplashDone] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
 
@@ -235,9 +244,16 @@ export default function HomePage() {
   // would call a hook from inside a filter callback) — see
   // lib/feature-filter.ts's doc comment for why.
   const newKeys = new Set(HOME_SECTIONS.filter((s) => s.isNew).map((s) => s.featureKey));
-  const visibleSections = filterByFeature(
-    HOME_SECTIONS,
-    (key) => resolveFeature(user?.features, key, { failClosed: newKeys.has(key) }).enabled,
+  // A card shows only when its switch is on; the owner's layout then decides where it sits (and
+  // which one leads at this time of day), but can never turn a switched-off card on.
+  const visibleSections = arrangeCards(
+    filterByFeature(
+      HOME_SECTIONS,
+      (key) => resolveFeature(user?.features, key, { failClosed: newKeys.has(key) }).enabled,
+    ),
+    layout,
+    skinToLook(experience?.skin ?? null),
+    new Date(),
   );
 
   return (
@@ -248,6 +264,7 @@ export default function HomePage() {
       <SplashScreen onDone={() => setSplashDone(true)} />
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
       <PassLaunchModal ready={splashDone && welcomeDone} />
+      <ExperienceGate ready={splashDone && welcomeDone} />
 
       <div className="relative z-10 page-container">
         {/* Personalized greeting header — identity chrome, always shown */}

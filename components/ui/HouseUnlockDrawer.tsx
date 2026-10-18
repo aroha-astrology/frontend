@@ -7,6 +7,8 @@ import { X, Sparkles, Lock, Loader2, MessageCircle, CheckCircle2, AlertTriangle 
 import { useTranslation } from 'react-i18next';
 import { useHouseInsight } from '@/hooks/useHouseInsight';
 import { formatRupees } from '@/lib/format';
+import { bundleSavingPaise, showBundle, type HouseOfferInfo } from '@/lib/house-offer';
+import HouseBundleButton from '@/components/ui/HouseBundleButton';
 
 interface HouseData {
   house: number;
@@ -24,13 +26,16 @@ interface HouseUnlockDrawerProps {
   balancePaise: number;
   unlockCostPaise: number;
   isUnlocked?: boolean;
+  /** The house offer (switch money.houseOffer): adds the "unlock all" button. Absent while the switch is off. */
+  bundle?: { offer: HouseOfferInfo; onUnlockAll: () => Promise<void> };
 }
 
-export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, balancePaise, unlockCostPaise, isUnlocked = false }: HouseUnlockDrawerProps) {
+export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, balancePaise, unlockCostPaise, isUnlocked = false, bundle }: HouseUnlockDrawerProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [bundling, setBundling] = useState(false);
 
   const { state: insightState, data: insight } = useHouseInsight(
     isOpen && isUnlocked && house ? house.house : null,
@@ -55,6 +60,22 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
       setUnlocking(false);
     }
   };
+
+  const handleBundle = async () => {
+    if (!bundle) return;
+    setUnlockError(null);
+    setBundling(true);
+    try {
+      await bundle.onUnlockAll();
+    } catch {
+      setUnlockError(t('kundli.house.notEnoughCredits', { amount: formatRupees(bundle.offer.bundleDuePaise) }));
+    } finally {
+      setBundling(false);
+    }
+  };
+
+  const free = unlockCostPaise === 0;
+  const saving = bundle ? bundleSavingPaise(bundle.offer) : 0;
 
   return (
     <AnimatePresence>
@@ -185,7 +206,7 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
                             {t('kundli.house.unlockTitle', { ordinal })}
                           </h3>
                           <p className="text-xs text-muted mb-3 text-center">
-                            {t('kundli.house.unlockBody', { cost: formatRupees(unlockCostPaise) })}
+                            {free ? t('kundli.house.freeBody') : t('kundli.house.unlockBody', { cost: formatRupees(unlockCostPaise) })}
                           </p>
                           {unlockError && (
                             <p className="text-xs text-red-400 mb-2 text-center">{unlockError}</p>
@@ -198,6 +219,8 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
                             >
                               {unlocking ? (
                                 <Loader2 size={16} className="animate-spin" />
+                              ) : free ? (
+                                t('kundli.house.unlockFree')
                               ) : (
                                 t('kundli.house.unlockButton', { cost: formatRupees(unlockCostPaise) })
                               )}
@@ -213,6 +236,18 @@ export default function HouseUnlockDrawer({ isOpen, onClose, house, onUnlock, ba
                               >
                                 {t('payment.buyCredits')}
                               </button>
+                            </div>
+                          )}
+                          {bundle && showBundle(bundle.offer) && (
+                            <div className="w-full mt-3">
+                              <HouseBundleButton
+                                label={t('kundli.house.unlockAll', { count: bundle.offer.lockedPaidHouses.length })}
+                                priceText={formatRupees(bundle.offer.bundleDuePaise)}
+                                savingText={saving > 0 ? t('kundli.house.bundleSaving', { amount: formatRupees(saving) }) : null}
+                                busy={bundling}
+                                disabled={unlocking || balancePaise < bundle.offer.bundleDuePaise}
+                                onClick={handleBundle}
+                              />
                             </div>
                           )}
                        </div>

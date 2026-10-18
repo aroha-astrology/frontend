@@ -6,7 +6,7 @@
         "C:/Users/wookiee/aroha-astrology/frontend/tools/local_agent/mcp_server.py"
       ],
       "env": {
-        "LOCAL_CODER_MODEL": "qwen3-8b-agent"
+        "LOCAL_CODER_MODEL": "ornith-agent"
       }
     }
   }

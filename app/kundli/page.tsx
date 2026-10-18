@@ -24,6 +24,8 @@ import BirthTimeConfidenceCard from "@/components/birth-time/BirthTimeConfidence
 import { computeDivisionalCharts } from "@/lib/divisional-charts";
 import { zodiacSignLabel } from "@/data/zodiac";
 import { useFeature } from "@/hooks/useFeature";
+import { useHouseOffer } from "@/hooks/useHouseOffer";
+import { housePricePaise } from "@/lib/house-offer";
 import { westernSunSign } from "@/lib/kundli-helpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -402,6 +404,10 @@ export default function KundliPage() {
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const unlockCostPaise = useFeature("paid.houseInsight").pricePaise ?? 5000;
+  // The house offer (switch money.houseOffer): free houses, a single price and an "unlock all" bundle.
+  // Null while the switch is off, so everything below keeps the one price.
+  const { offer: houseOffer, reload: reloadHouseOffer } = useHouseOffer();
+  const gridCostPaise = houseOffer ? houseOffer.singlePaise : unlockCostPaise;
 
   const handleGenerate = async () => {
     if (!form.name || !form.date) return;
@@ -525,7 +531,7 @@ export default function KundliPage() {
                     houses={houses}
                     unlockedHouses={unlockedHouses}
                     balancePaise={credits}
-                    unlockCostPaise={unlockCostPaise}
+                    unlockCostPaise={gridCostPaise}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);
@@ -559,11 +565,30 @@ export default function KundliPage() {
                   onClose={() => setIsDrawerOpen(false)}
                   house={selectedHouse}
                   balancePaise={credits}
-                  unlockCostPaise={unlockCostPaise}
+                  unlockCostPaise={
+                    houseOffer && selectedHouse
+                      ? housePricePaise(houseOffer, selectedHouse.house, unlockCostPaise)
+                      : unlockCostPaise
+                  }
                   isUnlocked={selectedHouse ? unlockedHouses.includes(selectedHouse.house) : false}
+                  bundle={
+                    houseOffer
+                      ? {
+                          offer: houseOffer,
+                          onUnlockAll: async () => {
+                            await api.unlockAllHouses();
+                            await refreshUser();
+                            reloadHouseOffer();
+                            // Every house flips from forbidden to generating: drop all cached insights.
+                            if (user) cachePurge((key) => key.startsWith(`houseInsight:${user.id}:`));
+                          },
+                        }
+                      : undefined
+                  }
                   onUnlock={async (houseNum) => {
                     await api.unlockHouse(houseNum);
                     await refreshUser();
+                    reloadHouseOffer();
                     // That house flips from forbidden -> generating -> ready
                     // server-side — purge just its cached insight entry
                     // (across any language/profile it might have been cached
@@ -597,7 +622,7 @@ export default function KundliPage() {
                     houses={houses}
                     unlockedHouses={unlockedHouses}
                     balancePaise={credits}
-                    unlockCostPaise={unlockCostPaise}
+                    unlockCostPaise={gridCostPaise}
                     onHouseClick={(h) => {
                       setSelectedHouse(h);
                       setIsDrawerOpen(true);

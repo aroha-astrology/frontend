@@ -1,7 +1,7 @@
 # Local coding agent (MCP) - Windows setup
 
 ```
-Cloud planner -> .ai/*.md -> MCP `run_local_coder` -> Antigravity SDK -> Ollama qwen3:8b -> this workspace
+Cloud planner -> .ai/*.md -> MCP `run_local_coder` -> Antigravity SDK -> Ollama ornith:9b -> this workspace
 ```
 
 Project root: `C:\Users\wookiee\aroha-astrology\frontend`
@@ -10,7 +10,7 @@ Model/URL are your choice: override with environment variables (set them in the 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `LOCAL_CODER_MODEL` | `qwen3:8b` (the config file sets `qwen3-8b-agent`, see Prerequisites) | Ollama model name |
+| `LOCAL_CODER_MODEL` | `ornith-agent` (the fallback is `qwen3-8b-agent`, see Prerequisites) | Ollama model name |
 | `LOCAL_CODER_BASE_URL` | `http://localhost:11434/v1` | Ollama OpenAI endpoint |
 | `LOCAL_CODER_TIMEOUT` | `1800` | seconds before the run is aborted |
 | `LOCAL_CODER_MAX_FILE_CHARS` | `3000` | per-`.ai`-file cap inside the prompt |
@@ -22,12 +22,17 @@ assistant turns (SDK issue #225, HTTP 400) and Qwen3 "thinking" consuming the wh
 
 ## 1. Prerequisites
 - **Python 3.10+** (the SDK requires it). On this machine `python` is only the Microsoft Store shortcut - install real Python from python.org (tick "Add to PATH") or `winget install Python.Python.3.12`, then open a new terminal.
-- **Ollama** for Windows, with the model pulled: `ollama pull qwen3:8b`
-- **Context window (important).** Ollama defaults to 4096 tokens on an 8 GB GPU, far too small for the handoff prompt; the model then returns empty or garbled turns. Ollama's `/v1` endpoint ignores a per-request `num_ctx`, so create a derived model once (same weights, no download; `qwen3:8b` is untouched):
+- **Ollama** for Windows, with the models pulled: `ollama pull ornith:9b` (default, 5.6 GB, MIT licence, built for agentic coding) and optionally `ollama pull qwen3:8b` (fallback)
+- **Default model: `ornith-agent`.** Create it once (same weights, no download), with a 16K window:
+  ```powershell
+  ollama create ornith-agent -f tools\local_agent\Modelfile.ornith-agent
+  ```
+  Ornith runs 100% on the GPU at 16384 tokens (5.7 GB on an 8 GB card). Measured 2026-10-18 on this machine: `qwen3:8b` at 16384 needs 7.8 GB and spills 20% onto the CPU, which is why it was held to 8192.
+- **Context window (important), and the fallback model.** Ollama defaults to 4096 tokens on an 8 GB GPU, far too small for the handoff prompt; the model then returns empty or garbled turns. Ollama's `/v1` endpoint ignores a per-request `num_ctx`, so create a derived model once (same weights, no download; `qwen3:8b` is untouched):
   ```powershell
   ollama create qwen3-8b-agent -f tools\local_agent\Modelfile.qwen3-8b-agent
   ```
-  8192 tokens fit fully on an 8 GB GPU (12288 spilled about 13% to CPU). Alternative: `setx OLLAMA_CONTEXT_LENGTH 8192`, restart Ollama, and set `LOCAL_CODER_MODEL` to `qwen3:8b`.
+  8192 tokens fit fully on an 8 GB GPU for qwen3 (12288 spilled about 13% to CPU). **8192 is too small for the harness on a longer handoff**: on 2026-10-18 both models failed a 4-function task at 8192 (Qwen: empty turns, Ornith: output cut off) and both passed it at 16384. Alternative: `setx OLLAMA_CONTEXT_LENGTH 8192`, restart Ollama, and set `LOCAL_CODER_MODEL` to `qwen3:8b`.
 - On this machine Ollama lives in `E:\Ollama` and models in `E:\OllamaModels`; if `ollama` is not on PATH use `E:\Ollama\ollama.exe`.
 
 ## 2. Virtual environment + dependencies (PowerShell)

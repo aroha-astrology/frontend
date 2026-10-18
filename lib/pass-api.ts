@@ -30,6 +30,8 @@ export interface PassTierBenefits {
   questionsPerPeriod: number;
   /** Free voice-call minutes per period (Silver 10, Gold 15, Platinum 20). Absent from a server older than 2026-10-17. */
   voiceFreeMinutes?: number;
+  /** Coins gifted each period (Gold 100, Platinum 200); 0 or absent while money.passCoins is off. */
+  monthlyCoins?: number;
   reportDiscountPct: number;
   features: PassFeature[];
 }

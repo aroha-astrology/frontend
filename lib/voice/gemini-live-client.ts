@@ -142,6 +142,13 @@ export interface GeminiLiveSessionOptions {
   onClosed?: () => void;
   /** Optional live captions. */
   onTranscript?: (text: string, role: "user" | "model") => void;
+  /**
+   * A gentler silence rule: nudge the caller after `nudgeMs` of silence and hang up after `timeoutMs`.
+   * Absent, the call hangs up after IDLE_TIMEOUT_MS with no nudge, exactly as it always did.
+   */
+  idle?: { nudgeMs: number; timeoutMs: number };
+  /** Fired true when the silence nudge should show, false when it should go (the caller spoke, or the Baba did). */
+  onIdleNudge?: (active: boolean) => void;
 }
 
 /**
@@ -528,21 +535,36 @@ export class GeminiLiveSession {
   private startIdleWatch(): void {
     this.stopIdleWatch();
     this.markActivity();
+    const timeoutMs = this.opts.idle?.timeoutMs ?? IDLE_TIMEOUT_MS;
+    const nudgeMs = this.opts.idle?.nudgeMs;
     this.idleTimer = setInterval(() => {
       if (this.stopped) return;
       if (this.modelIsSpeaking()) {
         this.markActivity();
+        this.setIdleNudge(false);
         return;
       }
-      if (Date.now() - this.lastActivityAt < IDLE_TIMEOUT_MS) return;
+      const quietFor = Date.now() - this.lastActivityAt;
+      // The nudge: someone who has gone quiet is asked on screen, before the call ends.
+      this.setIdleNudge(nudgeMs !== undefined && quietFor >= nudgeMs && quietFor < timeoutMs);
+      if (quietFor < timeoutMs) return;
 
       // Same shape as every other way a call ends: a terminal error the owner of
       // the session turns into a message, then the teardown.
       this.opts.onError(
-        new VoiceCallError("idle", `Voice call hung up: nobody spoke for ${IDLE_TIMEOUT_MS / 1000} seconds`),
+        new VoiceCallError("idle", `Voice call hung up: nobody spoke for ${timeoutMs / 1000} seconds`),
       );
       void this.stop();
     }, IDLE_CHECK_MS);
+  }
+
+  private idleNudgeShown = false;
+
+  /** Tells the UI to show or hide the silence nudge, once per change. */
+  private setIdleNudge(active: boolean): void {
+    if (this.idleNudgeShown === active) return;
+    this.idleNudgeShown = active;
+    this.opts.onIdleNudge?.(active);
   }
 
   private stopIdleWatch(): void {
@@ -550,6 +572,7 @@ export class GeminiLiveSession {
       clearInterval(this.idleTimer);
       this.idleTimer = null;
     }
+    this.setIdleNudge(false);
   }
 
   // ── Per-minute token renewal ──────────────────────────────────────────────

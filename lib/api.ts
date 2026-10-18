@@ -8,6 +8,7 @@
 // client-side via Firebase (see providers/auth-provider).
 
 import { getFirebaseAuth } from "./firebase";
+import type { HouseOfferInfo } from "./house-offer";
 import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 import type { RegionId } from "@/lib/panchang/regions";
@@ -104,6 +105,8 @@ export interface User {
   nextFreeFollowUpAt?: string | null;
   /** House numbers (1-12) already unlocked for this user; house 1 is free by default. */
   unlockedHouses: number[];
+  /** Free extra-profile slots still open; counts only while the money.freeProfiles switch is on. Absent on an older backend. */
+  freeProfilesLeft?: number;
   /** True once the user has spent wallet balance to unlock the full gemstone report (POST /v1/me/unlock-gemstone). */
   gemstoneUnlocked: boolean;
   /**
@@ -1189,6 +1192,16 @@ export const api = {
       body: { houseNumber },
       auth: true,
     }),
+
+  /**
+   * The house-insight offer for the active profile (switch money.houseOffer): free houses, single and
+   * bundle prices. `enabled: false` while the switch is off. Asking also unlocks the free houses.
+   */
+  houseOffer: () => request<HouseOfferInfo>("/v1/kundli/houses/offer", { auth: true }),
+
+  /** Unlock every house still locked for the bundle price (house offer). Refresh the user afterwards. */
+  unlockAllHouses: () =>
+    request<{ success: boolean }>("/v1/me/unlock-all-houses", { method: "POST", auth: true }),
 
   /** One interval of active-usage ping, for admin time-spent reporting. See ActivityHeartbeatProvider. */
   activityHeartbeat: () =>

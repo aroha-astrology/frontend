@@ -154,6 +154,16 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                 </p>
               )}
 
+              {call.idleNudge && (
+                <p
+                  role="status"
+                  data-testid="voice-still-there"
+                  className="mt-5 max-w-xs rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3 text-center text-xs leading-snug text-gold"
+                >
+                  {t("aiChatPage.voiceCallStillThere")}
+                </p>
+              )}
+
               {call.trialCall && call.secondsLeft > 0 && call.secondsLeft <= TRIAL_ENDING_SECONDS && (
                 <p
                   role="status"
@@ -194,7 +204,7 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                 {t("aiChatPage.voiceCallHint")}
               </p>
               <p className="mt-6 max-w-xs text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
-                {t("aiChatPage.voiceCallIdleHint")}
+                {t(call.silenceSeconds === 15 ? "aiChatPage.voiceCallIdleHint15" : "aiChatPage.voiceCallIdleHint")}
               </p>
             </>
           ) : (

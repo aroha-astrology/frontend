@@ -35,6 +35,7 @@ import {
 import { LEGAL_VERSION } from "@/lib/legal-content";
 import { track } from "@/lib/analytics";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
+import { useProfileQuote } from "@/hooks/useProfileQuote";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 
@@ -254,7 +255,7 @@ function OnboardingPageInner() {
   const router = useRouter();
   const { refresh, refreshProfiles, user } = useAuth();
   /** Server-side cost (in paise) of POST /v1/profiles — see lib/api.ts `createProfile`. 20000 is the fallback for the fail-open case; the resolved feature price is authoritative when present. */
-  const PROFILE_CREATION_COST_PAISE = useFeature("paid.profileCreation").pricePaise ?? 20000;
+  const { quote: profileQuote, costPaise: PROFILE_CREATION_COST_PAISE } = useProfileQuote();
   const { enabled: bondsOn } = useNewFeature("nav.bonds");
 
   const msgId = useRef(0);
@@ -949,7 +950,9 @@ function OnboardingPageInner() {
 
             {isNewProfileMode && (
               <p className="mb-4 py-2.5 px-4 rounded-xl border border-gold/10 bg-surface text-[12px] text-muted text-center">
-                {t("onboarding.newProfile.creditCost", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })}
+                {profileQuote.kind === "paid"
+                  ? t("onboarding.newProfile.creditCost", { cost: formatRupees(PROFILE_CREATION_COST_PAISE) })
+                  : t("onboarding.newProfile.free")}
               </p>
             )}
 

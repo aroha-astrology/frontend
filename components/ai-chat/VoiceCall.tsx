@@ -77,6 +77,7 @@ export default function VoiceCall({ locale }: { locale: string }) {
         <VoiceConsentSheet
           price={price}
           trialMinutes={call.trialOffered ? VOICE_TRIAL_MINUTES : undefined}
+          silenceSeconds={call.silenceSeconds}
           onAccept={call.acceptConsent}
           onClose={call.dismissConsent}
         />

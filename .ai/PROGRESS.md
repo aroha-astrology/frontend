@@ -27,6 +27,26 @@
 - The handoff must stay under 3000 characters (`LOCAL_CODER_MAX_FILE_CHARS`), which is too small to specify a designed UI component. UI work stays with the planner.
 - `tools/local_agent/ollama_shim.py` now hides write_to_file's `ArtifactMetadata` argument; the model kept filling it in and the harness rejected the call.
 
+## Model comparison, 2026-10-18 (Aroha Coins sprint)
+Machine: RTX 2070 8 GB, 15 GB RAM. Every result below was checked by tests the planner wrote, never by the model's own report.
+
+| Task | Model, window | Result | Time |
+|---|---|---|---|
+| `lib/profile-offer.ts` (1 function, 4 steps) | qwen3-8b-agent, 8K | Correct, 5/5 tests | 73 s |
+| `lib/house-offer.ts` (4 functions) | qwen3-8b-agent, 8K | FAILED twice: empty turns | 20 s each |
+| same | ornith-agent, 8K | FAILED: output cut off at the window | 103 s |
+| same | ornith-agent, 16K | Correct, 13/13 tests | 121 s |
+| same | qwen3, 16K | Correct, 13/13 tests | 98 s |
+| `components/ui/HouseBundleButton.tsx` (React component) | qwen3, 16K | 6/6 render tests, but LEFT OUT the required `"use client";` first line | 85 s |
+| same | ornith-agent, 16K | 6/6 render tests, every instruction followed | 98 s |
+
+Findings:
+- The earlier "qwen3 only manages one tiny file" limit was mostly the 8192-token window, not the model. At 16K both models handle a multi-function file and a small component.
+- Memory at 16K: `ornith-agent` 5.7 GB, 100% GPU. `qwen3` 7.8 GB, 20% spilled to CPU. So only Ornith can use the bigger window cleanly on this card.
+- Ornith followed the written spec more exactly (Qwen dropped one explicit line). Default model is now `ornith-agent`; `qwen3-8b-agent` stays as the fallback.
+- Still true: ONE file per handoff, exact path, exact signatures, steps, style said out loud, no tests, no commands.
+- Written by the local models in the coins sprint (planner wrote all tests): `lib/profile-offer.ts` (qwen3, 8K), `lib/house-offer.ts` (qwen3, 16K), `components/ui/HouseBundleButton.tsx` (ornith, 16K).
+
 ## Active
 - (none)
 

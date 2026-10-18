@@ -7,6 +7,9 @@ import path from "path";
 // environment keeps runs fast. Add a jsdom environment override here if a
 // future test needs one rather than switching the whole project over.
 export default defineConfig({
+  // The app compiles JSX with the automatic runtime (tsconfig "jsx": "preserve" hands it to Next);
+  // the unit runner must do the same, or a component under test fails with "React is not defined".
+  esbuild: { jsx: "automatic" },
   resolve: {
     alias: {
       // Mirrors tsconfig.json's "@/*" -> "./*" path mapping.

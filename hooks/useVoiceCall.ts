@@ -83,6 +83,10 @@ export interface VoiceCall {
   trialOffered: boolean;
   /** What a wallet minute costs, in paise, for the labels. */
   pricePerMinutePaise: number;
+  /** The caller has gone quiet: the call screen asks "still there?" before the call ends (money.voiceSlices). */
+  idleNudge: boolean;
+  /** How many seconds of silence end the call: 10, or 15 with the gentler rule (money.voiceSlices). */
+  silenceSeconds: number;
   error: string | null;
   showConsent: boolean;
   /** Voice call is an Aroha Pass benefit and this user has no Pass that includes it. */
@@ -134,6 +138,10 @@ export function useVoiceCall(locale: string): VoiceCall {
   const { user, refresh } = useAuth();
   const feature = useFeature("paid.voiceChat");
   const trial = useNewFeature("chat.voiceTrial");
+  // money.voiceSlices also brings the gentler silence rule: a nudge at 10 s, hang up at 15 s.
+  const gentleSilence = useNewFeature("money.voiceSlices").enabled;
+  const silenceSeconds = gentleSilence ? 15 : 10;
+  const [idleNudge, setIdleNudge] = useState(false);
   const feedbackSwitch = useNewFeature("chat.voiceFeedback");
   // Read inside `teardown` through a ref, so the switch loading late does not
   // rebuild the call callbacks while a call is running.
@@ -305,6 +313,8 @@ export function useVoiceCall(locale: string): VoiceCall {
       setFeedbackFor(null);
 
       const session = new GeminiLiveSession({
+        idle: gentleSilence ? { nudgeMs: 10_000, timeoutMs: 15_000 } : undefined,
+        onIdleNudge: setIdleNudge,
         onStateChange: (s) => {
           if (s === "listening" || s === "speaking") {
             hasConnectedRef.current = true;
@@ -326,7 +336,7 @@ export function useVoiceCall(locale: string): VoiceCall {
               : kind === "dropped"
                 ? t("aiChatPage.voiceCallDropped")
                 : kind === "idle"
-                  ? t("aiChatPage.voiceCallIdle")
+                  ? t(gentleSilence ? "aiChatPage.voiceCallIdle15" : "aiChatPage.voiceCallIdle")
                   : t("aiChatPage.voiceChatError"),
           );
           void teardown();
@@ -454,6 +464,8 @@ export function useVoiceCall(locale: string): VoiceCall {
     trialOffered: trial.enabled,
     pricePerMinutePaise: minute?.pricePaise ?? feature.pricePaise ?? DEFAULT_MINUTE_PRICE_PAISE,
     error,
+    idleNudge,
+    silenceSeconds,
     showConsent,
     showPassLock,
     start: () => void handleStart(),

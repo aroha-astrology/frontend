@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next";
 import { Check, Minus } from "lucide-react";
 import type { PassFeature, PassTierBenefits } from "@/lib/pass-api";
+import { formatRupees } from "@/lib/format";
 
 /** Every Pass-only feature, in the order the tiers add them. Find My Date shares a line with Decisions. */
 const FEATURE_LINES: Array<{ feature: PassFeature; key: string }> = [
@@ -30,6 +31,10 @@ export default function PassBenefits({
   const lines = [
     { text: t("pass.benefits.questions", { count: benefits.questionsPerPeriod }), included: true },
     { text: t("pass.benefits.reports", { pct: benefits.reportDiscountPct }), included: true },
+    // The monthly coin gift (switch money.passCoins): shown only on a tier that gives one.
+    ...((benefits.monthlyCoins ?? 0) > 0
+      ? [{ text: t("pass.benefits.monthlyCoins", { amount: formatRupees((benefits.monthlyCoins ?? 0) * 100) }), included: true }]
+      : []),
     ...FEATURE_LINES.map(({ feature, key }) => ({
       // Only the voice line has a {{minutes}}; a server from before the per-tier minutes gave every Pass 3.
       text: t(key, { minutes: benefits.voiceFreeMinutes ?? 3 }),

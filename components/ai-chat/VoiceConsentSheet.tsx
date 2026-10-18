@@ -22,6 +22,7 @@ import { PASS_VOICE_FREE_MINUTES_RANGE } from "@/lib/pass-api";
 export default function VoiceConsentSheet({
   price,
   trialMinutes,
+  silenceSeconds = 10,
   onAccept,
   onClose,
 }: {
@@ -29,6 +30,8 @@ export default function VoiceConsentSheet({
   price: string;
   /** The free trial minutes everyone gets, when the trial is on; the sheet then says so. */
   trialMinutes?: number;
+  /** Seconds of silence that end the call (10, or 15 with the gentler rule); the consent text says which. */
+  silenceSeconds?: number;
   /** Records consent, then starts the call. Rejects if the grant fails. */
   onAccept: () => Promise<void>;
   onClose: () => void;
@@ -64,7 +67,10 @@ export default function VoiceConsentSheet({
       }
     >
       <p className="text-sm leading-relaxed text-[var(--text-muted)] mb-4">
-        {t("aiChatPage.voiceChatConsentBody", { price, minutes: PASS_VOICE_FREE_MINUTES_RANGE })}
+        {t(silenceSeconds === 15 ? "aiChatPage.voiceChatConsentBody15" : "aiChatPage.voiceChatConsentBody", {
+          price,
+          minutes: PASS_VOICE_FREE_MINUTES_RANGE,
+        })}
       </p>
 
       {trialMinutes ? (

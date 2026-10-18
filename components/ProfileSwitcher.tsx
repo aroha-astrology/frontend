@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
-import { useFeature } from "@/hooks/useFeature";
+import { useProfileQuote } from "@/hooks/useProfileQuote";
 import { formatRupees } from "@/lib/format";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import Avatar from "@/components/ui/Avatar";
@@ -62,7 +62,7 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
   const { profiles, switchProfile } = useAuth();
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const creationPricePaise = useFeature("paid.profileCreation").pricePaise ?? PROFILE_CREATION_FALLBACK_PAISE;
+  const { quote, freeLeft } = useProfileQuote();
 
   // Close on hardware back press instead of exiting the app/navigating away.
   useDismissOnBackPress(open, onClose);
@@ -142,7 +142,11 @@ export default function ProfileSwitcherSheet({ open, onClose }: { open: boolean;
               <span className="min-w-0 flex-1 text-left">
                 <span className="block text-sm font-medium">{t("profileSwitcher.createProfile")}</span>
                 <span className="block text-[11px] text-muted font-normal">
-                  {t("profileSwitcher.createProfileCost", { cost: formatRupees(creationPricePaise) })}
+                  {quote.kind === "free-slot"
+                    ? t("profileSwitcher.createProfileFreeSlots", { count: freeLeft })
+                    : quote.kind === "free-pass"
+                      ? t("profileSwitcher.createProfileFreePass")
+                      : t("profileSwitcher.createProfileCost", { cost: formatRupees(quote.pricePaise) })}
                 </span>
               </span>
             </button>

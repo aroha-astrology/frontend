@@ -4,7 +4,7 @@ Cloud planner -> .ai/*.md handoff -> this tool -> Antigravity SDK local agent
 -> Ollama (qwen3:8b) -> same project workspace -> .ai/LOCAL_RESULT.md
 
 Configuration (all optional, no credentials involved):
-  LOCAL_CODER_MODEL     default "qwen3:8b"
+  LOCAL_CODER_MODEL     default "ornith-agent" (derived from ornith:9b, 16K window; see README)
   LOCAL_CODER_BASE_URL  default "http://localhost:11434/v1"
   LOCAL_CODER_TIMEOUT   seconds, default 1800
   LOCAL_CODER_MAX_FILE_CHARS  per-context-file cap in the prompt, default 3000
@@ -28,7 +28,7 @@ from mcp.server.fastmcp import FastMCP
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 log = logging.getLogger("local-coding-agent")
 
-MODEL = os.environ.get("LOCAL_CODER_MODEL", "qwen3:8b")
+MODEL = os.environ.get("LOCAL_CODER_MODEL", "ornith-agent")
 BASE_URL = os.environ.get("LOCAL_CODER_BASE_URL", "http://localhost:11434/v1")
 TIMEOUT_S = int(os.environ.get("LOCAL_CODER_TIMEOUT", "1800"))
 MAX_FILE_CHARS = int(os.environ.get("LOCAL_CODER_MAX_FILE_CHARS", "3000"))

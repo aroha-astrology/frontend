@@ -23,10 +23,12 @@ const config: Config = {
         card: "var(--card)",
         fab: "var(--fab)",
         muted: "var(--text-muted)",
+        // Gold is a theme variable (defaults in app/globals.css are exactly the old hex values), so the
+        // Modern Cosmic look can recolour every gold utility - bg-gold, ring-gold/30, from-gold - at once.
         gold: {
-          DEFAULT: "#D4AF37",
-          light: "#F4D675",
-          dark: "#B18E2E",
+          DEFAULT: "rgb(var(--gold-rgb) / <alpha-value>)",
+          light: "rgb(var(--gold-light-rgb) / <alpha-value>)",
+          dark: "rgb(var(--gold-dark-rgb) / <alpha-value>)",
         },
         border: "var(--border)",
         secondary: "var(--secondary)",

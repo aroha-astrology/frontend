@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { LanguageSync } from "@/components/LanguageSync";
+import SkinSync, { SKIN_BOOT_SCRIPT } from "@/components/experience/SkinSync";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ActivityHeartbeatProvider } from "@/providers/activity-heartbeat-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
@@ -69,6 +70,15 @@ const notoDevanagari = Noto_Sans_Devanagari({
   display: "swap",
 });
 
+// Headings in the Modern Cosmic look (see html[data-skin="cosmic"] in globals.css). Loaded for everyone,
+// used only by that look; swap-loaded so it never blocks the first paint.
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display-cosmic",
+  display: "swap",
+});
+
 const APP_DESCRIPTION =
   "Aroha Astrology in your browser: free Kundli, daily Panchang, Kundli matching and personalised reports. Sign in with the same account as the Android app.";
 
@@ -109,7 +119,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable}`}>
+      <head>
+        {/* Puts the remembered look on <html> before the first paint, so a Modern Cosmic user never sees a gold flash. */}
+        <script dangerouslySetInnerHTML={{ __html: SKIN_BOOT_SCRIPT }} />
+      </head>
+      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>
@@ -141,6 +155,7 @@ export default function RootLayout({
                       <PushForegroundBanner />
                       <ReferralCapture />
                       <LanguageSync />
+                      <SkinSync />
                       <GooglePlayPurchaseReconciler />
                     </BackHandlerProvider>
                   </PermissionsPromptProvider>

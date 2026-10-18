@@ -218,3 +218,48 @@ test.describe("Settings → Switch experience", () => {
     await expect(page.getByTestId("switch-experience")).toHaveCount(0);
   });
 });
+
+test.describe("The two looks on screen", () => {
+  const skinOf = (page: import("@playwright/test").Page) =>
+    page.evaluate(() => document.documentElement.getAttribute("data-skin"));
+  const goldChannels = (page: import("@playwright/test").Page) =>
+    page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--gold-rgb").trim());
+
+  test("Classic keeps exactly today's gold", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const server = experienceServer(info({ skin: "CLASSIC_VEDIC", picked: true }));
+    await mockApi(page, { user: { features: { "experience.picker": ON } }, overrides: server.handlers });
+    await signIn(page, "/");
+    await expect(page.locator("main")).toBeVisible();
+    expect(await skinOf(page)).toBeNull();
+    expect(await goldChannels(page)).toBe("212 175 55");
+  });
+
+  test("Modern Cosmic turns the accent violet, and switching in Settings changes the look at once", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const server = experienceServer(info({ skin: "MODERN_COSMIC", picked: true }));
+    await mockApi(page, { user: { features: { "experience.picker": ON } }, overrides: server.handlers });
+    await signIn(page, "/settings");
+
+    await expect.poll(() => skinOf(page)).toBe("cosmic");
+    expect(await goldChannels(page)).toBe("167 139 250");
+    await page.screenshot({ path: process.env.SKIN_SHOT ?? "test-results/skin-cosmic.png" });
+
+    // Back to Classic from Settings (the one free change is still unused in this stand-in).
+    const row = page.getByTestId("switch-experience");
+    await row.getByRole("button").click();
+    await page.getByTestId("experience-card-CLASSIC_VEDIC").click();
+    await page.getByTestId("switch-experience-confirm").click();
+    await expect.poll(() => skinOf(page)).toBeNull();
+    expect(await goldChannels(page)).toBe("212 175 55");
+  });
+
+  test("with the switch off there is never a look attribute, even if one was remembered", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await page.addInitScript(() => localStorage.setItem("aroha:skin", "cosmic"));
+    await mockApi(page, { overrides: experienceServer(info({ skin: "MODERN_COSMIC", picked: true })).handlers });
+    await signIn(page, "/");
+    await expect(page.locator("main")).toBeVisible();
+    await expect.poll(() => skinOf(page)).toBeNull();
+  });
+});

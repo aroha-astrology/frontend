@@ -15,6 +15,12 @@
   --gold-light: #fbe09b;
   --gold-dark: #a67c00;
 
+  /* The Tailwind gold utilities (bg-gold, ring-gold/30 ...) read these channels. They equal the old
+     hard-coded #D4AF37 / #F4D675 / #B18E2E, so the Classic look is unchanged. */
+  --gold-rgb: 212 175 55;
+  --gold-light-rgb: 244 214 117;
+  --gold-dark-rgb: 177 142 46;
+
   --border: rgba(223, 181, 100, 0.4);
   --border-faint: rgba(223, 181, 100, 0.15);
   --secondary: #121316;
@@ -79,6 +85,54 @@
   --mala-glow: #F2A65A;
   --mala-thread: rgba(184, 137, 45, 0.35);
   --mala-silhouette: #8B6F47;
+}
+
+/* ── Modern Cosmic look (switch experience.picker; data-skin is set by components/experience/SkinSync) ──
+   Same layout and content as Classic; the accent turns from gold to violet and headings use a
+   modern serif. Only tokens change here, so nothing can fall out of step with Classic. */
+html[data-skin="cosmic"] {
+  --gold: #b9a2ff;
+  --gold-light: #dccfff;
+  --gold-dark: #7c5cf0;
+  --gold-rgb: 167 139 250;
+  --gold-light-rgb: 205 190 255;
+  --gold-dark-rgb: 124 92 240;
+
+  --border: rgba(167, 139, 250, 0.4);
+  --border-faint: rgba(167, 139, 250, 0.15);
+  --fab: #15112a;
+  --mala-glow: #b9a2ff;
+  --mala-thread: rgba(167, 139, 250, 0.4);
+}
+
+html.light[data-skin="cosmic"] {
+  --gold: #6d4ed8;
+  --gold-light: #8a6ff0;
+  --gold-dark: #4b32a8;
+  --gold-rgb: 109 78 216;
+  --gold-light-rgb: 138 111 240;
+  --gold-dark-rgb: 75 50 168;
+
+  --border: rgba(109, 78, 216, 0.28);
+  --border-faint: rgba(109, 78, 216, 0.12);
+  --background: #f7f5ff;
+  --secondary: #efebfa;
+  --mala-glow: #8a6ff0;
+  --mala-thread: rgba(109, 78, 216, 0.35);
+}
+
+html[data-skin="cosmic"] body {
+  --font-display: var(--font-display-cosmic), Georgia, serif;
+}
+
+html.light[data-skin="cosmic"] body {
+  background-color: #f7f5ff;
+  background-image: radial-gradient(ellipse 120% 60% at 50% 0%, #ebe4ff 0%, transparent 65%),
+                    linear-gradient(180deg, #faf8ff 0%, #f7f5ff 50%, #ece7f8 100%);
+}
+
+html.light[data-skin="cosmic"] {
+  background-color: #f7f5ff;
 }
 
 @layer base {

@@ -243,6 +243,9 @@ test.describe("The two looks on screen", () => {
 
     await expect.poll(() => skinOf(page)).toBe("cosmic");
     expect(await goldChannels(page)).toBe("167 139 250");
+    // The labels follow the look.
+    await expect(page.getByRole("link", { name: "Ask Orion" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Forecast" })).toBeVisible();
     await page.screenshot({ path: process.env.SKIN_SHOT ?? "test-results/skin-cosmic.png" });
 
     // Back to Classic from Settings (the one free change is still unused in this stand-in).
@@ -252,6 +255,8 @@ test.describe("The two looks on screen", () => {
     await page.getByTestId("switch-experience-confirm").click();
     await expect.poll(() => skinOf(page)).toBeNull();
     expect(await goldChannels(page)).toBe("212 175 55");
+    await expect(page.getByRole("link", { name: "Ask Baba Ji" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Horoscope" })).toBeVisible();
   });
 
   test("with the switch off there is never a look attribute, even if one was remembered", async ({ page }) => {

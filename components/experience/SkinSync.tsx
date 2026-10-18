@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import i18n from "i18next";
+import { applySkinCopy } from "@/i18n/skin-copy";
 import { useNewFeature } from "@/hooks/useFeature";
 import { useExperience } from "@/hooks/useExperience";
 import { useAuth } from "@/providers/auth-provider";
@@ -15,6 +17,8 @@ const SKIN_KEY = "aroha:skin";
 export const SKIN_BOOT_SCRIPT = `try{if(localStorage.getItem("${SKIN_KEY}")==="cosmic")document.documentElement.setAttribute("data-skin","cosmic")}catch(e){}`;
 
 function applySkin(cosmic: boolean) {
+  // The labels follow the look (Today / Forecast / Ask Orion ...); a no-op when nothing changed.
+  applySkinCopy(i18n, cosmic);
   try {
     const root = document.documentElement;
     if (cosmic) root.setAttribute("data-skin", "cosmic");

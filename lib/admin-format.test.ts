@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   ADMIN_DATE_RANGE_PRESETS,
+  AUDIENCE_LABELS,
+  audienceOf,
+  filterFeaturesByAudience,
   filterFeaturesForBoard,
   isNewFeature,
   buildAdminRangeQuery,
@@ -292,7 +295,7 @@ describe("groupFeaturesByGroup", () => {
     // (config/features.ts, backend) — referrer/referee bonus and earnings cap,
     // now admin-editable instead of hardcoded constants. "chat" holds
     // chat.incomeAsk (backend config/features.ts).
-    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat"]);
+    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat", "money"]);
   });
 });
 
@@ -540,5 +543,31 @@ describe("new-feature board filter", () => {
   it("shows every row by default and only NEW rows when filtered", () => {
     expect(filterFeaturesForBoard(rows, false)).toHaveLength(3);
     expect(filterFeaturesForBoard(rows, true).map((r) => r.key)).toEqual(["home.astroWeather"]);
+  });
+});
+
+describe("feature audience", () => {
+  const rows = [
+    { key: "a", audience: "classic" as const },
+    { key: "b", audience: "cosmic" as const },
+    { key: "c", audience: "all" as const },
+    { key: "d" }, // an older backend sends no audience
+  ];
+
+  it("a row with no audience counts as everyone", () => {
+    expect(audienceOf({})).toBe("all");
+    expect(audienceOf({ audience: null })).toBe("all");
+    expect(audienceOf({ audience: "cosmic" })).toBe("cosmic");
+  });
+
+  it("names the sections Indian and International", () => {
+    expect(AUDIENCE_LABELS).toEqual({ all: "Everyone", classic: "Indian", cosmic: "International" });
+  });
+
+  it("the filter keeps every row, or only the rows set to exactly that audience", () => {
+    expect(filterFeaturesByAudience(rows, "every")).toHaveLength(4);
+    expect(filterFeaturesByAudience(rows, "classic").map((r) => r.key)).toEqual(["a"]);
+    expect(filterFeaturesByAudience(rows, "cosmic").map((r) => r.key)).toEqual(["b"]);
+    expect(filterFeaturesByAudience(rows, "all").map((r) => r.key)).toEqual(["c", "d"]);
   });
 });

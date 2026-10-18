@@ -61,6 +61,9 @@ export interface AdminOverview {
 
 // ─── Features ──────────────────────────────────────────────────────────────
 
+/** Which section a feature is for: everyone, the Indian look (Classic Vedic) or the international look (Modern Cosmic). */
+export type FeatureAudience = "all" | "classic" | "cosmic";
+
 export interface AdminFeatureRow {
   key: string;
   label: string;
@@ -76,6 +79,10 @@ export interface AdminFeatureRow {
   modelOptions: string[];
   /** Registry tag: `"new"` marks a roadmap feature (NEW badge + "New only" filter). Absent on older backends. */
   tag?: string | null;
+  /** The section the feature is for right now. Absent on an older backend (treated as everyone). */
+  audience?: FeatureAudience;
+  /** The audience the feature started with, so the board can mark a change. */
+  defaultAudience?: FeatureAudience;
 }
 
 export interface UpdateAdminFeatureBody {
@@ -85,6 +92,8 @@ export interface UpdateAdminFeatureBody {
   originalPricePaise?: number | null;
   /** Omit to leave the current model choice untouched; null clears it (inherit the global default); a string sets it. */
   model?: string | null;
+  /** Omit to leave the audience as it is. */
+  audience?: FeatureAudience;
 }
 
 // ─── Users ─────────────────────────────────────────────────────────────────

@@ -151,10 +151,10 @@ export function sortByTotalPaiseDescending<T extends { totalPaise: number }>(ite
   return [...items].sort((a, b) => b.totalPaise - a.totalPaise);
 }
 
-export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral" | "rewards" | "ai" | "chat";
+export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral" | "rewards" | "ai" | "chat" | "money";
 
 /** The feature groups the backend contract defines, in the fixed display order every board (main + per-group overrides) uses. */
-export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat"];
+export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat", "money"];
 
 export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   nav: "Navigation",
@@ -168,6 +168,7 @@ export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   rewards: "Daily Rewards",
   ai: "AI",
   chat: "AI Chat",
+  money: "Money & Coins",
 };
 
 /**
@@ -176,6 +177,26 @@ export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
  * doesn't know about yet) is appended afterward, in first-seen order, rather
  * than dropped. Groups with zero rows are omitted entirely.
  */
+/** Display names for a feature's audience (the section it is available in). */
+export const AUDIENCE_LABELS: Record<"all" | "classic" | "cosmic", string> = {
+  all: "Everyone",
+  classic: "Indian",
+  cosmic: "International",
+};
+
+/** A row's audience; an older backend that does not send one means everyone. */
+export function audienceOf(row: { audience?: "all" | "classic" | "cosmic" | null }): "all" | "classic" | "cosmic" {
+  return row.audience ?? "all";
+}
+
+/** Rows for one audience filter: "every" keeps all rows, otherwise only rows set to exactly that audience. */
+export function filterFeaturesByAudience<T extends { audience?: "all" | "classic" | "cosmic" | null }>(
+  rows: T[],
+  filter: "every" | "all" | "classic" | "cosmic",
+): T[] {
+  return filter === "every" ? rows : rows.filter((r) => audienceOf(r) === filter);
+}
+
 /** True for a feature the registry tags as part of the current roadmap build (shown with a NEW badge). */
 export function isNewFeature(row: { tag?: string | null }): boolean {
   return row.tag === "new";

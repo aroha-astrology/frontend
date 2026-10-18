@@ -16,6 +16,7 @@ export default function FeatureRow({
   priceEditor,
   error,
   isNew = false,
+  audience,
 }: {
   label: string;
   featureKey: string;
@@ -24,6 +25,8 @@ export default function FeatureRow({
   error?: string | null;
   /** Roadmap feature (registry `tag: 'new'`) — shows a NEW badge. */
   isNew?: boolean;
+  /** Which section the feature is for (main board only); rendered under the key. */
+  audience?: ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-b-0">
@@ -37,6 +40,7 @@ export default function FeatureRow({
           <span className="truncate">{label}</span>
         </p>
         <p className="text-[10px] text-muted truncate">{featureKey}</p>
+        {audience}
         {error && <p className="text-[11px] text-red-400 mt-0.5">{error}</p>}
       </div>
       <div className="flex items-center gap-3 shrink-0">

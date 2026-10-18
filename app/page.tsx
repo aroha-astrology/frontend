@@ -22,6 +22,7 @@ import SplashScreen from "@/components/SplashScreen";
 import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
 import PassLaunchModal from "@/components/pass/PassLaunchModal";
 import ExperienceGate from "@/components/experience/ExperienceGate";
+import TravelPill from "@/components/experience/TravelPill";
 import { useAuth } from "@/providers/auth-provider";
 import { useTourReady } from "@/providers/tour-provider";
 import { resolveFeature } from "@/hooks/useFeature";
@@ -269,6 +270,9 @@ export default function HomePage() {
       <div className="relative z-10 page-container">
         {/* Personalized greeting header — identity chrome, always shown */}
         <GreetingHeader />
+
+        {/* Only while the phone is in another time zone than home (switch experience.travelPill). */}
+        <TravelPill className="mt-4" />
 
         {groupSections(visibleSections).map((group) =>
           group[0]!.wide ? (

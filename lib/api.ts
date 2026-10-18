@@ -11,6 +11,7 @@ import { getFirebaseAuth } from "./firebase";
 import type { HouseOfferInfo } from "./house-offer";
 import type { ExperienceInfo, ExperienceSkin } from "./experience";
 import type { HomeLayoutDoc } from "./home-cards";
+import type { SkyContext, SkyContextUpdate } from "./sky";
 import { nextPollDelay } from "./poll-backoff";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 import type { RegionId } from "@/lib/panchang/regions";
@@ -1221,6 +1222,11 @@ export const api = {
    */
   setExperience: (skin: ExperienceSkin) =>
     request<ExperienceInfo>("/v1/me/experience", { method: "PUT", body: { skin }, auth: true }),
+
+  /** Home place, travel mode and NRI mode (switches experience.travelPill / experience.nriMode). */
+  skyContext: () => request<SkyContext>("/v1/me/context", { auth: true }),
+  setSkyContext: (body: SkyContextUpdate) =>
+    request<SkyContext>("/v1/me/context", { method: "PUT", body, auth: true }),
 
   /** The owner's Home card order (switch experience.homeLayout); `layout: null` keeps the built-in order. */
   homeLayout: () =>

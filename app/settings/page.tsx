@@ -30,6 +30,7 @@ import { isNativeAndroid } from "@/lib/play-billing";
 import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import SwitchExperienceRow from "@/components/experience/SwitchExperienceRow";
+import SkyContextRows from "@/components/experience/SkyContextRows";
 import { useAuth } from "@/providers/auth-provider";
 import { useTour } from "@/providers/tour-provider";
 import { api, type Profile } from "@/lib/api";
@@ -169,6 +170,8 @@ export default function SettingsPage() {
           <ListRow icon={<Moon size={16} />} label={t("settings.theme")} right={<ThemeSwitch />} />
           {/* The two looks: shown only while experience.picker is on and the user has chosen once. */}
           <SwitchExperienceRow />
+          {/* Home city (travel pill) and "I live outside India" (NRI mode): each only while its switch is on. */}
+          <SkyContextRows />
           {/* Clears every tour's completion, server-side included, then sends
               them home with ?tour=1 so the first one starts immediately. */}
           <ListRow

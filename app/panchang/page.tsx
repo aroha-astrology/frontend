@@ -26,6 +26,9 @@ import FeatureGuard from "@/components/FeatureGuard";
 import { usePanchangRegion } from "@/hooks/usePanchangRegion";
 import RegionPicker from "@/components/panchang/RegionPicker";
 import { deviceTimeZone, IST_ZONE, localToday } from "@/lib/calendar-format";
+import { homeOverride } from "@/lib/sky";
+import { useSkyContext } from "@/hooks/useSkyContext";
+import TravelPill from "@/components/experience/TravelPill";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -107,6 +110,11 @@ export default function PanchangPage() {
   // until 05:30). Your Day only describes today, so it hides on any other date.
   const [deviceTz] = useState(deviceTimeZone);
   const [openedOn] = useState(() => localToday(deviceTz));
+  // Away from home and the user chose to keep home (travel pill): "mine" is the home city, not the device.
+  const { ctx: skyCtx } = useSkyContext();
+  const home = homeOverride(skyCtx, deviceTz);
+  const mineCoords = home ? { lat: home.lat, lon: home.lon } : geo.coords;
+  const mineTz = home ? home.tz : deviceTz;
   const [selectedDate, setSelectedDate] = useState(openedOn);
   const { region, setRegion } = usePanchangRegion();
 
@@ -167,11 +175,11 @@ export default function PanchangPage() {
   }, [authLoading, firebaseUser, selectedDate]);
 
   useEffect(() => {
-    if (authLoading || !firebaseUser || !geo.coords) return;
+    if (authLoading || !firebaseUser || !mineCoords) return;
     let cancelled = false;
     setUserState("loading");
 
-    const cacheKey = buildKey("panchang", "v4", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate, deviceTz);
+    const cacheKey = buildKey("panchang", "v4", roundCoord(mineCoords.lat), roundCoord(mineCoords.lon), selectedDate, mineTz);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setUserData(cached);
@@ -181,7 +189,7 @@ export default function PanchangPage() {
     }
 
     api
-      .panchang(geo.coords.lat, geo.coords.lon, selectedDate, deviceTz)
+      .panchang(mineCoords.lat, mineCoords.lon, selectedDate, mineTz)
       .then((res) => {
         if (cancelled) return;
         setUserData(res);
@@ -195,13 +203,15 @@ export default function PanchangPage() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, firebaseUser, geo.coords, selectedDate, deviceTz]);
+    // mineCoords is a fresh object each render; its numbers are what matter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, firebaseUser, mineCoords?.lat, mineCoords?.lon, selectedDate, mineTz]);
 
   const data = source === "mine" && userData ? userData : refData;
   /** Polar night or midnight sun: no real sunrise/sunset to show. */
   const noSunEvent = data?.dayTimesMode === "solarNoon" && data.sunriseTime === data.sunsetTime;
   /** The zone the shown clock times are in: IST for the Delhi reference, the device zone for "Your Location". */
-  const dataTz = source === "mine" && userData ? deviceTz : IST_ZONE;
+  const dataTz = source === "mine" && userData ? mineTz : IST_ZONE;
   const state =
     source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
 
@@ -283,6 +293,9 @@ export default function PanchangPage() {
             that the two wrappers are plain blocks and everything stacks as before. */}
         <div className="xl:flex-1 xl:min-h-0 xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:grid-rows-[minmax(0,1fr)] xl:gap-8">
         <div className="xl:min-h-0 xl:overflow-y-auto xl:pb-8 scrollbar-hide">
+        {/* Travel pill: only while the phone is in another time zone than home (switch experience.travelPill). */}
+        <TravelPill className="mt-4" />
+
         {/* Location source */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
@@ -293,9 +306,11 @@ export default function PanchangPage() {
               }`}
             >
               <Navigation size={12} />
-              {geo.status === "requesting" || userState === "loading"
-                ? t("horoscope.panchang.locating")
-                : t("horoscope.panchang.yourLocation")}
+              {home
+                ? home.name
+                : geo.status === "requesting" || userState === "loading"
+                  ? t("horoscope.panchang.locating")
+                  : t("horoscope.panchang.yourLocation")}
             </button>
             <button
               onClick={() => setSource("reference")}
@@ -349,9 +364,9 @@ export default function PanchangPage() {
           <MonthlyPanchangCalendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
-            lat={source === "mine" ? geo.coords?.lat : undefined}
-            lon={source === "mine" ? geo.coords?.lon : undefined}
-            tz={source === "mine" ? deviceTz : undefined}
+            lat={source === "mine" ? mineCoords?.lat : undefined}
+            lon={source === "mine" ? mineCoords?.lon : undefined}
+            tz={source === "mine" ? mineTz : undefined}
             region={region}
           />
         </div>
@@ -419,9 +434,9 @@ export default function PanchangPage() {
             )}
 
             <AuspiciousDays
-              lat={source === "mine" ? geo.coords?.lat : undefined}
-              lon={source === "mine" ? geo.coords?.lon : undefined}
-              tz={source === "mine" ? deviceTz : undefined}
+              lat={source === "mine" ? mineCoords?.lat : undefined}
+              lon={source === "mine" ? mineCoords?.lon : undefined}
+              tz={source === "mine" ? mineTz : undefined}
             />
 
             <FindMyDateCard />

@@ -5,6 +5,8 @@ import {
   eventTitle,
   groupByMonth,
   istToday,
+  localToday,
+  deviceTimeZone,
   pickNextWindow,
   shortDate,
   shortDateWithYear,
@@ -95,6 +97,26 @@ describe("buildIcs", () => {
 describe("istToday", () => {
   it("rolls over at IST midnight", () => {
     expect(istToday(new Date("2026-09-24T18:31:00Z"))).toBe("2026-09-25");
+  });
+});
+
+describe("localToday", () => {
+  const now = new Date("2026-10-20T20:00:00Z");
+
+  it("gives the calendar date in the zone asked for", () => {
+    expect(localToday("America/New_York", now)).toBe("2026-10-20");
+    expect(localToday("Asia/Kolkata", now)).toBe("2026-10-21"); // 01:30 IST
+    expect(localToday("Pacific/Kiritimati", now)).toBe("2026-10-21"); // UTC+14
+  });
+
+  it("falls back to IST for a zone the runtime does not know", () => {
+    expect(localToday("Mars/Olympus_Mons", now)).toBe(istToday(now));
+  });
+
+  it("deviceTimeZone names a zone localToday accepts", () => {
+    const tz = deviceTimeZone();
+    expect(typeof tz).toBe("string");
+    expect(localToday(tz, now)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 

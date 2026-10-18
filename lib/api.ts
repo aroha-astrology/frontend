@@ -469,6 +469,8 @@ export interface PanchangData {
   regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];
+  /** 'solarNoon' above 55° latitude when the day is under 4 h or over 20 h: Rahu Kaal etc. then use solar noon ± 6 h. */
+  dayTimesMode?: "sunrise" | "solarNoon";
 }
 
 // ─── Panchang month calendar ─────────────────────────────────────────────────
@@ -1320,21 +1322,23 @@ export const api = {
     opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
   ) => pollHouseInsight(house, language, opts),
 
-  /** Panchang data. */
-  panchang: (lat?: number, lon?: number, date?: string) => {
+  /** Panchang data. `tz` = IANA zone for the clock times (the server reads IST without it). */
+  panchang: (lat?: number, lon?: number, date?: string, tz?: string) => {
     const params = new URLSearchParams();
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
     if (date) params.set("date", date);
+    if (tz) params.set("tz", tz);
     const qs = params.toString();
     return request<PanchangData>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
   },
 
   /** Lightweight per-day panchang summaries for a calendar month. */
-  panchangMonth: (year: number, month: number, lat?: number, lon?: number) => {
+  panchangMonth: (year: number, month: number, lat?: number, lon?: number, tz?: string) => {
     const params = new URLSearchParams({ year: String(year), month: String(month) });
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
+    if (tz) params.set("tz", tz);
     return request<{
       year: number;
       month: number;

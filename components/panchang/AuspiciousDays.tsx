@@ -7,6 +7,7 @@ import { api, type PanchangMonthDay } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
 import { istToday } from "@/lib/period-expiry";
+import { localToday } from "@/lib/calendar-format";
 import {
   evaluateMuhurtaCategory,
   findUpcomingFavorableDays,
@@ -35,6 +36,8 @@ const NEXT_MONTH_LOOKAHEAD_DAYS = 7;
 interface AuspiciousDaysProps {
   lat?: number;
   lon?: number;
+  /** IANA zone for those coordinates; IST when absent (the Delhi reference). */
+  tz?: string;
 }
 
 const CATEGORY_DISPLAY_ORDER: MuhurtaCategoryId[] = [
@@ -80,7 +83,7 @@ function formatShortDate(isoDate: string): string {
   });
 }
 
-export default function AuspiciousDays({ lat, lon }: AuspiciousDaysProps) {
+export default function AuspiciousDays({ lat, lon, tz }: AuspiciousDaysProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<MuhurtaCategoryId>(CATEGORY_DISPLAY_ORDER[0]);
   const [days, setDays] = useState<PanchangMonthDay[] | null>(null);
@@ -97,17 +100,18 @@ export default function AuspiciousDays({ lat, lon }: AuspiciousDaysProps) {
         month,
         lat != null ? roundCoord(lat) : undefined,
         lon != null ? roundCoord(lon) : undefined,
+        tz,
       );
       const cached = cacheGet<PanchangMonthDay[]>(cacheKey);
       if (cached) return cached;
-      const res = await api.panchangMonth(year, month, lat, lon);
+      const res = await api.panchangMonth(year, month, lat, lon, tz);
       cacheSet(cacheKey, res.days, Date.now() + PANCHANG_MONTH_TTL_MS);
       return res.days;
     }
 
     (async () => {
       try {
-        const today = istToday();
+        const today = tz ? localToday(tz) : istToday();
         const [year, month] = today.split("-").map(Number); // month is 1-12
         const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
         const todayDay = Number(today.slice(8, 10));
@@ -129,9 +133,9 @@ export default function AuspiciousDays({ lat, lon }: AuspiciousDaysProps) {
     return () => {
       cancelled = true;
     };
-  }, [lat, lon]);
+  }, [lat, lon, tz]);
 
-  const todayIso = istToday();
+  const todayIso = tz ? localToday(tz) : istToday();
   const todayData = useMemo(() => days?.find((d) => d.isoDate === todayIso) ?? null, [days, todayIso]);
 
   const evaluation = todayData ? evaluateMuhurtaCategory(selected, todayData) : null;

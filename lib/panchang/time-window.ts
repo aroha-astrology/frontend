@@ -58,10 +58,12 @@ export function formatDurationHm(totalMinutes: number): string {
  * jyotish-backend/src/lib/astro-engine/panchang/choghadiya.ts#formatTime)
  * could never be marked active — `now >= 1392 && now < 38` is never true.
  * `now` is injectable (default `new Date()`) so this is testable without
- * faking the system clock via a real Date construction.
+ * faking the system clock via a real Date construction. `timeZone` is the
+ * zone the window's clock times are in (e.g. IST for the Delhi reference seen
+ * from abroad); without it the device's own clock is used.
  */
-export function isCurrentlyActive(start: string, end: string, now: Date = new Date()): boolean {
-  const nowMins = now.getHours() * 60 + now.getMinutes();
+export function isCurrentlyActive(start: string, end: string, now: Date = new Date(), timeZone?: string): boolean {
+  const nowMins = timeZone ? minutesOfDayIn(now, timeZone) : now.getHours() * 60 + now.getMinutes();
   const startMins = timeToMinutes(start);
   const endMins = timeToMinutes(end);
   if (endMins > startMins) {
@@ -70,4 +72,16 @@ export function isCurrentlyActive(start: string, end: string, now: Date = new Da
   // Crosses midnight (e.g. start=23:12, end=00:38): active either from
   // `start` through the end of the day, or from midnight up to `end`.
   return nowMins >= startMins || nowMins < endMins;
+}
+
+/** Minutes after midnight of `now` on the clock of an IANA zone (device clock if the zone is unknown). */
+function minutesOfDayIn(now: Date, timeZone: string): number {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now);
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+    const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+    return hour * 60 + minute;
+  } catch {
+    return now.getHours() * 60 + now.getMinutes();
+  }
 }

@@ -152,7 +152,28 @@ export function monthHeading(month: string, lang: string): string {
 
 /** Today as YYYY-MM-DD in IST. */
 export function istToday(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(now);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: IST_ZONE }).format(now);
+}
+
+/** India's single civil zone; the Delhi reference panchang always reads on it. */
+export const IST_ZONE = "Asia/Kolkata";
+
+/** The device's IANA zone ("America/New_York"), or IST when the runtime can't say. */
+export function deviceTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || IST_ZONE;
+  } catch {
+    return IST_ZONE;
+  }
+}
+
+/** Today as YYYY-MM-DD in a zone (the device's own by default). */
+export function localToday(timeZone: string = deviceTimeZone(), now: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
+  } catch {
+    return istToday(now);
+  }
 }
 
 /**

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api, type PanchangData } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
-import { istToday, periodExpiresAt } from "@/lib/period-expiry";
+import { periodExpiresAt } from "@/lib/period-expiry";
+import { deviceTimeZone, IST_ZONE, localToday } from "@/lib/calendar-format";
 import { loadGitaVerses, type GitaVerse } from "@/lib/gita";
 import { loadShlokas, type Shloka } from "@/lib/shlokas";
 import { deityForDate, type WeekdayDeity } from "@/lib/stories/deity";
@@ -104,9 +105,11 @@ export function useDailyStories(enabled: boolean, open: boolean): DailyStoriesDa
       const lat = coords?.lat ?? REFERENCE_LAT;
       const lon = coords?.lon ?? REFERENCE_LON;
       setReferenceLocation(!coords);
+      const tz = coords ? deviceTimeZone() : IST_ZONE;
+      const today = localToday(tz);
 
       // Same key and expiry as components/horoscope/PanchangStrip.tsx, so the two share one request a day.
-      const cacheKey = buildKey("panchang", "v2", roundCoord(lat), roundCoord(lon), istToday());
+      const cacheKey = buildKey("panchang", "v3", roundCoord(lat), roundCoord(lon), today, tz);
       const cached = cacheGet<PanchangData>(cacheKey);
       if (cached) {
         setPanchang(cached);
@@ -114,7 +117,7 @@ export function useDailyStories(enabled: boolean, open: boolean): DailyStoriesDa
         return;
       }
       api
-        .panchang(lat, lon)
+        .panchang(lat, lon, today, tz)
         .then((res) => {
           if (cancelled) return;
           setPanchang(res);

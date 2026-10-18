@@ -25,6 +25,7 @@ import { isCurrentlyActive } from "@/lib/panchang/time-window";
 import FeatureGuard from "@/components/FeatureGuard";
 import { usePanchangRegion } from "@/hooks/usePanchangRegion";
 import RegionPicker from "@/components/panchang/RegionPicker";
+import { deviceTimeZone, IST_ZONE, localToday } from "@/lib/calendar-format";
 
 /** An explicit `date` was passed to api.panchang — that day's panchang never changes once computed, so cache it for a fixed, generous window rather than tying it to IST-midnight rollover (which only makes sense for *today's* panchang — see PanchangStrip.tsx). */
 const PANCHANG_FIXED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -102,8 +103,10 @@ export default function PanchangPage() {
   const geo = useGeolocation();
   // Planning to Buy card below is commented out — its useFeature("panchang.purchasePlan") gate went with it.
 
-  // The day the page opened on. Your Day only describes today, so it hides on any other date.
-  const [openedOn] = useState(() => new Date().toISOString().slice(0, 10));
+  // The day the page opened on, on the device's own calendar (a UTC date showed yesterday in India
+  // until 05:30). Your Day only describes today, so it hides on any other date.
+  const [deviceTz] = useState(deviceTimeZone);
+  const [openedOn] = useState(() => localToday(deviceTz));
   const [selectedDate, setSelectedDate] = useState(openedOn);
   const { region, setRegion } = usePanchangRegion();
 
@@ -137,7 +140,9 @@ export default function PanchangPage() {
     // entry from before that change would keep being served (matching this
     // same key) and silently look "unavailable" for the new fields forever,
     // since nothing else about the key would ever invalidate it.
-    const cacheKey = buildKey("panchang", "v3", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate);
+    // v4: the key carries the clock zone (the Delhi reference is always IST;
+    // "Your Location" reads on the device's own zone).
+    const cacheKey = buildKey("panchang", "v4", roundCoord(REFERENCE_LAT), roundCoord(REFERENCE_LON), selectedDate, IST_ZONE);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setRefData(cached);
@@ -146,7 +151,7 @@ export default function PanchangPage() {
     }
 
     api
-      .panchang(REFERENCE_LAT, REFERENCE_LON, selectedDate)
+      .panchang(REFERENCE_LAT, REFERENCE_LON, selectedDate, IST_ZONE)
       .then((res) => {
         if (cancelled) return;
         setRefData(res);
@@ -166,7 +171,7 @@ export default function PanchangPage() {
     let cancelled = false;
     setUserState("loading");
 
-    const cacheKey = buildKey("panchang", "v3", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate);
+    const cacheKey = buildKey("panchang", "v4", roundCoord(geo.coords.lat), roundCoord(geo.coords.lon), selectedDate, deviceTz);
     const cached = cacheGet<PanchangData>(cacheKey);
     if (cached) {
       setUserData(cached);
@@ -176,7 +181,7 @@ export default function PanchangPage() {
     }
 
     api
-      .panchang(geo.coords.lat, geo.coords.lon, selectedDate)
+      .panchang(geo.coords.lat, geo.coords.lon, selectedDate, deviceTz)
       .then((res) => {
         if (cancelled) return;
         setUserData(res);
@@ -190,9 +195,13 @@ export default function PanchangPage() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, firebaseUser, geo.coords, selectedDate]);
+  }, [authLoading, firebaseUser, geo.coords, selectedDate, deviceTz]);
 
   const data = source === "mine" && userData ? userData : refData;
+  /** Polar night or midnight sun: no real sunrise/sunset to show. */
+  const noSunEvent = data?.dayTimesMode === "solarNoon" && data.sunriseTime === data.sunsetTime;
+  /** The zone the shown clock times are in: IST for the Delhi reference, the device zone for "Your Location". */
+  const dataTz = source === "mine" && userData ? deviceTz : IST_ZONE;
   const state =
     source === "mine" ? (userState === "ready" ? "ready" : userState === "unavailable" ? "unavailable" : "loading") : refState;
 
@@ -342,6 +351,7 @@ export default function PanchangPage() {
             onSelectDate={setSelectedDate}
             lat={source === "mine" ? geo.coords?.lat : undefined}
             lon={source === "mine" ? geo.coords?.lon : undefined}
+            tz={source === "mine" ? deviceTz : undefined}
             region={region}
           />
         </div>
@@ -382,11 +392,18 @@ export default function PanchangPage() {
             {/* Sunrise/sunset (+ moonrise/moonset when available) */}
             <div data-tour="panchang-timings">
             <SunMoonTimings
-              sunriseTime={data.sunriseTime}
-              sunsetTime={data.sunsetTime}
+              // On polar days/nights the Sun never rises or sets, and the server's estimate then gives
+              // the same clock time for both; showing a 0 h "day" would be wrong, so leave them out.
+              sunriseTime={noSunEvent ? undefined : data.sunriseTime}
+              sunsetTime={noSunEvent ? undefined : data.sunsetTime}
               moonriseTime={data.moonriseTime}
               moonsetTime={data.moonsetTime}
             />
+            {data.dayTimesMode === "solarNoon" && (
+              <p className="mt-2 text-[11px] text-muted" data-testid="panchang-solar-noon-note">
+                {t("horoscope.panchang.solarNoonNote")}
+              </p>
+            )}
             </div>
 
             {/* Your Day and the next important window (both moved here from Home; each hides itself while its flag is off) */}
@@ -397,13 +414,14 @@ export default function PanchangPage() {
             {data.choghadiya && (
               <Card className="p-4 border-gold/10" data-tour="panchang-choghadiya">
                 <h2 className="text-sm font-display text-foreground mb-3">{t("horoscope.panchang.choghadiyaTitle")}</h2>
-                <ChoghadiyaTimeline day={data.choghadiya.day} night={data.choghadiya.night} />
+                <ChoghadiyaTimeline day={data.choghadiya.day} night={data.choghadiya.night} timeZone={dataTz} />
               </Card>
             )}
 
             <AuspiciousDays
               lat={source === "mine" ? geo.coords?.lat : undefined}
               lon={source === "mine" ? geo.coords?.lon : undefined}
+              tz={source === "mine" ? deviceTz : undefined}
             />
 
             <FindMyDateCard />
@@ -413,7 +431,7 @@ export default function PanchangPage() {
               <CollapsibleSection id="hora" title={t("horoscope.panchang.horaTitle")} subtitle={t("horoscope.panchang.horaSubtitle")}>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {data.hora.map((h, i) => {
-                    const active = isCurrentlyActive(h.startTime, h.endTime);
+                    const active = isCurrentlyActive(h.startTime, h.endTime, undefined, dataTz);
                     return (
                       <div
                         key={i}

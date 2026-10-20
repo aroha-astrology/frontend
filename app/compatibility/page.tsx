@@ -195,6 +195,8 @@ export default function CompatibilityPage() {
         reportKey: "match_report",
         partner: {
           dateOfBirth: form[partnerSide].dob,
+          // The side picked is the partner's gender: it sets the boy/girl order of Guna Milan.
+          gender: partnerSide === "boy" ? ("male" as const) : ("female" as const),
           // No silent noon fallback: the time is either one they gave or the
           // midpoint of the window they picked, and the latter is flagged so the
           // report narrates this person at sign level instead of asserting a lagna.

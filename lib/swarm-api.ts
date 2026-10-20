@@ -41,7 +41,8 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 export interface BirthInput {
   date: string;       // ISO YYYY-MM-DD
-  time: string;       // HH:MM
+  /** HH:MM. Leave it out when unknown: the server casts for 12:00 and marks it "unknown". */
+  time?: string;
   latitude: number;
   longitude: number;
   timezone: string;   // IANA tz
@@ -76,6 +77,10 @@ export interface OnboardingResponse {
   summary: string;
   charts?: OnboardingCharts;
   insights?: string[];
+  /** "unknown" when no birth time was sent. */
+  timeAccuracy?: "exact" | "approximate" | "unknown";
+  /** Which parts a non-exact time can move (English); absent for an exact time. */
+  caveat?: string;
 }
 
 export interface PlanetPosition {

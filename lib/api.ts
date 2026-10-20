@@ -82,6 +82,9 @@ export interface User {
   deletionRequestedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /** IANA zone the server reads this user's clock in (quiet hours, "today" in chat, transit times).
+   * null until the app sends the device's zone; absent from older servers. */
+  currentTimezone?: string | null;
   /** users.relationship_status — single/in_relationship/engaged/married/divorced/widowed/
    * separated/complicated/prefer_not_to_say, or null if not yet answered at onboarding. */
   relationshipStatus: string | null;
@@ -239,6 +242,8 @@ export interface UpdateMeBody {
   placeOfBirth?: PlaceOfBirth | null;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   currentLocation?: PlaceOfBirth | null;
+  /** The device's IANA zone, for users who never shared a location. */
+  currentTimezone?: string;
   locale?: string;
   relationshipStatus?: string;
   onboardingStatus?: string;

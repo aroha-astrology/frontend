@@ -474,6 +474,10 @@ export interface PanchangData {
   moonriseTime?: string;
   /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
   moonsetTime?: string;
+  /** Moonrise/moonset are the first after the day's sunrise (Drik Panchang's day); these say
+   * the time falls after midnight, on the next date. Absent on an older backend. */
+  moonriseNextDay?: boolean;
+  moonsetNextDay?: boolean;
   regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];

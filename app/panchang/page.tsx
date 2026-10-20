@@ -398,6 +398,8 @@ export default function PanchangPage() {
               sunsetTime={noSunEvent ? undefined : data.sunsetTime}
               moonriseTime={data.moonriseTime}
               moonsetTime={data.moonsetTime}
+              moonriseNextDay={data.moonriseNextDay}
+              moonsetNextDay={data.moonsetNextDay}
             />
             {data.dayTimesMode === "solarNoon" && (
               <p className="mt-2 text-[11px] text-muted" data-testid="panchang-solar-noon-note">

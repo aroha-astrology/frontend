@@ -95,6 +95,14 @@ export interface User {
   walletBalancePaise: number;
   /** Prepaid chat questions from Question Packs (roadmap step 10). Absent on an older backend. */
   questionCredits?: number;
+  /** A festival's free chat questions (backend pass/chat-gifts.repo.ts), spent before the
+   * Pass, packs and wallet; null/absent when none is running. validUntil is ISO 8601. */
+  chatGift?: {
+    campaign: string;
+    questionsLeft: number;
+    questionsTotal: number;
+    validUntil: string;
+  } | null;
   /** The report key the user voted for on "what should we prepare next?", or null if
    * never asked / still pending. Account-level, not profile-scoped. */
   nextReportVote: string | null;

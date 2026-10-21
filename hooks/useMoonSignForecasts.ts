@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { forecastToRating, forecastToText, type ForecastData, type SignForecast, type Timescale } from "@/components/horoscope/types";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
 import { currentPeriodKey, periodExpiresAt } from "@/lib/period-expiry";
+import { deviceTimeZone } from "@/lib/calendar-format";
 
 /** Shape of a single sign's raw API response — same for every consumer of api.moonSignForecast. */
 type MoonSignForecastResponse = Awaited<ReturnType<typeof api.moonSignForecast>>;
@@ -22,10 +23,11 @@ function failedForecast(sign: (typeof zodiac)[number]): SignForecast {
  * user for a given (sign, period, periodKey, language), so the cache key
  * deliberately carries no userId/profile. Hard-cached (see lib/cache.ts):
  * once a (sign, period)'s current-period reading is cached, it costs zero
- * network until the period rolls over.
+ * network until the period rolls over at the reader's own midnight (the
+ * forecast is read from the sky when fetched, so no server date to match).
  */
 function cacheKeyFor(lang: string, signIndex: number, period: Timescale): string {
-  return buildKey("moonSignForecast", lang, signIndex, period, currentPeriodKey(period));
+  return buildKey("moonSignForecast", lang, signIndex, period, currentPeriodKey(period, deviceTimeZone()));
 }
 
 /**
@@ -65,7 +67,7 @@ export function useMoonSignForecasts(period: Timescale = "daily", enabled: boole
             return api.moonSignForecast(sign.index, period, i18n.language).then((res) => {
               // The endpoint has no pending/failed shape — every resolved
               // response is a terminal success, safe to cache unconditionally.
-              cacheSet(key, res, periodExpiresAt(period));
+              cacheSet(key, res, periodExpiresAt(period, deviceTimeZone()));
               return res;
             });
           }),

@@ -9,6 +9,7 @@
 
 import { getFirebaseAuth } from "./firebase";
 import { nextPollDelay } from "./poll-backoff";
+import { deviceTimeZone } from "./calendar-format";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 import type { RegionId } from "@/lib/panchang/regions";
 
@@ -1562,9 +1563,11 @@ async function pollKundli(
 async function horoscopeRequest(period: PersonalizedHoroscopePeriod, language?: string): Promise<HoroscopeResult> {
   const headers: Record<string, string> = { ...(await authHeader()) };
   const langQs = language ? `&language=${encodeURIComponent(language)}` : "";
+  // The device's zone, so the server picks the reader's own today/this week.
+  const tzQs = `&tz=${encodeURIComponent(deviceTimeZone())}`;
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}${langQs}`, { method: "GET", headers, cache: "no-store" });
+    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}${langQs}${tzQs}`, { method: "GET", headers, cache: "no-store" });
   } catch {
     throw new ApiError(0, "network_error", "Could not reach the server");
   }

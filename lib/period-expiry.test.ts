@@ -146,3 +146,46 @@ describe("currentPeriodKey('yearly') / periodExpiresAt — year rollover", () =>
     expect(periodExpiresAt("yearly")).toBe(istInstant(2027, 1, 1, 0, 0));
   });
 });
+
+describe("currentPeriodKey / periodExpiresAt on the reader's own zone", () => {
+  // Instants are UTC; the wall-clock time in each zone is worked out by hand.
+
+  it("keeps a New York reader on their own day after India has rolled over", () => {
+    // 2026-10-20 20:00 UTC = 01:30 IST on the 21st, 16:00 EDT on the 20th.
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 20, 20, 0)));
+    expect(currentPeriodKey("daily")).toBe("2026-10-21");
+    expect(currentPeriodKey("daily", "America/New_York")).toBe("2026-10-20");
+    expect(currentPeriodKey("tomorrow", "America/New_York")).toBe("2026-10-21");
+    // Next New York midnight: 21 Oct 00:00 EDT = 04:00 UTC.
+    expect(periodExpiresAt("daily", "America/New_York")).toBe(Date.UTC(2026, 9, 21, 4, 0));
+  });
+
+  it("finds midnight across the daylight-saving change", () => {
+    // New York leaves EDT at 02:00 on 1 Nov 2026.
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 31, 20, 0))); // 31 Oct 16:00 EDT
+    expect(periodExpiresAt("daily", "America/New_York")).toBe(Date.UTC(2026, 10, 1, 4, 0));
+    vi.setSystemTime(new Date(Date.UTC(2026, 10, 1, 20, 0))); // 1 Nov 15:00 EST
+    expect(periodExpiresAt("daily", "America/New_York")).toBe(Date.UTC(2026, 10, 2, 5, 0));
+  });
+
+  it("rolls a London week at London's Monday midnight", () => {
+    // Sunday 25 Oct 2026 20:00 UTC = 20:00 GMT (BST ended that morning), Monday 01:30 IST.
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 25, 20, 0)));
+    expect(currentPeriodKey("weekly")).toBe("2026-10-26");
+    expect(currentPeriodKey("weekly", "Europe/London")).toBe("2026-10-19");
+    expect(periodExpiresAt("weekly", "Europe/London")).toBe(Date.UTC(2026, 9, 26, 0, 0));
+  });
+
+  it("moves a Sydney reader to the next month before India", () => {
+    // 31 Oct 2026 14:00 UTC = 19:30 IST on the 31st, 1 Nov 01:00 AEDT.
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 31, 14, 0)));
+    expect(currentPeriodKey("monthly")).toBe("2026-10");
+    expect(currentPeriodKey("monthly", "Australia/Sydney")).toBe("2026-11");
+  });
+
+  it("reads IST for an unknown zone", () => {
+    vi.setSystemTime(new Date(istInstant(2026, 7, 21, 9, 15)));
+    expect(currentPeriodKey("daily", "Not/AZone")).toBe(currentPeriodKey("daily"));
+    expect(periodExpiresAt("daily", "Not/AZone")).toBe(istInstant(2026, 7, 22, 0, 0));
+  });
+});

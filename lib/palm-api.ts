@@ -163,10 +163,22 @@ export const palmApi = {
     hand: "primary" | "secondary",
     scores: Record<string, number>,
     regions?: Record<string, { cx: number; cy: number; radius: number }>,
+    landmarks?: {
+      points: Array<{ x: number; y: number; z: number }>;
+      handedness: "Left" | "Right";
+      handednessScore: number;
+      imageWidth: number;
+      imageHeight: number;
+    },
   ) =>
     request<{ ok: boolean }>(`/v1/palm/readings/${readingId}/mount-relief`, {
       method: "POST",
-      body: { hand, scores, ...(regions ? { regions } : {}) },
+      body: {
+        hand,
+        scores,
+        ...(regions ? { regions } : {}),
+        ...(landmarks ? { landmarks } : {}),
+      },
       auth: true,
     }),
 

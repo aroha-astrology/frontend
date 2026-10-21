@@ -17,7 +17,7 @@
 import type { NormalizedLandmark } from "./mountRegions";
 
 const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task";
+  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 const WASM_BASE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +41,60 @@ async function getLandmarker() {
   return landmarkerPromise;
 }
 
+export interface HandLandmarkPoint {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface HandLandmarkResult {
+  landmarks: HandLandmarkPoint[];
+  handedness: "Left" | "Right";
+  handednessScore: number;
+  imageWidth: number;
+  imageHeight: number;
+}
+
+/**
+ * Detects 21 hand landmarks, handedness, and dimensions in pixel space.
+ */
+export async function detectHand(
+  image: HTMLImageElement | HTMLCanvasElement
+): Promise<HandLandmarkResult | null> {
+  try {
+    const landmarker = await getLandmarker();
+    const result = landmarker.detect(image);
+    const hand = result?.landmarks?.[0];
+    if (!hand || hand.length !== 21) return null;
+
+    const width =
+      "naturalWidth" in image && image.naturalWidth ? image.naturalWidth : image.width;
+    const height =
+      "naturalHeight" in image && image.naturalHeight ? image.naturalHeight : image.height;
+
+    const rawHandedness = result?.handedness?.[0]?.[0];
+    const categoryName = (
+      rawHandedness?.categoryName === "Left" ? "Left" : "Right"
+    ) as "Left" | "Right";
+    const handednessScore =
+      typeof rawHandedness?.score === "number" ? rawHandedness.score : 1;
+
+    return {
+      landmarks: hand.map((p: { x: number; y: number; z?: number }) => ({
+        x: p.x,
+        y: p.y,
+        z: typeof p.z === "number" ? p.z : 0,
+      })),
+      handedness: categoryName,
+      handednessScore,
+      imageWidth: width,
+      imageHeight: height,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Detects the 21 hand landmarks in a captured frame. Returns null (never throws) on any
  * failure — a CDN blip, an unsupported browser, no hand actually found in frame — since this
@@ -48,7 +102,9 @@ async function getLandmarker() {
  * reading still works fine without it (see palm-rules.ts's cross-validation, which treats
  * missing CV data as "no additional signal", not an error).
  */
-export async function detectHandLandmarks(image: HTMLImageElement | HTMLCanvasElement): Promise<NormalizedLandmark[] | null> {
+export async function detectHandLandmarks(
+  image: HTMLImageElement | HTMLCanvasElement
+): Promise<NormalizedLandmark[] | null> {
   try {
     const landmarker = await getLandmarker();
     const result = landmarker.detect(image);

@@ -135,6 +135,7 @@ export default function PalmReadingPage() {
               events={data.events}
               unlocked={isFullyReady}
               kundliMatch={isFullyReady ? data.kundliMatch : null}
+              mountRegions={data.mountRelief?.primaryRegions as never}
             />
 
             {data.question && (

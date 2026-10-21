@@ -13,7 +13,7 @@ import EventRow from "@/components/calendar/EventRow";
 import EventSheet from "@/components/calendar/EventSheet";
 import { ApiError } from "@/lib/api";
 import { calendarApi, type CalendarEvent, type CalendarResponse } from "@/lib/insights-api";
-import { eventGroup, groupByMonth, istToday, monthHeading } from "@/lib/calendar-format";
+import { eventGroup, groupByMonth, localToday, monthHeading } from "@/lib/calendar-format";
 
 const FILTERS = ["all", "planets", "dasha", "festivals"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -29,7 +29,7 @@ function CalendarPage() {
   useEffect(() => {
     let cancelled = false;
     calendarApi
-      .get(istToday(), 120)
+      .get(localToday(), 120)
       .then((res) => !cancelled && setData(res))
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof ApiError && err.message === "CHART_NOT_READY" ? "notReady" : "error");

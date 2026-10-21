@@ -8,7 +8,7 @@ import { ChevronRight, Sparkles } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useNewFeature } from "@/hooks/useFeature";
 import { calendarApi, type CalendarEvent } from "@/lib/insights-api";
-import { eventTitle, istToday, pickNextWindow, shortDate } from "@/lib/calendar-format";
+import { eventTitle, localToday, pickNextWindow, shortDate } from "@/lib/calendar-format";
 import EventSheet from "./EventSheet";
 
 /** Home's "Next important window": the weightiest event of the next 45 days. Ships off (`home.nextWindow`). */
@@ -22,7 +22,7 @@ export default function NextWindowCard() {
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    const today = istToday();
+    const today = localToday();
     calendarApi
       .get(today, 45)
       .then((res) => !cancelled && setEvent(pickNextWindow(res.events, today)))

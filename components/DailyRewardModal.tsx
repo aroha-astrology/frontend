@@ -10,7 +10,7 @@ import { useTour } from "@/providers/tour-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api } from "@/lib/api";
-import { istToday } from "@/lib/period-expiry";
+import { localToday } from "@/lib/calendar-format";
 import DailyRewardLadder from "@/components/rewards/DailyRewardLadder";
 
 /**
@@ -36,7 +36,7 @@ export default function DailyRewardModal() {
   // popup stayed hidden after midnight until then, right when a new day's
   // reward was already claimable. The server's claim idempotency is still the
   // real source of truth; this only stops nagging twice in one day.
-  const todayKey = `aroha:dailyReward:${istToday()}`;
+  const todayKey = `aroha:dailyReward:${localToday()}`;
 
   const eligible =
     rewardsEnabled && permissionsResolved && !!user?.profileCompletedAt && !user?.activeClaimableCampaign;

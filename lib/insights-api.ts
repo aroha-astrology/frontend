@@ -1,4 +1,5 @@
 import { request, type RectifyEvent } from "@/lib/api";
+import { tzQuery } from "@/lib/calendar-format";
 
 /** The life areas the roadmap features talk about (mirrors backend lib/intelligence/areas.ts). */
 export type LifeArea =
@@ -102,7 +103,8 @@ export interface AstroWeather {
 }
 
 export const weatherApi = {
-  get: (date?: string) => request<AstroWeather>(`/v1/astro-weather${date ? `?date=${date}` : ""}`, { auth: true }),
+  get: (date?: string) =>
+    request<AstroWeather>(`/v1/astro-weather?${tzQuery()}${date ? `&date=${date}` : ""}`, { auth: true }),
 };
 
 /* -------------------------------------------------------------------------- */
@@ -142,7 +144,7 @@ export interface CalendarResponse {
 
 export const calendarApi = {
   get: (from?: string, days = 90) =>
-    request<CalendarResponse>(`/v1/calendar?days=${days}${from ? `&from=${from}` : ""}`, { auth: true }),
+    request<CalendarResponse>(`/v1/calendar?days=${days}&${tzQuery()}${from ? `&from=${from}` : ""}`, { auth: true }),
 };
 
 /* -------------------------------------------------------------------------- */

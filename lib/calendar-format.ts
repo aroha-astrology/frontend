@@ -167,6 +167,11 @@ export function deviceTimeZone(): string {
   }
 }
 
+/** `tz=<device zone>` for a request, so the server reads "today" on the reader's clock. */
+export function tzQuery(): string {
+  return `tz=${encodeURIComponent(deviceTimeZone())}`;
+}
+
 /** Today as YYYY-MM-DD in a zone (the device's own by default). */
 export function localToday(timeZone: string = deviceTimeZone(), now: Date = new Date()): string {
   try {

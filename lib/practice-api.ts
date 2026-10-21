@@ -1,5 +1,6 @@
 import { request } from "@/lib/api";
 import type { WhyFactor } from "@/lib/insights-api";
+import { tzQuery } from "@/lib/calendar-format";
 
 export type PracticeItemId = "remedy" | "dasha" | "weekday" | "lalKitab";
 
@@ -24,7 +25,7 @@ export interface PracticeToday {
 }
 
 export const practiceApi = {
-  today: () => request<PracticeToday>("/v1/practice/today", { auth: true }),
+  today: () => request<PracticeToday>(`/v1/practice/today?${tzQuery()}`, { auth: true }),
   complete: (itemId: PracticeItemId) =>
-    request<PracticeToday>("/v1/practice/complete", { method: "POST", body: { itemId }, auth: true }),
+    request<PracticeToday>(`/v1/practice/complete?${tzQuery()}`, { method: "POST", body: { itemId }, auth: true }),
 };

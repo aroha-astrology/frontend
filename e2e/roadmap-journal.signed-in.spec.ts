@@ -2,6 +2,9 @@ import { test, expect } from "@playwright/test";
 import { mockApi, callsTo } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
+// The app reads "today" on the device clock; these dates are worked out in IST.
+test.use({ timezoneId: "Asia/Kolkata" });
+
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
 
 function istDay(offset = 0): string {

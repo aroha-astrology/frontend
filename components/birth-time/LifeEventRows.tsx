@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import { CalendarDays, ChevronDown, Plus, X } from "lucide-react";
 import type { RectifyDomain, RectifyEvent } from "@/lib/api";
-import { istToday, shortDateWithYear } from "@/lib/calendar-format";
+import { localToday, shortDateWithYear } from "@/lib/calendar-format";
 
 /** The life events a birth time can be checked against, grouped as the picker shows them. */
 export const DOMAIN_GROUPS: { group: string; options: RectifyDomain[] }[] = [
@@ -93,7 +93,7 @@ function EventRow({
             type="date"
             aria-label={t("birthTime.eventDate")}
             value={event.date}
-            max={istToday()}
+            max={localToday()}
             onChange={(ev) => onChange({ date: ev.target.value })}
             onClick={(ev) => {
               // Desktop browsers only open the picker from their own small icon.

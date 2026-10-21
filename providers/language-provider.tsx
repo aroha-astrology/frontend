@@ -59,6 +59,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setLangState(saved);
       void switchLanguage(saved);
       document.documentElement.lang = saved;
+    } else {
+      // Nothing saved yet: follow the browser language when the app has it, otherwise English.
+      const codes = LANGUAGES.map((l) => l.code as string);
+      const found = (navigator.languages?.length ? navigator.languages : [navigator.language]).map((t) => t.toLowerCase().split("-")[0]).find((c) => codes.includes(c));
+      if (found && found !== "en") {
+        setLangState(found as LangCode);
+        void switchLanguage(found);
+        document.documentElement.lang = found;
+      }
     }
   }, []);
 

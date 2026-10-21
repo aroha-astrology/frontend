@@ -41,7 +41,8 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 export interface BirthInput {
   date: string;       // ISO YYYY-MM-DD
-  time: string;       // HH:MM
+  /** HH:MM. Leave it out when unknown: the server casts for 12:00 and marks it "unknown". */
+  time?: string;
   latitude: number;
   longitude: number;
   timezone: string;   // IANA tz
@@ -76,6 +77,10 @@ export interface OnboardingResponse {
   summary: string;
   charts?: OnboardingCharts;
   insights?: string[];
+  /** "unknown" when no birth time was sent. */
+  timeAccuracy?: "exact" | "approximate" | "unknown";
+  /** Which parts a non-exact time can move (English); absent for an exact time. */
+  caveat?: string;
 }
 
 export interface PlanetPosition {
@@ -505,9 +510,29 @@ export interface VoiceGrant {
   /** Epoch ms at which this minute's socket stops accepting audio. */
   expiresAt: number;
   minutesUsed: number;
+  /** Whole minutes that can still follow this one: free Pass minutes plus what the wallet covers. */
   minutesRemaining: number;
   pricePerMinutePaise: number;
+  /** This minute came from the member's free Pass minutes. Absent from a server older than the Pass rule. */
+  freeMinute?: boolean;
+  /** Free Pass minutes left in the current Pass period. Absent from a server older than the Pass rule. */
+  freeMinutesLeft?: number;
+  /** This minute came from the one-time free trial every user gets. Absent from a server older than the trial. */
+  trialMinute?: boolean;
+  /**
+   * False on a trial call by someone without a Pass: it ends with the trial and
+   * recharging cannot extend it. Absent from a server older than the trial.
+   */
+  passMember?: boolean;
 }
+
+/**
+ * The largest body sent with `keepalive`. A browser refuses a keepalive request
+ * over 64 KiB (counted across every keepalive request still in flight), and it
+ * refuses by failing the fetch, not by sending it without the flag. Kept a
+ * little under the limit so one other small request in flight still fits.
+ */
+const KEEPALIVE_MAX_BYTES = 60_000;
 
 async function voicePost<T>(
   path: string,
@@ -518,18 +543,23 @@ async function voicePost<T>(
   const idToken = await auth.currentUser?.getIdToken();
   if (!idToken) throw new Error("Not authenticated");
 
+  const payload = JSON.stringify(body);
+  // Only end() asks for this (see below) — it's the one call that can fire as
+  // the screen goes away, where a plain fetch may be cancelled. The transcript
+  // of a long call is bigger than a keepalive request may be, and sent that
+  // way it never left the browser: the call stayed open on the server and its
+  // transcript was lost. So a body that size goes as an ordinary request.
+  const keepalive =
+    opts?.keepalive === true && new TextEncoder().encode(payload).length <= KEEPALIVE_MAX_BYTES;
+
   const res = await fetch(`${BASE_URL}/v1/voice/${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
-    // Only end() sets this (see below) — it's the one call fired from an
-    // unload handler, where a plain fetch gets cancelled the instant the page
-    // goes away. The transcript riding along on that call is a few KB, well
-    // under the browser's ~64KB keepalive body cap.
-    ...(opts?.keepalive ? { keepalive: true } : {}),
+    body: payload,
+    ...(keepalive ? { keepalive: true } : {}),
   });
 
   if (!res.ok) {
@@ -546,7 +576,10 @@ async function voicePost<T>(
 }
 
 /**
- * Starts a session and buys its first minute.
+ * Starts a session and takes its first minute.
+ *
+ * Throws 403 `PASS_REQUIRED` when the user has no Aroha Pass that includes
+ * voice call — the caller should show the Pass lock.
  *
  * Throws a `SwarmApiError` with code `VOICE_CONSENT_REQUIRED` (403) when the
  * user has not yet agreed to voice recording — the caller should open the
@@ -561,7 +594,9 @@ export function startVoiceSession(locale: string): Promise<VoiceGrant> {
  *
  * `resumptionHandle` is the handle Gemini issued over the socket; passing it
  * back is what makes the new minute continue the same conversation instead of
- * restarting it. Throws 409 once the server-side ceiling is reached.
+ * restarting it. Throws 409 when the wallet cannot pay for the minute
+ * (`VOICE_OUT_OF_CREDIT`) or the call reached the safety ceiling
+ * (`VOICE_SESSION_LIMIT`), and 403 `PASS_REQUIRED` if the Pass has ended.
  */
 export function extendVoiceSession(
   voiceSessionId: string,
@@ -585,8 +620,9 @@ export function extendVoiceSession(
  * `transcript` is the whole call's turns (see GeminiLiveSession.getTranscript)
  * — the server saves it as a chat-history session and mines it for durable
  * facts, same as text chat. Omitted (or empty) when the call never connected;
- * there's nothing to save. `keepalive: true` because this is the one call
- * that also fires from a page-unload handler.
+ * there's nothing to save. Asks for `keepalive` because this is the one call
+ * that also fires as the screen goes away; `voicePost` drops the flag when the
+ * transcript is too big for it.
  */
 export function endVoiceSession(
   voiceSessionId: string,
@@ -601,6 +637,28 @@ export function endVoiceSession(
     },
     { keepalive: true },
   );
+}
+
+/** The quick answers on the after-call sheet; the backend accepts exactly these (VOICE_FEEDBACK_TAGS). */
+export const VOICE_FEEDBACK_GOOD_TAGS = ["clearVoice", "helpfulAnswers", "understoodMe", "feltNatural"] as const;
+export const VOICE_FEEDBACK_BAD_TAGS = [
+  "hardToHear",
+  "callCut",
+  "didntUnderstand",
+  "wrongLanguage",
+  "notHelpful",
+  "slowReplies",
+] as const;
+export type VoiceFeedbackTag =
+  | (typeof VOICE_FEEDBACK_GOOD_TAGS)[number]
+  | (typeof VOICE_FEEDBACK_BAD_TAGS)[number];
+
+/** Answers "how was your call?" for a finished call. One answer per call; the server ignores a second. */
+export function rateVoiceSession(
+  voiceSessionId: string,
+  feedback: { rating: number; tags: VoiceFeedbackTag[]; comment?: string },
+): Promise<{ ok: true }> {
+  return voicePost<{ ok: true }>(`sessions/${voiceSessionId}/feedback`, feedback);
 }
 
 /**

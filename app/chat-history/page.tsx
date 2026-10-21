@@ -2,11 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageCircle, ChevronRight, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, ChevronRight, Loader2, Trash2, Phone } from "lucide-react";
 import IconButton from "@/components/ui/IconButton";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { useTranslation } from "react-i18next";
 import { getFirebaseAuth } from "@/lib/firebase";
+
+/** Set on a session that is the saved transcript of a voice call. */
+type SessionCall = {
+  /** When the call began. */
+  startedAt: string;
+  durationSeconds: number;
+  /** A few sentences on what was talked about; written shortly after the call, so it can be missing. */
+  recap: string | null;
+};
 
 type ChatSession = {
   id: string;
@@ -14,7 +23,26 @@ type ChatSession = {
   summary: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Missing from a server older than call history; the row then shows as a chat. */
+  call?: SessionCall | null;
 };
+
+type Filter = "all" | "chats" | "calls";
+const FILTERS: { id: Filter; labelKey: string }[] = [
+  { id: "all", labelKey: "chatHistory.filterAll" },
+  { id: "chats", labelKey: "chatHistory.filterChats" },
+  { id: "calls", labelKey: "chatHistory.filterCalls" },
+];
+
+/** A call of a few seconds still reads as a minute, never "0 min". */
+const callMinutes = (call: SessionCall) => Math.max(1, Math.round(call.durationSeconds / 60));
+
+/** The day and the time the call began, short enough to fit a phone's width on one line. */
+function callWhen(call: SessionCall): string {
+  const started = new Date(call.startedAt);
+  const day = started.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  return `${day}, ${started.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+}
 
 export default function ChatHistoryPage() {
   const router = useRouter();
@@ -24,6 +52,7 @@ export default function ChatHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingSession, setDeletingSession] = useState<ChatSession | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
 
   const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in").replace(/\/$/, "");
 
@@ -72,6 +101,13 @@ export default function ChatHistoryPage() {
     }
   }
 
+  // The filter is only worth showing to someone who has both kinds; with it
+  // hidden, a stale "calls" choice must not leave the list empty.
+  const hasCalls = sessions.some((s) => s.call);
+  const hasChats = sessions.some((s) => !s.call);
+  const showFilter = hasCalls && hasChats;
+  const shown = !showFilter || filter === "all" ? sessions : sessions.filter((s) => (filter === "calls") === Boolean(s.call));
+
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <div className="relative z-10 page-container pt-8">
@@ -81,6 +117,23 @@ export default function ChatHistoryPage() {
           </IconButton>
           <h1 className="text-lg font-display text-foreground flex-1">{t("menu.chatHistory", "Chat History")}</h1>
         </div>
+        {showFilter && (
+          <div className="flex gap-2" role="group" aria-label={t("menu.chatHistory", "Chat History")}>
+            {FILTERS.map(({ id, labelKey }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setFilter(id)}
+                aria-pressed={filter === id}
+                className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
+                  filter === id ? "border-gold/50 bg-gold/15 text-gold font-medium" : "border-gold/15 text-muted"
+                }`}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto page-container px-4 md:px-8 py-4">
@@ -97,17 +150,41 @@ export default function ChatHistoryPage() {
           </div>
         ) : (
           <div className="space-y-3 page-grid">
-            {sessions.map((session) => (
+            {shown.map((session) => (
               <div
                 key={session.id}
+                data-testid={session.call ? "history-call" : "history-chat"}
                 onClick={() => router.push(`/ai-chat?sessionId=${session.id}`)}
                 className="bg-card/50 backdrop-blur-sm border border-gold/10 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-card transition-colors"
               >
+                {session.call && (
+                  <span className="mr-3 flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-full border border-gold/30 text-gold">
+                    <Phone size={16} />
+                  </span>
+                )}
                 <div className="flex-1 min-w-0 pr-4">
                   <h3 className="text-foreground font-medium truncate">{session.title}</h3>
-                  <p className="text-sm text-muted mt-1 truncate">
-                    {new Date(session.updatedAt).toLocaleDateString()}
-                  </p>
+                  {session.call ? (
+                    <>
+                      <p className="text-sm text-muted mt-1 truncate">
+                        <span className="text-gold">{t("chatHistory.voiceCall")}</span>
+                        {" · "}
+                        {t("chatHistory.callLength", { minutes: callMinutes(session.call) })}
+                      </p>
+                      <p className="text-xs text-muted mt-0.5 truncate" data-testid="history-call-when">
+                        {callWhen(session.call)}
+                      </p>
+                      {session.call.recap && (
+                        <p className="text-sm text-foreground/80 mt-2 leading-snug line-clamp-3" data-testid="history-call-recap">
+                          {session.call.recap}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted mt-1 truncate">
+                      {new Date(session.updatedAt).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"

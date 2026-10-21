@@ -29,6 +29,18 @@ export interface ReportQuestion {
    * e.g. baby_name's `childGender` only makes sense once `hasChild` is "yes". One level only,
    * no chained conditions needed for the question sets configured today. */
   showIf?: { questionId: string; value: string };
+  /** Skipping this leaves the report no less personal, because it only overrides something the
+   * account already holds (numerology's phone number). Such a question gets no "why we ask" note
+   * and never triggers the general-report warning. */
+  overridesAccount?: true;
+}
+
+/** True when the reader is about to buy a report without answering any of the questions that
+ * make it about their life, so the drawer should warn that the report will be general. One rule
+ * for every report: a new report's questions get the warning without any change here. */
+export function answeredNone(questions: ReportQuestion[], answers: Record<string, string>): boolean {
+  if (!questions.some((q) => !q.overridesAccount)) return false;
+  return !questions.some((q) => (answers[q.id] ?? "").trim() !== "");
 }
 
 // ── Questions shared by more than one report ────────────────────────────────
@@ -87,6 +99,31 @@ const CHILDREN: ReportQuestion = {
     { value: "two_or_more", labelKey: "reports.questions.children.twoOrMore" },
   ],
 };
+
+// Asked only when the profile has no male/female on file. Kua (numerology), the first-child
+// house (progeny), the name pool (name_change) and the boy/girl order of Guna Milan
+// (kundli_milan, marriage) each differ by gender, and none of them may guess it. The answer
+// fills the gap for that purchase only (backend reports.service buildReportScoreContext).
+// Skipping it never triggers the general-report warning, hence overridesAccount.
+const READER_GENDER: ReportQuestion = {
+  id: "readerGender",
+  type: "select",
+  labelKey: "reports.questions.readerGender.label",
+  overridesAccount: true,
+  options: [
+    { value: "female", labelKey: "reports.questions.readerGender.female" },
+    { value: "male", labelKey: "reports.questions.readerGender.male" },
+  ],
+};
+
+const NEEDS_GENDER = new Set(["numerology", "name_change", "progeny", "kundli_milan", "marriage"]);
+
+/** A report's questions, plus the gender question when its maths needs a gender the profile lacks. */
+export function questionsFor(reportKey: string, profileGender: string | null | undefined): ReportQuestion[] {
+  const base = REPORT_QUESTIONS[reportKey] ?? [];
+  const known = profileGender === "male" || profileGender === "female";
+  return NEEDS_GENDER.has(reportKey) && !known ? [...base, READER_GENDER] : base;
+}
 
 export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   baby_name: [
@@ -150,7 +187,9 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   // own phone number (users.phone_e164) for its phone-numerology section, so this exists only
   // to let a reader without a phone on file — or who wants to check a different number —
   // override it. See jyotish-backend's resolvePhone (astro-engine/reports/numerology.ts).
-  numerology: [{ id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber" }],
+  numerology: [
+    { id: "phoneNumber", type: "text", labelKey: "reports.questions.numerology.phoneNumber", overridesAccount: true },
+  ],
   true_love: [RELATIONSHIP_NOW],
   progeny: [CHILDREN],
   wealth: [

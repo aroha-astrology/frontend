@@ -113,6 +113,13 @@ export interface AdminUserRow {
   timeSpentWeekSec: number;
   timeSpentMonthSec: number;
   timeSpentYearSec: number;
+  /** Voice calls with at least one minute granted, and their total length. Optional until the API that sends them is live. */
+  voiceCalls?: number;
+  voiceSeconds?: number;
+  /** Start times (ISO) of the 3 latest of those calls, newest first. */
+  voiceLastCalls?: string[];
+  /** Average "how was your call?" stars, null when never answered. */
+  voiceRating?: number | null;
 }
 
 export interface AdminUsersResponse {
@@ -190,6 +197,30 @@ export interface AdminReportGenerationRow {
 export interface AdminReportGenerationsResponse {
   reports: AdminReportGenerationRow[];
   total: number;
+  offset: number;
+  limit: number;
+}
+
+// ─── Voice call feedback ────────────────────────────────────────────────────
+
+export interface AdminVoiceFeedbackRow {
+  voiceSessionId: string;
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  rating: number;
+  tags: string[];
+  comment: string | null;
+  minutesCharged: number;
+  callStartedAt: string;
+  callEndedAt: string | null;
+  feedbackAt: string;
+}
+
+export interface AdminVoiceFeedbackResponse {
+  feedback: AdminVoiceFeedbackRow[];
+  total: number;
+  averageRating: number | null;
   offset: number;
   limit: number;
 }
@@ -309,6 +340,37 @@ export interface AdminRecurringUsersResponse {
   weeks: AdminRecurringUsersWeek[];
 }
 
+// ─── Left during onboarding ────────────────────────────────────────────────
+
+export interface AdminOnboardingDropoff {
+  id: string;
+  displayName: string | null;
+  email: string | null;
+  phoneE164: string | null;
+  signInMethod: "phone" | "email";
+  createdAt: string;
+  lastActiveAt: string | null;
+  minutesActive: number;
+  activeDays: number;
+  /** The onboarding question they were on (app/onboarding ONBOARDING_STEP_NAMES); null for sign-ups before step saving shipped. */
+  lastStep: string | null;
+  language: string | null;
+  platform: string | null;
+  country: string | null;
+  city: string | null;
+  /** Google's own test devices: Firebase Test Lab, or the Play review-device email pattern. */
+  likelyTest: "test_lab" | "play_review" | null;
+}
+
+export interface AdminOnboardingDropoffs {
+  days: number;
+  signedUp: number;
+  finished: number;
+  left: number;
+  likelyTest: number;
+  users: AdminOnboardingDropoff[];
+}
+
 // ─── Retention ─────────────────────────────────────────────────────────────
 
 export interface AdminRetentionRate {
@@ -371,6 +433,36 @@ export interface AdminDeletionRequestsResponse {
 export interface AdminDeletionActionResponse {
   id: string;
   deletionRequestedAt: string | null;
+}
+
+// ─── Gemini Keys ───────────────────────────────────────────────────────────
+
+export type GeminiKeyTier = "free" | "paid";
+
+export interface AdminGeminiKeyRow {
+  id: string;
+  name: string;
+  tier: GeminiKeyTier;
+  /** "env" = from the server's .env (switch off only); "admin" = pasted on this page (deletable). */
+  source: "env" | "admin";
+  enabled: boolean;
+  /** 1 = the paid key tried first. Null for a free key. */
+  paidPosition: number | null;
+  last4: string;
+  /** False for a .env key that has since been removed from .env. */
+  available: boolean;
+  coolingDown: boolean;
+  lastTestedAt: string | null;
+  lastTestOk: boolean | null;
+  lastTestMessage: string | null;
+  createdAt: string;
+}
+
+export interface GeminiKeyTestResult {
+  ok: boolean;
+  status: number | null;
+  latencyMs: number;
+  message: string;
 }
 
 // ─── Gift Campaigns ────────────────────────────────────────────────────────
@@ -455,6 +547,10 @@ export const adminApi = {
       { auth: true },
     ),
 
+  /** Sign-ups in the last `days` days who left without finishing onboarding, newest first. */
+  onboardingDropoffs: (days: number) =>
+    request<AdminOnboardingDropoffs>(`/v1/admin/onboarding-dropoffs?days=${days}`, { auth: true }),
+
   /** Daily Stories: visitors, views per story and share taps by channel, for the same range as the overview. */
   storyStats: (params: AdminDateRangeParams) =>
     request<AdminStoryStats>(
@@ -493,7 +589,7 @@ export const adminApi = {
       contactType?: "all" | "phone" | "email";
       offset?: number;
       limit?: number;
-      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise";
+      sortBy?: "createdAt" | "lastActiveAt" | "walletBalancePaise" | "claimedAt" | "totalPaidPaise" | "voiceSeconds";
       sortDir?: "asc" | "desc";
     } = {},
   ) => {
@@ -604,6 +700,14 @@ export const adminApi = {
     return request<AdminReportRatingsResponse>(`/v1/admin/report-ratings?${qs.toString()}`, { auth: true });
   },
 
+  /** Every "how was your call?" answer, newest first, with the overall average. */
+  listVoiceFeedback: (params: { offset?: number; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    qs.set("offset", String(params.offset ?? 0));
+    qs.set("limit", String(params.limit ?? 50));
+    return request<AdminVoiceFeedbackResponse>(`/v1/admin/voice-feedback?${qs.toString()}`, { auth: true });
+  },
+
   /** Vote counts for "which report should we prepare next", most-requested first. */
   getNextReportVotes: () =>
     request<AdminNextReportVotesResponse>("/v1/admin/next-report-votes", { auth: true }),
@@ -641,6 +745,32 @@ export const adminApi = {
   /** Irreversible hard delete — no shell row survives. */
   hardDeleteUser: (userId: string) =>
     request<{ id: string }>(`/v1/admin/deletion-requests/${userId}`, { method: "DELETE", auth: true }),
+
+  /** Every Gemini key: free ones, then paid ones in the order they are tried. */
+  listGeminiKeys: () => request<{ keys: AdminGeminiKeyRow[] }>("/v1/admin/gemini-keys", { auth: true }),
+
+  /** Paste a new key (stored encrypted on the server). */
+  addGeminiKey: (body: { name: string; tier: GeminiKeyTier; key: string }) =>
+    request<AdminGeminiKeyRow>("/v1/admin/gemini-keys", { method: "POST", body, auth: true }),
+
+  /** Rename, switch on/off, or move a key between free and paid. */
+  updateGeminiKey: (id: string, body: { name?: string; tier?: GeminiKeyTier; enabled?: boolean }) =>
+    request<AdminGeminiKeyRow>(`/v1/admin/gemini-keys/${id}`, { method: "PATCH", body, auth: true }),
+
+  /** Make a paid key the first one used once the free keys run out. Returns the reordered list. */
+  useGeminiKeyFirst: (id: string) =>
+    request<{ keys: AdminGeminiKeyRow[] }>(`/v1/admin/gemini-keys/${id}/use-first`, {
+      method: "POST",
+      auth: true,
+    }),
+
+  /** One tiny real request on this key (a paid key is billed a few tokens). */
+  testGeminiKey: (id: string) =>
+    request<GeminiKeyTestResult>(`/v1/admin/gemini-keys/${id}/test`, { method: "POST", auth: true }),
+
+  /** Delete a pasted key (keys from .env can only be switched off). */
+  deleteGeminiKey: (id: string) =>
+    request<{ deleted: true }>(`/v1/admin/gemini-keys/${id}`, { method: "DELETE", auth: true }),
 
   /** All gift campaigns, newest first. */
   listGiftCampaigns: () =>

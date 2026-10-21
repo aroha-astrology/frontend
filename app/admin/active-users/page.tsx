@@ -66,9 +66,12 @@ export default function AdminActiveUsersPage() {
       {error && <ErrorRetry message={error} onRetry={fetchAll} />}
 
       {data && !error && (
-        <section className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <KpiTile label="New Users Today" value={String(data.today.newUsers)} />
           <KpiTile label="New Users Yesterday" value={String(data.yesterday.newUsers)} />
+          <KpiTile label="New Users This Week" value={String(data.last7d.newUsers)} />
+          <KpiTile label="New Users This Month" value={String(data.this_month.newUsers)} />
+          <KpiTile label="New Users This Year" value={String(data.this_year.newUsers)} />
           <KpiTile label="Active Users Today" value={String(data.today.activeUsers)} />
           <KpiTile label="Active Users Yesterday" value={String(data.yesterday.activeUsers)} />
           <KpiTile label="Active Users This Week" value={String(data.last7d.activeUsers)} />

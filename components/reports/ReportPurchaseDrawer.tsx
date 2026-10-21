@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { Info } from "lucide-react";
 import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
 import { track } from "@/lib/analytics";
@@ -18,8 +19,10 @@ import {
   type PurchaseReportBody,
   type PurchaseReportResultRow,
 } from "@/lib/reports-api";
-import { REPORT_QUESTIONS } from "@/lib/report-questions";
+import { questionsFor, answeredNone } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
+import GeneralReportWarning from "./GeneralReportWarning";
+import PriceBreakdown from "./PriceBreakdown";
 
 interface ReportPurchaseDrawerProps {
   entry: ReportCatalogueEntry;
@@ -115,11 +118,25 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const spouseSectionValid = spouseSectionEmpty || spouseSectionComplete;
 
   // ── Optional pre-purchase questionnaire (see lib/report-questions.ts) ─
-  const questions = REPORT_QUESTIONS[entry.key] ?? [];
+  const questions = questionsFor(entry.key, activeProfile?.gender ?? user?.gender);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const visibleQuestions = questions.filter(
     (q) => !q.showIf || answers[q.showIf.questionId] === q.showIf.value,
   );
+  const asksAboutReader = visibleQuestions.some((q) => !q.overridesAccount);
+  const nothingAnswered = answeredNone(visibleQuestions, answers);
+  // Buying with nothing answered first warns that the report will be general. "Answer the
+  // questions" brings the reader back here and rings the questions until they answer one.
+  const [generalWarningOpen, setGeneralWarningOpen] = useState(false);
+  const [pointToQuestions, setPointToQuestions] = useState(false);
+  const questionsRef = useRef<HTMLDivElement>(null);
+  const backToQuestions = useCallback(() => {
+    setGeneralWarningOpen(false);
+    setPointToQuestions(true);
+    const section = questionsRef.current;
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+    section?.querySelector<HTMLElement>("button, input")?.focus({ preventScroll: true });
+  }, []);
 
   // ── Monthly: current month only, no picker ────────────────────────────
   // A `failed` row is deliberately NOT treated as already-purchased: the backend
@@ -252,10 +269,22 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
 
         {/* ── Step 1: "Are you married?" — shown first for the marriage report ── */}
         {visibleQuestions.length > 0 && (
-          <div className="flex flex-col gap-3">
+          <div
+            ref={questionsRef}
+            data-testid="report-questions"
+            className={`-mx-3 flex flex-col gap-3 scroll-mt-20 rounded-2xl border px-3 py-3 transition-colors ${
+              pointToQuestions && nothingAnswered ? "border-gold/60 bg-gold/5" : "border-transparent"
+            }`}
+          >
             <p className="text-xs font-semibold text-gold uppercase tracking-wider">
               {t("reports.questions.title")}
             </p>
+            {asksAboutReader && (
+              <p className="flex items-start gap-2 rounded-2xl border border-gold/25 bg-gold/10 px-3.5 py-3 text-xs leading-relaxed text-foreground/90">
+                <Info size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
+                <span>{t("reports.questions.whyAsk")}</span>
+              </p>
+            )}
             {visibleQuestions.map((q) => (
               <div key={q.id} className="flex flex-col gap-1.5">
                 <label className="text-xs text-muted ml-1">{t(q.labelKey)}</label>
@@ -504,6 +533,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
         <div className="sticky bottom-0 z-10 -mx-5 mt-4 border-t border-gold/10 bg-card/95 px-5 pt-4 backdrop-blur-xl">
           {canSubmit && (
             <div>
+              <PriceBreakdown entry={entry} />
               {insufficient ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs text-amber-400 text-center">
@@ -545,6 +575,10 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                   type="button"
                   onClick={() => {
                     if (!validateSpouseFields()) return;
+                    if (nothingAnswered) {
+                      setGeneralWarningOpen(true);
+                      return;
+                    }
                     setConfirming(true);
                   }}
                   className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
@@ -559,6 +593,16 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
 
           <div className="h-4" />
         </div>
+      )}
+
+      {generalWarningOpen && (
+        <GeneralReportWarning
+          onAnswer={backToQuestions}
+          onContinue={() => {
+            setGeneralWarningOpen(false);
+            setConfirming(true);
+          }}
+        />
       )}
     </BottomSheetModal>
   );

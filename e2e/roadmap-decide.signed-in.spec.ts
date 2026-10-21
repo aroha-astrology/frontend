@@ -182,7 +182,7 @@ test.describe("Decision Astrology + Find My Date (roadmap step 6)", () => {
     // Decisions start at Gold, so the lock names that tier and its price.
     await expect(lock.getByText("Decision Astrology is part of Aroha Pass Gold")).toBeVisible();
     await expect(lock.getByText("₹299 / 30 days · Google Play subscription")).toBeVisible();
-    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(lock.getByRole("link", { name: "Unlock with Aroha Pass Gold" })).toHaveAttribute("href", "/pass?tier=gold");
     await expect(page.getByRole("button", { name: "Changing job or career" })).toHaveCount(0);
 
     await page.goto("/find-date");

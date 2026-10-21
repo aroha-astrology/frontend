@@ -102,7 +102,12 @@ export interface CreatePalmReadingResponse {
 
 export const palmApi = {
   /** Starts a new reading (pending — no frames yet) for the active profile. */
-  create: () => request<CreatePalmReadingResponse>("/v1/palm/readings", { method: "POST", auth: true }),
+  create: (primaryHand?: "left" | "right") =>
+    request<CreatePalmReadingResponse>("/v1/palm/readings", {
+      method: "POST",
+      auth: true,
+      ...(primaryHand ? { body: { primaryHand } } : {}),
+    }),
 
   /** Uploads one captured frame's raw JPEG bytes directly to the backend (local-disk storage,
    * no signed URL). Throws ApiError — 409 reading not accepting uploads, 400 empty body. */

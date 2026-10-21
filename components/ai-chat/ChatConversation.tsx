@@ -198,6 +198,20 @@ interface SpeechRecognitionLike {
   onend: (() => void) | null;
 }
 
+/** "21 Oct, 11:59 pm" in the reader's language and own clock. */
+function formatGiftUntil(iso: string, language: string): string {
+  try {
+    return new Date(iso).toLocaleString(language, {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return new Date(iso).toLocaleString();
+  }
+}
+
 export default function ChatConversation({ chartId }: { chartId?: string } = {}) {
   const { t, i18n } = useTranslation();
   const { user, refresh, activeProfile } = useAuth();
@@ -217,8 +231,20 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
       .catch(() => {});
   }, [passOn, passTick]);
   const questionCredits = user?.questionCredits ?? 0;
+  /** A festival's free questions (Dussehra 2026: 2 on us). The backend spends them before
+   * anything else; refresh() after each send brings the new count. Hidden the moment it
+   * ends, even if the profile has not been refetched since. */
+  const chatGift =
+    user?.chatGift &&
+    user.chatGift.questionsLeft > 0 &&
+    new Date(user.chatGift.validUntil).getTime() > Date.now()
+      ? user.chatGift
+      : null;
   const canAfford =
-    passQuestionsLeft > 0 || questionCredits > 0 || (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
+    chatGift !== null ||
+    passQuestionsLeft > 0 ||
+    questionCredits > 0 ||
+    (user?.walletBalancePaise ?? 0) >= CHAT_MESSAGE_COST_PAISE;
   /** One free answer-tap per account per 3 days (claimFreeFollowUp in the backend's
    * users.repo.ts). Refreshed after every send via refresh(), so it flips off right
    * after the free tap is spent. The server re-checks atomically; this only drives the badge. */
@@ -249,8 +275,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // presses send themselves. Read from window, not useSearchParams, so this
   // page needs no Suspense boundary for static rendering.
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("q");
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
     if (q) setInput(q.slice(0, 500));
+    // Aroha Bonds hands over the saved person the question is about, so the
+    // first reply is grounded in that person's chart (compareProfileId).
+    const about = params.get("profile");
+    if (q && about) pendingCompareProfileIdRef.current = about;
   }, []);
   const [streaming, setStreaming] = useState(false);
   const [thinkingIdx, setThinkingIdx] = useState(0);
@@ -1117,7 +1148,18 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           now via ordinary flex spacing instead. */}
       <div className="flex-shrink-0 px-4 py-3 mb-[calc(var(--tab-bar-h)+1rem)]" style={{ background: "var(--background)" }}>
         <div className="max-w-lg md:max-w-none lg:max-w-4xl mx-auto">
-          {passQuestionsLeft > 0 ? (
+          {chatGift ? (
+            <p
+              className="mx-auto mb-1.5 w-fit max-w-full rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-center text-[12px] font-medium text-gold"
+              data-testid="chat-gift"
+            >
+              {chatGift.questionsLeft === 1
+                ? t("aiChatPage.chatGiftOneLeft")
+                : t("aiChatPage.chatGiftOnUs", { count: chatGift.questionsLeft })}
+              {" · "}
+              {t("aiChatPage.chatGiftUntil", { until: formatGiftUntil(chatGift.validUntil, i18n.language) })}
+            </p>
+          ) : passQuestionsLeft > 0 ? (
             <p className="text-center text-[11px] text-gold/90 mb-1.5" data-testid="chat-pass-quota">
               {t("pass.chatPass", { count: passQuestionsLeft })}
             </p>

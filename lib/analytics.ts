@@ -8,6 +8,8 @@ export type AnalyticsEvent =
   | "onboarding_step_completed"
   | "onboarding_completed"
   | "welcome_reward_claimed"
+  | "pass_launch_popup_shown"
+  | "pass_launch_popup_opened_pass"
   | "daily_reward_claimed"
   | "topup_started"
   | "topup_succeeded"

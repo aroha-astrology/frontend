@@ -1064,11 +1064,41 @@ const SEPARATELY_RENDERED_KEYS = new Set([
   "planetCondition",
 ]);
 
+/** The fact types the plain layout prints straight from a value, whatever it holds (see
+ * ReportScoreFacts.tsx). Every other type is a shape with its own designed card. */
+const PLAIN_FACT_TYPES: ReadonlySet<ScoreFact["type"]> = new Set(["ring", "badge", "boolean", "nested", "raw"]);
+
+/**
+ * Whether a plain value under this key was written for the reader.
+ *
+ * The list above (SEPARATELY_RENDERED_KEYS) names keys NOT to print, and it failed the same
+ * way three times: the server added a model-only key to `scores` (`planetCondition`, then
+ * `vakriFacts`, with `birthTimeCaveat` waiting behind them), the list did not know it, and the
+ * plain layout printed it — the remedies report showed "VAKRI FACTS" as a numbered list of
+ * sentences like "Classical Uttara Kalamrita modifier: enhanced_intensity". A list of what to
+ * hide is always one server change behind.
+ *
+ * So a plain value is printed only when its key has a reader-facing label in
+ * SCORE_FACT_LABEL_KEYS: someone has to have named it for the reader before it can appear.
+ * A key nobody has labelled is dropped. The shapes detected by structure (timing windows,
+ * remedies, strengths and cautions, …) are not subject to this — each has a card built for it.
+ */
+export function isReaderFacingKey(key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(SCORE_FACT_LABEL_KEYS, key);
+}
+
 /** Builds the full list of renderable facts from a report's `scores` object, preserving key order. Never throws — an unexpected shape (non-object, null) just yields an empty list. */
 export function buildScoreFacts(scores: Record<string, unknown> | null | undefined): ScoreFact[] {
   if (!scores || typeof scores !== "object" || Array.isArray(scores)) return [];
   return Object.entries(scores)
     .filter(([k]) => !SEPARATELY_RENDERED_KEYS.has(k))
     .map(([k, v]) => buildScoreFact(k, v))
-    .filter((f): f is ScoreFact => f !== null);
+    .filter((f): f is ScoreFact => f !== null)
+    .filter((f) => {
+      if (!PLAIN_FACT_TYPES.has(f.type) || isReaderFacingKey(f.key)) return true;
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`report scores: "${f.key}" has no reader-facing label, so it is not shown`);
+      }
+      return false;
+    });
 }

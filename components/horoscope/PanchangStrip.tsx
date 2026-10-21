@@ -8,7 +8,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import Card from "@/components/ui/Card";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
-import { istToday, periodExpiresAt } from "@/lib/period-expiry";
+import { periodExpiresAt } from "@/lib/period-expiry";
+import { deviceTimeZone, IST_ZONE, localToday } from "@/lib/calendar-format";
 
 /** Delhi/NCR — same national reference point GET /astro/panchang defaults to server-side. */
 const REFERENCE_LAT = 28.6139;
@@ -53,14 +54,18 @@ export default function PanchangStrip() {
 
     const lat = geo.coords?.lat ?? REFERENCE_LAT;
     const lon = geo.coords?.lon ?? REFERENCE_LON;
+    // The user's own spot reads on the device clock (users abroad); the Delhi fallback on IST.
+    const tz = geo.coords ? deviceTimeZone() : IST_ZONE;
+    const today = localToday(tz);
 
-    // Hard cache (see lib/cache.ts): no explicit `date` is ever passed here —
-    // this strip is always *today's* panchang, so the key uses istToday()
+    // Hard cache (see lib/cache.ts): this strip is always *today's* panchang
+    // (today on the clock it is read in), so the key carries that date + zone
     // and expires at the next IST midnight rather than a fixed TTL.
+    // v3: the zone joined the key and the request.
     // "v2" — see app/panchang/page.tsx for why this segment exists (bumped
     // alongside PanchangData's new moonrise/moonset + endsAt fields so a
     // pre-existing cache entry from before that change isn't served forever).
-    const cacheKey = buildKey("panchang", "v2", roundCoord(lat), roundCoord(lon), istToday());
+    const cacheKey = buildKey("panchang", "v3", roundCoord(lat), roundCoord(lon), today, tz);
     const cached = cacheGet<PanchangFacts>(cacheKey);
     if (cached) {
       setData(cached);
@@ -69,7 +74,7 @@ export default function PanchangStrip() {
     }
 
     api
-      .panchang(lat, lon)
+      .panchang(lat, lon, today, tz)
       .then((res) => {
         if (cancelled) return;
         setData(res as unknown as PanchangFacts);

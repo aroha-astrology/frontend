@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REPORT_QUESTIONS } from "./report-questions";
+import { REPORT_QUESTIONS, answeredNone, questionsFor } from "./report-questions";
 import { resources } from "@/i18n/resources";
 
 type Tree = Record<string, unknown>;
@@ -22,6 +22,29 @@ function keysFor(reportKey: string): string[] {
     ...(q.options ?? []).map((o) => o.labelKey),
   ]);
 }
+
+describe("questionsFor — the gender a report's maths needs", () => {
+  it("asks only when the profile has no male/female on file", () => {
+    for (const key of ["numerology", "name_change", "progeny", "kundli_milan", "marriage"]) {
+      expect(questionsFor(key, null).some((q) => q.id === "readerGender"), key).toBe(true);
+      expect(questionsFor(key, "other").some((q) => q.id === "readerGender"), key).toBe(true);
+      expect(questionsFor(key, "female").some((q) => q.id === "readerGender"), key).toBe(false);
+    }
+  });
+
+  it("does not add it to reports whose maths ignores gender", () => {
+    expect(questionsFor("wealth", null).some((q) => q.id === "readerGender")).toBe(false);
+  });
+
+  it("is skippable without the general-report warning", () => {
+    expect(answeredNone(questionsFor("name_change", null), {})).toBe(false);
+  });
+
+  it("has text in every app language", () => {
+    const q = questionsFor("name_change", null).find((x) => x.id === "readerGender")!;
+    expect(q.options).toHaveLength(2);
+  });
+});
 
 describe("REPORT_QUESTIONS", () => {
   it("has English text for every question and option of every report", () => {
@@ -55,5 +78,41 @@ describe("REPORT_QUESTIONS", () => {
     expect(ids("career_monthly")).toEqual(["workNow", "concern"]);
     expect(ids("finance_monthly")).toEqual(["incomeToday", "concern"]);
     expect(ids("relationship_monthly")).toEqual(["relationshipNow", "concern"]);
+  });
+});
+
+describe("answeredNone (the general-report warning)", () => {
+  it("warns on every report that asks about the reader when nothing is answered", () => {
+    for (const [reportKey, questions] of Object.entries(REPORT_QUESTIONS)) {
+      if (reportKey === "numerology") continue;
+      expect(answeredNone(questions, {}), reportKey).toBe(true);
+    }
+  });
+
+  it("stops warning once any one question is answered, a typed note included", () => {
+    const wealth = REPORT_QUESTIONS.wealth!;
+    expect(answeredNone(wealth, { incomeToday: "salaried" })).toBe(false);
+    expect(answeredNone(wealth, { concern: "a loan" })).toBe(false);
+  });
+
+  it("treats an unselected chip or a blank note as unanswered", () => {
+    expect(answeredNone(REPORT_QUESTIONS.wealth!, { incomeToday: "", concern: "   " })).toBe(true);
+  });
+
+  // The phone number only overrides the one already on the account; skipping it changes nothing.
+  it("never warns on numerology or on a report with no questions", () => {
+    expect(answeredNone(REPORT_QUESTIONS.numerology!, {})).toBe(false);
+    expect(answeredNone([], {})).toBe(false);
+  });
+
+  it("has the note and the warning translated in every app language", () => {
+    const keys = ["title", "whyAsk", "skipTitle", "skipBody", "skipAnswer", "skipContinue"];
+    for (const language of LANGUAGES) {
+      for (const key of keys) {
+        const text = lookup(language, `reports.questions.${key}`);
+        expect(typeof text, `${language}: ${key}`).toBe("string");
+        if (language !== "en") expect(text, `${language}: ${key}`).not.toBe(lookup("en", `reports.questions.${key}`));
+      }
+    }
   });
 });

@@ -8,6 +8,7 @@ import Card from "@/components/ui/Card";
 import { getFestivalsForDate } from "@/lib/panchang/hindu-festivals";
 import { findAdhikMaas } from "@/lib/panchang/adhik-maas-ranges";
 import { buildKey, cacheGet, cacheSet, roundCoord } from "@/lib/cache";
+import { localToday } from "@/lib/calendar-format";
 import { tithiPakshaDayNumber, type RegionId } from "@/lib/panchang/regions";
 
 /** A calendar month's per-day panchang summaries are immutable once computed — cache for a fixed, generous window (see app/panchang/page.tsx for the sibling single-day endpoint's identical reasoning). Version bumped whenever this response's shape grows — e.g. v2 added the whole-month regionalMonths label, v3 added per-day regionalMonths (needed for the grid's dayOfMonth) — without a bump, a pre-existing cached entry from before that change would keep being served (same key) missing the new data, forever. */
@@ -18,6 +19,8 @@ interface MonthlyPanchangCalendarProps {
   onSelectDate: (date: string) => void;
   lat?: number;
   lon?: number;
+  /** IANA zone for those coordinates; IST when absent (the Delhi reference). */
+  tz?: string;
   /** Which regional lunar/solar calendar convention to show alongside the Gregorian month — see hooks/usePanchangRegion.ts (defaults from app language, user-overridable via RegionPicker on the Panchang page). */
   region: RegionId;
 }
@@ -32,6 +35,7 @@ export default function MonthlyPanchangCalendar({
   onSelectDate,
   lat,
   lon,
+  tz,
   region,
 }: MonthlyPanchangCalendarProps) {
   const { t } = useTranslation();
@@ -57,6 +61,7 @@ export default function MonthlyPanchangCalendar({
       cursor.month,
       lat != null ? roundCoord(lat) : undefined,
       lon != null ? roundCoord(lon) : undefined,
+      tz,
     );
     const cached = cacheGet<PanchangMonthCache>(cacheKey);
     if (cached) {
@@ -67,7 +72,7 @@ export default function MonthlyPanchangCalendar({
     }
 
     api
-      .panchangMonth(cursor.year, cursor.month, lat, lon)
+      .panchangMonth(cursor.year, cursor.month, lat, lon, tz)
       .then((res) => {
         if (!cancelled) {
           const entry: PanchangMonthCache = {
@@ -91,7 +96,7 @@ export default function MonthlyPanchangCalendar({
     return () => {
       cancelled = true;
     };
-  }, [cursor.year, cursor.month, lat, lon]);
+  }, [cursor.year, cursor.month, lat, lon, tz]);
 
   const cells = useMemo(() => {
     const firstWeekday = new Date(Date.UTC(cursor.year, cursor.month - 1, 1)).getUTCDay();
@@ -126,9 +131,11 @@ export default function MonthlyPanchangCalendar({
   }
 
   function goToday() {
-    const now = new Date();
-    setCursor({ year: now.getFullYear(), month: now.getMonth() + 1 });
-    onSelectDate(now.toISOString().slice(0, 10));
+    // The device's own calendar day (a UTC date was yesterday in India until 05:30).
+    const today = localToday();
+    const [year, month] = today.split("-").map(Number);
+    setCursor({ year, month });
+    onSelectDate(today);
   }
 
   const monthLabel = new Date(Date.UTC(cursor.year, cursor.month - 1, 1)).toLocaleDateString("en-US", {

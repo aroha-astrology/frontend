@@ -9,7 +9,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import NewFeatureGuard from "@/components/NewFeatureGuard";
-import { DOMAIN_GROUPS } from "@/components/ui/BirthTimeRectifyCard";
+import { DOMAIN_GROUPS } from "@/components/birth-time/LifeEventRows";
 import type { RectifyDomain } from "@/lib/api";
 import { shortDate } from "@/lib/calendar-format";
 import { dayLabel } from "@/lib/decision-format";

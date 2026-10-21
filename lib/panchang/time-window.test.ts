@@ -115,6 +115,14 @@ describe("isCurrentlyActive", () => {
     expect(isCurrentlyActive("23:12", "00:38", now)).toBe(false);
   });
 
+  it("reads `now` on the clock of the zone the times are in", () => {
+    // 05:30 UTC = 11:00 IST = 01:30 in New York (EDT).
+    const now = new Date("2026-10-20T05:30:00Z");
+    expect(isCurrentlyActive("10:45", "11:30", now, "Asia/Kolkata")).toBe(true);
+    expect(isCurrentlyActive("10:45", "11:30", now, "America/New_York")).toBe(false);
+    expect(isCurrentlyActive("01:00", "02:00", now, "America/New_York")).toBe(true);
+  });
+
   it("defaults `now` to the current time when not provided", () => {
     // Just verify it doesn't throw and returns a boolean with the real clock.
     expect(typeof isCurrentlyActive("00:00", "23:59")).toBe("boolean");

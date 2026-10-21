@@ -69,7 +69,7 @@ test.describe("Life Timeline (roadmap step 4)", () => {
     await expect(lock.getByText("Life Timeline is part of Aroha Pass", { exact: true })).toBeVisible();
     await expect(lock.getByText("₹199 / 30 days · Google Play subscription")).toBeVisible();
     await expect(lock.getByText("15 questions to Aroha every 30 days")).toBeVisible();
-    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveAttribute("href", "/pass");
+    await expect(lock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
     await expect(page.getByRole("button", { name: /Career/ })).toHaveCount(0);
     await expect(page.getByRole("button", { name: /₹/ })).toHaveCount(0);
     expect(callsTo(api, "POST /v1/timeline/unlock")).toHaveLength(0);
@@ -85,7 +85,7 @@ test.describe("Life Timeline (roadmap step 4)", () => {
 
     const lock = page.getByTestId("pass-lock");
     await expect(lock.getByText("Coming soon with Aroha Pass")).toBeVisible();
-    await expect(lock.getByRole("link", { name: "Subscribe to unlock" })).toHaveCount(0);
+    await expect(lock.getByRole("link")).toHaveCount(0);
   });
 
   test("with the Pass, shows the whole life's lanes and explains a band", async ({ page }) => {

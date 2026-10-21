@@ -74,6 +74,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("silver")).toHaveText([
       "15 questions to Aroha every 30 days",
       "10% off every report",
+      "Voice call with Yogi Baba: 10 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
     ]);
@@ -90,6 +91,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("gold")).toHaveText([
       "30 questions to Aroha every 30 days",
       "20% off every report",
+      "Voice call with Yogi Baba: 15 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
       "Decision Astrology and Find My Date results",
@@ -103,6 +105,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await expect(included("platinum")).toHaveText([
       "60 questions to Aroha every 30 days",
       "30% off every report",
+      "Voice call with Yogi Baba: 20 free minutes every month",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
       "Decision Astrology and Find My Date results",
@@ -189,6 +192,10 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
 
     const card = page.getByTestId("pass-summary");
     await expect(card.getByText("Subscription")).toBeVisible();
+    // On a phone the Pass comes after the packs and the Pay button (owner, 2026-10-17).
+    const packsBox = await page.getByText("Choose a pack").boundingBox();
+    const cardBox = await card.boundingBox();
+    expect(cardBox!.y).toBeGreaterThan(packsBox!.y);
     await expect(card.getByText("From ₹199 / 30 days")).toBeVisible();
     await expect(card.getByText(/up to 60 questions to Aroha every 30 days/)).toBeVisible();
     await expect(card.getByText("Paid through Google Play — never from your Aroha wallet.")).toBeVisible();

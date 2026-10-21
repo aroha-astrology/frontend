@@ -4,14 +4,18 @@ import { useTranslation } from "react-i18next";
 import { Sun, Sunset } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { getPlanet } from "@/components/3d/planet-registry";
-import { durationMinutes, formatDurationHm } from "@/lib/panchang/time-window";
+import { durationMinutes, formatDurationHm, timeToMinutes } from "@/lib/panchang/time-window";
 
 interface SunMoonTimingsProps {
   sunriseTime?: string;
   sunsetTime?: string;
-  /** Both moonrise/moonset are legitimately absent some days (the Moon doesn't rise/set within every civil day) — the row only renders when both are present. */
+  /** The first moonrise/moonset after the day's sunrise, as Drik Panchang shows them. Either is
+   * legitimately absent some days (no moonrise or moonset before the next sunrise); it then reads "—". */
   moonriseTime?: string;
   moonsetTime?: string;
+  /** The time falls after midnight, on the next date. */
+  moonriseNextDay?: boolean;
+  moonsetNextDay?: boolean;
 }
 
 /** Small CSS orb built from the shared planet-registry palette — same convention as MoonBackground.tsx's CssOrb, just icon-sized. */
@@ -35,6 +39,8 @@ function TimingRow({
   endLabel,
   endTime,
   durationText,
+  startNote,
+  endNote,
 }: {
   startIcon: React.ReactNode;
   startLabel: string;
@@ -43,6 +49,9 @@ function TimingRow({
   endLabel: string;
   endTime: string;
   durationText: string;
+  /** Small line under a time, e.g. "next day". */
+  startNote?: string;
+  endNote?: string;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -50,6 +59,7 @@ function TimingRow({
         {startIcon}
         <p className="text-[9px] text-muted uppercase tracking-wider">{startLabel}</p>
         <p className="text-xs font-semibold text-foreground">{startTime}</p>
+        {startNote && <p className="text-[9px] text-gold/80 -mt-1">{startNote}</p>}
       </div>
       <div className="flex-1 flex flex-col items-center gap-1 px-1 min-w-0">
         <div className="w-full border-t border-dashed border-gold/25" />
@@ -59,6 +69,7 @@ function TimingRow({
         {endIcon}
         <p className="text-[9px] text-muted uppercase tracking-wider">{endLabel}</p>
         <p className="text-xs font-semibold text-foreground">{endTime}</p>
+        {endNote && <p className="text-[9px] text-gold/80 -mt-1">{endNote}</p>}
       </div>
     </div>
   );
@@ -70,12 +81,22 @@ export default function SunMoonTimings({
   sunsetTime,
   moonriseTime,
   moonsetTime,
+  moonriseNextDay = false,
+  moonsetNextDay = false,
 }: SunMoonTimingsProps) {
   const { t } = useTranslation();
 
   if (!sunriseTime && !sunsetTime) return null;
 
-  const showMoonRow = !!moonriseTime && !!moonsetTime;
+  const showMoonRow = !!moonriseTime || !!moonsetTime;
+  // The Moon is up from rise to set only when the set comes after the rise. When it sets
+  // first (it rose before this sunrise), the span between the two times is not its time up.
+  const moonUpMinutes =
+    moonriseTime && moonsetTime
+      ? timeToMinutes(moonsetTime) + (moonsetNextDay ? 1440 : 0) -
+        (timeToMinutes(moonriseTime) + (moonriseNextDay ? 1440 : 0))
+      : 0;
+  const nextDay = t("horoscope.panchang.nextDay");
 
   return (
     <Card className="p-4 border-gold/10 space-y-4">
@@ -94,11 +115,13 @@ export default function SunMoonTimings({
         <TimingRow
           startIcon={<MoonDot />}
           startLabel={t("horoscope.panchang.moonrise")}
-          startTime={moonriseTime!}
+          startTime={moonriseTime ?? "—"}
+          startNote={moonriseTime && moonriseNextDay ? nextDay : undefined}
           endIcon={<MoonDot />}
           endLabel={t("horoscope.panchang.moonset")}
-          endTime={moonsetTime!}
-          durationText={formatDurationHm(durationMinutes(moonriseTime!, moonsetTime!))}
+          endTime={moonsetTime ?? "—"}
+          endNote={moonsetTime && moonsetNextDay ? nextDay : undefined}
+          durationText={moonUpMinutes > 0 ? formatDurationHm(moonUpMinutes) : ""}
         />
       )}
     </Card>

@@ -44,6 +44,7 @@ function useNativeShellCheck(): NativeCheck {
 const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/features", label: "Features" },
+  { href: "/admin/gemini-keys", label: "Gemini Keys" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/active-users", label: "Active Users" },
   { href: "/admin/groups", label: "Groups" },
@@ -51,6 +52,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin/gift-campaigns", label: "Gift Campaigns" },
   { href: "/admin/report-generations", label: "Report Generations" },
   { href: "/admin/report-ratings", label: "Report Ratings" },
+  { href: "/admin/call-feedback", label: "Call Feedback" },
   { href: "/admin/tickets", label: "Tickets" },
   { href: "/admin/deletion-requests", label: "Deletion Requests" },
 ];

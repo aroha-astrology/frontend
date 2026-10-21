@@ -41,7 +41,6 @@ export function usePhoneAuth() {
       try { recaptchaRef.current.clear(); } catch { /* ignore stale verifier */ }
       recaptchaRef.current = null;
     }
-    // grecaptcha tracks widgets by element id; clear any stale iframe first.
     const el = typeof document !== "undefined"
       ? document.getElementById(RECAPTCHA_CONTAINER_ID)
       : null;
@@ -50,7 +49,17 @@ export function usePhoneAuth() {
 
   function initRecaptcha() {
     resetRecaptcha();
-    recaptchaRef.current = new RecaptchaVerifier(getFirebaseAuth(), RECAPTCHA_CONTAINER_ID, {
+    // grecaptcha remembers every element it has rendered a widget into and
+    // refuses a second one there ("reCAPTCHA has already been rendered in this
+    // element"), even once the element is emptied. Firebase renders an
+    // invisible verifier straight into the element it is given, so reusing the
+    // host made every send after the first fail — Resend, or Send again after
+    // Change number. Each verifier gets a new child of the host instead.
+    const host = document.getElementById(RECAPTCHA_CONTAINER_ID);
+    if (!host) throw new Error("reCAPTCHA host element is missing from the page");
+    const mount = document.createElement("div");
+    host.appendChild(mount);
+    recaptchaRef.current = new RecaptchaVerifier(getFirebaseAuth(), mount, {
       size: "invisible",
     });
   }
@@ -72,7 +81,7 @@ export function usePhoneAuth() {
       confirmationRef.current = result;
       return { ok: true };
     } catch (err) {
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "otp-send"));
       resetRecaptcha();
       return { ok: false };
     } finally {
@@ -82,7 +91,12 @@ export function usePhoneAuth() {
 
   async function confirmOtp(code: string): Promise<ConfirmResult> {
     if (!confirmationRef.current) {
-      setErrorKey("auth.genericError");
+      // Verify pressed with no OTP request on record. Reported like any other
+      // unmapped failure — it shows the same generic message.
+      const err = Object.assign(new Error("No pending OTP confirmation to verify against"), {
+        code: "app/no-pending-otp",
+      });
+      setErrorKey(authErrorKey(err, "otp-verify"));
       return { ok: false };
     }
     setErrorKey(null);
@@ -93,7 +107,7 @@ export function usePhoneAuth() {
       const session = await establishSession();
       return { ok: true, created: session.created };
     } catch (err) {
-      setErrorKey(authErrorKey(err));
+      setErrorKey(authErrorKey(err, "otp-verify"));
       return { ok: false };
     } finally {
       setVerifying(false);

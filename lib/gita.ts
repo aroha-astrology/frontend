@@ -5,6 +5,8 @@
 // frontend public/ assets — the 50-mantra Shlokas set is ~4MB of audio and
 // fits in the repo; this one is ~57MB and does not.
 
+import { IMG_BASE } from "./shlokas";
+
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
 ).replace(/\/$/, "");
@@ -84,4 +86,62 @@ export function loadGitaVerses(): Promise<GitaVerse[]> {
 
 export function gitaAudioUrl(id: string): string {
   return `${BASE_URL}/v1/gita/audio/${id}.mp3`;
+}
+
+export type GitaSpeaker = "krishna" | "arjuna" | "sanjaya" | "dhritarashtra";
+
+// The source marks who speaks with a heading line ("अर्जुन उवाच", "Arjuna
+// said"), sometimes run straight into the verse with no line break.
+const SPEAKER_LINES: [RegExp, GitaSpeaker][] = [
+  [/^\s*श्री\s*भगवानुवाच\s*/, "krishna"],
+  [/^\s*अर्जुन\s*उवाच\s*/, "arjuna"],
+  [/^\s*(?:सञ्जय|संजय)\s*उवाच\s*/, "sanjaya"],
+  [/^\s*धृतराष्ट्र\s*उवाच\s*/, "dhritarashtra"],
+];
+
+/**
+ * A verse as display lines: the speaker heading taken off (it is not part of
+ * the verse; showing only it made a list card read "धृतराष्ट्र उवाच"), the
+ * blank lines between padas dropped, and a pada run on after a danda put on
+ * its own line. Use this wherever a verse is shown, not `split("\n")[0]`.
+ */
+export function splitGitaVerse(sanskrit: string): { speaker: GitaSpeaker | null; lines: string[] } {
+  let text = sanskrit;
+  let speaker: GitaSpeaker | null = null;
+  for (const [re, who] of SPEAKER_LINES) {
+    const m = text.match(re);
+    if (m) {
+      speaker = who;
+      text = text.slice(m[0].length);
+      break;
+    }
+  }
+  const lines = text
+    // One verse (18.78) ends "।।18.78।": a doubled danda and its own number.
+    .replace(/।।/g, "॥")
+    .replace(/\s*[0-9०-९]+(?:\.[0-9०-९]+)*\s*[।॥]?/g, "")
+    .split("\n")
+    .flatMap((line) => line.split(/(?<=।)/))
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return { speaker, lines };
+}
+
+/**
+ * Card art for a verse. There is no art per verse, so it comes from the three
+ * Gita paintings by what the verse is: meditation for chapter 6 (Dhyana Yoga;
+ * the ध्यानयोग theme itself covers half the Gita, too many for one picture),
+ * the battlefield for the story and for anyone but Krishna speaking, Krishna
+ * for the rest.
+ */
+export function gitaImage(v: GitaVerse): string {
+  if (v.chapter === 6) return `${IMG_BASE}gita-48.webp`;
+  const { speaker } = splitGitaVerse(v.sanskrit);
+  if (v.mainCategory === "कथाप्रसङ्गः" || (speaker && speaker !== "krishna")) return `${IMG_BASE}gita-47.webp`;
+  return `${IMG_BASE}gita-247.webp`;
+}
+
+/** Where a verse opens: the chant screen with the bead counter (there is no separate verse page). */
+export function gitaChantHref(id: string): string {
+  return `/shlokas/mala?verse=${encodeURIComponent(id)}&type=gita`;
 }

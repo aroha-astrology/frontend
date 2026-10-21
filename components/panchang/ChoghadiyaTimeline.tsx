@@ -25,6 +25,8 @@ const RAIL_HEIGHT_PX = 560;
 interface ChoghadiyaTimelineProps {
   day: ChoghadiyaSlot[];
   night: ChoghadiyaSlot[];
+  /** Zone the slot times are in (IST for the Delhi reference); the device clock when absent. */
+  timeZone?: string;
 }
 
 interface LaidOutPeriod {
@@ -64,13 +66,13 @@ function layOut(periods: ChoghadiyaSlot[]): LaidOutPeriod[] {
  * the active one is ring-highlighted with a small NOW badge, and periods
  * after it render at full opacity (still upcoming).
  */
-export default function ChoghadiyaTimeline({ day, night }: ChoghadiyaTimelineProps) {
+export default function ChoghadiyaTimeline({ day, night, timeZone }: ChoghadiyaTimelineProps) {
   const { t } = useTranslation();
   const periods = useMemo(() => [...day, ...night], [day, night]);
   const laid = useMemo(() => layOut(periods), [periods]);
   const activeIndex = useMemo(
-    () => periods.findIndex((p) => isCurrentlyActive(p.startTime, p.endTime)),
-    [periods],
+    () => periods.findIndex((p) => isCurrentlyActive(p.startTime, p.endTime, undefined, timeZone)),
+    [periods, timeZone],
   );
 
   if (periods.length === 0) return null;

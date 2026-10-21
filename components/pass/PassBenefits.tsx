@@ -6,6 +6,7 @@ import type { PassFeature, PassTierBenefits } from "@/lib/pass-api";
 
 /** Every Pass-only feature, in the order the tiers add them. Find My Date shares a line with Decisions. */
 const FEATURE_LINES: Array<{ feature: PassFeature; key: string }> = [
+  { feature: "voiceCall", key: "pass.benefits.voiceCall" },
   { feature: "timeline", key: "pass.benefits.timeline" },
   { feature: "bonds", key: "pass.benefits.bonds" },
   { feature: "decisions", key: "pass.benefits.decisions" },
@@ -29,7 +30,11 @@ export default function PassBenefits({
   const lines = [
     { text: t("pass.benefits.questions", { count: benefits.questionsPerPeriod }), included: true },
     { text: t("pass.benefits.reports", { pct: benefits.reportDiscountPct }), included: true },
-    ...FEATURE_LINES.map(({ feature, key }) => ({ text: t(key), included: benefits.features.includes(feature) })),
+    ...FEATURE_LINES.map(({ feature, key }) => ({
+      // Only the voice line has a {{minutes}}; a server from before the per-tier minutes gave every Pass 3.
+      text: t(key, { minutes: benefits.voiceFreeMinutes ?? 3 }),
+      included: benefits.features.includes(feature),
+    })),
   ].filter((line) => line.included || showMissing);
 
   return (

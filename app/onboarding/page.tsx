@@ -22,6 +22,8 @@ import {
   type PlaceOfBirth,
 } from "@/lib/api";
 import PlaceAutocomplete from "@/components/PlaceAutocomplete";
+import RelationshipPicker from "@/components/bonds/RelationshipPicker";
+import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 import { purgeUserCache } from "@/lib/cache";
 import { formatRupees } from "@/lib/format";
 import {
@@ -88,8 +90,31 @@ const RELATIONSHIP_STEP = 2.5;
  */
 const TIME_WINDOW_STEP = 4.5;
 
+/** The question each step asks, as saved in the user's `onboardingStep`. The
+ * admin's "Left during onboarding" list reads these names, so keep them stable. */
+const ONBOARDING_STEP_NAMES: Record<number, string> = {
+  1: "language",
+  2: "name",
+  3: "dob",
+  4: "tob",
+  [TIME_WINDOW_STEP]: "time_window",
+  5: "place",
+  6: "gender",
+  7: "relationship_status",
+};
+
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+async function devicePlatform(): Promise<"web" | "android" | "ios"> {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (!Capacitor.isNativePlatform()) return "web";
+    return Capacitor.getPlatform() === "ios" ? "ios" : "android";
+  } catch {
+    return "web";
+  }
+}
 
 function isValidDob(v: string) {
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(v)) return false;
@@ -233,6 +258,25 @@ function OnboardingPageInner() {
   const { enabled: bondsOn } = useNewFeature("nav.bonds");
 
   const msgId = useRef(0);
+
+  // Save the question the reader has reached, so Admin -> Overview can show
+  // where someone who never finished stopped. Only the step's name is sent,
+  // never an answer: answers are saved once, with consent, on "Begin My
+  // Journey". Skipped while re-answering a field and in new-profile mode
+  // (that flow is someone else's details, on an account already onboarded).
+  const savedStepRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isNewProfileMode || editingField !== null || step < 1) return;
+    const name = showConfirm ? "confirm" : ONBOARDING_STEP_NAMES[step];
+    if (!name || savedStepRef.current === name) return;
+    const first = savedStepRef.current === null;
+    savedStepRef.current = name;
+    void (async () => {
+      const body: UpdateMeBody = { onboardingStep: name };
+      if (first) body.platform = await devicePlatform();
+      await api.updateMe(body);
+    })().catch(() => {});
+  }, [step, showConfirm, editingField, isNewProfileMode]);
 
   // Pick up a referral code carried in from a shared invite link (?ref=CODE),
   // captured earlier by <ReferralCapture /> before any redirect could drop it.
@@ -409,6 +453,7 @@ function OnboardingPageInner() {
     // effect. The answer is still recorded and the flow still advances the
     // same way; it's just unused by CreateProfileBody (like handleStatus below).
     if (!isNewProfileMode) setLang(code);
+    track("onboarding_step_completed", { fields: "language", edit: false });
     userSay(native);
     setIsTyping(true);
     setTimeout(async () => {
@@ -429,9 +474,9 @@ function OnboardingPageInner() {
     { key: "sibling", label: t("profileSwitcher.relationship.sibling") },
     { key: "friend", label: t("profileSwitcher.relationship.friend") },
     { key: "other", label: t("profileSwitcher.relationship.other") },
-    // Aroha Bonds (nav.bonds, ships off) is what gives a business partner a reading.
-    ...(bondsOn ? [{ key: "business_partner" as const, label: t("profileSwitcher.relationship.business_partner") }] : []),
   ];
+  // With Aroha Bonds on (nav.bonds, ships off) the step shows RelationshipPicker
+  // instead: a group first, then every kind of bond Bonds can read.
 
   const handleRelationship = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ relationship: key }); return; }
@@ -494,6 +539,7 @@ function OnboardingPageInner() {
 
   const handleStatus = async (key: string, label: string) => {
     if (editingField !== null) { finishEdit({ status: key }); return; }
+    track("onboarding_step_completed", { fields: "status", edit: false });
     setAnswers((a) => ({ ...a, status: key }));
     userSay(label, 7);
     setIsTyping(true);
@@ -584,6 +630,7 @@ function OnboardingPageInner() {
       }
 
       body.onboardingStatus = "completed";
+      body.onboardingStep = "done";
       // Versions come from legal-content.ts rather than being restated here —
       // the consent record must name the document text the user actually saw,
       // and hardcoding drifted silently the last time that text changed.
@@ -773,7 +820,8 @@ function OnboardingPageInner() {
           )}
 
           {/* RELATIONSHIP_STEP: relationship-to-you (new-profile mode only) */}
-          {isNewProfileMode && step === RELATIONSHIP_STEP && (
+          {isNewProfileMode && step === RELATIONSHIP_STEP && bondsOn && <RelationshipPicker onPick={handleRelationship} />}
+          {isNewProfileMode && step === RELATIONSHIP_STEP && !bondsOn && (
             <div className="grid grid-cols-2 gap-2">
               {RELATIONSHIPS.map((r) => (
                 <button
@@ -876,7 +924,7 @@ function OnboardingPageInner() {
                 { label: t("onboarding.labelPlace"),   value: answers.place, step: 5 },
                 { label: t("onboarding.labelGender"),  value: answers.gender, step: 6 },
                 isNewProfileMode
-                  ? { label: t("onboarding.labelRelation"), value: RELATIONSHIPS.find((r) => r.key === answers.relationship)?.label, step: RELATIONSHIP_STEP }
+                  ? { label: t("onboarding.labelRelation"), value: answers.relationship ? t(RELATIONSHIP_KEYS[answers.relationship as ProfileRelationship]) : undefined, step: RELATIONSHIP_STEP }
                   : { label: t("onboarding.labelStatus"),  value: answers.status, step: 7 },
               ].map(({ label, value, step: fieldStep }) => value ? (
                 <div key={label} className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gold/10 bg-surface">

@@ -38,8 +38,9 @@ export const PASS_OFFERS = [
     pricePaise: 19900,
     play: passPlay("pass-199"),
     questionsPerPeriod: 15,
+    voiceFreeMinutes: 10,
     reportDiscountPct: 10,
-    features: ["timeline", "bonds"],
+    features: ["timeline", "bonds", "voiceCall"],
   },
   {
     tier: "gold",
@@ -47,8 +48,9 @@ export const PASS_OFFERS = [
     pricePaise: 29900,
     play: passPlay("pass-299"),
     questionsPerPeriod: 30,
+    voiceFreeMinutes: 15,
     reportDiscountPct: 20,
-    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime"],
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "voiceCall"],
   },
   {
     tier: "platinum",
@@ -56,8 +58,9 @@ export const PASS_OFFERS = [
     pricePaise: 39900,
     play: passPlay("pass-399"),
     questionsPerPeriod: 60,
+    voiceFreeMinutes: 20,
     reportDiscountPct: 30,
-    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "relocation"],
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "relocation", "voiceCall"],
   },
 ];
 

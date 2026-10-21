@@ -19,12 +19,14 @@ export interface TranscriptTurn {
 const MAX_TURN_CHARS = 8000;
 
 /**
- * Defensive ceiling on turn count, not a real limit — a 3-minute call rarely
- * exceeds a dozen turns. Keeps a pathological session (rapid barge-in flapping
- * the role back and forth) from producing a body big enough to trip the
- * backend's own `.max(60)` and fail the whole `/end` call over it.
+ * Ceiling on turn count. Sized for an hour-long call, which is the longest the
+ * server allows, so a long call is saved whole rather than as its last few
+ * minutes (this was 60 when calls stopped at three minutes, and a fifteen
+ * minute call lost its beginning). Still a ceiling: a pathological session
+ * (rapid barge-in flapping the role back and forth) must not produce a body
+ * that trips the backend's own `.max(1000)` and fails the whole `/end` call.
  */
-const MAX_TURNS = 60;
+const MAX_TURNS = 400;
 
 export class TranscriptBuffer {
   private turns: TranscriptTurn[] = [];

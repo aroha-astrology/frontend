@@ -112,6 +112,11 @@ export default function VastuPlanner() {
   // ── Compass (live device heading, lock to freeze) ──────────────────────────
   const compass = useCompass();
   const [compassHint, setCompassHint] = useState<string | null>(null);
+  // The drawing's top is not north unless the reader said so. A plan still at 0° that was
+  // never aligned makes the paid report ask first (onGenerate); closing the North sheet
+  // after that counts as the answer, "the top really is north".
+  const [northConfirmed, setNorthConfirmed] = useState(false);
+  const [northAsked, setNorthAsked] = useState(false);
   const onAlign = useCallback(async () => {
     setCompassHint(null);
     dispatch({ type: "beginGesture" });
@@ -125,6 +130,7 @@ export default function VastuPlanner() {
     }
   }, [compass.state, compass.heading]);
   const onLock = useCallback(() => {
+    setNorthConfirmed(true);
     track("vastu_north_aligned", { via: "compass" });
     compass.lock();
     dispatch({ type: "endGesture" });
@@ -135,6 +141,7 @@ export default function VastuPlanner() {
     compass.recalibrate();
   }, [compass]);
   const onRotate = useCallback((deg: number) => {
+    setNorthConfirmed(true);
     compass.reset();
     dispatch({ type: "setNorthOffset", deg });
   }, [compass]);
@@ -462,6 +469,11 @@ export default function VastuPlanner() {
   }, [t, i18n.language, loadReports, refresh]);
 
   const onGenerate = useCallback(async () => {
+    if (plan.northOffsetDeg === 0 && !northConfirmed) {
+      setNorthAsked(true);
+      setSheet("north");
+      return;
+    }
     const generationProfileId = activeProfileIdRef.current;
     setAiError(null);
     setAiNotice(null);
@@ -485,7 +497,7 @@ export default function VastuPlanner() {
     }
     void refresh(); // balance dropped
     await waitForPlan(planId, generationProfileId, Date.now());
-  }, [plan, t, i18n.language, home?.id, refresh, waitForPlan]);
+  }, [plan, northConfirmed, t, i18n.language, home?.id, refresh, waitForPlan]);
 
   // A report still being written when the page was left or reloaded: pick the wait back up
   // instead of leaving the user unsure whether they paid for nothing.
@@ -841,7 +853,10 @@ export default function VastuPlanner() {
       />
       <NorthSheet
         open={sheet === "north"}
-        onClose={() => setSheet(null)}
+        onClose={() => {
+          setSheet(null);
+          if (northAsked) setNorthConfirmed(true);
+        }}
         deg={plan.northOffsetDeg}
         onRotate={onRotate}
         onRotateStart={() => dispatch({ type: "beginGesture" })}
@@ -849,7 +864,7 @@ export default function VastuPlanner() {
         onAlign={() => void onAlign()}
         onLock={onLock}
         onRecalibrate={onRecalibrate}
-        hint={compassHint}
+        hint={compassHint ?? (northAsked && !northConfirmed ? t("vastu.northBeforeReport") : null)}
       />
       <PlotSheet
         open={sheet === "plot"}

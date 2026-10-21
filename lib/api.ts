@@ -82,6 +82,9 @@ export interface User {
   deletionRequestedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /** IANA zone the server reads this user's clock in (quiet hours, "today" in chat, transit times).
+   * null until the app sends the device's zone; absent from older servers. */
+  currentTimezone?: string | null;
   /** users.relationship_status — single/in_relationship/engaged/married/divorced/widowed/
    * separated/complicated/prefer_not_to_say, or null if not yet answered at onboarding. */
   relationshipStatus: string | null;
@@ -95,6 +98,14 @@ export interface User {
   walletBalancePaise: number;
   /** Prepaid chat questions from Question Packs (roadmap step 10). Absent on an older backend. */
   questionCredits?: number;
+  /** A festival's free chat questions (backend pass/chat-gifts.repo.ts), spent before the
+   * Pass, packs and wallet; null/absent when none is running. validUntil is ISO 8601. */
+  chatGift?: {
+    campaign: string;
+    questionsLeft: number;
+    questionsTotal: number;
+    validUntil: string;
+  } | null;
   /** The report key the user voted for on "what should we prepare next?", or null if
    * never asked / still pending. Account-level, not profile-scoped. */
   nextReportVote: string | null;
@@ -231,9 +242,14 @@ export interface UpdateMeBody {
   placeOfBirth?: PlaceOfBirth | null;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   currentLocation?: PlaceOfBirth | null;
+  /** The device's IANA zone, for users who never shared a location. */
+  currentTimezone?: string;
   locale?: string;
   relationshipStatus?: string;
   onboardingStatus?: string;
+  /** The onboarding question the reader has reached (app/onboarding ONBOARDING_STEP_NAMES), or "done". */
+  onboardingStep?: string;
+  platform?: "web" | "android" | "ios";
   consent?: ConsentInput;
   referredByCode?: string;
   referralSource?: string;
@@ -257,7 +273,27 @@ export type ProfileRelationship =
   | "sibling"
   | "friend"
   | "other"
-  | "business_partner";
+  | "business_partner"
+  // Aroha Bonds v2 — offered in the add-a-person picker while nav.bonds is on.
+  | "fiance"
+  | "situationship"
+  | "crush"
+  | "first_love"
+  | "fwb"
+  | "soulmate"
+  | "ex"
+  | "manager"
+  | "employee"
+  | "colleague"
+  | "investor"
+  | "competitor"
+  | "cousin"
+  | "mother_in_law"
+  | "father_in_law"
+  | "roommate"
+  | "travel_buddy"
+  | "creative_partner"
+  | "gym_partner";
 
 /** One birth-data profile on this account — the primary (self) profile, or an added one (partner/family/etc). */
 export interface Profile {
@@ -443,9 +479,15 @@ export interface PanchangData {
   moonriseTime?: string;
   /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
   moonsetTime?: string;
+  /** Moonrise/moonset are the first after the day's sunrise (Drik Panchang's day); these say
+   * the time falls after midnight, on the next date. Absent on an older backend. */
+  moonriseNextDay?: boolean;
+  moonsetNextDay?: boolean;
   regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];
+  /** 'solarNoon' above 55° latitude when the day is under 4 h or over 20 h: Rahu Kaal etc. then use solar noon ± 6 h. */
+  dayTimesMode?: "sunrise" | "solarNoon";
 }
 
 // ─── Panchang month calendar ─────────────────────────────────────────────────
@@ -631,6 +673,8 @@ export interface TopUpAmount {
   amountPaise: number;
   currency: string;
   label: string;
+  /** Extra wallet money on top of amountPaise (pay ₹250 get ₹350); absent when the pack has no offer. */
+  bonusPaise?: number;
   popular?: boolean;
 }
 
@@ -1295,21 +1339,23 @@ export const api = {
     opts: { intervalMs?: number; timeoutMs?: number; signal?: AbortSignal } = {},
   ) => pollHouseInsight(house, language, opts),
 
-  /** Panchang data. */
-  panchang: (lat?: number, lon?: number, date?: string) => {
+  /** Panchang data. `tz` = IANA zone for the clock times (the server reads IST without it). */
+  panchang: (lat?: number, lon?: number, date?: string, tz?: string) => {
     const params = new URLSearchParams();
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
     if (date) params.set("date", date);
+    if (tz) params.set("tz", tz);
     const qs = params.toString();
     return request<PanchangData>(`/v1/panchang${qs ? `?${qs}` : ""}`, { auth: true });
   },
 
   /** Lightweight per-day panchang summaries for a calendar month. */
-  panchangMonth: (year: number, month: number, lat?: number, lon?: number) => {
+  panchangMonth: (year: number, month: number, lat?: number, lon?: number, tz?: string) => {
     const params = new URLSearchParams({ year: String(year), month: String(month) });
     if (lat != null) params.set("lat", String(lat));
     if (lon != null) params.set("lon", String(lon));
+    if (tz) params.set("tz", tz);
     return request<{
       year: number;
       month: number;

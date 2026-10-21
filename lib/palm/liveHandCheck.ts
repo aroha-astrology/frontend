@@ -47,21 +47,39 @@ export function classifyFraming(landmarks: NormalizedLandmark[] | null): HandFra
  * VIDEO running mode. One detect every INTERVAL_MS is cheap and reuses the existing wrapper
  * unchanged; switch to VIDEO/LIVE_STREAM mode if the hint ever feels laggy on low-end devices.
  */
+export interface FrameHandCheckResult {
+  framing: HandFraming;
+  landmarks: NormalizedLandmark[] | null;
+  sharpness: number;
+}
+
+export async function checkFrameForHandDetailed(
+  video: HTMLVideoElement,
+  canvas: HTMLCanvasElement,
+): Promise<FrameHandCheckResult> {
+  try {
+    if (!video.videoWidth || !video.videoHeight) {
+      return { framing: "none", landmarks: null, sharpness: 0 };
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return { framing: "none", landmarks: null, sharpness: 0 };
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const landmarks = await detectHandLandmarks(canvas);
+    const framing = classifyFraming(landmarks);
+    const sharpness = framing === "good" ? computeLaplacianVariance(canvas) : 0;
+    return { framing, landmarks, sharpness };
+  } catch {
+    return { framing: "none", landmarks: null, sharpness: 0 };
+  }
+}
+
 export async function checkFrameForHand(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
 ): Promise<HandFraming> {
-  try {
-    if (!video.videoWidth || !video.videoHeight) return "none";
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return "none";
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return classifyFraming(await detectHandLandmarks(canvas));
-  } catch {
-    return "none";
-  }
+  return (await checkFrameForHandDetailed(video, canvas)).framing;
 }
 
 /** How often to run the check. Each tick is a WASM inference on the main thread while a camera

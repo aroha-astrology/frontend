@@ -10,13 +10,16 @@ import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { sampleFrameBrightness, isLowLight, captureFrameToJpeg } from "@/lib/palm/capture";
 import { computeMountRelief } from "@/lib/palm/computeMountRelief";
 import {
-  checkFrameForHand,
+  checkFrameForHandDetailed,
+  computeLandmarkMovement,
   HAND_CHECK_INTERVAL_MS,
   type HandFraming,
 } from "@/lib/palm/liveHandCheck";
+import type { NormalizedLandmark } from "@/lib/palm/mountRegions";
 import { palmApi, PALM_CAPTURE_SLOTS, type PalmCaptureSlot } from "@/lib/palm-api";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useNewFeature } from "@/hooks/useFeature";
 
 const SLOT_INSTRUCTION_KEY: Record<PalmCaptureSlot, string> = {
   primaryFront: "palm.capture.step.primaryFront",
@@ -89,6 +92,11 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
    * backend has the landmarks before the scan starts. We race this against a 3s cap. */
   const pendingReliefRef = useRef<Promise<unknown> | null>(null);
 
+  const { enabled: autoCaptureOn } = useNewFeature("palm.autoCapture");
+  const prevLandmarksRef = useRef<NormalizedLandmark[] | null>(null);
+  const steadySinceRef = useRef<number | null>(null);
+  const autoCapturingRef = useRef(false);
+
   const slot = PALM_CAPTURE_SLOTS[stepIndex]!;
   const isLastStep = stepIndex === PALM_CAPTURE_SLOTS.length - 1;
   const stepHand = handForSlot(primaryHand, slot);
@@ -140,6 +148,17 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     };
   }, [camera.status]);
 
+  const handleManualCapture = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || camera.status !== "granted") return;
+    try {
+      const blob = await captureFrameToJpeg(video);
+      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
+    } catch {
+      setUploadError(t("palm.capture.captureError"));
+    }
+  }, [camera.status, t]);
+
   // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
   // Paused while reviewing a shot (nothing to guide) and torn down with the camera.
   useEffect(() => {
@@ -156,9 +175,33 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       const video = videoRef.current;
       const canvas = handCanvasRef.current;
       if (video && canvas) {
-        const result = await checkFrameForHand(video, canvas);
+        const result = await checkFrameForHandDetailed(video, canvas);
         if (cancelled) return;
-        setFraming(result);
+        setFraming(result.framing);
+
+        if (autoCaptureOn && !reviewing && result.framing === "good" && result.landmarks) {
+          const movement = computeLandmarkMovement(prevLandmarksRef.current, result.landmarks);
+          prevLandmarksRef.current = result.landmarks;
+          const now = Date.now();
+          if (movement < 0.005) {
+            if (!steadySinceRef.current) {
+              steadySinceRef.current = now;
+            } else if (now - steadySinceRef.current >= 800) {
+              if (result.sharpness > 40 && !autoCapturingRef.current) {
+                autoCapturingRef.current = true;
+                steadySinceRef.current = null;
+                void handleManualCapture().finally(() => {
+                  autoCapturingRef.current = false;
+                });
+              }
+            }
+          } else {
+            steadySinceRef.current = null;
+          }
+        } else {
+          prevLandmarksRef.current = null;
+          steadySinceRef.current = null;
+        }
       }
       if (!cancelled) timer = setTimeout(() => void tick(), HAND_CHECK_INTERVAL_MS);
     };
@@ -168,18 +211,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [camera.status, reviewing]);
-
-  const handleManualCapture = useCallback(async () => {
-    const video = videoRef.current;
-    if (!video || camera.status !== "granted") return;
-    try {
-      const blob = await captureFrameToJpeg(video);
-      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
-    } catch {
-      setUploadError(t("palm.capture.captureError"));
-    }
-  }, [camera.status, t]);
+  }, [camera.status, reviewing, autoCaptureOn, handleManualCapture]);
 
   const handleFileFallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -191,6 +223,9 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const handleRetake = useCallback(() => {
     if (reviewing) URL.revokeObjectURL(reviewing.previewUrl);
     setReviewing(null);
+    prevLandmarksRef.current = null;
+    steadySinceRef.current = null;
+    autoCapturingRef.current = false;
   }, [reviewing]);
 
   const advanceOrFinish = useCallback(

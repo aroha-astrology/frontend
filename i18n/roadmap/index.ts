@@ -27,9 +27,12 @@ import { callFeedbackBundle } from "./call-feedback";
 import { experienceBundle } from "./experience";
 import { travelBundle } from "./travel";
 import { noAssumptionsBundle } from "./no-assumptions";
+import { cosmicChartBundle } from "./cosmic-chart";
+import { diasporaBundle } from "./diaspora";
+import { navLeanBundle } from "./nav-lean";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, experienceBundle, travelBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, experienceBundle, travelBundle, cosmicChartBundle, diasporaBundle, navLeanBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

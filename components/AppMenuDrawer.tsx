@@ -30,6 +30,7 @@ import {
   Crown,
   Hexagon,
   GanttChart,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
@@ -73,6 +74,9 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
   const { enabled: passEnabled } = useNewFeature("nav.arohaPass");
   const { enabled: yantraEnabled } = useNewFeature("nav.digitalYantra");
   const { enabled: relocationEnabled } = useNewFeature("nav.relocation");
+  // The short menu: six places up front, everything else folded under "More" (nothing becomes unreachable).
+  const { enabled: shortMenu } = useNewFeature("nav.shortMenu");
+  const [moreOpen, setMoreOpen] = useState(false);
   const passStatus = usePassStatus();
   /** The Pass a Pass-only entry needs, shown to a user whose own Pass (if any) doesn't include it. */
   const passTag = (need: PassFeature) => {
@@ -120,6 +124,133 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
 
   const initial = (user?.displayName ?? user?.phoneE164 ?? user?.email ?? "?").trim().charAt(0).toUpperCase();
   const languageNames = LANGUAGES.map((l) => l.native).join(", ");
+
+  // The rows, kept in one place so the full menu and the short one (switch nav.shortMenu) list the same ones.
+  const featureRows = (
+    <>
+              {calendarEnabled && (
+                <ListRow
+                  icon={<CalendarDays size={16} />}
+                  label={t("calendar.menu")}
+                  href="/calendar"
+                  onClick={onClose}
+                />
+              )}
+              {timelineEnabled && (
+                <ListRow
+                  icon={<GanttChart size={16} />}
+                  label={t("timeline.menu")}
+                  href="/timeline"
+                  onClick={onClose}
+                  right={passTag("timeline")}
+                />
+              )}
+              {decisionsEnabled && (
+                <ListRow
+                  icon={<Scale size={16} />}
+                  label={t("decide.menu")}
+                  href="/decide"
+                  onClick={onClose}
+                  right={passTag("decisions")}
+                />
+              )}
+              {findDateEnabled && (
+                <ListRow
+                  icon={<CalendarSearch size={16} />}
+                  label={t("findDate.menu")}
+                  href="/find-date"
+                  onClick={onClose}
+                  right={passTag("findMyDate")}
+                />
+              )}
+              {bondsEnabled && (
+                <ListRow
+                  icon={<HeartHandshake size={16} />}
+                  label={t("bonds.menu")}
+                  href="/bonds"
+                  onClick={onClose}
+                  right={passTag("bonds")}
+                />
+              )}
+              {journalEnabled && (
+                <ListRow
+                  icon={<BookHeart size={16} />}
+                  label={t("journal.menu")}
+                  href="/journal"
+                  onClick={onClose}
+                />
+              )}
+              {practiceEnabled && (
+                <ListRow
+                  icon={<Sparkles size={16} />}
+                  label={t("practice.menu")}
+                  href="/practice"
+                  onClick={onClose}
+                />
+              )}
+              {passEnabled && (
+                <ListRow
+                  icon={<Crown size={16} />}
+                  label={t("pass.menu")}
+                  href="/pass"
+                  onClick={onClose}
+                />
+              )}
+              {yantraEnabled && (
+                <ListRow
+                  icon={<Hexagon size={16} />}
+                  label={t("yantra.menu")}
+                  href="/yantra"
+                  onClick={onClose}
+                />
+              )}
+              {relocationEnabled && (
+                <ListRow
+                  icon={<Globe size={16} />}
+                  label={t("relocation.menu")}
+                  href="/relocation"
+                  onClick={onClose}
+                  right={passTag("relocation")}
+                />
+              )}
+    </>
+  );
+  const rewardsRow = (
+    <>
+              {rewardsEnabled && (
+                <ListRow
+                  icon={<Gift size={16} />}
+                  label={t("rewards.menuLabel")}
+                  href="/rewards"
+                  onClick={onClose}
+                />
+              )}
+    </>
+  );
+  const myReportsRow = (
+            <ListRow
+              icon={<FileText size={16} />}
+              label={t("menu.myReports")}
+              href="/reports/history"
+              onClick={onClose}
+            />
+  );
+  const helpRow = (
+            <ListRow
+              icon={<HelpCircle size={16} />}
+              label={t("menu.needHelp")}
+              href="/help"
+              onClick={onClose}
+            />
+  );
+  const settingsRow = (
+            <ListRow
+              icon={<Settings size={16} />}
+              label={t("menu.accountSettings")}
+              href="/settings"
+              onClick={onClose}
+            />
+  );
 
   return (
     <AnimatePresence>
@@ -289,117 +420,39 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                   href="/profile/orders"
                   onClick={onClose}
                 />
-                {calendarEnabled && (
-                  <ListRow
-                    icon={<CalendarDays size={16} />}
-                    label={t("calendar.menu")}
-                    href="/calendar"
-                    onClick={onClose}
-                  />
+                {shortMenu ? (
+                  <>
+                    <ListRow
+                      icon={<Sparkles size={16} />}
+                      label={t("navLean.profileExperience")}
+                      href="/settings#experience"
+                      onClick={onClose}
+                    />
+                    {rewardsRow}
+                    {helpRow}
+                    {settingsRow}
+                    <ListRow
+                      icon={<ChevronDown size={16} className={moreOpen ? "rotate-180" : undefined} />}
+                      label={moreOpen ? t("navLean.less") : t("navLean.more")}
+                      onClick={() => setMoreOpen((v) => !v)}
+                      right={null}
+                    />
+                    {moreOpen && (
+                      <div data-testid="menu-more" className="flex flex-col gap-2">
+                        {featureRows}
+                        {myReportsRow}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {featureRows}
+                    {rewardsRow}
+                    {myReportsRow}
+                    {helpRow}
+                    {settingsRow}
+                  </>
                 )}
-                {timelineEnabled && (
-                  <ListRow
-                    icon={<GanttChart size={16} />}
-                    label={t("timeline.menu")}
-                    href="/timeline"
-                    onClick={onClose}
-                    right={passTag("timeline")}
-                  />
-                )}
-                {decisionsEnabled && (
-                  <ListRow
-                    icon={<Scale size={16} />}
-                    label={t("decide.menu")}
-                    href="/decide"
-                    onClick={onClose}
-                    right={passTag("decisions")}
-                  />
-                )}
-                {findDateEnabled && (
-                  <ListRow
-                    icon={<CalendarSearch size={16} />}
-                    label={t("findDate.menu")}
-                    href="/find-date"
-                    onClick={onClose}
-                    right={passTag("findMyDate")}
-                  />
-                )}
-                {bondsEnabled && (
-                  <ListRow
-                    icon={<HeartHandshake size={16} />}
-                    label={t("bonds.menu")}
-                    href="/bonds"
-                    onClick={onClose}
-                    right={passTag("bonds")}
-                  />
-                )}
-                {journalEnabled && (
-                  <ListRow
-                    icon={<BookHeart size={16} />}
-                    label={t("journal.menu")}
-                    href="/journal"
-                    onClick={onClose}
-                  />
-                )}
-                {practiceEnabled && (
-                  <ListRow
-                    icon={<Sparkles size={16} />}
-                    label={t("practice.menu")}
-                    href="/practice"
-                    onClick={onClose}
-                  />
-                )}
-                {passEnabled && (
-                  <ListRow
-                    icon={<Crown size={16} />}
-                    label={t("pass.menu")}
-                    href="/pass"
-                    onClick={onClose}
-                  />
-                )}
-                {yantraEnabled && (
-                  <ListRow
-                    icon={<Hexagon size={16} />}
-                    label={t("yantra.menu")}
-                    href="/yantra"
-                    onClick={onClose}
-                  />
-                )}
-                {relocationEnabled && (
-                  <ListRow
-                    icon={<Globe size={16} />}
-                    label={t("relocation.menu")}
-                    href="/relocation"
-                    onClick={onClose}
-                    right={passTag("relocation")}
-                  />
-                )}
-                {rewardsEnabled && (
-                  <ListRow
-                    icon={<Gift size={16} />}
-                    label={t("rewards.menuLabel")}
-                    href="/rewards"
-                    onClick={onClose}
-                  />
-                )}
-                <ListRow
-                  icon={<FileText size={16} />}
-                  label={t("menu.myReports")}
-                  href="/reports/history"
-                  onClick={onClose}
-                />
-                <ListRow
-                  icon={<HelpCircle size={16} />}
-                  label={t("menu.needHelp")}
-                  href="/help"
-                  onClick={onClose}
-                />
-                <ListRow
-                  icon={<Settings size={16} />}
-                  label={t("menu.accountSettings")}
-                  href="/settings"
-                  onClick={onClose}
-                />
                 <ListRow
                   icon={<LogOut size={16} />}
                   label={t("menu.signOut")}

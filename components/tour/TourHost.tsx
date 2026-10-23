@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
 import AppTour from "./AppTour";
-import { findTour } from "./tour-registry";
+import { useNewFeature } from "@/hooks/useFeature";
+import { tourFor } from "./tour-registry";
 
 /** How long to keep waiting for a tour's first target to appear before giving up. */
 const TARGET_WAIT_MS = 4000;
@@ -28,7 +29,9 @@ export default function TourHost() {
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { isDone, markDone, setTourActive, setTourPending, readyTourId, resetNonce } = useTour();
 
-  const tour = findTour(pathname ?? "");
+  const { enabled: coachMarks } = useNewFeature("nav.coachMarks");
+  // Memoised: the effect below depends on `tour`, and a fresh object every render would restart it.
+  const tour = useMemo(() => tourFor(pathname ?? "", coachMarks), [pathname, coachMarks]);
   const [openTourId, setOpenTourId] = useState<string | null>(null);
   /**
    * Tours already shown during this mount. Load-bearing for the `?tour=1`

@@ -19,6 +19,7 @@ import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
 import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
 import VargaChartTabs from "@/components/ui/VargaChartTabs";
 import ChartCarousel from "@/components/ui/ChartCarousel";
+import SignShiftCard from "@/components/experience/SignShiftCard";
 import GemstoneCard from "@/components/ui/GemstoneCard";
 import BirthTimeConfidenceCard from "@/components/birth-time/BirthTimeConfidenceCard";
 import { computeDivisionalCharts } from "@/lib/divisional-charts";
@@ -519,11 +520,15 @@ export default function KundliPage() {
               </div>
             )}
 
+            {/* Why the Western and Vedic signs differ — the reader's own Sun and Moon (ships off) */}
+            <SignShiftCard planets={planets} ayanamsaValue={ayanamsaValue} />
+
             {/* 2. Chart carousel — Rashi (D1) / Navamsa (D9) / Dasamsa (D10) */}
             <div data-tour="kundli-chart">
             <ChartCarousel
               natalHouses={houses}
               natalPlanets={planets}
+              ascendant={ascendant}
               divisionalCharts={divisionalCharts}
               onHouseClick={(houseNum) => {
                 const h = houses.find((x) => x.house === houseNum);

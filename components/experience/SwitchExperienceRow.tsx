@@ -62,7 +62,7 @@ export default function SwitchExperienceRow() {
 
   return (
     <>
-      <div data-testid="switch-experience">
+      <div id="experience" data-testid="switch-experience">
         <ListRow
           icon={<Sparkles size={16} />}
           label={t("experience.settings.row")}

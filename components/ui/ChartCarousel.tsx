@@ -5,9 +5,14 @@ import { useTranslation } from 'react-i18next';
 import NorthIndianChart from './NorthIndianChart';
 import SouthIndianChart from './SouthIndianChart';
 import Card from './Card';
+import SiderealWheel from '@/components/experience/SiderealWheel';
 import { buildVargaRenderData, type VargaData } from '@/lib/divisional-charts';
+import { ascendantLongitude } from '@/lib/wheel';
+import { skinToLook } from '@/lib/experience';
+import { useNewFeature } from '@/hooks/useFeature';
+import { useExperience } from '@/hooks/useExperience';
 
-type ChartStyle = 'north' | 'south';
+type ChartStyle = 'north' | 'south' | 'wheel';
 type VargaId = 'D1' | 'D9' | 'D10';
 
 interface ChartCarouselProps {
@@ -18,6 +23,8 @@ interface ChartCarouselProps {
   divisionalCharts: Record<string, VargaData>;
   /** House-detail unlock — only wired for the D1 chart (vargas have no insights). */
   onHouseClick?: (houseNum: number) => void;
+  /** The natal ascendant; the 360° wheel (switch experience.wheelChart) needs it to place the signs. */
+  ascendant?: Record<string, any> | null;
 }
 
 /** Latin title baked into the chart SVG (stylized serif — kept transliterated). */
@@ -32,9 +39,12 @@ export default function ChartCarousel({
   natalPlanets,
   divisionalCharts,
   onHouseClick,
+  ascendant,
 }: ChartCarouselProps) {
   const { t } = useTranslation();
-  const [style, setStyle] = useState<ChartStyle>('north');
+  const { enabled: wheelOn } = useNewFeature('experience.wheelChart');
+  const { info } = useExperience();
+  const [picked, setPicked] = useState<ChartStyle | null>(null);
   const [active, setActive] = useState<VargaId>('D1');
 
   // D1 always available (natal); D9/D10 only when their computed data exists.
@@ -46,6 +56,13 @@ export default function ChartCarousel({
   const current: VargaId = available.includes(active) ? active : 'D1';
 
   const isD1 = current === 'D1';
+
+  // The wheel is the natal chart only, and needs a known ascendant degree. It is the default in the
+  // Cosmic look; anyone can still pick North or South, and that choice sticks.
+  const wheelOk = wheelOn && isD1 && ascendantLongitude(ascendant) != null;
+  const styles: ChartStyle[] = wheelOk ? ['north', 'south', 'wheel'] : ['north', 'south'];
+  const preferred: ChartStyle = picked ?? (wheelOk && skinToLook(info?.skin ?? null) === 'cosmic' ? 'wheel' : 'north');
+  const style: ChartStyle = styles.includes(preferred) ? preferred : 'north';
   const chartData = isD1
     ? { houses: natalHouses, planets: natalPlanets }
     : buildVargaRenderData(divisionalCharts[current]!);
@@ -69,22 +86,25 @@ export default function ChartCarousel({
 
       {/* North / South style toggle */}
       <div className="flex justify-center gap-2 mb-4">
-        {(['north', 'south'] as ChartStyle[]).map((s) => (
+        {styles.map((s) => (
           <button
             key={s}
-            onClick={() => setStyle(s)}
+            data-testid={`chart-style-${s}`}
+            onClick={() => setPicked(s)}
             className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
               style === s ? 'bg-gold/20 text-gold' : 'bg-surface/60 text-muted'
             }`}
           >
-            {t(`kundli.charts.style.${s}`)}
+            {s === 'wheel' ? t('cosmicChart.wheel.tab') : t(`kundli.charts.style.${s}`)}
           </button>
         ))}
       </div>
 
       {/* Chart */}
       <div className="max-w-[380px] mx-auto">
-        {style === 'north' ? (
+        {style === 'wheel' ? (
+          <SiderealWheel planets={natalPlanets} ascendant={ascendant} />
+        ) : style === 'north' ? (
           <NorthIndianChart
             chartData={chartData}
             title={VARGA_TITLE[current]}

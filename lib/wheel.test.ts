@@ -15,14 +15,14 @@ describe("ascendantLongitude", () => {
 describe("wheelAngle", () => {
   it("puts the ascendant at the left and the signs counter-clockwise", () => {
     expect(wheelAngle(130, 130)).toBe(180);
-    // 30 degrees later in the zodiac sits 30 degrees further round counter-clockwise from the ascendant's left side... i.e. lower on the left going down
-    expect(wheelAngle(160, 130)).toBe(150);
-    expect(wheelAngle(100, 130)).toBe(210);
+    // 30 degrees later in the zodiac sits 30 degrees further round counter-clockwise: down the left side towards the bottom
+    expect(wheelAngle(160, 130)).toBe(210);
+    expect(wheelAngle(100, 130)).toBe(150);
   });
 
   it("wraps past 360 and below 0", () => {
-    expect(wheelAngle(10, 350)).toBe(160);
-    expect(wheelAngle(350, 10)).toBe(200);
+    expect(wheelAngle(10, 350)).toBe(200);
+    expect(wheelAngle(350, 10)).toBe(160);
   });
 });
 

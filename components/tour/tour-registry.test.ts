@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findTour, TOURS } from "./tour-registry";
+import { COACH_MARK_STEP_IDS, findTour, tourFor, TOURS } from "./tour-registry";
 import { resources } from "@/i18n/resources";
 
 describe("findTour", () => {
@@ -30,6 +30,30 @@ describe("findTour", () => {
   it("returns nothing for routes with no tour", () => {
     expect(findTour("/settings")).toBeUndefined();
     expect(findTour("/admin/users")).toBeUndefined();
+  });
+});
+
+describe("tourFor (coach marks)", () => {
+  it("is the ordinary tour while coach marks are off", () => {
+    expect(tourFor("/", false)).toBe(findTour("/"));
+    expect(tourFor("/kundli", false)).toBe(findTour("/kundli"));
+  });
+
+  it("cuts only the Home tour down to the three coach marks, in the same order, under the same id", () => {
+    const full = findTour("/")!;
+    const short = tourFor("/", true)!;
+    expect(short.id).toBe(full.id);
+    expect(short.readyGate).toBe(full.readyGate);
+    expect(short.steps.map((s) => s.id)).toEqual(
+      full.steps.map((s) => s.id).filter((id) => (COACH_MARK_STEP_IDS as readonly string[]).includes(id)),
+    );
+    expect(short.steps.length).toBe(COACH_MARK_STEP_IDS.length);
+    expect(short.steps.length).toBeLessThan(full.steps.length);
+  });
+
+  it("leaves every other screen's tour alone", () => {
+    expect(tourFor("/kundli", true)).toBe(findTour("/kundli"));
+    expect(tourFor("/settings", true)).toBeUndefined();
   });
 });
 

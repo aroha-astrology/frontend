@@ -16,6 +16,7 @@ import FactCard from "@/components/reports/blocks/FactCard";
 import { useAuth } from "@/providers/auth-provider";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
 import FeatureGuard from "@/components/FeatureGuard";
+import DiasporaRemedy from "@/components/experience/DiasporaRemedy";
 
 /** Remedies only change on chart regeneration — explicitly purged then (see lib/cache.ts's purgeUserCache and its call site in app/profile/page.tsx / app/onboarding/page.tsx). 7 days is a generous-but-bounded SWR TTL, not a correctness mechanism. */
 const SWR_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -147,6 +148,7 @@ function PlanetCard({ item, simple }: { item: RemedyItem; simple?: string }) {
 
       <LabelledList label={t("remediesPage.doThis")} items={item.remedies ?? []} marker="✓" />
       <LabelledList label={t("remediesPage.alsoTry")} items={item.totke ?? []} marker="✦" />
+      <DiasporaRemedy planet={item.planet} />
 
       <TechnicalNote>
         <p>

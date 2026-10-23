@@ -12,7 +12,7 @@ import { defineConfig, devices } from "@playwright/test";
  * Port 3100 (not 3000) so a running `npm run dev` is never reused by mistake:
  * it would be missing all of the env below.
  */
-const PORT = 3100;
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 const E2E_ENV = {
   NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:3999",
   NEXT_PUBLIC_FIREBASE_AUTH_API_KEY: "demo-key",

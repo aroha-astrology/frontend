@@ -20,6 +20,12 @@ export const COSMIC_COPY: Record<string, Record<string, string>> = {
     "aiChatPage.askAiTitle": "Ask Orion",
     "aiChatPage.introTitle": "Ask Orion anything",
     "aiChatPage.voiceTitle": "Call Orion",
+    // Kundli Matching: two people, not "boy" and "girl"
+    "compatibilityPage.person1": "Person A",
+    "compatibilityPage.person2": "Person B",
+    "compatibilityPage.pickerTitleBoy": "Select Person A's Profile",
+    "compatibilityPage.pickerTitleGirl": "Select Person B's Profile",
+    "compatibilityPage.mangalDoshaStatus": "A: {{p1}} · B: {{p2}}",
   },
 };
 

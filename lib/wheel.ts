@@ -28,9 +28,9 @@ export function ascendantLongitude(ascendant: Record<string, any> | null | undef
   return idx * 30 + (typeof deg === "number" ? deg : 0);
 }
 
-/** The screen angle for a longitude, with the ascendant fixed at 180° (left). */
+/** The screen angle for a longitude, with the ascendant fixed at 180° (left); later signs run on round the bottom, counter-clockwise. */
 export function wheelAngle(longitude: number, ascLongitude: number): number {
-  return wrap360(180 - (longitude - ascLongitude));
+  return wrap360(180 + (longitude - ascLongitude));
 }
 
 export interface WheelPlanet {

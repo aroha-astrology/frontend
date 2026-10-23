@@ -182,6 +182,19 @@ export function findTour(pathname: string): TourDef | undefined {
 }
 
 /**
+ * Coach marks (switch nav.coachMarks): the long Home walk-through is cut to the three things a new
+ * user needs first. Same tour id, so someone who already finished the long one is not shown it again.
+ */
+export const COACH_MARK_STEP_IDS = ["welcome", "askai", "kundli"] as const;
+
+/** The tour for a route; the Home tour is the short coach-mark version when `coachMarks` is on. */
+export function tourFor(pathname: string, coachMarks: boolean): TourDef | undefined {
+  const tour = findTour(pathname);
+  if (!tour || !coachMarks || tour.id !== "home") return tour;
+  return { ...tour, steps: tour.steps.filter((s) => (COACH_MARK_STEP_IDS as readonly string[]).includes(s.id)) };
+}
+
+/**
  * Legacy localStorage key from when there was exactly one tour. Read once at
  * startup to backfill `home` into the server-side list, then deleted — without
  * it every existing user would be shown the home tour a second time.

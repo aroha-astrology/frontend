@@ -15,6 +15,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { useTopBarContext } from "@/providers/topbar-provider";
 import WalletBalance from "@/components/ui/WalletBalance";
 import PassChip from "@/components/pass/PassChip";
+import SubTabPills from "@/components/nav/SubTabPills";
 
 /**
  * Opt-OUT model, not opt-in: every route gets this shared header by default
@@ -108,6 +109,7 @@ export default function TopBar() {
         {rightContent && (
           <div className="page-container pb-2 relative">{rightContent}</div>
         )}
+        <SubTabPills />
       </div>
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
       <AppMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />

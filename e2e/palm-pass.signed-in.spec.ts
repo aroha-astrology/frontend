@@ -178,13 +178,24 @@ test.describe("Palm Reading on the Aroha Pass", () => {
   test("every Pass tier lists the palm reading", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
-      user: { features: PASS_ON },
+      user: { features: { ...PASS_ON, "home.palmReading": ON } },
       overrides: { "GET /v1/pass": () => ({ json: passStatus() }) },
     });
     await signIn(page, "/pass");
     for (const tier of ["silver", "gold", "platinum"]) {
       await expect(page.getByTestId(`pass-tier-${tier}`).getByText("A full palm reading every 30 days")).toBeVisible();
     }
+  });
+
+  test("while Palm Reading is switched off, no Pass promises it", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: { features: PASS_ON },
+      overrides: { "GET /v1/pass": () => ({ json: passStatus() }) },
+    });
+    await signIn(page, "/pass");
+    await expect(page.getByTestId("pass-tier-silver").getByText("15 questions to Aroha every 30 days")).toBeVisible();
+    await expect(page.getByText("A full palm reading every 30 days")).toHaveCount(0);
   });
 });
 

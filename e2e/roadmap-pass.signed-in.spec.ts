@@ -59,7 +59,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
   test("the three Passes differ: each step up has more questions, a bigger report discount and more features", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
-      user: { features: PASS_ON },
+      user: { features: { ...PASS_ON, "home.palmReading": ON } },
       overrides: { "GET /v1/pass": () => ({ json: passStatus() }) },
     });
     await signIn(page, "/pass");

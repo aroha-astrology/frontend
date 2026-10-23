@@ -130,6 +130,10 @@ export interface AdminUserRow {
   voiceLastCalls?: string[];
   /** Average "how was your call?" stars, null when never answered. */
   voiceRating?: number | null;
+  /** The look the user picked, null before they choose. Optional until the API that sends it is live. */
+  uiSkin?: "CLASSIC_VEDIC" | "MODERN_COSMIC" | null;
+  /** When their next change of look is allowed (ISO); null when allowed now. */
+  uiSkinNextChangeAt?: string | null;
 }
 
 export interface AdminUsersResponse {

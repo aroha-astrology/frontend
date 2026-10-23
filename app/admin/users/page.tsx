@@ -222,6 +222,16 @@ export default function AdminUsersPage() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  /** Support: give the user their free change back and clear the 30-day wait, then show it at once. */
+  const resetLook = useCallback(async (userId: string) => {
+    try {
+      await adminApi.resetExperience(userId);
+      setUsers((prev) => prev && prev.map((u) => (u.id === userId ? { ...u, uiSkinNextChangeAt: null } : u)));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not reset the wait");
+    }
+  }, []);
+
   const fetchUsers = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -354,6 +364,7 @@ export default function AdminUsersPage() {
                         {sortBy === "voiceSeconds" && <span>{sortDir === "asc" ? "▲" : "▼"}</span>}
                       </button>
                     </th>
+                    <th className="px-4 py-2 font-medium">Look</th>
                     <th className="px-4 py-2 font-medium text-right">Today</th>
                     <th className="px-4 py-2 font-medium text-right">Yesterday</th>
                     <th className="px-4 py-2 font-medium text-right">Week</th>
@@ -439,6 +450,31 @@ export default function AdminUsersPage() {
                                 {formatCallTime(at)}
                               </div>
                             ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2" data-testid="look-cell">
+                        {u.uiSkin ? (
+                          <div>
+                            <div className="text-foreground text-xs font-medium">
+                              {u.uiSkin === "MODERN_COSMIC" ? "Modern Cosmic" : "Classic Vedic"}
+                            </div>
+                            {u.uiSkinNextChangeAt && (
+                              <div className="text-muted text-[11px] whitespace-nowrap">
+                                can change {formatDate(u.uiSkinNextChangeAt)}
+                              </div>
+                            )}
+                            {u.uiSkinNextChangeAt && (
+                              <button
+                                type="button"
+                                onClick={() => resetLook(u.id)}
+                                className="mt-1 text-[11px] text-gold underline underline-offset-2"
+                              >
+                                Reset wait
+                              </button>
+                            )}
                           </div>
                         ) : (
                           <span className="text-muted text-xs">—</span>

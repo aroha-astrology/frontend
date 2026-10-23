@@ -12,6 +12,9 @@ import type { HouseOfferInfo } from "./house-offer";
 import type { ExperienceInfo, ExperienceSkin } from "./experience";
 import type { HomeLayoutDoc } from "./home-cards";
 import type { SkyContext, SkyContextUpdate } from "./sky";
+import type { LiveNow } from "./live-now";
+import type { RitualPractice, RitualResult, RitualToday } from "./ritual";
+import type { Circle, CircleInvite, CircleMember, InvitePreview } from "./circles";
 import { nextPollDelay } from "./poll-backoff";
 import { deviceTimeZone } from "./calendar-format";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
@@ -20,6 +23,9 @@ import type { RegionId } from "@/lib/panchang/regions";
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.arohaastrology.in"
 ).replace(/\/$/, "");
+
+/** The server address, for the few native pieces (the home-screen widget) that call it themselves. */
+export const API_BASE_URL = BASE_URL;
 
 // ─── Types (mirrors components.schemas in openapi.json) ──────────────────────
 
@@ -1245,6 +1251,26 @@ export const api = {
   skyContext: () => request<SkyContext>("/v1/me/context", { auth: true }),
   setSkyContext: (body: SkyContextUpdate) =>
     request<SkyContext>("/v1/me/context", { method: "PUT", body, auth: true }),
+
+  /** What is running at a place right now (switches live.nowBar / live.widget). Public, cached 15 minutes. */
+  liveNow: (lat: number, lon: number, tz: string) =>
+    request<LiveNow>(`/v1/widgets/live-now?lat=${lat}&lon=${lon}&tz=${encodeURIComponent(tz)}`),
+
+  /** Today's Morning Ritual card and the merged streak (switch ritual.morning). */
+  ritualToday: () => request<RitualToday>("/v1/ritual/today", { auth: true }),
+  ritualComplete: (body: { practice: RitualPractice; mood?: number | null }) =>
+    request<RitualResult>("/v1/ritual/complete", { method: "POST", body, auth: true }),
+
+  /** Cosmic Circles (switches circles.*). */
+  circles: () => request<Circle>("/v1/circles", { auth: true }),
+  circleAddMember: (profileId: string) =>
+    request<CircleMember>("/v1/circles/members", { method: "POST", body: { profileId }, auth: true }),
+  circleRemoveMember: (id: string) =>
+    request<{ removed: boolean }>(`/v1/circles/members/${id}`, { method: "DELETE", auth: true }),
+  circleCreateInvite: () => request<CircleInvite>("/v1/circles/invites", { method: "POST", auth: true }),
+  circleInvitePreview: (code: string) => request<InvitePreview>(`/v1/public/circle-invites/${code}`),
+  circleAcceptInvite: (code: string) =>
+    request<{ inviterName: string }>(`/v1/circles/invites/${code}/accept`, { method: "POST", auth: true }),
 
   /** The owner's Home card order (switch experience.homeLayout); `layout: null` keeps the built-in order. */
   homeLayout: () =>

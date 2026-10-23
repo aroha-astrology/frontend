@@ -15,6 +15,10 @@ import ShlokasCard from "@/components/ShlokasCard";
 import RemediesCard from "@/components/RemediesCard";
 import AstroWeatherCard from "@/components/weather/AstroWeatherCard";
 import BondsCard from "@/components/bonds/BondsCard";
+import NowBarCard from "@/components/home/NowBarCard";
+import MorningRitualCard from "@/components/ritual/MorningRitualCard";
+import CirclesCard from "@/components/circles/CirclesCard";
+import PendingCircleInvite from "@/components/circles/PendingCircleInvite";
 import JournalPromptCard from "@/components/journal/JournalPromptCard";
 import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -71,6 +75,30 @@ function BondsSection() {
   return (
     <div className={CARD_SECTION}>
       <BondsCard />
+    </div>
+  );
+}
+
+function NowBarSection() {
+  return (
+    <div className={CARD_SECTION}>
+      <NowBarCard />
+    </div>
+  );
+}
+
+function MorningRitualSection() {
+  return (
+    <div className={CARD_SECTION}>
+      <MorningRitualCard />
+    </div>
+  );
+}
+
+function CirclesSection() {
+  return (
+    <div className={CARD_SECTION}>
+      <CirclesCard />
     </div>
   );
 }
@@ -167,6 +195,9 @@ function RemediesSection() {
 }
 
 const SECTION_COMPONENTS: Record<string, ComponentType> = {
+  nowBar: NowBarSection,
+  morningRitual: MorningRitualSection,
+  circles: CirclesSection,
   todayReading: TodayReadingSection,
   astroWeather: AstroWeatherSection,
   journalPrompt: JournalPromptSection,
@@ -266,6 +297,7 @@ export default function HomePage() {
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
       <PassLaunchModal ready={splashDone && welcomeDone} />
       <ExperienceGate ready={splashDone && welcomeDone} />
+      <PendingCircleInvite />
 
       <div className="relative z-10 page-container">
         {/* Personalized greeting header — identity chrome, always shown */}

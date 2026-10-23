@@ -10,7 +10,9 @@ import { LEGAL_VERSION } from "@/lib/legal-content";
 // /legal/* must be readable pre-auth: sign-in/onboarding link to the Terms
 // and Privacy Policy, and consent to an unreadable document is not valid
 // consent under the DPDP Act.
-const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/legal"];
+// /circle/invite/<code> is the landing card behind a Cosmic Circle invite link: a friend without an
+// account has to be able to read it before signing up (the page keeps the code until they have one).
+const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/legal", "/circle/invite"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { firebaseUser, user, loading } = useAuth();

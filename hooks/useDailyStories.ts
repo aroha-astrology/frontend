@@ -40,7 +40,7 @@ export interface DailyStoriesData {
  * The device's position, but only when it was already shared with the app:
  * the story ring sits on Home, and Home must not open a location prompt.
  */
-async function sharedCoords(): Promise<{ lat: number; lon: number } | null> {
+export async function sharedCoords(): Promise<{ lat: number; lon: number } | null> {
   try {
     if (!navigator.permissions || !navigator.geolocation) return null;
     const status = await navigator.permissions.query({ name: "geolocation" });

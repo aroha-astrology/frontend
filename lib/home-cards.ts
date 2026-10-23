@@ -20,11 +20,14 @@ export interface HomeCardMeta {
 
 /** Order here is the built-in order, used when no layout is set. */
 export const HOME_CARDS: readonly HomeCardMeta[] = [
+  { id: "nowBar", featureKey: "live.nowBar", label: "Now Bar", isNew: true },
+  { id: "morningRitual", featureKey: "ritual.morning", label: "Morning Ritual", isNew: true },
   { id: "todayReading", featureKey: "home.todayReading", label: "Today's reading" },
   { id: "astroWeather", featureKey: "home.astroWeather", label: "Astro weather", isNew: true },
   { id: "journalPrompt", featureKey: "home.journalPrompt", label: "Journal prompt", isNew: true },
   { id: "kundliCard", featureKey: "home.kundliCard", label: "Kundli" },
   { id: "bonds", featureKey: "home.bondsCard", label: "Aroha Bonds", isNew: true },
+  { id: "circles", featureKey: "circles.circles", label: "Cosmic Circle", isNew: true },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", label: "Moon sign horoscope", wide: true },
   { id: "reportsSlider", featureKey: "home.reportsSection", label: "Reports", wide: true },
   { id: "matchmaking", featureKey: "home.matchmaking", label: "Match making" },

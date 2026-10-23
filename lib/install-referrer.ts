@@ -1,5 +1,6 @@
 import { registerPlugin } from "@capacitor/core";
 import { parseInstallReferrer, storePendingReferralCode, storePendingUtmSource } from "./referral";
+import { parseCircleReferrer, storePendingCircleInvite } from "./circles";
 
 /**
  * Local native plugin (mobile/android InstallReferrerPlugin.java) — the
@@ -28,6 +29,8 @@ export async function captureInstallReferrer(): Promise<void> {
     const { code, utmSource } = parseInstallReferrer(referrer);
     if (code) storePendingReferralCode(code);
     if (utmSource) storePendingUtmSource(utmSource);
+    const circle = parseCircleReferrer(referrer);
+    if (circle) storePendingCircleInvite(circle);
   } catch {
     // Plugin missing/erroring — the user can still type a code in onboarding.
   }

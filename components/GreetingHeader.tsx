@@ -8,7 +8,9 @@ import { useAuth } from "@/providers/auth-provider";
 import ProfileSwitcherSheet from "@/components/ProfileSwitcher";
 import Avatar from "@/components/ui/Avatar";
 import DailyStoriesAvatar from "@/components/stories/DailyStoriesAvatar";
+import DailyStoryPills from "@/components/stories/DailyStoryPills";
 import StoryHint from "@/components/stories/StoryHint";
+import { useStoryPlayer } from "@/components/stories/useStoryPlayer";
 import { markHintClosed, readHintClosed } from "@/lib/stories/hint";
 import { useNewFeature } from "@/hooks/useFeature";
 
@@ -35,6 +37,7 @@ function timeOfDayKey(hour: number): "morning" | "afternoon" | "evening" | "nigh
  * and is its own button that opens today's stories; only the name beside it
  * opens the profile switcher then. Until the reader closes it or opens the
  * stories once, a small bubble under the avatar says what the ring is for.
+ * Under the greeting, small pills (Panchang, Hora, Deity, Gita) open one story each.
  */
 export default function GreetingHeader() {
   const { t } = useTranslation();
@@ -50,6 +53,7 @@ export default function GreetingHeader() {
     markHintClosed();
     setHint(false);
   }, []);
+  const player = useStoryPlayer(stories, closeHint);
 
   const displayName = activeProfile?.displayName ?? user?.displayName;
   const firstName = displayName?.trim().split(/\s+/)[0] ?? null;
@@ -89,20 +93,24 @@ export default function GreetingHeader() {
           transition={{ duration: 0.4 }}
           className="pt-8 pb-2 flex items-center gap-3"
         >
-          <DailyStoriesAvatar name={displayName} onOpen={closeHint} />
-          {profiles === null ? (
-            words
-          ) : (
-            <button
-              type="button"
-              onClick={() => setSwitcherOpen(true)}
-              aria-label={t("profileSwitcher.title")}
-              className="min-w-0 flex-1 text-left appearance-none bg-transparent p-0 border-0"
-            >
-              {words}
-            </button>
-          )}
+          <DailyStoriesAvatar name={displayName} player={player} />
+          <div className="min-w-0 flex-1">
+            {profiles === null ? (
+              words
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSwitcherOpen(true)}
+                aria-label={t("profileSwitcher.title")}
+                className="block w-full text-left appearance-none bg-transparent p-0 border-0"
+              >
+                {words}
+              </button>
+            )}
+            <DailyStoryPills player={player} />
+          </div>
         </motion.div>
+        {player.viewer}
         <StoryHint show={hint} onClose={closeHint} />
         {profiles !== null && <ProfileSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />}
       </>

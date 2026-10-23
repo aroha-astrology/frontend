@@ -72,12 +72,20 @@ export default function StoryViewer({
   const [sharing, setSharing] = useState(false);
   const press = useRef<{ x: number; y: number; at: number } | null>(null);
 
-  const id = STORY_IDS[Math.min(index, STORY_IDS.length - 1)]!;
+  // False from the moment `open` turns true until the effect below has moved `index` to this opening's story:
+  // for that one render `index` is still the last opening's, and showing it (or marking it seen) would be wrong.
+  const [started, setStarted] = useState(false);
+  const current = open && !started ? startIndex : index;
+  const id = STORY_IDS[Math.min(current, STORY_IDS.length - 1)]!;
 
   // Every opening starts on the first unseen story, with nothing left over from the last one.
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setStarted(false);
+      return;
+    }
     setIndex(startIndex);
+    setStarted(true);
     setHeld(false);
     setSharing(false);
     track("story_opened", { story: STORY_IDS[startIndex] ?? "panchang" });
@@ -239,8 +247,8 @@ export default function StoryViewer({
               <div className="flex gap-1.5" aria-hidden>
                 {STORY_IDS.map((storyId, i) => (
                   <div key={storyId} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
-                    {i < index && <div className="h-full w-full bg-white" />}
-                    {i === index &&
+                    {i < current && <div className="h-full w-full bg-white" />}
+                    {i === current &&
                       (reduceMotion ? (
                         // No timer for a reader who prefers no motion: the story waits for a tap.
                         <div className="h-full w-full bg-white" />

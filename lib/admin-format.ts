@@ -151,10 +151,10 @@ export function sortByTotalPaiseDescending<T extends { totalPaise: number }>(ite
   return [...items].sort((a, b) => b.totalPaise - a.totalPaise);
 }
 
-export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral" | "rewards" | "ai" | "chat" | "money" | "experience" | "live" | "ritual" | "circles";
+export type AdminFeatureGroupKey = "nav" | "home" | "paid" | "reports" | "panchang" | "referral" | "rewards" | "ai" | "chat" | "money" | "experience" | "live" | "ritual" | "circles" | "memory" | "community" | "lang";
 
 /** The feature groups the backend contract defines, in the fixed display order every board (main + per-group overrides) uses. */
-export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat", "money", "experience", "live", "ritual", "circles"];
+export const FEATURE_GROUP_ORDER: readonly AdminFeatureGroupKey[] = ["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat", "money", "experience", "live", "ritual", "circles", "memory", "community", "lang"];
 
 export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   nav: "Navigation",
@@ -173,6 +173,9 @@ export const FEATURE_GROUP_LABELS: Record<AdminFeatureGroupKey, string> = {
   live: "Now Bar & widget",
   ritual: "Morning Ritual",
   circles: "Cosmic Circles",
+  memory: "Baba Ji memory",
+  community: "Same Sky rooms",
+  lang: "Languages",
 };
 
 /**

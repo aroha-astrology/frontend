@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { usePanchangNames } from "@/hooks/usePanchangNames";
 import { Sun, Sunset } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
@@ -31,9 +32,14 @@ function nameOf(field: { name?: string } | null | undefined): string | null {
   return field?.name ?? null;
 }
 
+function localName(name: string | null, fn: (n: string) => string): string | null {
+  return name ? fn(name) : null;
+}
+
 /** Daily Panchang strip (Tithi, Vaar, Nakshatra, Yoga, Karana, sunrise/sunset, Rahu Kaal) — same across all four chart styles (spec 3.1). */
 export default function PanchangStrip() {
   const { t } = useTranslation();
+  const names = usePanchangNames();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
   const [data, setData] = useState<PanchangFacts | null>(null);
@@ -100,9 +106,9 @@ export default function PanchangStrip() {
   // degrade to an empty-state message rather than showing blank/broken cells.
   const facts = data
     ? [
-        { label: t("horoscope.panchang.tithi"), value: nameOf(data.tithi) },
+        { label: t("horoscope.panchang.tithi"), value: localName(nameOf(data.tithi), names.tithi) },
         { label: t("horoscope.panchang.vaar"), value: data.vara ?? null },
-        { label: t("horoscope.panchang.nakshatra"), value: nameOf(data.nakshatra) },
+        { label: t("horoscope.panchang.nakshatra"), value: localName(nameOf(data.nakshatra), names.nakshatra) },
         { label: t("horoscope.panchang.yoga"), value: nameOf(data.yoga) },
         { label: t("horoscope.panchang.karana"), value: nameOf(data.karana) },
       ]

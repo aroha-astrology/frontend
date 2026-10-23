@@ -15,6 +15,8 @@ import type { SkyContext, SkyContextUpdate } from "./sky";
 import type { LiveNow } from "./live-now";
 import type { RitualPractice, RitualResult, RitualToday } from "./ritual";
 import type { Circle, CircleInvite, CircleMember, InvitePreview } from "./circles";
+import type { MemorySummary, MemoryVault } from "./memory";
+import type { CreatedPost, SkyRoom } from "./same-sky";
 import { nextPollDelay } from "./poll-backoff";
 import { deviceTimeZone } from "./calendar-format";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
@@ -1271,6 +1273,34 @@ export const api = {
   circleInvitePreview: (code: string) => request<InvitePreview>(`/v1/public/circle-invites/${code}`),
   circleAcceptInvite: (code: string) =>
     request<{ inviterName: string }>(`/v1/circles/invites/${code}/accept`, { method: "POST", auth: true }),
+
+  /** Baba Ji memory (switches memory.*). */
+  memoryVault: () => request<MemoryVault>("/v1/me/memory", { auth: true }),
+  memorySummary: () => request<MemorySummary>("/v1/me/memory/summary", { auth: true }),
+  memoryForget: (id: string) => request<{ removed: number }>(`/v1/me/memory/${id}`, { method: "DELETE", auth: true }),
+  memoryForgetAll: () => request<{ removed: number }>("/v1/me/memory", { method: "DELETE", auth: true }),
+  memoryHappened: (id: string) => request<{ ok: true }>(`/v1/me/memory/${id}/happened`, { method: "POST", auth: true }),
+  memoryDismiss: (id: string) => request<{ ok: true }>(`/v1/me/memory/${id}/dismiss`, { method: "POST", auth: true }),
+
+  /** The guide who answers chat and calls (switch chat.personas). */
+  persona: () =>
+    request<{ look: "CLASSIC_VEDIC" | "MODERN_COSMIC"; current: string; options: { id: string; name: string }[] }>(
+      "/v1/me/persona",
+      { auth: true },
+    ),
+  setPersona: (personaId: string) =>
+    request<{ look: "CLASSIC_VEDIC" | "MODERN_COSMIC"; current: string; options: { id: string; name: string }[] }>(
+      "/v1/me/persona",
+      { method: "PUT", body: { personaId }, auth: true },
+    ),
+
+  /** Same Sky rooms (switch community.sameSky). */
+  sky: (before?: string) => request<SkyRoom>(`/v1/sky${before ? `?before=${encodeURIComponent(before)}` : ""}`, { auth: true }),
+  skyPost: (body: string) => request<CreatedPost>("/v1/sky/posts", { method: "POST", body: { body }, auth: true }),
+  skyDeletePost: (id: string) => request<{ ok: true }>(`/v1/sky/posts/${id}`, { method: "DELETE", auth: true }),
+  skyReport: (id: string, reason: string) =>
+    request<{ ok: true; hidden: boolean }>(`/v1/sky/posts/${id}/report`, { method: "POST", body: { reason }, auth: true }),
+  skyBlock: (id: string) => request<{ ok: true }>(`/v1/sky/posts/${id}/block`, { method: "POST", auth: true }),
 
   /** The owner's Home card order (switch experience.homeLayout); `layout: null` keeps the built-in order. */
   homeLayout: () =>

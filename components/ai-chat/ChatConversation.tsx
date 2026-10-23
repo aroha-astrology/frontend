@@ -18,6 +18,8 @@ import { referralPlayStoreUrl } from "@/lib/referral";
 import { track } from "@/lib/analytics";
 import VoiceCall from "./VoiceCall";
 import { ASTROLOGER } from "@/lib/personas";
+import { usePersona } from "@/hooks/usePersona";
+import { useMemorySummary } from "@/hooks/useMemorySummary";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
@@ -284,6 +286,16 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     if (q && about) pendingCompareProfileIdRef.current = about;
   }, []);
   const [streaming, setStreaming] = useState(false);
+  // Baba Ji memory: the chosen guide's name, the free first reply after a check-in, and the birth-time chip.
+  const { customName: guideCustomName } = usePersona();
+  const { summary: memorySummary, refresh: refreshMemorySummary } = useMemorySummary();
+  const rectifyChipOn = useNewFeature("memory.rectifyChip").enabled;
+  const wasStreaming = useRef(false);
+  useEffect(() => {
+    // A free reply is spent by the turn that just finished: ask again so the banner goes away.
+    if (wasStreaming.current && !streaming) refreshMemorySummary();
+    wasStreaming.current = streaming;
+  }, [streaming, refreshMemorySummary]);
   const [thinkingIdx, setThinkingIdx] = useState(0);
   // Scroll target for new messages — the messages pane itself (see the
   // `overflow-y-auto` div in the JSX below), not a sentinel node. Scrolling a
@@ -889,7 +901,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           <VoiceCall locale={i18n.language} />
         </div>
         <h1 className="text-2xl font-bold text-gold font-display text-center flex items-center justify-center gap-2">
-          <YogiBabaAvatar size={32} /> {t(ASTROLOGER.nameKey)}
+          <YogiBabaAvatar size={32} /> <span data-testid="chat-guide-name">{guideCustomName ?? t(ASTROLOGER.nameKey)}</span>
         </h1>
       </div>
 
@@ -907,6 +919,23 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             there's enough history, instead of permanently eating vertical
             space above the message list. */}
         <div className="px-1 pt-3 pb-1">
+          {memorySummary?.freeReply && (
+            <p
+              data-testid="free-reply-banner"
+              className="mb-2 rounded-2xl border border-gold/30 bg-gold/10 px-3 py-2 text-center text-xs font-medium text-gold"
+            >
+              {t("memory.freeReplyBanner")}
+            </p>
+          )}
+          {rectifyChipOn && memorySummary?.suggestRectify && (
+            <Link
+              href="/settings#birth-time"
+              data-testid="rectify-chip"
+              className="mb-2 block rounded-2xl border border-gold/30 px-3 py-2 text-center text-xs text-gold"
+            >
+              {t("memory.rectifyChip")}
+            </Link>
+          )}
           <p className="text-sm text-[var(--text-muted)] mt-1 text-center">{t(ASTROLOGER.specialtyKey)}</p>
           <p className="text-[10px] text-[var(--text-muted)]/70 mt-2 max-w-sm mx-auto leading-relaxed text-center">
             {t("aiChatPage.disclosure")}

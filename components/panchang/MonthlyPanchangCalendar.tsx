@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { usePanchangNames } from "@/hooks/usePanchangNames";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { api, type PanchangMonthDay, type PanchangRegionalMonth } from "@/lib/api";
 import Card from "@/components/ui/Card";
@@ -39,6 +40,7 @@ export default function MonthlyPanchangCalendar({
   region,
 }: MonthlyPanchangCalendarProps) {
   const { t } = useTranslation();
+  const names = usePanchangNames();
   const weekdayLabels = t("horoscope.panchang.weekdayShort", { returnObjects: true }) as string[];
   const [cursor, setCursor] = useState(() => {
     const [y, m] = selectedDate.split("-").map(Number);
@@ -278,7 +280,7 @@ export default function MonthlyPanchangCalendar({
                     ? t("horoscope.panchang.legend.amavasya")
                     : d.isEkadashi
                       ? t("horoscope.panchang.legend.ekadashi")
-                      : d.tithiName);
+                      : names.tithi(d.tithiName));
               return (
                 <button
                   key={d.isoDate}

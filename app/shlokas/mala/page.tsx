@@ -12,6 +12,7 @@ import LotusSilhouette from "@/components/LotusSilhouette";
 import ChantRing from "@/components/shlokas/ChantRing";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, MALA_COUNT, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
+import GitaTranslit from "@/components/shlokas/GitaTranslit";
 import { gitaAudioUrl, loadGitaVerses, splitGitaVerse, type GitaVerse } from "@/lib/gita";
 import { isFav, toggleFav, pushHistory } from "@/lib/shlokas-prefs";
 
@@ -32,6 +33,8 @@ interface ChantItem {
   key: string;
   sanskrit: string;
   iast?: string;
+  /** Gita verse lines in Devanagari, for the transliteration under them (lang.gitaScripts). */
+  gitaLines?: string[];
   subtitle: string;
   audioSrc: string | null;
   defaultTarget: number;
@@ -81,6 +84,7 @@ function MalaScreen() {
       return {
         key: `gita:${v.id}`,
         sanskrit: lines.join("\n"),
+        gitaLines: lines,
         subtitle: [`${t("gita.title")} ${v.chapter}.${v.verse}`, speaker && t(`gita.speaker.${speaker}`)]
           .filter(Boolean)
           .join(" · "),
@@ -156,6 +160,7 @@ function MalaScreen() {
               <p className="mt-3 font-devanagari text-2xl text-foreground text-center leading-relaxed line-clamp-3 whitespace-pre-line">
                 {item.sanskrit}
               </p>
+              {item.gitaLines && <GitaTranslit lines={item.gitaLines} toggle className="mt-3 text-center" />}
               <p className="mt-2 text-sm text-muted text-center line-clamp-1">
                 {item.iast ? item.iast.split("\n")[0] : item.subtitle}
               </p>

@@ -10,6 +10,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import FeatureGuard from "@/components/FeatureGuard";
 import { useFeature } from "@/hooks/useFeature";
 import ShlokaTabs, { type ShlokaTab } from "@/components/shlokas/ShlokaTabs";
+import GitaTranslit from "@/components/shlokas/GitaTranslit";
 import { tagMeta } from "@/components/shlokas/tag-meta";
 import { useLanguage } from "@/providers/language-provider";
 import { AUDIO_BASE, IMG_BASE, loadShlokas, pick, type Shloka } from "@/lib/shlokas";
@@ -141,6 +142,7 @@ function GitaRow({ v }: { v: GitaVerse }) {
           <p className="mt-1.5 font-devanagari text-[15px] leading-relaxed text-foreground whitespace-pre-line line-clamp-3">
             {lines.join("\n")}
           </p>
+          <GitaTranslit lines={lines} className="mt-1 line-clamp-3 text-muted" />
           {(gloss || v.tags.length > 0) && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {gloss && (

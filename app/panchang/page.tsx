@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { usePanchangNames } from "@/hooks/usePanchangNames";
 import { Clock, CalendarDays, MapPin, Navigation, ChevronDown } from "lucide-react";
 import { api, type PanchangData, type PurchasePlan } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
@@ -102,6 +103,7 @@ function CollapsibleSection({
 
 export default function PanchangPage() {
   const { t, i18n } = useTranslation();
+  const names = usePanchangNames();
   const { firebaseUser, loading: authLoading } = useAuth();
   const geo = useGeolocation();
   // Planning to Buy card below is commented out — its useFeature("panchang.purchasePlan") gate went with it.
@@ -397,7 +399,7 @@ export default function PanchangPage() {
               <div className="grid grid-cols-2 gap-3">
                 {data.vara && <FactCard label={t("horoscope.panchang.vaar")} value={data.vara} />}
                 {data.nakshatra && (
-                  <FactCard label={t("horoscope.panchang.nakshatra")} value={data.nakshatra.name} sub={data.nakshatra.lord} />
+                  <FactCard label={t("horoscope.panchang.nakshatra")} value={names.nakshatra(data.nakshatra.name)} sub={data.nakshatra.lord} />
                 )}
                 {data.yoga && <FactCard label={t("horoscope.panchang.yoga")} value={data.yoga.name} />}
                 {data.karana && <FactCard label={t("horoscope.panchang.karana")} value={data.karana.name} />}

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
+import { usePanchangNames } from "@/hooks/usePanchangNames";
 import type { PanchangData } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import { getVaraLord } from "@/lib/panchang/vara-lord";
@@ -47,6 +48,7 @@ function TithiGuidanceNote({ data }: { data: PanchangData }) {
  */
 export default function TithiHero({ data, dateIso, refData, userData }: TithiHeroProps) {
   const { t } = useTranslation();
+  const names = usePanchangNames();
   // Today's actual weekday, not the (possibly different) selected/viewed date —
   // the hero always shows today's ruling planet regardless of which date's
   // panchang facts are being browsed via the calendar above.
@@ -70,8 +72,8 @@ export default function TithiHero({ data, dateIso, refData, userData }: TithiHer
 
       {tithi && (
         <>
-          <p className="mt-3 text-[11px] text-gold uppercase tracking-[0.15em]">{tithi.paksha}</p>
-          <h2 className="text-2xl font-display text-foreground mt-1">{tithi.name}</h2>
+          <p className="mt-3 text-[11px] text-gold uppercase tracking-[0.15em]">{names.paksha(tithi.paksha)}</p>
+          <h2 className="text-2xl font-display text-foreground mt-1" data-testid="tithi-name">{names.tithi(tithi.name)}</h2>
         </>
       )}
 

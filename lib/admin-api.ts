@@ -9,6 +9,7 @@
 // fetch/auth/error-parsing logic — see that file's `request` export.
 
 import { request } from "./api";
+import type { AdminSkyItem } from "./same-sky";
 import type { HomeLayoutDoc, StoredHomeLayout } from "./home-cards";
 import { buildAdminRangeQuery, type AdminDateRangePreset, type AdminFeatureGroupKey } from "./admin-format";
 
@@ -727,6 +728,11 @@ export const adminApi = {
     qs.set("limit", String(params.limit ?? 50));
     return request<AdminReportRatingsResponse>(`/v1/admin/report-ratings?${qs.toString()}`, { auth: true });
   },
+
+  /** Same Sky posts waiting for a decision, and approved posts that were reported. */
+  skyQueue: () => request<{ total: number; items: AdminSkyItem[] }>("/v1/admin/sky/queue", { auth: true }),
+  skyDecide: (id: string, action: "approve" | "reject" | "remove") =>
+    request<{ ok: true }>(`/v1/admin/sky/posts/${id}/${action}`, { method: "POST", auth: true }),
 
   /** Every "how was your call?" answer, newest first, with the overall average. */
   listVoiceFeedback: (params: { offset?: number; limit?: number } = {}) => {

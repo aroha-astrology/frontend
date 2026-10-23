@@ -42,6 +42,7 @@ export const PILL_GROUPS: readonly PillGroup[] = [
       { href: "/ai-chat", labelKey: "nav.askAI" },
       { href: "/chat-history", labelKey: "menu.chatHistory" },
       { href: "/decide", labelKey: "decide.menu", featureKey: "nav.decisions", isNew: true },
+      { href: "/sky", labelKey: "sky.menu", featureKey: "community.sameSky", isNew: true },
     ],
   },
   {

@@ -31,6 +31,8 @@ import LanguagePicker from "@/components/LanguagePicker";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import SwitchExperienceRow from "@/components/experience/SwitchExperienceRow";
 import SkyContextRows from "@/components/experience/SkyContextRows";
+import GuideRow from "@/components/persona/GuideRow";
+import MemoryRow from "@/components/memory/MemoryRow";
 import { useAuth } from "@/providers/auth-provider";
 import { useTour } from "@/providers/tour-provider";
 import { api, type Profile } from "@/lib/api";
@@ -172,6 +174,9 @@ export default function SettingsPage() {
           <SwitchExperienceRow />
           {/* Home city (travel pill) and "I live outside India" (NRI mode): each only while its switch is on. */}
           <SkyContextRows />
+          {/* Who answers in chat (chat.personas) and what they remember (memory.vault): each only while its switch is on. */}
+          <GuideRow />
+          <MemoryRow />
           {/* Clears every tour's completion, server-side included, then sends
               them home with ?tour=1 so the first one starts immediately. */}
           <ListRow
@@ -231,8 +236,10 @@ export default function SettingsPage() {
         {/* Birth-time rectification. Lives in settings rather than a reading
             surface because it is a correction to the user's own data, and it
             deliberately only SUGGESTS — nothing is applied automatically. */}
-        <BirthTimeConfidenceCard className="mb-6" />
-        <BirthTimeRectifyCard className="mb-6" />
+        <div id="birth-time">
+          <BirthTimeConfidenceCard className="mb-6" />
+          <BirthTimeRectifyCard className="mb-6" />
+        </div>
         </div>
 
         <div>

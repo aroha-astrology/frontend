@@ -32,9 +32,11 @@ import { diasporaBundle } from "./diaspora";
 import { navLeanBundle } from "./nav-lean";
 import { prashnaBundle } from "./prashna";
 import { nowRitualCirclesBundle } from "./now-ritual-circles";
+import { tithiNamesBundle } from "./tithi-names";
+import { sprint4Bundle } from "./sprint4";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, experienceBundle, travelBundle, cosmicChartBundle, diasporaBundle, navLeanBundle, prashnaBundle, nowRitualCirclesBundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, experienceBundle, travelBundle, cosmicChartBundle, diasporaBundle, navLeanBundle, prashnaBundle, nowRitualCirclesBundle, tithiNamesBundle, sprint4Bundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

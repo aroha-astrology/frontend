@@ -24,6 +24,9 @@ jobs:
         run: pnpm exec tsc --noEmit
       - name: Unit tests
         run: pnpm test
+      # All 15 languages carry every string, with the same placeholders (scripts/verify-i18n-parity.test.ts).
+      - name: i18n parity
+        run: pnpm i18n:parity
 
   e2e:
     name: E2E (Playwright)

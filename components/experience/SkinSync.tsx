@@ -5,6 +5,7 @@ import i18n from "i18next";
 import { applySkinCopy } from "@/i18n/skin-copy";
 import { useNewFeature } from "@/hooks/useFeature";
 import { useExperience } from "@/hooks/useExperience";
+import { usePersona } from "@/hooks/usePersona";
 import { useAuth } from "@/providers/auth-provider";
 
 /** localStorage key holding the look, so the next page load can paint it before React runs. */
@@ -16,9 +17,9 @@ const SKIN_KEY = "aroha:skin";
  */
 export const SKIN_BOOT_SCRIPT = `try{if(localStorage.getItem("${SKIN_KEY}")==="cosmic")document.documentElement.setAttribute("data-skin","cosmic")}catch(e){}`;
 
-function applySkin(cosmic: boolean) {
+function applySkin(cosmic: boolean, guideName?: string | null) {
   // The labels follow the look (Today / Forecast / Ask Orion ...); a no-op when nothing changed.
-  applySkinCopy(i18n, cosmic);
+  applySkinCopy(i18n, cosmic, guideName);
   try {
     const root = document.documentElement;
     if (cosmic) root.setAttribute("data-skin", "cosmic");
@@ -40,6 +41,10 @@ export default function SkinSync() {
   const { user } = useAuth();
   const { enabled } = useNewFeature("experience.picker");
   const { info } = useExperience();
+  const { info: persona } = usePersona();
+  // Only a Cosmic guide renames the labels; Classic guides never touch them.
+  const cosmicGuide =
+    persona?.look === "MODERN_COSMIC" ? (persona.options.find((o) => o.id === persona.current)?.name ?? null) : null;
   const known = Boolean(user);
 
   useEffect(() => {
@@ -50,8 +55,8 @@ export default function SkinSync() {
     }
     // Enabled but the answer has not arrived yet: leave whatever the boot script painted.
     if (!info) return;
-    applySkin(info.skin === "MODERN_COSMIC");
-  }, [known, enabled, info]);
+    applySkin(info.skin === "MODERN_COSMIC", cosmicGuide);
+  }, [known, enabled, info, cosmicGuide]);
 
   return null;
 }

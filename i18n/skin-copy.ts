@@ -17,9 +17,9 @@ export const COSMIC_COPY: Record<string, Record<string, string>> = {
     "nav.remedies": "Rituals",
     "reports.title": "Deep Dives",
     "home.moonSignHoroscope": "Your Forecast",
-    "aiChatPage.askAiTitle": "Ask Orion",
-    "aiChatPage.introTitle": "Ask Orion anything",
-    "aiChatPage.voiceTitle": "Call Orion",
+    "tour.askAiTitle": "Ask Orion",
+    "tour.chat.introTitle": "Ask Orion anything",
+    "tour.chat.voiceTitle": "Call Orion",
     // Kundli Matching: two people, not "boy" and "girl"
     "compatibilityPage.person1": "Person A",
     "compatibilityPage.person2": "Person B",
@@ -33,7 +33,7 @@ export const COSMIC_COPY: Record<string, Record<string, string>> = {
 const originals = new Map<string, Map<string, unknown>>();
 
 /** Put the Cosmic wording over the base strings (`on`), or put the base strings back. */
-export function applySkinCopy(i18n: I18n, on: boolean): void {
+export function applySkinCopy(i18n: I18n, on: boolean, guideName?: string | null): void {
   for (const [lang, copy] of Object.entries(COSMIC_COPY)) {
     let saved = originals.get(lang);
     if (!saved) {
@@ -46,7 +46,9 @@ export function applySkinCopy(i18n: I18n, on: boolean): void {
         // A key with no base string is skipped, so there is always something to put back.
         if (typeof base !== "string") continue;
         saved.set(key, base);
-        i18n.addResource(lang, "translation", key, cosmicValue, { silent: true });
+        // The Cosmic labels name Orion; a reader who chose another Cosmic guide sees that guide's name instead.
+        const value = guideName && guideName !== "Orion" ? cosmicValue.replaceAll("Orion", guideName) : cosmicValue;
+        i18n.addResource(lang, "translation", key, value, { silent: true });
       } else if (saved.has(key)) {
         i18n.addResource(lang, "translation", key, saved.get(key) as string, { silent: true });
         saved.delete(key);

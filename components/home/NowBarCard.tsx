@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Clock3 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useNewFeature } from "@/hooks/useFeature";
+import { usePanchangNames } from "@/hooks/usePanchangNames";
 import { useLiveNow } from "@/hooks/useLiveNow";
 import { muhurtaKey, nowTone, planetKey, whenParts, windowNameKey, type NowTone } from "@/lib/live-now";
 
@@ -20,6 +21,7 @@ const TONE_CLASS: Record<NowTone, string> = {
  */
 export default function NowBarCard() {
   const { t } = useTranslation();
+  const names = usePanchangNames();
   const { enabled } = useNewFeature("live.nowBar");
   const { live, state, place } = useLiveNow(enabled);
 
@@ -99,7 +101,7 @@ export default function NowBarCard() {
 
       <p className="mt-3 text-[11px] text-muted">
         {t("nowBar.dayLine", {
-          tithi: live.tithi.name,
+          tithi: names.tithi(live.tithi.name),
           paksha: t(`nowBar.paksha.${live.tithi.paksha.toLowerCase()}`),
           nakshatra,
         })}

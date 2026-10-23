@@ -10,21 +10,21 @@ import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { sampleFrameBrightness, isLowLight, captureFrameToJpeg } from "@/lib/palm/capture";
 import { computeMountRelief } from "@/lib/palm/computeMountRelief";
 import {
-  checkFrameForHand,
+  checkFrameForHandDetailed,
+  computeLandmarkMovement,
   HAND_CHECK_INTERVAL_MS,
   type HandFraming,
 } from "@/lib/palm/liveHandCheck";
+import type { NormalizedLandmark } from "@/lib/palm/mountRegions";
 import { palmApi, PALM_CAPTURE_SLOTS, type PalmCaptureSlot } from "@/lib/palm-api";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useNewFeature } from "@/hooks/useFeature";
 
 const SLOT_INSTRUCTION_KEY: Record<PalmCaptureSlot, string> = {
   primaryFront: "palm.capture.step.primaryFront",
   primaryPercussion: "palm.capture.step.primaryPercussion",
-  primaryDorsal: "palm.capture.step.primaryDorsal",
   primaryFingertips: "palm.capture.step.primaryFingertips",
-  secondaryFront: "palm.capture.step.secondaryFront",
-  secondaryPercussion: "palm.capture.step.secondaryPercussion",
 };
 
 interface CapturedFrame {
@@ -32,23 +32,18 @@ interface CapturedFrame {
   previewUrl: string;
 }
 
-/** The first four slots are the primary (dominant) hand, the last two the other one. */
-const SECONDARY_SLOTS: readonly PalmCaptureSlot[] = ["secondaryFront", "secondaryPercussion"];
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Which PHYSICAL hand to hold up for this step.
  *
- * The backend picks the primary hand from gender by the classical rule (male -> right,
- * female -> left; see resolvePrimaryHand) and returns it from create(). Until now the on-screen
- * instruction only ever said "your primary hand", which is meaningless to a user — they were
- * left guessing, and a reading of the wrong hand is wrong in a way nothing downstream can
- * detect. This turns that into a plain "Right hand" / "Left hand".
+ * V2 captures only the primary hand (3 photos). The hand is resolved from gender by the
+ * classical rule (male -> right, female -> left) or chosen explicitly when gender is
+ * unset/other.
  */
-function handForSlot(primaryHand: string | null, slot: PalmCaptureSlot): "left" | "right" | null {
+function handForSlot(primaryHand: string | null, _slot: PalmCaptureSlot): "left" | "right" | null {
   if (primaryHand !== "left" && primaryHand !== "right") return null;
-  const isSecondary = SECONDARY_SLOTS.includes(slot);
-  if (!isSecondary) return primaryHand;
-  return primaryHand === "left" ? "right" : "left";
+  return primaryHand;
 }
 
 export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) {
@@ -85,14 +80,22 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   /**
    * In-flight frame uploads.
    *
-   * Capture used to AWAIT the upload of each frame before moving to the next step, so all six
-   * steps were serialized behind a JPEG-sized network round trip on a phone connection — which
+   * Capture used to AWAIT the upload of each frame before moving to the next step, so all three
+   * steps are serialized behind a JPEG-sized network round trip on a phone connection — which
    * is what made capture feel slow. Uploads now start immediately and the wizard advances at
    * once; the only place that actually needs them finished is the final analyze() call, which
    * awaits this list. A failed upload surfaces there (the backend also rejects analyze() with a
    * 400 if any slot is missing), so nothing is silently dropped.
    */
   const uploadsRef = useRef<Array<Promise<unknown>>>([]);
+  /** The mount-relief POST is fire-and-forget, but analyze() should ideally wait for it so the
+   * backend has the landmarks before the scan starts. We race this against a 3s cap. */
+  const pendingReliefRef = useRef<Promise<unknown> | null>(null);
+
+  const { enabled: autoCaptureOn } = useNewFeature("palm.autoCapture");
+  const prevLandmarksRef = useRef<NormalizedLandmark[] | null>(null);
+  const steadySinceRef = useRef<number | null>(null);
+  const autoCapturingRef = useRef(false);
 
   const slot = PALM_CAPTURE_SLOTS[stepIndex]!;
   const isLastStep = stepIndex === PALM_CAPTURE_SLOTS.length - 1;
@@ -145,6 +148,17 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     };
   }, [camera.status]);
 
+  const handleManualCapture = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || camera.status !== "granted") return;
+    try {
+      const blob = await captureFrameToJpeg(video);
+      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
+    } catch {
+      setUploadError(t("palm.capture.captureError"));
+    }
+  }, [camera.status, t]);
+
   // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
   // Paused while reviewing a shot (nothing to guide) and torn down with the camera.
   useEffect(() => {
@@ -161,9 +175,33 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       const video = videoRef.current;
       const canvas = handCanvasRef.current;
       if (video && canvas) {
-        const result = await checkFrameForHand(video, canvas);
+        const result = await checkFrameForHandDetailed(video, canvas, autoCaptureOn);
         if (cancelled) return;
-        setFraming(result);
+        setFraming(result.framing);
+
+        if (autoCaptureOn && !reviewing && result.framing === "good" && result.landmarks) {
+          const movement = computeLandmarkMovement(prevLandmarksRef.current, result.landmarks);
+          prevLandmarksRef.current = result.landmarks;
+          const now = Date.now();
+          if (movement < 0.005) {
+            if (!steadySinceRef.current) {
+              steadySinceRef.current = now;
+            } else if (now - steadySinceRef.current >= 800) {
+              if (result.sharpness > 40 && !autoCapturingRef.current) {
+                autoCapturingRef.current = true;
+                steadySinceRef.current = null;
+                void handleManualCapture().finally(() => {
+                  autoCapturingRef.current = false;
+                });
+              }
+            }
+          } else {
+            steadySinceRef.current = null;
+          }
+        } else {
+          prevLandmarksRef.current = null;
+          steadySinceRef.current = null;
+        }
       }
       if (!cancelled) timer = setTimeout(() => void tick(), HAND_CHECK_INTERVAL_MS);
     };
@@ -173,18 +211,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [camera.status, reviewing]);
-
-  const handleManualCapture = useCallback(async () => {
-    const video = videoRef.current;
-    if (!video || camera.status !== "granted") return;
-    try {
-      const blob = await captureFrameToJpeg(video);
-      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
-    } catch {
-      setUploadError(t("palm.capture.captureError"));
-    }
-  }, [camera.status, t]);
+  }, [camera.status, reviewing, autoCaptureOn, handleManualCapture]);
 
   const handleFileFallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -196,6 +223,9 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const handleRetake = useCallback(() => {
     if (reviewing) URL.revokeObjectURL(reviewing.previewUrl);
     setReviewing(null);
+    prevLandmarksRef.current = null;
+    steadySinceRef.current = null;
+    autoCapturingRef.current = false;
   }, [reviewing]);
 
   const advanceOrFinish = useCallback(
@@ -210,6 +240,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       try {
         // Every frame must have landed before the backend will accept the scan.
         await Promise.all(uploadsRef.current);
+        // Best-effort: wait up to 3s for the mount-relief/landmarks POST to land.
+        if (pendingReliefRef.current) {
+          await Promise.race([pendingReliefRef.current, sleep(3000)]).catch(() => {});
+        }
         await palmApi.analyze(readingId, question.trim() || undefined);
         Object.values(allFrames).forEach((f) => f && URL.revokeObjectURL(f.previewUrl));
         router.push(`/palm/${readingId}`);
@@ -225,7 +259,8 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
         setFinishing(false);
       }
     },
-    [isLastStep, readingId, router, t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isLastStep, readingId, router, t, question],
   );
 
   const handleUseThisPhoto = useCallback(async () => {
@@ -243,14 +278,29 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     // mountRegions.ts is anchored to). Fire-and-forget: this is a purely additive accuracy
     // signal (see palm-rules.ts's cross-validation), never allowed to block or fail the
     // capture flow, and deliberately NOT added to uploadsRef for the same reason.
-    if (slot === "primaryFront" || slot === "secondaryFront") {
-      const hand = slot === "primaryFront" ? "primary" : "secondary";
-      void computeMountRelief(reviewing.blob)
-        .then(
-          (result) =>
-            result && palmApi.saveMountRelief(readingId, hand, result.scores, result.regions),
-        )
+    if (slot === "primaryFront") {
+      const reliefPromise = computeMountRelief(reviewing.blob)
+        .then((result) => {
+          if (!result) return;
+          const lm = result.landmarks
+            ? {
+                points: result.landmarks,
+                handedness: result.handedness!,
+                handednessScore: result.handednessScore!,
+                imageWidth: result.imageWidth!,
+                imageHeight: result.imageHeight!,
+              }
+            : undefined;
+          return palmApi.saveMountRelief(
+            readingId,
+            "primary",
+            result.scores,
+            result.regions,
+            lm,
+          );
+        })
         .catch(() => {});
+      pendingReliefRef.current = reliefPromise;
     }
 
     const nextCaptured = { ...captured, [slot]: reviewing };

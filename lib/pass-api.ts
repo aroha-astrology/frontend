@@ -13,7 +13,9 @@ export type PassFeature =
   | "findMyDate"
   | "birthTime"
   | "relocation"
-  | "voiceCall";
+  | "voiceCall"
+  /** The full palm reading: every tier, one per Pass period (the photo scan is free). */
+  | "palm";
 
 /**
  * Free voice-call minutes a Pass gives each period, for text that doesn't know
@@ -106,8 +108,16 @@ export const passApi = {
   status: () => request<PassStatus>("/v1/pass", { auth: true }),
   confirmPlay: (productId: string, purchaseToken: string) =>
     request<PassStatus>("/v1/pass/google-play", { method: "POST", body: { productId, purchaseToken }, auth: true }),
-  buyPack: (pack: QuestionPack) =>
-    request<PassStatus>(`/v1/question-packs/${pack}/buy`, { method: "POST", auth: true }),
+  /**
+   * Question Packs are bought through Google Play, never from the wallet (owner, 2026-10-23).
+   * This records the pending order and names the Play product to launch; the purchase is then
+   * confirmed through `api.confirmGooglePlayOrder`, the same as a wallet top-up.
+   */
+  packCheckout: (pack: QuestionPack) =>
+    request<{ productId: string; questions: number }>(`/v1/question-packs/${pack}/checkout`, {
+      method: "POST",
+      auth: true,
+    }),
   adminStats: () => request<PassStats>("/v1/admin/pass-stats", { auth: true }),
   launchReadiness: () => request<PassLaunchReadiness>("/v1/admin/pass-launch", { auth: true }),
   /** Sends the launch notification to everyone who has not had it; `onlyMe` sends a try-out to the calling admin. */

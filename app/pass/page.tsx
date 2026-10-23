@@ -9,7 +9,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
 import PassBenefits from "@/components/pass/PassBenefits";
-import { ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
 import {
@@ -144,9 +144,20 @@ function PassPage() {
     });
   }
 
+  /**
+   * A Question Pack is a one-time Google Play product, never paid from the wallet: a pending
+   * order, the Play sheet, then the same confirm as a wallet top-up (which the app also replays
+   * at start-up if it was killed in between).
+   */
   async function buyPack(pack: QuestionPack, questions: number) {
     setPackNote(null);
-    if (await run(() => passApi.buyPack(pack))) setPackNote(t("pass.packs.bought", { count: questions }));
+    const ok = await run(async () => {
+      const { productId } = await passApi.packCheckout(pack);
+      const purchase = await PlayBilling.purchaseProduct({ productId, userId: user?.id, productType: "inapp" });
+      await api.confirmGooglePlayOrder({ purchaseToken: purchase.purchaseToken, productId: purchase.productId });
+      return passApi.status();
+    });
+    if (ok) setPackNote(t("pass.packs.bought", { count: questions }));
   }
 
   const lang = i18n.language;
@@ -363,23 +374,34 @@ function PassPage() {
             {status.packs.length > 0 && (
               <div className="space-y-2 pb-4" data-testid="question-packs">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("pass.packs.title")}</p>
-                <p className="text-[11px] text-muted">{t("pass.packs.subtitle")}</p>
+                <p className="text-[11px] text-muted">{t("pass.packs.subtitlePlay")}</p>
                 {status.questionCredits > 0 && (
                   <p className="text-sm text-foreground/90">{t("pass.packs.credits", { count: status.questionCredits })}</p>
                 )}
                 {status.packs.map((p) => (
                   <Card key={p.pack} className="flex items-center justify-between gap-3 p-4 border-gold/10">
                     <span className="text-sm font-medium text-foreground">{t("pass.packs.questions", { count: p.questions })}</span>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void buyPack(p.pack, p.questions)}
-                      className="rounded-full bg-gold/20 px-4 py-2 text-xs font-semibold text-gold disabled:opacity-40"
-                    >
-                      {t("pass.packs.buy", { price: formatRupees(p.pricePaise) })}
-                    </button>
+                    {platform === "android" ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void buyPack(p.pack, p.questions)}
+                        className="rounded-full bg-gold/20 px-4 py-2 text-xs font-semibold text-gold disabled:opacity-40"
+                      >
+                        {t("pass.packs.buy", { price: formatRupees(p.pricePaise) })}
+                      </button>
+                    ) : (
+                      <span className="text-xs font-semibold text-gold">{formatRupees(p.pricePaise)}</span>
+                    )}
                   </Card>
                 ))}
+                {platform === "web" && (
+                  <div className="space-y-2 text-center" data-testid="packs-android-only">
+                    <p className="text-xs text-foreground/90">{t("pass.packs.androidOnly")}</p>
+                    <StoreLink label={t("pass.getAndroidApp")} />
+                  </div>
+                )}
+                {platform === "ios" && <p className="text-center text-xs text-muted">{t("pass.packs.iosSoon")}</p>}
                 {packNote && <p className="text-center text-xs text-emerald-400">{packNote}</p>}
               </div>
             )}

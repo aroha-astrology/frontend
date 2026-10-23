@@ -1,9 +1,9 @@
-// Typed client for the backend's Palm Reading feature — 6-frame guided
-// capture, analyzed in three LLM stages, wallet-purchased, profile-scoped,
-// translate-on-read per language. Built on lib/api.ts's exported
-// `request<T>()` exactly like every other typed client in this app (see
-// lib/reports-api.ts, the closest sibling — same all-200 status-field
-// contract, no 202/403 dance to unwrap).
+// Typed client for the backend's Palm Reading feature — 3-frame guided
+// capture (primaryFront, primaryPercussion, primaryFingertips), a free scan
+// then a full reading that is an Aroha Pass benefit, profile-scoped, translate-on-read per
+// language. Built on lib/api.ts's exported `request<T>()` exactly like every
+// other typed client in this app (see lib/reports-api.ts, the closest sibling
+// — same all-200 status-field contract, no 202/403 dance to unwrap).
 //
 // Frames are stored on the backend's local disk, not a cloud bucket — upload
 // and download both go straight through the authenticated API (see
@@ -15,11 +15,24 @@ import { request, requestBinaryUpload, requestBinaryDownload } from "./api";
 export const PALM_CAPTURE_SLOTS = [
   "primaryFront",
   "primaryPercussion",
-  "primaryDorsal",
   "primaryFingertips",
+] as const;
+
+export const PRIMARY_SLOTS = PALM_CAPTURE_SLOTS;
+export const ALL_SLOTS = PALM_CAPTURE_SLOTS;
+
+/**
+ * Slot names that existed before the 6→3 reduction (2026-10). Still accepted
+ * by the upload route so that a user mid-capture on an older app version can
+ * finish without an error. Not required for analyze().
+ */
+export const LEGACY_SLOTS = [
+  "primaryDorsal",
   "secondaryFront",
   "secondaryPercussion",
 ] as const;
+
+export type LegacyPalmCaptureSlot = (typeof LEGACY_SLOTS)[number];
 
 export type PalmCaptureSlot = (typeof PALM_CAPTURE_SLOTS)[number];
 
@@ -61,6 +74,12 @@ export interface PalmKundliMatch {
   mounts: { agree: number; total: number } | null;
 }
 
+/** Whether the reader's Aroha Pass covers the full reading now, and how many are left this period. */
+export interface PalmAllowance {
+  passMember: boolean;
+  left: number;
+}
+
 export interface PalmReadingResponse {
   id: string;
   status: PalmReadingStatus;
@@ -91,6 +110,8 @@ export interface PalmReadingResponse {
   kundliMatch?: PalmKundliMatch;
   /** The hand the app asked for vs the one the vision pass saw in the photograph. */
   handCheck?: { expected: string; detected: string };
+  /** On a scanned, not-yet-unlocked reading only. The full reading is an Aroha Pass benefit. */
+  allowance?: PalmAllowance;
   error?: string | null;
   errorCode?: "NOT_A_PALM";
 }
@@ -119,7 +140,7 @@ export const palmApi = {
   fetchFrameBlob: (readingId: string, slot: string) =>
     requestBinaryDownload(`/v1/palm/readings/${readingId}/frames/${slot}`),
 
-  /** FREE — kicks off Stage A (vision measurement) once all 6 frames are uploaded. No wallet
+  /** FREE — kicks off Stage A (vision measurement) once all 3 frames are uploaded. No wallet
    * charge. Produces the teaser (hand element, confidence, annotated overlay); poll GET until
    * status is "observed", then call `unlock()` for the full interpretation.
    * Throws ApiError — 400 missing frames, 409 already generating, 403 consent required. */
@@ -130,10 +151,10 @@ export const palmApi = {
       ...(question ? { body: { question } } : {}),
     }),
 
-  /** PAID — charges the wallet and kicks off Stage B/C (the full interpretation) for an
-   * "observed" reading. Throws ApiError — 409 insufficient balance / already unlocking / scan
-   * not finished, 403 FEATURE_DISABLED. Caller should `refresh()` (useAuth) afterward for the
-   * real new balance. */
+  /** AROHA PASS — uses this Pass period's full reading (every tier, one per period; never the
+   * wallet) and kicks off the full interpretation for an "observed" reading. Throws ApiError —
+   * 403 PASS_REQUIRED / PALM_PERIOD_LIMIT / FEATURE_DISABLED, 409 already unlocking or scan not
+   * finished. */
   unlock: (readingId: string) =>
     request<{ status: string }>(`/v1/palm/readings/${readingId}/unlock`, {
       method: "POST",
@@ -150,10 +171,22 @@ export const palmApi = {
     hand: "primary" | "secondary",
     scores: Record<string, number>,
     regions?: Record<string, { cx: number; cy: number; radius: number }>,
+    landmarks?: {
+      points: Array<{ x: number; y: number; z: number }>;
+      handedness: "Left" | "Right";
+      handednessScore: number;
+      imageWidth: number;
+      imageHeight: number;
+    },
   ) =>
     request<{ ok: boolean }>(`/v1/palm/readings/${readingId}/mount-relief`, {
       method: "POST",
-      body: { hand, scores, ...(regions ? { regions } : {}) },
+      body: {
+        hand,
+        scores,
+        ...(regions ? { regions } : {}),
+        ...(landmarks ? { landmarks } : {}),
+      },
       auth: true,
     }),
 

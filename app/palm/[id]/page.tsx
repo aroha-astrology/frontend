@@ -135,6 +135,7 @@ export default function PalmReadingPage() {
               events={data.events}
               unlocked={isFullyReady}
               kundliMatch={isFullyReady ? data.kundliMatch : null}
+              mountRegions={data.mountRelief?.primaryRegions as never}
             />
 
             {data.question && (
@@ -321,7 +322,12 @@ export default function PalmReadingPage() {
       <PdfStatusLayer status={pdf.status} onDismiss={pdf.dismiss} />
 
       {unlockOpen && id && (
-        <PalmUnlockDrawer readingId={id} onClose={() => setUnlockOpen(false)} onUnlocked={handleUnlocked} />
+        <PalmUnlockDrawer
+          readingId={id}
+          allowance={data?.allowance}
+          onClose={() => setUnlockOpen(false)}
+          onUnlocked={handleUnlocked}
+        />
       )}
     </main>
   );

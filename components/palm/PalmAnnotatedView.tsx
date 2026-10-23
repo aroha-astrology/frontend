@@ -3,10 +3,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, Check } from "lucide-react";
+import clsx from "clsx";
 import type { PalmEvent, PalmKundliMatch } from "@/lib/palm-api";
 import { ImageSaver } from "@/lib/yantra-api";
 import { usePdfCapturing } from "@/components/pdf/PdfCapturingContext";
 import { isNativeAndroid } from "@/lib/play-billing";
+import { useNewFeature } from "@/hooks/useFeature";
 
 /**
  * The palm photograph with its line map and dated life events drawn on it.
@@ -44,6 +46,18 @@ const LINE_COLOR: Record<string, string> = {
   girdleOfVenus: "#FF9ECD",
   ringOfSolomon: "#FFB067",
   simianLine: "#FF6B35",
+};
+
+const MOUNT_COLOR: Record<string, string> = {
+  jupiter: "#FFD166",
+  saturn: "#70D6FF",
+  apollo: "#FFB703",
+  mercury: "#06D6A0",
+  venus: "#FF70A6",
+  luna: "#E0AAFF",
+  marsUpper: "#E63946",
+  marsLower: "#F77F00",
+  rahuPlain: "#B983FF",
 };
 
 interface DrawnLine {
@@ -101,6 +115,7 @@ export interface PalmAnnotatedViewProps {
   /** Ages are drawn only for a paid reading; a scan-only reading shows locked cards. */
   unlocked?: boolean;
   kundliMatch?: PalmKundliMatch | null;
+  mountRegions?: Record<string, { cx: number; cy: number; radius: number }> | null;
 }
 
 export default function PalmAnnotatedView({
@@ -109,8 +124,12 @@ export default function PalmAnnotatedView({
   events = [],
   unlocked = false,
   kundliMatch = null,
+  mountRegions = null,
 }: PalmAnnotatedViewProps) {
   const { t } = useTranslation();
+  const { enabled: mountsToggleOn } = useNewFeature("palm.mountsToggle");
+  const [overlayMode, setOverlayMode] = useState<"lines" | "mounts">("lines");
+  const hasMounts = Boolean(mountRegions && Object.keys(mountRegions).length > 0);
   // The "save image" button is left out of a saved PDF of the reading.
   const capturing = usePdfCapturing();
   const [aspect, setAspect] = useState<number | null>(null);
@@ -210,6 +229,34 @@ export default function PalmAnnotatedView({
 
   return (
     <div className="space-y-2">
+      {mountsToggleOn && hasMounts && (
+        <div className="flex justify-center gap-1.5 p-1 bg-surface/80 rounded-2xl border border-gold/20 w-fit mx-auto">
+          <button
+            type="button"
+            onClick={() => setOverlayMode("lines")}
+            className={clsx(
+              "px-3.5 py-1 rounded-xl text-xs font-semibold transition-all",
+              overlayMode === "lines"
+                ? "bg-gold text-[#1a0e00] shadow-sm"
+                : "text-muted hover:text-foreground"
+            )}
+          >
+            {t("palm.overlay.lines")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setOverlayMode("mounts")}
+            className={clsx(
+              "px-3.5 py-1 rounded-xl text-xs font-semibold transition-all",
+              overlayMode === "mounts"
+                ? "bg-gold text-[#1a0e00] shadow-sm"
+                : "text-muted hover:text-foreground"
+            )}
+          >
+            {t("palm.overlay.mounts")}
+          </button>
+        </div>
+      )}
       <div
         className="relative w-full rounded-3xl overflow-hidden border border-gold/20 bg-black"
         style={{ aspectRatio: ratio }}
@@ -242,44 +289,83 @@ export default function PalmAnnotatedView({
             className="absolute inset-0 w-full h-full"
             fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif"
           >
-            {lines.map(({ key, points }) => {
-              const end = points[points.length - 1]!;
-              const onRight = end[0] > 0.6;
-              return (
-                <g key={key}>
-                  <path
-                    d={toPath(points, vbH)}
-                    fill="none"
-                    stroke="#000"
-                    strokeOpacity={0.5}
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d={toPath(points, vbH)}
-                    fill="none"
-                    stroke={LINE_COLOR[key] ?? "#D4AF37"}
-                    strokeWidth={0.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <text
-                    x={end[0] * VB_W + (onRight ? -1.2 : 1.2)}
-                    y={end[1] * vbH - 1.2}
-                    textAnchor={onRight ? "end" : "start"}
-                    fontSize={2.6}
-                    fontWeight={700}
-                    fill={LINE_COLOR[key] ?? "#D4AF37"}
-                    stroke="#000"
-                    strokeWidth={0.5}
-                    paintOrder="stroke"
-                  >
-                    {t(`palm.line.${key}`)}
-                  </text>
-                </g>
-              );
-            })}
+            {overlayMode === "lines" &&
+              lines.map(({ key, points }) => {
+                const end = points[points.length - 1]!;
+                const onRight = end[0] > 0.6;
+                return (
+                  <g key={key}>
+                    <path
+                      d={toPath(points, vbH)}
+                      fill="none"
+                      stroke="#000"
+                      strokeOpacity={0.5}
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d={toPath(points, vbH)}
+                      fill="none"
+                      stroke={LINE_COLOR[key] ?? "#D4AF37"}
+                      strokeWidth={0.8}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <text
+                      x={end[0] * VB_W + (onRight ? -1.2 : 1.2)}
+                      y={end[1] * vbH - 1.2}
+                      textAnchor={onRight ? "end" : "start"}
+                      fontSize={2.6}
+                      fontWeight={700}
+                      fill={LINE_COLOR[key] ?? "#D4AF37"}
+                      stroke="#000"
+                      strokeWidth={0.5}
+                      paintOrder="stroke"
+                    >
+                      {t(`palm.line.${key}`)}
+                    </text>
+                  </g>
+                );
+              })}
+
+            {overlayMode === "mounts" &&
+              mountRegions &&
+              Object.entries(mountRegions).map(([key, region]) => {
+                const cx = region.cx * VB_W;
+                const cy = region.cy * vbH;
+                // Same scale the relief pixels use (radius × the shorter side).
+                const r = region.radius * Math.min(VB_W, vbH);
+                const color = MOUNT_COLOR[key] ?? "#D4AF37";
+                return (
+                  <g key={key}>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill={color}
+                      fillOpacity={0.16}
+                      stroke={color}
+                      strokeWidth={0.5}
+                      strokeDasharray="1.2 0.8"
+                    />
+                    <circle cx={cx} cy={cy} r={0.8} fill={color} />
+                    <text
+                      x={cx}
+                      y={cy - r - 1.2}
+                      textAnchor="middle"
+                      fontSize={2.4}
+                      fontWeight={700}
+                      fill={color}
+                      stroke="#000"
+                      strokeWidth={0.5}
+                      paintOrder="stroke"
+                    >
+                      {t(`palm.mount.${key}`)}
+                    </text>
+                  </g>
+                );
+              })}
 
             {cards.map(({ event, side, y, anchor }) => {
               const x = side === "l" ? EDGE : VB_W - EDGE - CARD_W;

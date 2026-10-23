@@ -9,7 +9,8 @@ import { useAuth } from "@/providers/auth-provider";
 export type PalmViewState = "idle" | "loading" | "generating" | "ready" | "failed" | "error";
 
 const POLL_BASE_MS = 2500;
-const POLL_TIMEOUT_MS = 200_000;
+const POLL_TIMEOUT_MS = 20 * 60 * 1000; // 20 min — must exceed the backend's 15-min stale window + 5-min reaper
+const POLL_DELAY_CAP_MS = 5000;
 /** A ready reading's content for a given language never changes once generated
  * (translate-on-read + cache on the backend) — same SWR rationale as useReport.ts. */
 const SWR_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -83,7 +84,7 @@ export function usePalmReading(id: string | null, language: string) {
           }
           // "pending" or "generating" — keep polling until ready/observed/failed or timed out.
           if (!cached) setState("generating");
-          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
+          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS, capMs: POLL_DELAY_CAP_MS });
           if (Date.now() + delay > deadline) {
             if (!cached) setState("error");
             return;

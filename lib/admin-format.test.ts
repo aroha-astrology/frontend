@@ -292,7 +292,7 @@ describe("groupFeaturesByGroup", () => {
     // (config/features.ts, backend) — referrer/referee bonus and earnings cap,
     // now admin-editable instead of hardcoded constants. "chat" holds
     // chat.incomeAsk (backend config/features.ts).
-    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat"]);
+    expect(FEATURE_GROUP_ORDER).toEqual(["nav", "home", "paid", "reports", "panchang", "referral", "rewards", "ai", "chat", "palm"]);
   });
 });
 

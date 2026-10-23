@@ -47,24 +47,100 @@ export function classifyFraming(landmarks: NormalizedLandmark[] | null): HandFra
  * VIDEO running mode. One detect every INTERVAL_MS is cheap and reuses the existing wrapper
  * unchanged; switch to VIDEO/LIVE_STREAM mode if the hint ever feels laggy on low-end devices.
  */
+export interface FrameHandCheckResult {
+  framing: HandFraming;
+  landmarks: NormalizedLandmark[] | null;
+  sharpness: number;
+}
+
+/** `withSharpness`: also score focus (a full-frame pass), only needed for auto-capture. */
+export async function checkFrameForHandDetailed(
+  video: HTMLVideoElement,
+  canvas: HTMLCanvasElement,
+  withSharpness = false,
+): Promise<FrameHandCheckResult> {
+  try {
+    if (!video.videoWidth || !video.videoHeight) {
+      return { framing: "none", landmarks: null, sharpness: 0 };
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return { framing: "none", landmarks: null, sharpness: 0 };
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const landmarks = await detectHandLandmarks(canvas);
+    const framing = classifyFraming(landmarks);
+    const sharpness = withSharpness && framing === "good" ? computeLaplacianVariance(canvas) : 0;
+    return { framing, landmarks, sharpness };
+  } catch {
+    return { framing: "none", landmarks: null, sharpness: 0 };
+  }
+}
+
 export async function checkFrameForHand(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
 ): Promise<HandFraming> {
-  try {
-    if (!video.videoWidth || !video.videoHeight) return "none";
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return "none";
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return classifyFraming(await detectHandLandmarks(canvas));
-  } catch {
-    return "none";
-  }
+  return (await checkFrameForHandDetailed(video, canvas)).framing;
 }
 
 /** How often to run the check. Each tick is a WASM inference on the main thread while a camera
  * preview is running, so this is deliberately unhurried — the hint being a beat late costs
  * nothing, a stuttering preview costs the shot. */
 export const HAND_CHECK_INTERVAL_MS = 1000;
+
+/** Mean landmark movement as a fraction of the frame between consecutive frames. */
+export function computeLandmarkMovement(
+  prev: NormalizedLandmark[] | null,
+  curr: NormalizedLandmark[] | null,
+): number {
+  if (!prev || !curr || prev.length !== curr.length || prev.length === 0) return 1.0;
+  let totalDist = 0;
+  for (let i = 0; i < prev.length; i++) {
+    totalDist += Math.hypot(prev[i]!.x - curr[i]!.x, prev[i]!.y - curr[i]!.y);
+  }
+  return totalDist / prev.length;
+}
+
+/** Standard sharpness score via Laplacian variance over the downscaled canvas. */
+export function computeLaplacianVariance(canvas: HTMLCanvasElement): number {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return 0;
+  const { width, height } = canvas;
+  if (width < 3 || height < 3) return 0;
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const data = imgData.data;
+
+  let sum = 0;
+  let sumSq = 0;
+  let count = 0;
+
+  for (let y = 1; y < height - 1; y += 2) {
+    for (let x = 1; x < width - 1; x += 2) {
+      const idx = (y * width + x) * 4;
+      const c = 0.299 * data[idx]! + 0.587 * data[idx + 1]! + 0.114 * data[idx + 2]!;
+
+      const topIdx = ((y - 1) * width + x) * 4;
+      const top = 0.299 * data[topIdx]! + 0.587 * data[topIdx + 1]! + 0.114 * data[topIdx + 2]!;
+
+      const bottomIdx = ((y + 1) * width + x) * 4;
+      const bottom = 0.299 * data[bottomIdx]! + 0.587 * data[bottomIdx + 1]! + 0.114 * data[bottomIdx + 2]!;
+
+      const leftIdx = (y * width + (x - 1)) * 4;
+      const left = 0.299 * data[leftIdx]! + 0.587 * data[leftIdx + 1]! + 0.114 * data[leftIdx + 2]!;
+
+      const rightIdx = (y * width + (x + 1)) * 4;
+      const right = 0.299 * data[rightIdx]! + 0.587 * data[rightIdx + 1]! + 0.114 * data[rightIdx + 2]!;
+
+      const lap = top + bottom + left + right - 4 * c;
+      sum += lap;
+      sumSq += lap * lap;
+      count++;
+    }
+  }
+
+  if (count === 0) return 0;
+  const mean = sum / count;
+  return sumSq / count - mean * mean;
+}
+

@@ -16,6 +16,8 @@ export const PALM_CAPTURE_SLOTS = [
   "primaryFront",
   "primaryPercussion",
   "primaryFingertips",
+  "primaryThumb",
+  "primaryMounts",
 ] as const;
 
 export const PRIMARY_SLOTS = PALM_CAPTURE_SLOTS;

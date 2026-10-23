@@ -5,12 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Lock } from "lucide-react";
 import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
-import PalmAnnotatedView from "@/components/palm/PalmAnnotatedView";
+import PalmPhotoView, { type PalmPhoto } from "@/components/palm/PalmPhotoView";
 import PalmUnlockDrawer from "@/components/palm/PalmUnlockDrawer";
 import PalmCoverageList from "@/components/palm/PalmCoverageList";
 import PalmLineNotes from "@/components/palm/PalmLineNotes";
 import { usePalmReading } from "@/hooks/usePalmReading";
-import { palmApi } from "@/lib/palm-api";
+import { palmApi, PALM_CAPTURE_SLOTS } from "@/lib/palm-api";
 import { PdfCapturingContext } from "@/components/pdf/PdfCapturingContext";
 import { PdfDownloadButton, PdfStatusLayer, usePdfDownload } from "@/components/pdf/PdfDownload";
 import { pdfFileName } from "@/lib/pdf/save";
@@ -36,32 +36,41 @@ export default function PalmReadingPage() {
   const id = params.id;
 
   const { state, data, failedError, failedCode, retry } = usePalmReading(id, i18n.language);
-  const [heroUrl, setHeroUrl] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PalmPhoto[]>([]);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const pdf = usePdfDownload({ source: "palm", fileName: pdfFileName("palm-reading"), title: t("palm.title") });
 
   const isObservedOnly = data?.status === "observed";
   const isFullyReady = data?.status === "ready";
 
+  // The photos that were captured for this reading, in capture order. Keyed on WHICH slots exist,
+  // not on `data`, so polling doesn't download them again every few seconds.
+  const slotKey = data
+    ? PALM_CAPTURE_SLOTS.filter((s) => (data.frames as Record<string, unknown> | undefined)?.[s]).join(",")
+    : "";
   useEffect(() => {
-    if (!id || !data) return;
-    let objectUrl: string | null = null;
+    if (!id || !slotKey) return;
     let cancelled = false;
-    palmApi
-      .fetchFrameBlob(id, "primaryFront")
-      .then((blob) => {
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setHeroUrl(objectUrl);
-      })
-      .catch(() => {
-        if (!cancelled) setHeroUrl(null);
-      });
+    const urls: string[] = [];
+    void Promise.all(
+      slotKey.split(",").map((slot) =>
+        palmApi
+          .fetchFrameBlob(id, slot)
+          .then((blob) => {
+            const url = URL.createObjectURL(blob);
+            urls.push(url);
+            return { slot, url } as PalmPhoto;
+          })
+          .catch(() => null),
+      ),
+    ).then((loaded) => {
+      if (!cancelled) setPhotos(loaded.filter((p): p is PalmPhoto => p !== null));
+    });
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      urls.forEach((u) => URL.revokeObjectURL(u));
     };
-  }, [id, data]);
+  }, [id, slotKey]);
 
   const primaryObservations = useMemo(() => {
     const obs = data?.observations as { primary?: unknown } | undefined;
@@ -129,13 +138,11 @@ export default function PalmReadingPage() {
 
         {state === "ready" && data && (
           <>
-            <PalmAnnotatedView
-              photoUrl={heroUrl}
-              observations={primaryObservations as never}
+            <PalmPhotoView
+              photos={photos}
               events={data.events}
               unlocked={isFullyReady}
               kundliMatch={isFullyReady ? data.kundliMatch : null}
-              mountRegions={data.mountRelief?.primaryRegions as never}
             />
 
             {data.question && (

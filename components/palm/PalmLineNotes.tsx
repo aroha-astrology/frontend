@@ -8,7 +8,7 @@ import { LINE_LABEL_KEYS, MOUNT_LABEL_KEYS } from "@/lib/palm/matchSection";
  * Per-line and per-mount meanings, listed.
  *
  * These used to be reached by tapping the feature on the annotated photo. The overlay was
- * removed (see PalmAnnotatedView) because the traced positions were wrong — but the notes
+ * removed (the old line overlay, removed) because the traced positions were wrong — but the notes
  * themselves are sound: they come from Stage B, grounded in the deterministic measurements, and
  * they are the "what does this line mean, and what does it suggest" content the reading is for.
  * So they are listed here instead of hidden behind a tap on a drawing we could not trust.

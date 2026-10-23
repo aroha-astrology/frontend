@@ -74,9 +74,6 @@ test.describe("Palm result: the reader's photos in a carousel, nothing drawn on 
       "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
       "base64",
     );
-    await page.route("**/v1/palm/readings/*/frames/*", (route) =>
-      route.fulfill({ status: 200, contentType: "image/jpeg", body: pixel, headers: { "access-control-allow-origin": "*" } }),
-    );
     const api = await mockApi(page, {
       user: { features: { "home.palmReading": ON } },
       overrides: {
@@ -102,6 +99,11 @@ test.describe("Palm result: the reader's photos in a carousel, nothing drawn on 
         }),
       },
     });
+    // Registered AFTER mockApi: Playwright runs the newest matching route first, and mockApi's
+    // catch-all would otherwise answer the photo downloads with a 404.
+    await page.route("**/v1/palm/readings/*/frames/*", (route) =>
+      route.fulfill({ status: 200, contentType: "image/jpeg", body: pixel, headers: { "access-control-allow-origin": "*" } }),
+    );
     await signIn(page, `/palm/${READING}`);
     return api;
   }

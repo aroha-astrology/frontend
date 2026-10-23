@@ -46,6 +46,8 @@ function observedReading(allowance: { passMember: boolean; left: number } | unde
 }
 
 async function openTeaser(page: Page) {
+  // A low wallet would otherwise raise the "share the app" prompt over the page.
+  await page.addInitScript(() => window.localStorage.setItem("aroha:sharePromptSeen:v1", "1"));
   await signIn(page, `/palm/${READING}`);
   await page.getByRole("button", { name: "Unlock Full Reading" }).click();
 }

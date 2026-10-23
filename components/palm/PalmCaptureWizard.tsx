@@ -20,12 +20,7 @@ import { palmApi, PALM_CAPTURE_SLOTS, type PalmCaptureSlot } from "@/lib/palm-ap
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useNewFeature } from "@/hooks/useFeature";
-
-const SLOT_INSTRUCTION_KEY: Record<PalmCaptureSlot, string> = {
-  primaryFront: "palm.capture.step.primaryFront",
-  primaryPercussion: "palm.capture.step.primaryPercussion",
-  primaryFingertips: "palm.capture.step.primaryFingertips",
-};
+import PalmStepGuide, { SLOT_GUIDE_IMAGE } from "./PalmStepGuide";
 
 interface CapturedFrame {
   blob: Blob;
@@ -75,6 +70,8 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
+  // The demo photo for the current step, shown before every shot until "Got it".
+  const [guideOpen, setGuideOpen] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   /**
@@ -160,9 +157,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   }, [camera.status, t]);
 
   // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
-  // Paused while reviewing a shot (nothing to guide) and torn down with the camera.
+  // Paused while reviewing a shot (nothing to guide), while the demo photo is up, and torn down
+  // with the camera.
   useEffect(() => {
-    if (camera.status !== "granted" || reviewing) {
+    if (camera.status !== "granted" || reviewing || guideOpen) {
       setFraming("none");
       return;
     }
@@ -211,7 +209,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [camera.status, reviewing, autoCaptureOn, handleManualCapture]);
+  }, [camera.status, reviewing, guideOpen, autoCaptureOn, handleManualCapture]);
 
   const handleFileFallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -232,6 +230,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     async (allFrames: Partial<Record<PalmCaptureSlot, CapturedFrame>>) => {
       if (!isLastStep) {
         setStepIndex((i) => i + 1);
+        setGuideOpen(true);
         return;
       }
       if (!readingId) return;
@@ -343,6 +342,21 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
 
   return (
     <CaptureShell onClose={onClose}>
+      {/* The demo photo for this step, until "Got it". Also covers the camera-denied state, so the
+          reader always sees what to shoot before anything else. */}
+      <AnimatePresence>
+        {guideOpen && !reviewing && (
+          <PalmStepGuide
+            key={slot}
+            slot={slot}
+            step={stepIndex + 1}
+            total={PALM_CAPTURE_SLOTS.length}
+            hand={stepHand}
+            onReady={() => setGuideOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Progress dots */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
         {PALM_CAPTURE_SLOTS.map((s, i) => (
@@ -356,6 +370,23 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           />
         ))}
       </div>
+
+      {/* The example, always one tap away while shooting. */}
+      {!reviewing && !guideOpen && (
+        <button
+          type="button"
+          onClick={() => setGuideOpen(true)}
+          aria-label={t("palm.guide.show")}
+          data-testid="palm-guide-thumb"
+          className="absolute left-4 top-16 z-20 overflow-hidden rounded-xl border border-gold/50 shadow-lg"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={SLOT_GUIDE_IMAGE[slot]} alt="" className="h-20 w-14 object-cover" />
+          <span className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-center text-[9px] font-semibold text-white">
+            {t("palm.guide.example")}
+          </span>
+        </button>
+      )}
 
       {/* Torch */}
       {camera.torchSupported && (
@@ -438,7 +469,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
               </p>
             )}
             <p className="text-center text-sm text-white font-medium leading-relaxed">
-              {t(SLOT_INSTRUCTION_KEY[slot])}
+              {t(`palm.guide.step.${slot}.tip`)}
             </p>
           </div>
         )}

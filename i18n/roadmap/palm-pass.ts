@@ -4,9 +4,8 @@ import type { RoadmapBundle } from "./types";
  * Palm Reading on the Aroha Pass and Question Packs on Google Play (owner, 2026-10-23). The full
  * palm reading is a benefit of every Pass tier, one per 30-day period (the scan stays free);
  * Question Packs are bought through Google Play, never from the wallet. Used by
- * components/palm/PalmUnlockDrawer.tsx, components/pass/*, app/pass/page.tsx and the Lines /
- * Mounts switch on components/palm/PalmAnnotatedView.tsx. The other eight languages are in
- * i18n/generated/*.json.
+ * components/palm/PalmUnlockDrawer.tsx, components/pass/* and app/pass/page.tsx. The other eight
+ * languages are in i18n/generated/*.json.
  */
 export const palmPassBundle: RoadmapBundle = {
   en: {
@@ -29,7 +28,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "You've used this period's palm reading. Your next one opens when your Pass renews.",
         usedOn: "You've used this period's palm reading. Your next one opens on {{date}}.",
       },
-      overlay: { lines: "Lines", mounts: "Mounts" },
     },
   },
   hi: {
@@ -52,7 +50,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "आपने इस अवधि की हस्तरेखा रीडिंग इस्तेमाल कर ली है। अगली रीडिंग Pass के नवीनीकरण पर खुलेगी।",
         usedOn: "आपने इस अवधि की हस्तरेखा रीडिंग इस्तेमाल कर ली है। अगली रीडिंग {{date}} को खुलेगी।",
       },
-      overlay: { lines: "रेखाएँ", mounts: "पर्वत" },
     },
   },
   bn: {
@@ -75,7 +72,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "এই সময়ের হস্তরেখা পাঠটি আপনি ব্যবহার করেছেন। Pass নবীকরণ হলে পরেরটি খুলবে।",
         usedOn: "এই সময়ের হস্তরেখা পাঠটি আপনি ব্যবহার করেছেন। পরেরটি {{date}} তারিখে খুলবে।",
       },
-      overlay: { lines: "রেখা", mounts: "পর্বত" },
     },
   },
   mr: {
@@ -98,7 +94,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "तुम्ही या कालावधीचे हस्तरेषा वाचन वापरले आहे. Pass नूतनीकरण झाल्यावर पुढचे उघडेल.",
         usedOn: "तुम्ही या कालावधीचे हस्तरेषा वाचन वापरले आहे. पुढचे {{date}} रोजी उघडेल.",
       },
-      overlay: { lines: "रेषा", mounts: "पर्वत" },
     },
   },
   te: {
@@ -121,7 +116,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "ఈ కాలపు హస్తరేఖ పఠనాన్ని మీరు వాడేశారు. Pass పునరుద్ధరణ అయినప్పుడు తదుపరిది తెరుచుకుంటుంది.",
         usedOn: "ఈ కాలపు హస్తరేఖ పఠనాన్ని మీరు వాడేశారు. తదుపరిది {{date}}న తెరుచుకుంటుంది.",
       },
-      overlay: { lines: "రేఖలు", mounts: "పర్వతాలు" },
     },
   },
   ta: {
@@ -144,7 +138,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "இந்தக் காலத்தின் கைரேகை வாசிப்பை நீங்கள் பயன்படுத்திவிட்டீர்கள். Pass புதுப்பிக்கப்படும்போது அடுத்தது திறக்கும்.",
         usedOn: "இந்தக் காலத்தின் கைரேகை வாசிப்பை நீங்கள் பயன்படுத்திவிட்டீர்கள். அடுத்தது {{date}} அன்று திறக்கும்.",
       },
-      overlay: { lines: "ரேகைகள்", mounts: "மேடுகள்" },
     },
   },
   gu: {
@@ -167,7 +160,6 @@ export const palmPassBundle: RoadmapBundle = {
         used: "તમે આ સમયગાળાનું હસ્તરેખા વાંચન વાપરી લીધું છે. Pass રિન્યૂ થશે ત્યારે આગળનું ખુલશે.",
         usedOn: "તમે આ સમયગાળાનું હસ્તરેખા વાંચન વાપરી લીધું છે. આગળનું {{date}}ના રોજ ખુલશે.",
       },
-      overlay: { lines: "રેખાઓ", mounts: "પર્વતો" },
     },
   },
 };

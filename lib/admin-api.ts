@@ -120,6 +120,10 @@ export interface AdminUserRow {
   voiceLastCalls?: string[];
   /** Average "how was your call?" stars, null when never answered. */
   voiceRating?: number | null;
+  /** price_variant of the user's current active Pass: 'A'=Silver, 'B'=Gold, 'C'=Platinum. Null when no active Pass. */
+  passActiveTier?: string | null;
+  /** ISO date of when the active Pass period ends, null when no active Pass. */
+  passActiveUntil?: string | null;
 }
 
 export interface AdminUsersResponse {

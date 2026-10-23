@@ -104,6 +104,27 @@ export interface PassLaunchSend {
   skipped: number;
 }
 
+/** One active Pass holder, as returned by GET /v1/admin/pass-subscribers. */
+export interface PassSubscriberRow {
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  /** price_variant: 'A' = Silver, 'B' = Gold, 'C' = Platinum, null = before tiers. */
+  tier: string | null;
+  source: "wallet" | "google_play" | string;
+  pricePaise: number;
+  periodEnd: string;
+  autoRenew: boolean;
+  startedAt: string;
+}
+
+export interface PassSubscribersPage {
+  subscribers: PassSubscriberRow[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
 export const passApi = {
   status: () => request<PassStatus>("/v1/pass", { auth: true }),
   confirmPlay: (productId: string, purchaseToken: string) =>
@@ -119,6 +140,8 @@ export const passApi = {
       auth: true,
     }),
   adminStats: () => request<PassStats>("/v1/admin/pass-stats", { auth: true }),
+  adminSubscribers: (offset = 0, limit = 20) =>
+    request<PassSubscribersPage>(`/v1/admin/pass-subscribers?offset=${offset}&limit=${limit}`, { auth: true }),
   launchReadiness: () => request<PassLaunchReadiness>("/v1/admin/pass-launch", { auth: true }),
   /** Sends the launch notification to everyone who has not had it; `onlyMe` sends a try-out to the calling admin. */
   sendLaunch: (onlyMe: boolean) =>

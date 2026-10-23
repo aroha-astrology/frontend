@@ -359,6 +359,7 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-2 font-medium text-right">Week</th>
                     <th className="px-4 py-2 font-medium text-right">Month</th>
                     <th className="px-4 py-2 font-medium text-right">Year</th>
+                    <th className="px-4 py-2 font-medium">Pass</th>
                     <th className="px-4 py-2 font-medium" />
                   </tr>
                 </thead>
@@ -449,6 +450,26 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentWeekSec)}</td>
                       <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentMonthSec)}</td>
                       <td className="px-4 py-2 text-right text-muted">{formatDuration(u.timeSpentYearSec)}</td>
+                      <td className="px-4 py-2">
+                        {u.passActiveTier ? (
+                          <div>
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              u.passActiveTier === 'C' ? 'bg-purple-500/20 text-purple-300' :
+                              u.passActiveTier === 'B' ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-slate-500/20 text-slate-300'
+                            }`}>
+                              {u.passActiveTier === 'C' ? '💎 Platinum' : u.passActiveTier === 'B' ? '🥇 Gold' : '🥈 Silver'}
+                            </span>
+                            {u.passActiveUntil && (
+                              <div className="text-muted text-[10px] mt-0.5">
+                                until {formatDate(u.passActiveUntil)}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button

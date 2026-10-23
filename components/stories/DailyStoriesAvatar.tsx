@@ -1,59 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Avatar from "@/components/ui/Avatar";
-import { useDailyStories } from "@/hooks/useDailyStories";
-import { reportStoryEvent } from "@/lib/stories/report";
-import { hasUnseen, localDayIso, markSeen, readSeen } from "@/lib/stories/seen";
-import { STORY_IDS, type StoryId } from "@/lib/stories/types";
 import StoryRing from "./StoryRing";
-import StoryViewer from "./StoryViewer";
+import type { StoryPlayer } from "./useStoryPlayer";
 
 /**
  * The Home avatar with its story ring (flag `home.dailyStories`). Tapping it
  * plays today's stories from the first one not yet seen; the ring glows until
- * all four have been opened, and again the next morning. `onOpen` tells the
- * header a tap happened, so it can put the one-time hint bubble away.
+ * all four have been opened, and again the next morning. The player itself is
+ * owned by the header (useStoryPlayer), which the story pills share.
  */
-export default function DailyStoriesAvatar({ name, onOpen }: { name?: string | null; onOpen?: () => void }) {
+export default function DailyStoriesAvatar({ name, player }: { name?: string | null; player: StoryPlayer }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const data = useDailyStories(true, open);
-  // Null until localStorage has been read on the client: the server can't know, and guessing "unseen"
-  // would flash the glow at someone who has already watched everything.
-  const [seen, setSeen] = useState<string[] | null>(null);
-
-  useEffect(() => setSeen(readSeen(data.day)), [data.day]);
-
-  const onSeen = useCallback((id: StoryId) => {
-    const day = localDayIso(new Date());
-    // The admin dashboard counts a story once per person per day: report the first opening only.
-    if (!readSeen(day).includes(id)) reportStoryEvent("view", id);
-    setSeen(markSeen(day, id));
-  }, []);
-  const close = useCallback(() => setOpen(false), []);
-
-  const firstUnseen = STORY_IDS.findIndex((id) => !seen?.includes(id));
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => {
-          setOpen(true);
-          onOpen?.();
-        }}
-        aria-label={t("stories.open")}
-        data-testid="story-ring-button"
-        className="shrink-0 appearance-none rounded-full border-0 bg-transparent p-0"
-      >
-        <StoryRing unseen={seen !== null && hasUnseen(seen, STORY_IDS)}>
-          <Avatar name={name} size="md" />
-        </StoryRing>
-      </button>
-      {/* With everything seen, a tap replays from the start. */}
-      <StoryViewer open={open} startIndex={Math.max(0, firstUnseen)} data={data} onClose={close} onSeen={onSeen} />
-    </>
+    <button
+      type="button"
+      onClick={() => player.open()}
+      aria-label={t("stories.open")}
+      data-testid="story-ring-button"
+      className="shrink-0 appearance-none rounded-full border-0 bg-transparent p-0"
+    >
+      <StoryRing unseen={player.anyUnseen}>
+        <Avatar name={name} size="md" />
+      </StoryRing>
+    </button>
   );
 }

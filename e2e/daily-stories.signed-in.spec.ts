@@ -141,6 +141,27 @@ test.describe("Daily Stories (the story ring on the Home avatar)", () => {
     await expect(page.getByRole("heading", { name: "Switch Profile" })).toBeVisible();
   });
 
+  test("small pills under the name open one story each and settle once opened", async ({ page }) => {
+    await openHome(page);
+
+    const pills = page.getByTestId("story-pills");
+    await expect(pills.getByRole("button")).toHaveCount(4);
+    await expect(page.getByTestId("story-pill-gita")).toHaveAttribute("data-unseen", "true");
+
+    // The Gita pill opens the Gita story, not the first unseen one.
+    await page.getByTestId("story-pill-gita").click();
+    await expect(viewer(page)).toHaveAttribute("data-story", "gita");
+    await page.keyboard.press("Escape");
+    await expect(viewer(page)).toHaveCount(0);
+
+    await expect(page.getByTestId("story-pill-gita")).toHaveAttribute("data-unseen", "false");
+    await expect(page.getByTestId("story-pill-hora")).toHaveAttribute("data-unseen", "true");
+
+    // Closing it did not leave the next opening stuck on the Gita story: the avatar still starts at the first unseen one.
+    await page.getByTestId("story-ring-button").click();
+    await expect(viewer(page)).toHaveAttribute("data-story", "panchang");
+  });
+
   test("the ring glows, plays the four stories in order and settles once all are seen", async ({ page }) => {
     const api = await openHome(page);
 

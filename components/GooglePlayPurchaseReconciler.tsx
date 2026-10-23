@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/lib/api";
+import { passApi, PASS_PLAY_PRODUCT_ID } from "@/lib/pass-api";
+import { refreshPassStatus } from "@/hooks/usePassStatus";
+import type { PlayBillingPurchase } from "@/lib/play-billing";
 
 /**
  * On native-Android app start (once per sign-in, not on every re-render),
@@ -12,6 +15,11 @@ import { api } from "@/lib/api";
  * persistence needed: confirmGooglePlayOrder looks up the order by
  * (userId, productId), and is idempotent, so replaying an already-granted
  * purchase is always a safe no-op.
+ *
+ * The same for an Aroha Pass subscription that Play charged but our server never
+ * acknowledged (Google refunds it after 3 days otherwise), and then Google Play's
+ * own "payment declined" message when a Pass renewal failed (app 1.17+), which
+ * re-confirms the Pass at once if the user fixes the payment from it.
  */
 export default function GooglePlayPurchaseReconciler() {
   const { user, refresh } = useAuth();
@@ -33,16 +41,14 @@ export default function GooglePlayPurchaseReconciler() {
         if (cancelled || !Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "android") return;
 
         const { PlayBilling } = await import("@/lib/play-billing");
-        let purchases;
+        let grantedAny = false;
+        let purchases: PlayBillingPurchase[];
         try {
           ({ purchases } = await PlayBilling.queryUnconsumedPurchases());
         } catch (err) {
           console.error("[GooglePlayPurchaseReconciler] queryUnconsumedPurchases failed", err);
-          return;
+          purchases = [];
         }
-        if (cancelled || purchases.length === 0) return;
-
-        let grantedAny = false;
         for (const purchase of purchases) {
           if (cancelled) break;
           try {
@@ -55,7 +61,39 @@ export default function GooglePlayPurchaseReconciler() {
             console.error("[GooglePlayPurchaseReconciler] confirm failed", err);
           }
         }
-        if (grantedAny && !cancelled) await refreshRef.current();
+
+        // A Pass bought but never confirmed (the app was killed right after paying).
+        let passChanged = false;
+        try {
+          const { purchases: subs } = await PlayBilling.queryActiveSubscriptions();
+          for (const sub of subs) {
+            if (cancelled) break;
+            if (sub.productId !== PASS_PLAY_PRODUCT_ID || sub.acknowledged !== false) continue;
+            if (sub.purchaseState === "pending") continue;
+            try {
+              await passApi.confirmPlay(sub.productId, sub.purchaseToken);
+              passChanged = true;
+            } catch (err) {
+              console.error("[GooglePlayPurchaseReconciler] Pass confirm failed", err);
+            }
+          }
+        } catch {
+          // App older than 1.13 (no subscriptions) — nothing to replay.
+        }
+
+        // A Pass renewal whose payment failed: Google's message, with its link to fix it.
+        try {
+          const { updated, purchaseToken } = await PlayBilling.showPaymentIssueMessage();
+          if (updated && purchaseToken && !cancelled) {
+            await passApi.confirmPlay(PASS_PLAY_PRODUCT_ID, purchaseToken);
+            passChanged = true;
+          }
+        } catch {
+          // App older than 1.17, or nothing to show.
+        }
+
+        if (passChanged && !cancelled) refreshPassStatus();
+        if ((grantedAny || passChanged) && !cancelled) await refreshRef.current();
       } catch (err) {
         // @capacitor/core or the plugin not resolvable (e.g. plain web build) — nothing to reconcile.
       }

@@ -13,6 +13,12 @@ import { passApi, type PassStats, type PassSubscriberRow } from "@/lib/pass-api"
  */
 /** user_subscriptions.price_variant → its tier label. "none" is a Pass from before the tiers. */
 const TIER_NAMES: Record<string, string> = { A: "Silver", B: "Gold", C: "Platinum", none: "Before tiers" };
+/** Google's subscription states worth flagging next to a subscriber (a failed renewal payment, a cancel). */
+const PLAY_STATE_BADGE: Record<string, string> = {
+  SUBSCRIPTION_STATE_IN_GRACE_PERIOD: "payment failed · grace",
+  SUBSCRIPTION_STATE_CANCELED: "cancelled",
+};
+
 const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   A: { label: "🥈 Silver", cls: "bg-slate-500/20 text-slate-300" },
   B: { label: "🥇 Gold", cls: "bg-amber-500/20 text-amber-300" },
@@ -125,7 +131,14 @@ function SubscriberList() {
                       <span className="text-muted text-xs">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-xs text-muted capitalize">{r.source.replace("_", " ")}</td>
+                  <td className="px-3 py-2 text-xs text-muted capitalize">
+                    {r.source.replace("_", " ")}
+                    {r.playState && PLAY_STATE_BADGE[r.playState] && (
+                      <span className="ml-1.5 inline-block rounded-full bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-semibold normal-case text-rose-300">
+                        {PLAY_STATE_BADGE[r.playState]}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 text-xs text-muted">{formatDate(r.startedAt)}</td>
                   <td className="px-3 py-2 text-xs text-foreground font-medium">{formatDate(r.periodEnd)}</td>
                   <td className="px-3 py-2 text-center">
@@ -226,6 +239,12 @@ export default function PassStatsCard() {
               {stats.started30d} started · {stats.endedOrCancelled30d} ended/cancelled
             </dd>
             <dd className="text-[11px] text-muted">Wallet revenue {formatRupees(stats.walletRevenuePaise30d)}</dd>
+            {stats.paymentIssues && (stats.paymentIssues.grace > 0 || stats.paymentIssues.onHold > 0) && (
+              <dd className="text-[11px] text-rose-300" data-testid="admin-pass-payment-issues">
+                Payment failed: {stats.paymentIssues.grace} in grace (still active) · {stats.paymentIssues.onHold} on
+                hold
+              </dd>
+            )}
           </div>
           <div>
             <dt className="text-[11px] text-muted uppercase tracking-wide">Question Packs (30 days)</dt>

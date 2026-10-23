@@ -44,9 +44,19 @@ export interface PassOffer extends PassTierBenefits {
   play: { productId: string; basePlanId: string };
 }
 
+/**
+ * A Google Play renewal payment that failed: "grace" = the Pass still works while Google
+ * retries, "hold" = it has stopped until the payment method is fixed in Google Play.
+ */
+export type PassPaymentIssue = "grace" | "hold";
+
 /** Mirrors backend modules/pass/pass.service.ts. */
 export interface PassStatus {
   enabled: boolean;
+  /** Absent from a server older than the 2026-10-23 lifecycle fixes. */
+  paymentIssue?: PassPaymentIssue | null;
+  /** The tier of the Pass on hold. */
+  heldTier?: PassTier | null;
   /** Every tier that is switched on, cheapest first. */
   offers: PassOffer[];
   pass:
@@ -77,6 +87,8 @@ export function offerFor(status: PassStatus, feature: PassFeature): PassOffer | 
 
 export interface PassStats {
   active: { total: number; bySource: Record<string, number>; byVariant: Record<string, number> };
+  /** Play Passes whose renewal payment failed. Absent from an older server. */
+  paymentIssues?: { grace: number; onHold: number };
   walletRevenuePaise30d: number;
   started30d: number;
   endedOrCancelled30d: number;
@@ -116,6 +128,8 @@ export interface PassSubscriberRow {
   periodEnd: string;
   autoRenew: boolean;
   startedAt: string;
+  /** Google's state for a Play Pass, e.g. SUBSCRIPTION_STATE_IN_GRACE_PERIOD. */
+  playState?: string | null;
 }
 
 export interface PassSubscribersPage {
@@ -157,6 +171,8 @@ export function isPassRequired(err: unknown): boolean {
   return err instanceof ApiError && err.status === 403 && err.message === "PASS_REQUIRED";
 }
 
+/** The one Play subscription; its base plans are the tiers. Mirrors backend PASS_PLAY_PRODUCT_ID. */
+export const PASS_PLAY_PRODUCT_ID = "aroha_pass_monthly";
+
 /** Where a Play Pass is managed (cancel, change payment). */
-export const PLAY_SUBSCRIPTIONS_URL =
-  "https://play.google.com/store/account/subscriptions?sku=aroha_pass_monthly&package=com.aroha.astrology";
+export const PLAY_SUBSCRIPTIONS_URL = `https://play.google.com/store/account/subscriptions?sku=${PASS_PLAY_PRODUCT_ID}&package=com.aroha.astrology`;

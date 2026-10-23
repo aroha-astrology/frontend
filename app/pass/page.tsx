@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Crown, ExternalLink, MessageCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Crown, ExternalLink, MessageCircle } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import IconButton from "@/components/ui/IconButton";
 import Card from "@/components/ui/Card";
@@ -14,6 +14,7 @@ import { formatRupees } from "@/lib/format";
 import { shortDate } from "@/lib/calendar-format";
 import {
   passApi,
+  PASS_PLAY_PRODUCT_ID,
   PLAY_SUBSCRIPTIONS_URL,
   type PassOffer,
   type PassStatus,
@@ -25,13 +26,34 @@ import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
 import { refreshPassStatus } from "@/hooks/usePassStatus";
 
-type ActionError = "funds" | "failed";
+/** "pending" = Play took a slow payment (some UPI and cash options) that Google hasn't confirmed yet. */
+type ActionError = "funds" | "failed" | "pending" | "otherAccount";
 type Platform = "android" | "ios" | "web";
 
 /** The user backed out of the Play purchase sheet — not an error. */
 function isUserCancelled(err: unknown): boolean {
   return err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
 }
+
+/** Play has the purchase but the payment is still pending: nothing to confirm yet. */
+class PaymentPending extends Error {}
+
+function actionErrorOf(err: unknown): ActionError {
+  if (err instanceof PaymentPending) return "pending";
+  if (err instanceof ApiError) {
+    if (err.message === "INSUFFICIENT_CREDITS") return "funds";
+    if (err.message === "PLAY_SUBSCRIPTION_PENDING") return "pending";
+    if (err.message === "PLAY_SUBSCRIPTION_OTHER_ACCOUNT") return "otherAccount";
+  }
+  return "failed";
+}
+
+const ERROR_TEXT: Record<ActionError, string> = {
+  funds: "pass.funds",
+  failed: "pass.failed",
+  pending: "pass.pendingPayment",
+  otherAccount: "pass.otherAccount",
+};
 
 function StoreLink({ label }: { label: string }) {
   return (
@@ -70,6 +92,8 @@ function PassPage() {
   const [packNote, setPackNote] = useState<string | null>(null);
   // `/pass?tier=gold` (a Pass lock's button) leads with that tier instead of the usual recommendation.
   const [wanted, setWanted] = useState<string | null>(null);
+  // What Google Play really charges per base plan, in the user's currency (app 1.17+).
+  const [playPrices, setPlayPrices] = useState<Record<string, string>>({});
 
   useEffect(() => {
     passApi
@@ -100,9 +124,7 @@ function PassPage() {
         void refresh();
         return true;
       } catch (err) {
-        if (!isUserCancelled(err)) {
-          setError(err instanceof ApiError && err.message === "INSUFFICIENT_CREDITS" ? "funds" : "failed");
-        }
+        if (!isUserCancelled(err)) setError(actionErrorOf(err));
         return false;
       } finally {
         setBusy(false);
@@ -128,6 +150,8 @@ function PassPage() {
         basePlanId: offer.play.basePlanId,
         oldPurchaseToken,
       });
+      // Google confirms it later and the server records it from Google's notice.
+      if (purchase.purchaseState === "pending") throw new PaymentPending();
       return passApi.confirmPlay(purchase.productId, purchase.purchaseToken);
     });
   }
@@ -163,7 +187,32 @@ function PassPage() {
   const lang = i18n.language;
   const pass = status?.pass ?? null;
   const offers = status?.offers ?? [];
+  const paymentIssue = status?.paymentIssue ?? null;
   const canSubscribe = platform === "android" && build != null && build >= PLAY_SUBSCRIPTIONS_BUILD;
+
+  // Show Play's own price for each tier when the app can tell us (older builds keep ours).
+  const hasOffers = offers.length > 0;
+  useEffect(() => {
+    if (!canSubscribe || !hasOffers) return;
+    PlayBilling.getSubscriptionPrices({ productId: PASS_PLAY_PRODUCT_ID })
+      .then(({ prices }) => setPlayPrices(Object.fromEntries(prices.map((p) => [p.basePlanId, p.formattedPrice]))))
+      .catch(() => {});
+  }, [canSubscribe, hasOffers]);
+
+  // A failed renewal payment: Google Play's own message with its fix-payment link (app 1.17+).
+  // If the user fixes it from there, the Pass is confirmed again straight away.
+  useEffect(() => {
+    if (!paymentIssue || platform !== "android") return;
+    PlayBilling.showPaymentIssueMessage()
+      .then(async ({ updated, purchaseToken }) => {
+        if (!updated || !purchaseToken) return;
+        setStatus(await passApi.confirmPlay(PASS_PLAY_PRODUCT_ID, purchaseToken));
+        refreshPassStatus();
+      })
+      .catch(() => {});
+  }, [paymentIssue, platform]);
+
+  const priceOf = (offer: PassOffer) => playPrices[offer.play.basePlanId] ?? formatRupees(offer.pricePaise);
   const canUpgrade = platform === "android" && build != null && build >= PLAY_PASS_UPGRADE_BUILD;
   // Where the user's own Pass sits among the tiers on offer; -1 without a tiered Pass.
   const ownIndex = pass?.tier ? offers.findIndex((o) => o.tier === pass.tier) : -1;
@@ -202,6 +251,21 @@ function PassPage() {
                     ? t("pass.active.titleTier", { pass: t(`pass.tier.${pass.tier}`) })
                     : t("pass.active.title")}
                 </p>
+                {paymentIssue === "grace" && (
+                  <div
+                    className="space-y-1.5 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3"
+                    data-testid="pass-payment-grace"
+                  >
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-200">
+                      <AlertTriangle size={14} />
+                      {t("pass.payment.graceTitle")}
+                    </p>
+                    <p className="text-xs text-foreground/90">{t("pass.payment.graceBody")}</p>
+                    <a href={PLAY_SUBSCRIPTIONS_URL} className="inline-block text-xs font-semibold text-gold underline underline-offset-2">
+                      {t("pass.payment.fix")}
+                    </a>
+                  </div>
+                )}
                 {pass.source !== "group" && (
                   <p className="text-sm text-foreground/90">
                     {pass.source === "google_play" && pass.autoRenew
@@ -238,6 +302,36 @@ function PassPage() {
               <Card className="p-4 border-gold/10 space-y-2" data-testid="pass-included">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gold">{t("pass.benefitsTitle")}</p>
                 <PassBenefits benefits={pass} showMissing />
+              </Card>
+            )}
+
+            {!pass && paymentIssue === "hold" && (
+              <Card className="p-5 border-amber-400/40 space-y-2" data-testid="pass-payment-hold">
+                <p className="flex items-center gap-2 text-base font-semibold text-amber-200">
+                  <AlertTriangle size={16} />
+                  {status.heldTier
+                    ? t("pass.payment.holdTitleTier", { pass: t(`pass.tier.${status.heldTier}`) })
+                    : t("pass.payment.holdTitle")}
+                </p>
+                <p className="text-sm text-foreground/90">{t("pass.payment.holdBody")}</p>
+                <div className="flex flex-wrap items-center gap-4 pt-1">
+                  <a
+                    href={PLAY_SUBSCRIPTIONS_URL}
+                    className="inline-flex h-10 items-center rounded-full bg-yellow-500 px-5 text-sm font-semibold text-black"
+                  >
+                    {t("pass.payment.fix")}
+                  </a>
+                  {canSubscribe && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void restorePlay()}
+                      className="text-xs text-muted underline underline-offset-2 disabled:opacity-40"
+                    >
+                      {t("pass.payment.checkAgain")}
+                    </button>
+                  )}
+                </div>
               </Card>
             )}
 
@@ -281,7 +375,7 @@ function PassPage() {
                             )}
                           </div>
                           <p className="text-2xl font-display text-foreground">
-                            {t("pass.perMonth", { price: formatRupees(offer.pricePaise) })}
+                            {t("pass.perMonth", { price: priceOf(offer) })}
                           </p>
                         </div>
                         <PassBenefits benefits={offer} showMissing />
@@ -361,8 +455,11 @@ function PassPage() {
             )}
 
             {error && (
-              <p className="text-center text-xs text-rose-300">
-                {t(error === "funds" ? "pass.funds" : "pass.failed")}{" "}
+              <p
+                className={`text-center text-xs ${error === "pending" ? "text-amber-200" : "text-rose-300"}`}
+                data-testid="pass-action-message"
+              >
+                {t(ERROR_TEXT[error])}{" "}
                 {error === "funds" && (
                   <Link href="/payment" className="font-semibold text-gold underline">
                     {t("pass.addMoney")}

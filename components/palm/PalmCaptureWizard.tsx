@@ -175,7 +175,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       const video = videoRef.current;
       const canvas = handCanvasRef.current;
       if (video && canvas) {
-        const result = await checkFrameForHandDetailed(video, canvas);
+        const result = await checkFrameForHandDetailed(video, canvas, autoCaptureOn);
         if (cancelled) return;
         setFraming(result.framing);
 

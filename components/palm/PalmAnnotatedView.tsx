@@ -241,7 +241,7 @@ export default function PalmAnnotatedView({
                 : "text-muted hover:text-foreground"
             )}
           >
-            {t("palm.notes.linesTitle", "Lines")}
+            {t("palm.overlay.lines")}
           </button>
           <button
             type="button"
@@ -253,7 +253,7 @@ export default function PalmAnnotatedView({
                 : "text-muted hover:text-foreground"
             )}
           >
-            {t("palm.notes.mountsTitle", "Mounts")}
+            {t("palm.overlay.mounts")}
           </button>
         </div>
       )}
@@ -334,7 +334,8 @@ export default function PalmAnnotatedView({
               Object.entries(mountRegions).map(([key, region]) => {
                 const cx = region.cx * VB_W;
                 const cy = region.cy * vbH;
-                const r = region.radius * VB_W;
+                // Same scale the relief pixels use (radius × the shorter side).
+                const r = region.radius * Math.min(VB_W, vbH);
                 const color = MOUNT_COLOR[key] ?? "#D4AF37";
                 return (
                   <g key={key}>

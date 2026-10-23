@@ -1,6 +1,6 @@
 // Typed client for the backend's Palm Reading feature — 3-frame guided
-// capture (primaryFront, primaryPercussion, primaryFingertips), analyzed in
-// three LLM stages, wallet-purchased, profile-scoped, translate-on-read per
+// capture (primaryFront, primaryPercussion, primaryFingertips), a free scan
+// then a full reading that is an Aroha Pass benefit, profile-scoped, translate-on-read per
 // language. Built on lib/api.ts's exported `request<T>()` exactly like every
 // other typed client in this app (see lib/reports-api.ts, the closest sibling
 // — same all-200 status-field contract, no 202/403 dance to unwrap).
@@ -74,6 +74,12 @@ export interface PalmKundliMatch {
   mounts: { agree: number; total: number } | null;
 }
 
+/** Whether the reader's Aroha Pass covers the full reading now, and how many are left this period. */
+export interface PalmAllowance {
+  passMember: boolean;
+  left: number;
+}
+
 export interface PalmReadingResponse {
   id: string;
   status: PalmReadingStatus;
@@ -104,6 +110,8 @@ export interface PalmReadingResponse {
   kundliMatch?: PalmKundliMatch;
   /** The hand the app asked for vs the one the vision pass saw in the photograph. */
   handCheck?: { expected: string; detected: string };
+  /** On a scanned, not-yet-unlocked reading only. The full reading is an Aroha Pass benefit. */
+  allowance?: PalmAllowance;
   error?: string | null;
   errorCode?: "NOT_A_PALM";
 }
@@ -143,10 +151,10 @@ export const palmApi = {
       ...(question ? { body: { question } } : {}),
     }),
 
-  /** PAID — charges the wallet and kicks off Stage B/C (the full interpretation) for an
-   * "observed" reading. Throws ApiError — 409 insufficient balance / already unlocking / scan
-   * not finished, 403 FEATURE_DISABLED. Caller should `refresh()` (useAuth) afterward for the
-   * real new balance. */
+  /** AROHA PASS — uses this Pass period's full reading (every tier, one per period; never the
+   * wallet) and kicks off the full interpretation for an "observed" reading. Throws ApiError —
+   * 403 PASS_REQUIRED / PALM_PERIOD_LIMIT / FEATURE_DISABLED, 409 already unlocking or scan not
+   * finished. */
   unlock: (readingId: string) =>
     request<{ status: string }>(`/v1/palm/readings/${readingId}/unlock`, {
       method: "POST",

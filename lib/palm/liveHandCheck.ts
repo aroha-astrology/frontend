@@ -53,9 +53,11 @@ export interface FrameHandCheckResult {
   sharpness: number;
 }
 
+/** `withSharpness`: also score focus (a full-frame pass), only needed for auto-capture. */
 export async function checkFrameForHandDetailed(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
+  withSharpness = false,
 ): Promise<FrameHandCheckResult> {
   try {
     if (!video.videoWidth || !video.videoHeight) {
@@ -68,7 +70,7 @@ export async function checkFrameForHandDetailed(
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const landmarks = await detectHandLandmarks(canvas);
     const framing = classifyFraming(landmarks);
-    const sharpness = framing === "good" ? computeLaplacianVariance(canvas) : 0;
+    const sharpness = withSharpness && framing === "good" ? computeLaplacianVariance(canvas) : 0;
     return { framing, landmarks, sharpness };
   } catch {
     return { framing: "none", landmarks: null, sharpness: 0 };

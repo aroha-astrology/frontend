@@ -40,7 +40,7 @@ export const PASS_OFFERS = [
     questionsPerPeriod: 15,
     voiceFreeMinutes: 10,
     reportDiscountPct: 10,
-    features: ["timeline", "bonds", "voiceCall"],
+    features: ["timeline", "bonds", "voiceCall", "palm"],
   },
   {
     tier: "gold",
@@ -50,7 +50,7 @@ export const PASS_OFFERS = [
     questionsPerPeriod: 30,
     voiceFreeMinutes: 15,
     reportDiscountPct: 20,
-    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "voiceCall"],
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "voiceCall", "palm"],
   },
   {
     tier: "platinum",
@@ -60,7 +60,7 @@ export const PASS_OFFERS = [
     questionsPerPeriod: 60,
     voiceFreeMinutes: 20,
     reportDiscountPct: 30,
-    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "relocation", "voiceCall"],
+    features: ["timeline", "bonds", "decisions", "findMyDate", "birthTime", "relocation", "voiceCall", "palm"],
   },
 ];
 

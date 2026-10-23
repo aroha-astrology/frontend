@@ -212,19 +212,12 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     await skipLaunchOverlays(page);
     // A ₹0 wallet would otherwise raise the low-balance "share the app" prompt over the page.
     await page.addInitScript(() => window.localStorage.setItem("aroha:sharePromptSeen:v1", "1"));
-    let current = passStatus({
-      enabled: false,
-      offers: [],
-      packs: [{ pack: "small", questions: 5, pricePaise: 4900 }],
-    });
     const api = await mockApi(page, {
       user: { features: { "paid.questionPackSmall": { ...ON, pricePaise: 4900 } }, walletBalancePaise: 0, questionCredits: 3 },
       overrides: {
-        "GET /v1/pass": () => ({ json: current }),
-        "POST /v1/question-packs/:pack/buy": () => {
-          current = { ...current, questionCredits: 8 };
-          return { json: current };
-        },
+        "GET /v1/pass": () => ({
+          json: passStatus({ enabled: false, offers: [], questionCredits: 3, packs: [{ pack: "small", questions: 5, pricePaise: 4900 }] }),
+        }),
         "POST /v1/chat": () => ({
           contentType: "text/event-stream",
           body: sseBody([
@@ -238,9 +231,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
 
     const packs = page.getByTestId("question-packs");
     await expect(page.getByTestId("pass-tiers")).toHaveCount(0);
-    await packs.getByRole("button", { name: "Buy for ₹49" }).click();
-    await expect(packs.getByText("Added 5 questions")).toBeVisible();
-    await expect(packs.getByText("You have 8 prepaid questions")).toBeVisible();
+    await expect(packs.getByText("You have 3 prepaid questions")).toBeVisible();
 
     // Zero wallet, but prepaid questions: chat still lets the question through.
     await page.goto("/ai-chat");
@@ -252,25 +243,25 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     expect(callsTo(api, "POST /v1/chat")).toHaveLength(1);
   });
 
-  test("a failed pack purchase doesn't claim the questions were added", async ({ page }) => {
+  test("on the web a pack can't be bought from the wallet: it points to the Android app", async ({ page }) => {
     await skipLaunchOverlays(page);
     await page.addInitScript(() => window.localStorage.setItem("aroha:sharePromptSeen:v1", "1"));
-    await mockApi(page, {
-      user: { features: { "paid.questionPackSmall": { ...ON, pricePaise: 4900 } }, walletBalancePaise: 0 },
+    const api = await mockApi(page, {
+      user: { features: { "paid.questionPackSmall": { ...ON, pricePaise: 4900 } }, walletBalancePaise: 100_000 },
       overrides: {
         "GET /v1/pass": () => ({
           json: passStatus({ enabled: false, offers: [], packs: [{ pack: "small", questions: 5, pricePaise: 4900 }] }),
-        }),
-        "POST /v1/question-packs/:pack/buy": () => ({
-          status: 409,
-          json: { error: { code: "CONFLICT", message: "INSUFFICIENT_CREDITS" } },
         }),
       },
     });
     await signIn(page, "/pass");
 
-    await page.getByTestId("question-packs").getByRole("button", { name: "Buy for ₹49" }).click();
-    await expect(page.getByText("Not enough money in your wallet.")).toBeVisible();
-    await expect(page.getByText("Added 5 questions")).toHaveCount(0);
+    const packs = page.getByTestId("question-packs");
+    await expect(packs.getByText("Prepaid questions to Aroha, paid through Google Play.", { exact: false })).toBeVisible();
+    await expect(packs.getByText("₹49")).toBeVisible();
+    await expect(packs.getByRole("button", { name: /Buy for/ })).toHaveCount(0);
+    await expect(page.getByTestId("packs-android-only")).toContainText("Buy Question Packs from the Aroha app on Android.");
+    expect(callsTo(api, "POST /v1/question-packs/small/buy")).toHaveLength(0);
+    expect(callsTo(api, "POST /v1/question-packs/small/checkout")).toHaveLength(0);
   });
 });

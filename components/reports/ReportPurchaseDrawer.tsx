@@ -19,7 +19,7 @@ import {
   type PurchaseReportBody,
   type PurchaseReportResultRow,
 } from "@/lib/reports-api";
-import { REPORT_QUESTIONS, answeredNone } from "@/lib/report-questions";
+import { questionsFor, answeredNone } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
 import GeneralReportWarning from "./GeneralReportWarning";
 import PriceBreakdown from "./PriceBreakdown";
@@ -118,7 +118,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const spouseSectionValid = spouseSectionEmpty || spouseSectionComplete;
 
   // ── Optional pre-purchase questionnaire (see lib/report-questions.ts) ─
-  const questions = REPORT_QUESTIONS[entry.key] ?? [];
+  const questions = questionsFor(entry.key, activeProfile?.gender ?? user?.gender);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const visibleQuestions = questions.filter(
     (q) => !q.showIf || answers[q.showIf.questionId] === q.showIf.value,

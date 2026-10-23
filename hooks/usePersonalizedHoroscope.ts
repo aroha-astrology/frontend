@@ -6,6 +6,7 @@ import { api, ApiError, type PersonalizedHoroscope, type PersonalizedHoroscopePe
 import { nextPollDelay } from "@/lib/poll-backoff";
 import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
 import { currentPeriodKey, periodExpiresAt } from "@/lib/period-expiry";
+import { deviceTimeZone } from "@/lib/calendar-format";
 import { useAuth } from "@/providers/auth-provider";
 
 export type PersonalizedHoroscopeState = "loading" | "generating" | "ready" | "empty" | "error";
@@ -23,8 +24,9 @@ const POLL_TIMEOUT_MS = 60_000;
  * text actually re-translates when the user switches language mid-session.
  *
  * Hard-cached client-side (see lib/cache.ts): a ready reading is immutable
- * for its `currentPeriodKey(period)` — the backend generates it once per IST
- * period and serves the same row until rollover (see
+ * for its `currentPeriodKey(period)` — the backend generates it once per
+ * period of the reader's own calendar (the device zone goes with every
+ * request) and serves the same row until rollover (see
  * jyotish-backend's horoscope.service.ts) — so once a period's reading is
  * cached, this hook makes ZERO network requests for it until the period
  * rolls over (periodKey changes) or the absolute `exp` timestamp passes,
@@ -64,6 +66,8 @@ export function usePersonalizedHoroscope(
     // briefly lag `firebaseUser` right after sign-in (session establishment
     // is still in flight) — when that happens we simply skip caching for
     // this render rather than caching under an incomplete/anonymous key.
+    // Keyed on the device's day, the same zone api.horoscope sends.
+    const zone = deviceTimeZone();
     const cacheKey = user
       ? buildKey(
           "horoscope",
@@ -71,7 +75,7 @@ export function usePersonalizedHoroscope(
           activeProfile?.id ?? "primary",
           i18n.language,
           period,
-          currentPeriodKey(period),
+          currentPeriodKey(period, zone),
         )
       : null;
 
@@ -95,7 +99,7 @@ export function usePersonalizedHoroscope(
           if (res.status === "ready") {
             setData(res);
             setState("ready");
-            if (cacheKey) cacheSet(cacheKey, res, periodExpiresAt(period));
+            if (cacheKey) cacheSet(cacheKey, res, periodExpiresAt(period, zone));
             return;
           }
           if (res.status === "failed") {

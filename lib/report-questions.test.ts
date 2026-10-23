@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REPORT_QUESTIONS, answeredNone } from "./report-questions";
+import { REPORT_QUESTIONS, answeredNone, questionsFor } from "./report-questions";
 import { resources } from "@/i18n/resources";
 
 type Tree = Record<string, unknown>;
@@ -22,6 +22,29 @@ function keysFor(reportKey: string): string[] {
     ...(q.options ?? []).map((o) => o.labelKey),
   ]);
 }
+
+describe("questionsFor — the gender a report's maths needs", () => {
+  it("asks only when the profile has no male/female on file", () => {
+    for (const key of ["numerology", "name_change", "progeny", "kundli_milan", "marriage"]) {
+      expect(questionsFor(key, null).some((q) => q.id === "readerGender"), key).toBe(true);
+      expect(questionsFor(key, "other").some((q) => q.id === "readerGender"), key).toBe(true);
+      expect(questionsFor(key, "female").some((q) => q.id === "readerGender"), key).toBe(false);
+    }
+  });
+
+  it("does not add it to reports whose maths ignores gender", () => {
+    expect(questionsFor("wealth", null).some((q) => q.id === "readerGender")).toBe(false);
+  });
+
+  it("is skippable without the general-report warning", () => {
+    expect(answeredNone(questionsFor("name_change", null), {})).toBe(false);
+  });
+
+  it("has text in every app language", () => {
+    const q = questionsFor("name_change", null).find((x) => x.id === "readerGender")!;
+    expect(q.options).toHaveLength(2);
+  });
+});
 
 describe("REPORT_QUESTIONS", () => {
   it("has English text for every question and option of every report", () => {

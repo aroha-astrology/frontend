@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { BookHeart, Check, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { useNewFeature } from "@/hooks/useFeature";
-import { istToday } from "@/lib/calendar-format";
+import { localToday } from "@/lib/calendar-format";
 import { journalApi } from "@/lib/journal-api";
 
 const FACES = ["😞", "🙁", "😐", "🙂", "😄"];
@@ -26,7 +26,7 @@ export default function JournalPromptCard() {
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    const today = istToday();
+    const today = localToday();
     journalApi
       .list({ from: today, to: today })
       .then((res) => !cancelled && setMood(res.entries[0]?.mood ?? null))
@@ -42,7 +42,7 @@ export default function JournalPromptCard() {
     const previous = mood;
     setMood(n);
     try {
-      await journalApi.save(istToday(), { mood: n });
+      await journalApi.save(localToday(), { mood: n });
       setJustSaved(true);
     } catch {
       setMood(previous ?? null);

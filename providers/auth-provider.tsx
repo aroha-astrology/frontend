@@ -212,6 +212,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // A user who never shared a location has no time zone on the server, so quiet hours, the
+  // date chat calls "today" and transit times all fell back to India's. Send the device's zone
+  // once. Only when the server reports the field as null: undefined means an older server.
+  const timezoneSentRef = useRef(false);
+  useEffect(() => {
+    if (!user || user.currentTimezone !== null || timezoneSentRef.current) return;
+    timezoneSentRef.current = true;
+    let zone: string | undefined;
+    try {
+      zone = Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    } catch {
+      zone = undefined;
+    }
+    if (zone) void api.updateMe({ currentTimezone: zone }).catch(() => {});
+  }, [user]);
+
   // Keeps `user.features`/`isAdmin`/wallet fields from going stale in an
   // already-open session — without this, an admin flag toggle (or a group
   // membership change) only ever reaches a signed-in user the NEXT time they

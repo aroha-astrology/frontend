@@ -63,9 +63,19 @@ function vastuMocks(over: Handlers = {}): Handlers {
   };
 }
 
+/** The paid report asks where north is first (the drawing's top is not north unless said so);
+ * these plans leave it at 0°, so confirm that the top really is north, then generate. */
 async function generate(page: Page) {
-  await page.getByRole("button", { name: /^Generate report/ }).click();
-  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  const start = async () => {
+    await page.getByRole("button", { name: /^Generate report/ }).click();
+    await page.getByRole("button", { name: "Generate", exact: true }).click();
+  };
+  await start();
+  const northSheet = page.getByRole("heading", { name: "Point it North" });
+  if (await northSheet.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await page.getByRole("button", { name: "Close" }).click();
+    await start();
+  }
 }
 
 /** Every room's row in the analysis ("All rooms" expanded). */
@@ -89,6 +99,23 @@ test.describe("Vastu Studio", () => {
 
     await expect(page.getByText("AI Remedies & Solutions")).toBeVisible();
     await expect(page.getByText("Your north-east is open and bright.")).toBeVisible();
+    expect(callsTo(api, "POST /v1/vastu/analyze")).toHaveLength(1);
+  });
+
+  test("the paid report asks where north is before charging", async ({ page }) => {
+    const api = await open(page);
+    await page.getByRole("button", { name: /^Generate report/ }).click();
+    await page.getByRole("button", { name: "Generate", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: "Point it North" })).toBeVisible();
+    await expect(page.getByText("Set where north is before the report", { exact: false })).toBeVisible();
+    expect(callsTo(api, "POST /v1/vastu/analyze")).toHaveLength(0);
+
+    // Saying the top is north (closing the sheet) lets the report go ahead, charged once.
+    await page.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: /^Generate report/ }).click();
+    await page.getByRole("button", { name: "Generate", exact: true }).click();
+    await expect(page.getByText("AI Remedies & Solutions")).toBeVisible();
     expect(callsTo(api, "POST /v1/vastu/analyze")).toHaveLength(1);
   });
 

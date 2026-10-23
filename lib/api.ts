@@ -13,6 +13,7 @@ import type { ExperienceInfo, ExperienceSkin } from "./experience";
 import type { HomeLayoutDoc } from "./home-cards";
 import type { SkyContext, SkyContextUpdate } from "./sky";
 import { nextPollDelay } from "./poll-backoff";
+import { deviceTimeZone } from "./calendar-format";
 import type { Category, CategoryReading, SubCategory } from "@/components/horoscope/types";
 import type { RegionId } from "@/lib/panchang/regions";
 
@@ -86,6 +87,9 @@ export interface User {
   deletionRequestedAt: string | null;
   /** Gates onboarding-analysis/chat/forecast/matchmaking server-side (requireConsent). */
   dataProcessingConsentActive: boolean;
+  /** IANA zone the server reads this user's clock in (quiet hours, "today" in chat, transit times).
+   * null until the app sends the device's zone; absent from older servers. */
+  currentTimezone?: string | null;
   /** users.relationship_status — single/in_relationship/engaged/married/divorced/widowed/
    * separated/complicated/prefer_not_to_say, or null if not yet answered at onboarding. */
   relationshipStatus: string | null;
@@ -99,6 +103,14 @@ export interface User {
   walletBalancePaise: number;
   /** Prepaid chat questions from Question Packs (roadmap step 10). Absent on an older backend. */
   questionCredits?: number;
+  /** A festival's free chat questions (backend pass/chat-gifts.repo.ts), spent before the
+   * Pass, packs and wallet; null/absent when none is running. validUntil is ISO 8601. */
+  chatGift?: {
+    campaign: string;
+    questionsLeft: number;
+    questionsTotal: number;
+    validUntil: string;
+  } | null;
   /** The report key the user voted for on "what should we prepare next?", or null if
    * never asked / still pending. Account-level, not profile-scoped. */
   nextReportVote: string | null;
@@ -237,6 +249,8 @@ export interface UpdateMeBody {
   placeOfBirth?: PlaceOfBirth | null;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
   currentLocation?: PlaceOfBirth | null;
+  /** The device's IANA zone, for users who never shared a location. */
+  currentTimezone?: string;
   locale?: string;
   relationshipStatus?: string;
   onboardingStatus?: string;
@@ -472,6 +486,10 @@ export interface PanchangData {
   moonriseTime?: string;
   /** Local HH:mm moonset, computed via swe_rise_trans (SE_MOON). Same absence caveat as moonriseTime. */
   moonsetTime?: string;
+  /** Moonrise/moonset are the first after the day's sunrise (Drik Panchang's day); these say
+   * the time falls after midnight, on the next date. Absent on an older backend. */
+  moonriseNextDay?: boolean;
+  moonsetNextDay?: boolean;
   regionalMonths?: Record<RegionId, PanchangRegionalMonth>;
   choghadiya?: { day: ChoghadiyaSlot[]; night: ChoghadiyaSlot[] };
   hora?: HoraSlot[];
@@ -1606,9 +1624,11 @@ async function pollKundli(
 async function horoscopeRequest(period: PersonalizedHoroscopePeriod, language?: string): Promise<HoroscopeResult> {
   const headers: Record<string, string> = { ...(await authHeader()) };
   const langQs = language ? `&language=${encodeURIComponent(language)}` : "";
+  // The device's zone, so the server picks the reader's own today/this week.
+  const tzQs = `&tz=${encodeURIComponent(deviceTimeZone())}`;
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}${langQs}`, { method: "GET", headers, cache: "no-store" });
+    res = await fetch(`${BASE_URL}/v1/horoscope?period=${period}${langQs}${tzQs}`, { method: "GET", headers, cache: "no-store" });
   } catch {
     throw new ApiError(0, "network_error", "Could not reach the server");
   }

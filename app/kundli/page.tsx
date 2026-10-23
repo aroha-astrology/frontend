@@ -419,9 +419,12 @@ export default function KundliPage() {
     setFormError(null);
     setFreshResult(null);
     try {
+      // A blank time is left out, not sent as 12:00: the server then casts the
+      // chart for noon AND marks it unknown, and the page says so. Sending
+      // "12:00" used to present a stand-in noon chart as an exact one.
       const birth: BirthInput = {
         date: form.date,
-        time: form.time || "12:00",
+        ...(form.time ? { time: form.time } : {}),
         latitude: resolvedPlace.lat,
         longitude: resolvedPlace.lon,
         timezone: resolvedPlace.tz,
@@ -496,6 +499,14 @@ export default function KundliPage() {
         {/* ── CHART VIEW ── */}
         {hasData && chartData && (
           <div className="space-y-4 page-cols">
+            {!hasExisting && freshResult?.timeAccuracy === "unknown" && (
+              <p
+                data-testid="kundli-time-unknown"
+                className="text-xs text-amber-400/90 bg-amber-400/5 border border-amber-400/20 rounded-xl px-3 py-2"
+              >
+                {t("kundliPage.noTimeCaveat")}
+              </p>
+            )}
             {/* 1. Header card */}
             {(ascendant || planets.length > 0) && (
               <div data-tour="kundli-header">

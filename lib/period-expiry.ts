@@ -11,6 +11,10 @@
  * mismatch would either serve stale content past rollover or refetch
  * needlessly before it.
  *
+ * The personal horoscope and the moon-sign cards pass the device's zone, so
+ * their caches roll at the reader's own midnight (the backend reads the same
+ * zone from the request); callers that pass no zone stay on IST.
+ *
  * The one formula everything reduces to: IST midnight of IST calendar date
  * `Y-M-D` is `Date.UTC(Y, M-1, D) - 5.5 * 3_600_000`. IST is a fixed
  * UTC+5:30 offset with no DST, so that subtraction is exact year-round.
@@ -84,6 +88,49 @@ function istMidnightOf(y: number, m: number, d: number): number {
   return Date.UTC(y, m - 1, d) - 5.5 * 3_600_000;
 }
 
+/** The zone's UTC offset (ms) at instant `at`, read from its wall clock. */
+function offsetMsAt(at: number, timeZone: string): number {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(new Date(at))
+      .map((x) => [x.type, Number(x.value)]),
+  ) as Record<string, number>;
+  const wall = Date.UTC(p.year!, p.month! - 1, p.day!, p.hour!, p.minute!, p.second!);
+  return wall - Math.floor(at / 1000) * 1000;
+}
+
+/**
+ * Epoch ms of midnight on `y-m-d` in `timeZone`. IST keeps its exact formula;
+ * other zones may have daylight saving, so the offset is read at the guess and
+ * read again at the result. Only a cache backstop leans on this: the period
+ * key in a cache key already changes at the reader's midnight.
+ */
+function midnightOf(y: number, m: number, d: number, timeZone: string): number {
+  if (timeZone === APP_TZ) return istMidnightOf(y, m, d);
+  const wall = Date.UTC(y, m - 1, d);
+  const guess = wall - offsetMsAt(wall, timeZone);
+  return wall - offsetMsAt(guess, timeZone);
+}
+
+/** The zone when the runtime knows it, else IST (same rule as the backend's `userZone`). */
+function knownZone(timeZone: string): string {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+    return timeZone;
+  } catch {
+    return APP_TZ;
+  }
+}
+
 /**
  * The cache-relevant key for `period`'s *currently active* row, as of now.
  * Mirrors the backend's `periodKeyFor(period, currentPeriodStart(period))`:
@@ -91,8 +138,8 @@ function istMidnightOf(y: number, m: number, d: number): number {
  * period so no truncation), weekly keys on the Monday of the current IST
  * ISO week, monthly truncates to YYYY-MM, yearly truncates to YYYY.
  */
-export function currentPeriodKey(period: Period): string {
-  const today = istToday();
+export function currentPeriodKey(period: Period, timeZone: string = APP_TZ): string {
+  const today = dateInTz(new Date(), knownZone(timeZone));
   switch (period) {
     case "daily":
       return today;
@@ -118,13 +165,14 @@ export function currentPeriodKey(period: Period): string {
  * goes stale at exactly the same instant as today's "daily" entry — this is
  * NOT a 48h TTL, both are 1-day windows anchored to the same rollover.
  */
-export function periodExpiresAt(period: Period): number {
-  const today = istToday();
+export function periodExpiresAt(period: Period, timeZone: string = APP_TZ): number {
+  const zone = knownZone(timeZone);
+  const today = dateInTz(new Date(), zone);
   switch (period) {
     case "daily":
     case "tomorrow": {
       const [y, m, d] = parts(addDays(today, 1));
-      return istMidnightOf(y, m, d);
+      return midnightOf(y, m, d, zone);
     }
     case "weekly": {
       // currentPeriodKey('weekly') is the Monday of *this* IST week and stays
@@ -133,18 +181,18 @@ export function periodExpiresAt(period: Period): number {
       // Monday's IST midnight, i.e. exactly 7 days after this week's Monday.
       const thisMonday = mondayOf(today);
       const [y, m, d] = parts(addDays(thisMonday, 7));
-      return istMidnightOf(y, m, d);
+      return midnightOf(y, m, d, zone);
     }
     case "monthly": {
       // Passing month 13 deliberately relies on Date.UTC's overflow
       // normalization (see module doc comment) to roll December into
       // January of the next year without a separate branch.
       const [y, m] = parts(today);
-      return istMidnightOf(y, m + 1, 1);
+      return midnightOf(y, m + 1, 1, zone);
     }
     case "yearly": {
       const [y] = parts(today);
-      return istMidnightOf(y + 1, 1, 1);
+      return midnightOf(y + 1, 1, 1, zone);
     }
   }
 }

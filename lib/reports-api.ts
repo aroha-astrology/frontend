@@ -77,6 +77,8 @@ export interface ReportPartnerInput {
   /** marriage only — display label for the resolved place, used purely to pre-fill the
    * place-autocomplete input on a later purchase. */
   placeLabel?: string;
+  /** The partner's gender when the screen knows it (Compatibility's boy/girl sides). */
+  gender?: "male" | "female";
 }
 
 export interface PurchaseReportBody {

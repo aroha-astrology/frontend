@@ -1,5 +1,6 @@
 import { request, type RectifyDomain } from "@/lib/api";
 import type { LifeArea } from "@/lib/insights-api";
+import { deviceTimeZone, tzQuery } from "@/lib/calendar-format";
 
 export const RATING_FIELDS = ["mood", "energy", "career", "relationship", "money"] as const;
 export type RatingField = (typeof RATING_FIELDS)[number];
@@ -43,13 +44,13 @@ export const journalApi = {
     const q = new URLSearchParams();
     if (range.from) q.set("from", range.from);
     if (range.to) q.set("to", range.to);
-    const qs = q.toString();
-    return request<{ today: string; entries: JournalEntry[] }>(`/v1/journal${qs ? `?${qs}` : ""}`, { auth: true });
+    q.set("tz", deviceTimeZone());
+    return request<{ today: string; entries: JournalEntry[] }>(`/v1/journal?${q.toString()}`, { auth: true });
   },
   save: (date: string, body: SaveEntryBody) =>
-    request<JournalEntry>(`/v1/journal/${date}`, { method: "PUT", body, auth: true }),
+    request<JournalEntry>(`/v1/journal/${date}?${tzQuery()}`, { method: "PUT", body, auth: true }),
   remove: (date: string) => request<{ deleted: boolean }>(`/v1/journal/${date}`, { method: "DELETE", auth: true }),
-  insights: () => request<JournalInsights>("/v1/journal/insights", { auth: true }),
+  insights: () => request<JournalInsights>(`/v1/journal/insights?${tzQuery()}`, { auth: true }),
   lifeEvents: () =>
     request<{ events: Array<{ date: string; domain: RectifyDomain }> }>("/v1/journal/life-events", { auth: true }),
 };

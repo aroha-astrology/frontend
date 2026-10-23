@@ -100,6 +100,31 @@ const CHILDREN: ReportQuestion = {
   ],
 };
 
+// Asked only when the profile has no male/female on file. Kua (numerology), the first-child
+// house (progeny), the name pool (name_change) and the boy/girl order of Guna Milan
+// (kundli_milan, marriage) each differ by gender, and none of them may guess it. The answer
+// fills the gap for that purchase only (backend reports.service buildReportScoreContext).
+// Skipping it never triggers the general-report warning, hence overridesAccount.
+const READER_GENDER: ReportQuestion = {
+  id: "readerGender",
+  type: "select",
+  labelKey: "reports.questions.readerGender.label",
+  overridesAccount: true,
+  options: [
+    { value: "female", labelKey: "reports.questions.readerGender.female" },
+    { value: "male", labelKey: "reports.questions.readerGender.male" },
+  ],
+};
+
+const NEEDS_GENDER = new Set(["numerology", "name_change", "progeny", "kundli_milan", "marriage"]);
+
+/** A report's questions, plus the gender question when its maths needs a gender the profile lacks. */
+export function questionsFor(reportKey: string, profileGender: string | null | undefined): ReportQuestion[] {
+  const base = REPORT_QUESTIONS[reportKey] ?? [];
+  const known = profileGender === "male" || profileGender === "female";
+  return NEEDS_GENDER.has(reportKey) && !known ? [...base, READER_GENDER] : base;
+}
+
 export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   baby_name: [
     {

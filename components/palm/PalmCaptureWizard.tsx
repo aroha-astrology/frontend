@@ -16,6 +16,7 @@ import {
 } from "@/lib/palm/liveHandCheck";
 import { palmApi, PALM_CAPTURE_SLOTS, type PalmCaptureSlot } from "@/lib/palm-api";
 import { ApiError } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 
 const SLOT_INSTRUCTION_KEY: Record<PalmCaptureSlot, string> = {
   primaryFront: "palm.capture.step.primaryFront",
@@ -58,6 +59,13 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const handCanvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const camera = useCamera(videoRef);
+  const { user, activeProfile } = useAuth();
+  // The classical rule picks the main hand by gender (male right, female left). For any other
+  // profile there is no rule, so the reader chooses instead of being given the right hand.
+  const profileGender = activeProfile?.gender ?? user?.gender;
+  const needsHandChoice = profileGender !== "male" && profileGender !== "female";
+  const [chosenHand, setChosenHand] = useState<"left" | "right" | null>(null);
+  const ready = !needsHandChoice || chosenHand !== null;
 
   const [readingId, setReadingId] = useState<string | null>(null);
   const [primaryHand, setPrimaryHand] = useState<string | null>(null);
@@ -94,9 +102,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
 
   // Start (or resume) a reading, then start the camera.
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     palmApi
-      .create()
+      .create(chosenHand ?? undefined)
       .then((res) => {
         if (cancelled) return;
         setReadingId(res.readingId);
@@ -109,13 +118,14 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ready]);
 
   useEffect(() => {
+    if (!ready) return;
     void camera.start();
     return camera.stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ready]);
 
   // Low-light sampling loop.
   useEffect(() => {
@@ -248,6 +258,27 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     setReviewing(null);
     await advanceOrFinish(nextCaptured);
   }, [reviewing, readingId, slot, captured, advanceOrFinish, t]);
+
+  if (!ready) {
+    return (
+      <CaptureShell onClose={onClose}>
+        <div data-testid="palm-hand-choice" className="flex flex-col items-center gap-4 py-16 px-6 text-center">
+          <p className="text-sm text-foreground">{t("palm.capture.chooseHand")}</p>
+          <div className="flex gap-3">
+            {(["right", "left"] as const).map((hand) => (
+              <button
+                key={hand}
+                onClick={() => setChosenHand(hand)}
+                className="rounded-xl px-5 py-3 text-sm font-semibold text-gold border border-gold/40"
+              >
+                {t(`palm.hand.${hand}`, hand)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </CaptureShell>
+    );
+  }
 
   if (initError) {
     return (

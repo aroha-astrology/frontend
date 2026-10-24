@@ -19,8 +19,8 @@ import {
   type SkyRoom,
 } from "@/lib/same-sky";
 
-/** Set NEXT_PUBLIC_GRIEVANCE_EMAIL to show the grievance officer's contact under the room (IT Rules 2021). */
-const GRIEVANCE_EMAIL = process.env.NEXT_PUBLIC_GRIEVANCE_EMAIL ?? "";
+/** The grievance officer's contact under the room (IT Rules 2021): the one named in the Terms. NEXT_PUBLIC_GRIEVANCE_EMAIL can override it. */
+const GRIEVANCE_EMAIL = process.env.NEXT_PUBLIC_GRIEVANCE_EMAIL ?? "subir@arohaastrology.in";
 
 function SkyPage() {
   const { t } = useTranslation();

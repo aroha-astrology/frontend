@@ -1,0 +1,70 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<path id="lp" d="M0 -97 C3.2 -91.5 3.2 -85.5 0 -79 C-3.2 -85.5 -3.2 -91.5 0 -97 Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.3" stroke-linejoin="round"/>
+<line id="tk" x1="0" y1="-108.5" x2="0" y2="-114.5" stroke="#dfb564" stroke-width="1.3" stroke-linecap="round"/>
+<path id="ts" d="M0 -4.8 L1.2 -1.2 L4.8 0 L1.2 1.2 L0 4.8 L-1.2 1.2 L-4.8 0 L-1.2 -1.2 Z" fill="#fbe09b" stroke="#dfb564" stroke-width="1.2" stroke-linejoin="round"/>
+<path id="sr" d="M0 -27.5 L2.6 -36 L-2.6 -36 Z" fill="#dfb564" stroke="#a67c00" stroke-width="1.2" stroke-linejoin="round"/>
+</defs>
+<!-- mandala base disc -->
+<circle cx="300" cy="150" r="95.5" fill="#0f1633" stroke="#dfb564" stroke-width="1.5"/>
+<circle cx="300" cy="150" r="102.2" fill="none" stroke="#dfb564" stroke-width="1.4"/>
+<circle cx="300" cy="150" r="108.2" fill="none" stroke="#dfb564" stroke-width="1.4"/>
+<circle cx="300" cy="150" r="99.2" fill="none" stroke="#a67c00" stroke-width="0.9" opacity="0.95"/>
+<circle cx="300" cy="150" r="86.5" fill="none" stroke="#c99a8b" stroke-width="0.9" opacity="0.85"/>
+<!-- zodiac ticks -->
+<g transform="translate(300 150)">
+<use href="#tk" transform="rotate(0)"/><use href="#tk" transform="rotate(15)"/><use href="#tk" transform="rotate(30)"/><use href="#tk" transform="rotate(45)"/><use href="#tk" transform="rotate(60)"/><use href="#tk" transform="rotate(75)"/><use href="#tk" transform="rotate(90)"/><use href="#tk" transform="rotate(105)"/><use href="#tk" transform="rotate(120)"/><use href="#tk" transform="rotate(135)"/><use href="#tk" transform="rotate(150)"/><use href="#tk" transform="rotate(165)"/><use href="#tk" transform="rotate(180)"/><use href="#tk" transform="rotate(195)"/><use href="#tk" transform="rotate(210)"/><use href="#tk" transform="rotate(225)"/><use href="#tk" transform="rotate(240)"/><use href="#tk" transform="rotate(255)"/><use href="#tk" transform="rotate(270)"/><use href="#tk" transform="rotate(285)"/><use href="#tk" transform="rotate(300)"/><use href="#tk" transform="rotate(315)"/><use href="#tk" transform="rotate(330)"/><use href="#tk" transform="rotate(345)"/>
+</g>
+<!-- lotus petals ring -->
+<g transform="translate(300 150)">
+<use href="#lp" transform="rotate(0)"/><use href="#lp" transform="rotate(30)"/><use href="#lp" transform="rotate(60)"/><use href="#lp" transform="rotate(90)"/><use href="#lp" transform="rotate(120)"/><use href="#lp" transform="rotate(150)"/><use href="#lp" transform="rotate(180)"/><use href="#lp" transform="rotate(210)"/><use href="#lp" transform="rotate(240)"/><use href="#lp" transform="rotate(270)"/><use href="#lp" transform="rotate(300)"/><use href="#lp" transform="rotate(330)"/>
+</g>
+<!-- outer tiny stars on mandala -->
+<use href="#ts" x="300" y="28"/><use href="#ts" x="386.3" y="63.7"/><use href="#ts" x="422" y="150"/><use href="#ts" x="386.3" y="236.3"/><use href="#ts" x="300" y="272"/><use href="#ts" x="213.7" y="236.3"/><use href="#ts" x="178" y="150"/><use href="#ts" x="213.7" y="63.7"/>
+<!-- delicate dots on mandala -->
+<g fill="#dfb564">
+<circle cx="300" cy="42.2" r="1.7"/><circle cx="352.8" cy="57.1" r="1.4"/><circle cx="387.9" cy="97.2" r="1.4"/><circle cx="407.8" cy="150" r="1.7"/><circle cx="387.9" cy="202.8" r="1.4"/><circle cx="352.8" cy="242.9" r="1.4"/><circle cx="300" cy="257.8" r="1.7"/><circle cx="247.2" cy="242.9" r="1.4"/><circle cx="212.1" cy="202.8" r="1.4"/><circle cx="192.2" cy="150" r="1.7"/><circle cx="212.1" cy="97.2" r="1.4"/><circle cx="247.2" cy="57.1" r="1.4"/>
+<circle cx="300" cy="116.5" r="1.1" fill="#c99a8b"/><circle cx="300" cy="183.5" r="1.1" fill="#c99a8b"/>
+</g>
+<!-- SUN left -->
+<g transform="translate(228 150)">
+<use href="#sr" transform="rotate(0)"/><use href="#sr" transform="rotate(30)"/><use href="#sr" transform="rotate(60)"/><use href="#sr" transform="rotate(90)"/><use href="#sr" transform="rotate(120)"/><use href="#sr" transform="rotate(150)"/><use href="#sr" transform="rotate(180)"/><use href="#sr" transform="rotate(210)"/><use href="#sr" transform="rotate(240)"/><use href="#sr" transform="rotate(270)"/><use href="#sr" transform="rotate(300)"/><use href="#sr" transform="rotate(330)"/>
+<circle r="26.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.6"/>
+<circle r="19.5" fill="none" stroke="#c99a8b" stroke-width="1.2"/>
+<circle r="13.2" fill="#fbe09b" stroke="#a67c00" stroke-width="1.3"/>
+<circle r="6.5" fill="none" stroke="#dfb564" stroke-width="1.2" opacity="0.9"/>
+<circle r="2.4" fill="#dfb564" stroke="#a67c00" stroke-width="1.2"/>
+<!-- sun detail dots -->
+<g fill="#a67c00">
+<circle cx="0" cy="-19.5" r="1"/><circle cx="16.9" cy="-9.75" r="1"/><circle cx="16.9" cy="9.75" r="1"/><circle cx="0" cy="19.5" r="1"/><circle cx="-16.9" cy="9.75" r="1"/><circle cx="-16.9" cy="-9.75" r="1"/>
+</g>
+</g>
+<!-- MOON right -->
+<g transform="translate(372 150)">
+<!-- crescent facing left toward sun -->
+<path d="M -2.8 -20.2 A22 22 0 0 0 -2.8 20.2 A32 32 0 0 1 -2.8 -20.2 Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.6" stroke-linejoin="round"/>
+<!-- moon ornament dots -->
+<circle cx="-6.5" cy="-5.5" r="1.1" fill="#1b2550" opacity="0.95"/>
+<circle cx="-9.2" cy="4.2" r="0.9" fill="#c99a8b"/>
+<circle cx="-5.8" cy="10.2" r="0.8" fill="#dfb564"/>
+<!-- small gold dot on crescent -->
+<circle cx="-10.2" cy="-10.2" r="1" fill="#dfb564"/>
+</g>
+<!-- central eight-pointed star -->
+<g transform="translate(300 150)">
+<path d="M0 -18 L2.68 -6.47 L12.73 -12.73 L6.47 -2.68 L18 0 L6.47 2.68 L12.73 12.73 L2.68 6.47 L0 18 L-2.68 6.47 L-12.73 12.73 L-6.47 2.68 L-18 0 L-6.47 -2.68 L-12.73 -12.73 L-2.68 -6.47 Z" fill="#fbe09b" stroke="#dfb564" stroke-width="1.4" stroke-linejoin="round"/>
+<circle r="4.2" fill="#0f1633" stroke="#dfb564" stroke-width="1.3"/>
+<circle r="1.6" fill="#dfb564"/>
+<!-- tiny orbit dots around star -->
+<g fill="#dfb564">
+<circle cx="0" cy="-27" r="1.2"/><circle cx="19.1" cy="-19.1" r="1"/><circle cx="27" cy="0" r="1.2"/><circle cx="19.1" cy="19.1" r="1"/><circle cx="0" cy="27" r="1.2"/><circle cx="-19.1" cy="19.1" r="1"/><circle cx="-27" cy="0" r="1.2"/><circle cx="-19.1" cy="-19.1" r="1"/>
+</g>
+</g>
+<!-- connecting fine gold line between sun and moon through star -->
+<g stroke="#dfb564" stroke-width="1.2" stroke-linecap="round" opacity="0.95">
+<line x1="254.2" y1="150" x2="274" y2="150"/>
+<line x1="326" y1="150" x2="345.8" y2="150"/>
+<circle cx="282" cy="150" r="1.3" fill="#dfb564" stroke="none"/>
+<circle cx="318" cy="150" r="1.3" fill="#dfb564" stroke="none"/>
+</g>
+</svg>

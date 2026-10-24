@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^11.12.0
         version: 11.18.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      grabfold:
+        specifier: 0.1.0
+        version: 0.1.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       i18next:
         specifier: ^26.3.1
         version: 26.3.1(typescript@5.9.3)
@@ -1767,6 +1770,20 @@ packages:
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
     engines: {node: '>= 0.4'}
+
+  grabfold@0.1.0:
+    resolution: {integrity: sha512-Hhea2jLxbqrZYtFsbYIkFAlCZw0QP4ABQ4L8y7EB0IogoPa+x6McT2hQP8bxwF4fGsfzv4MhRj80Z1QdlLC50Q==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+      vue: '>=3.3'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      vue:
+        optional: true
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -4636,6 +4653,11 @@ snapshots:
   gltf-validator@2.0.0-dev.3.10: {}
 
   gopd@1.2.0: {}
+
+  grabfold@0.1.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+    optionalDependencies:
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
   has-flag@4.0.0: {}
 

@@ -1,0 +1,155 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <g id="petal">
+    <path d="M0 -21 C6.5 -11 8 2 0 21 C-8 2 -6.5 -11 0 -21Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M0 -10 L0 12" stroke="#c99a8b" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
+  </g>
+  <g id="coin">
+    <ellipse cx="0" cy="0" rx="16.5" ry="16.5" fill="#dfb564" stroke="#a67c00" stroke-width="1.6"/>
+    <ellipse cx="0" cy="0" rx="11.2" ry="11.2" fill="none" stroke="#fbe09b" stroke-width="1.4"/>
+    <ellipse cx="0" cy="0" rx="3.2" ry="3.2" fill="#fbe09b"/>
+    <circle cx="0" cy="0" r="1" fill="#a67c00" opacity="0.9"/>
+  </g>
+  <g id="s4">
+    <path d="M0 -6.5 L1.6 -1.6 L6.5 0 L1.6 1.6 L0 6.5 L-1.6 1.6 L-6.5 0 L-1.6 -1.6Z" fill="#dfb564"/>
+  </g>
+  <g id="s3">
+    <path d="M0 -4 L1 -1.1 L4 0 L1 1.1 L0 4 L-1 1.1 L-4 0 L-1 -1.1Z" fill="#fbe09b"/>
+  </g>
+  <line id="tl" x1="0" y1="-92" x2="0" y2="-102.5" stroke="#dfb564" stroke-width="1.6" stroke-linecap="round"/>
+  <line id="ts" x1="0" y1="-92" x2="0" y2="-97.5" stroke="#dfb564" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
+  <path id="moon" d="M-2.2 -5.2 A7 7 0 1 0 -2.2 5.2 A4.6 4.6 0 1 1 -2.2 -5.2Z" fill="none" stroke="#dfb564" stroke-width="1.3" stroke-linecap="round"/>
+</defs>
+
+<!-- mandala rings behind kalash -->
+<g opacity="0.95">
+  <circle cx="300" cy="165" r="98.5" fill="none" stroke="#dfb564" stroke-width="1.4"/>
+  <circle cx="300" cy="165" r="91.5" fill="none" stroke="#dfb564" stroke-width="1.2" opacity="0.95"/>
+  <circle cx="300" cy="165" r="77.5" fill="none" stroke="#dfb564" stroke-width="1" opacity="0.32"/>
+  <circle cx="300" cy="165" r="106" fill="none" stroke="#c99a8b" stroke-width="1" opacity="0.22"/>
+</g>
+<g transform="translate(300 165)">
+  <use href="#tl" transform="rotate(0)"/><use href="#ts" transform="rotate(15)"/>
+  <use href="#tl" transform="rotate(30)"/><use href="#ts" transform="rotate(45)"/>
+  <use href="#tl" transform="rotate(60)"/><use href="#ts" transform="rotate(75)"/>
+  <use href="#tl" transform="rotate(90)"/><use href="#ts" transform="rotate(105)"/>
+  <use href="#tl" transform="rotate(120)"/><use href="#ts" transform="rotate(135)"/>
+  <use href="#tl" transform="rotate(150)"/><use href="#ts" transform="rotate(165)"/>
+  <use href="#tl" transform="rotate(180)"/><use href="#ts" transform="rotate(195)"/>
+  <use href="#tl" transform="rotate(210)"/><use href="#ts" transform="rotate(225)"/>
+  <use href="#tl" transform="rotate(240)"/><use href="#ts" transform="rotate(255)"/>
+  <use href="#tl" transform="rotate(270)"/><use href="#ts" transform="rotate(285)"/>
+  <use href="#tl" transform="rotate(300)"/><use href="#ts" transform="rotate(315)"/>
+  <use href="#tl" transform="rotate(330)"/><use href="#ts" transform="rotate(345)"/>
+</g>
+<!-- delicate dots on mandala -->
+<g fill="#dfb564">
+  <circle cx="300" cy="63.5" r="1.7"/><circle cx="351" cy="77.2" r="1.3"/><circle cx="385" cy="114" r="1.7"/><circle cx="385" cy="216" r="1.3"/>
+  <circle cx="351" cy="252.8" r="1.7"/><circle cx="249" cy="252.8" r="1.3"/><circle cx="215" cy="216" r="1.7"/><circle cx="215" cy="114" r="1.3"/>
+  <circle cx="249" cy="77.2" r="1.7"/><circle cx="300" cy="266.5" r="1.7"/>
+</g>
+<!-- outer tiny dots -->
+<g fill="#fbe09b" opacity="0.9">
+  <circle cx="300" cy="71" r="1"/><circle cx="300" cy="259" r="1"/>
+  <circle cx="214" cy="123" r="1"/><circle cx="386" cy="123" r="1"/>
+</g>
+
+<!-- stars and moons around -->
+<use href="#s4" x="112" y="82"/><use href="#s3" x="98" y="148"/><use href="#s3" x="138" y="208"/>
+<use href="#s4" x="488" y="84"/><use href="#s3" x="505" y="142"/><use href="#s3" x="465" y="218"/>
+<use href="#s3" x="168" y="95"/><use href="#s3" x="432" y="98"/>
+<use href="#s4" x="172" y="232"/><use href="#s4" x="428" y="232"/>
+<g transform="translate(125 118)"><use href="#moon"/></g>
+<g transform="translate(475 120)"><use href="#moon"/></g>
+<g transform="translate(118 182) rotate(-22)"><use href="#moon"/></g>
+<g transform="translate(482 182) rotate(22)"><use href="#moon"/></g>
+
+<!-- fine side ornament vines -->
+<g fill="none" stroke="#dfb564" stroke-width="1.3" stroke-linecap="round" opacity="0.9">
+  <path d="M155 165 Q168 150 168 165 Q168 180 155 165"/>
+  <path d="M445 165 Q432 150 432 165 Q432 180 445 165"/>
+  <circle cx="168" cy="165" r="1.8" fill="#dfb564" stroke="none"/>
+  <circle cx="432" cy="165" r="1.8" fill="#dfb564" stroke="none"/>
+  <path d="M150 165 H188" stroke-width="1" opacity="0.6"/>
+  <path d="M412 165 H450" stroke-width="1" opacity="0.6"/>
+  <circle cx="145" cy="165" r="1.2" fill="#fbe09b" stroke="none"/>
+  <circle cx="455" cy="165" r="1.2" fill="#fbe09b" stroke="none"/>
+</g>
+
+<!-- kalash body -->
+<path d="M245.5 115.5 C245.5 107 262 104.2 300 104.2 C338 104.2 354.5 107 354.5 115.5 L347.8 122.8 L341.2 135.5 C350.2 152.2 369.5 172.5 350.8 204.2 C341.2 220.5 329.5 230.2 322.2 238.2 L331 244.8 L269 244.8 L277.8 238.2 C270.5 230.2 258.8 220.5 249.2 204.2 C230.5 172.5 249.8 152.2 258.8 135.5 L252.2 122.8Z" fill="#0f1633" stroke="#dfb564" stroke-width="2.1" stroke-linejoin="round"/>
+<!-- rim -->
+<ellipse cx="300" cy="115.5" rx="54.8" ry="10.2" fill="#1b2550" stroke="#dfb564" stroke-width="1.8"/>
+<ellipse cx="300" cy="115.5" rx="44.5" ry="7.2" fill="#0f1633" stroke="#dfb564" stroke-width="1.3"/>
+<ellipse cx="300" cy="115.5" rx="38" ry="4.5" fill="#1b2550" opacity="0.9"/>
+<!-- neck band -->
+<g fill="none" stroke="#dfb564" stroke-width="1.4">
+  <path d="M257.5 128.5 Q300 138 342.5 128.5"/>
+  <path d="M255.8 134.2 Q300 144 344.2 134.2" stroke-width="1.2" opacity="0.9"/>
+</g>
+<g fill="#dfb564">
+  <circle cx="300" cy="131.5" r="2.1"/><circle cx="284" cy="130.2" r="1.2"/><circle cx="316" cy="130.2" r="1.2"/>
+  <circle cx="272" cy="128" r="1"/><circle cx="328" cy="128" r="1"/>
+</g>
+<!-- belly ornamental band with lotus -->
+<g fill="none" stroke="#dfb564" stroke-width="1.4" opacity="0.95">
+  <path d="M254.5 182 Q300 192 345.5 182"/>
+  <path d="M250.2 189.5 Q300 200 349.8 189.5"/>
+</g>
+<g fill="#fbe09b">
+  <circle cx="300" cy="185.5" r="1.4"/><circle cx="285" cy="186.5" r="1"/><circle cx="315" cy="186.5" r="1"/>
+  <circle cx="270" cy="184" r="0.9"/><circle cx="330" cy="184" r="0.9"/>
+</g>
+<!-- central lotus emblem on kalash -->
+<g transform="translate(300 203)">
+  <use href="#petal" transform="scale(0.62)"/>
+  <use href="#petal" transform="rotate(60) scale(0.62)"/>
+  <use href="#petal" transform="rotate(120) scale(0.62)"/>
+  <use href="#petal" transform="rotate(180) scale(0.62)"/>
+  <use href="#petal" transform="rotate(240) scale(0.62)"/>
+  <use href="#petal" transform="rotate(300) scale(0.62)"/>
+  <circle cx="0" cy="0" r="4.2" fill="#dfb564" stroke="#a67c00" stroke-width="1.2"/>
+  <circle cx="0" cy="0" r="1.6" fill="#fbe09b"/>
+</g>
+<!-- base lotus pedestal under kalash -->
+<g transform="translate(300 250)">
+  <use href="#petal" transform="translate(-18 0) rotate(180) scale(0.55)"/>
+  <use href="#petal" transform="translate(0 0) rotate(180) scale(0.62)"/>
+  <use href="#petal" transform="translate(18 0) rotate(180) scale(0.55)"/>
+  <ellipse cx="0" cy="4.5" rx="38" ry="5.2" fill="none" stroke="#dfb564" stroke-width="1.3"/>
+</g>
+<!-- vertical side dots on kalash -->
+<g fill="#dfb564" opacity="0.85">
+  <circle cx="268" cy="168" r="1.1"/><circle cx="268" cy="176" r="1.1"/><circle cx="268" cy="184" r="1.1"/>
+  <circle cx="332" cy="168" r="1.1"/><circle cx="332" cy="176" r="1.1"/><circle cx="332" cy="184" r="1.1"/>
+</g>
+
+<!-- overflowing lotus petals at mouth -->
+<use href="#petal" transform="translate(277 105) rotate(-38) scale(0.9)"/>
+<use href="#petal" transform="translate(323 105) rotate(38) scale(0.9)"/>
+<use href="#petal" transform="translate(292 92) rotate(-14) scale(0.82)"/>
+<use href="#petal" transform="translate(308 92) rotate(14) scale(0.82)"/>
+<use href="#petal" transform="translate(265 116) rotate(-68) scale(0.72)"/>
+<use href="#petal" transform="translate(335 116) rotate(68) scale(0.72)"/>
+
+<!-- overflowing coins -->
+<g transform="translate(300 98)"><use href="#coin"/></g>
+<g transform="translate(283 107)"><use href="#coin"/></g>
+<g transform="translate(317 107)"><use href="#coin"/></g>
+<g transform="translate(300 114.5)"><ellipse cx="0" cy="0" rx="16.5" ry="5.8" fill="#dfb564" stroke="#a67c00" stroke-width="1.4"/><ellipse cx="0" cy="-1.2" rx="11" ry="3.2" fill="none" stroke="#fbe09b" stroke-width="1.2"/></g>
+
+<!-- scattered coins around base -->
+<g transform="translate(205 208) rotate(-12)"><use href="#coin"/></g>
+<g transform="translate(395 207) rotate(14)"><use href="#coin" transform="scale(0.95)"/></g>
+<g transform="translate(182 138) rotate(-18)"><g transform="scale(0.72)"><use href="#coin"/></g></g>
+<g transform="translate(418 136) rotate(18)"><g transform="scale(0.72)"><use href="#coin"/></g></g>
+
+<!-- tiny sparkle dots near coins -->
+<g fill="#fbe09b">
+  <circle cx="228" cy="192" r="1.2"/><circle cx="372" cy="191" r="1.2"/><circle cx="200" cy="122" r="1.1"/><circle cx="400" cy="122" r="1.1"/>
+  <circle cx="218" cy="227" r="1"/><circle cx="382" cy="226" r="1"/>
+</g>
+<g fill="#dfb564" opacity="0.9">
+  <circle cx="235" cy="200" r="1"/><circle cx="365" cy="199" r="1"/>
+</g>
+</svg>

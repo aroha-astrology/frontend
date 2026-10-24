@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300">
+<defs>
+<path id="lp" d="M0 -20 C6.8 -11 6.8 8 0 20 C-6.8 8 -6.8 -11 0 -20Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.5" stroke-linejoin="round"/>
+<path id="lps" d="M0 -13 C5 -7 5 5 0 13 C-5 5 -5 -7 0 -13Z" fill="#fbe09b" stroke="#dfb564" stroke-width="1.2" stroke-linejoin="round"/>
+<path id="la" d="M0 -10 C4.6 -3.6 4.6 3.6 0 10 C-4.6 3.6 -4.6 -3.6 0 -10Z" fill="#dfb564" stroke="#a67c00" stroke-width="0.9" stroke-linejoin="round"/>
+<path id="lb" d="M0 -8 C3.9 -3 3.9 3 0 8 C-3.9 3 -3.9 -3 0 -8Z" fill="#fbe09b" stroke="#dfb564" stroke-width="0.9" stroke-linejoin="round"/>
+<line id="tk" x1="0" y1="-92" x2="0" y2="-101.5" stroke="#dfb564" stroke-width="1.5" stroke-linecap="round"/>
+<path id="star" d="M0 -4.8 L1.2 -1.2 L4.8 0 L1.2 1.2 L0 4.8 L-1.2 1.2 L-4.8 0 L-1.2 -1.2Z" fill="#dfb564"/>
+</defs>
+<!-- mandala rings behind tree -->
+<circle cx="300" cy="158" r="96.5" fill="none" stroke="#dfb564" stroke-width="1.6"/>
+<circle cx="300" cy="158" r="90.5" fill="none" stroke="#dfb564" stroke-width="1.2"/>
+<circle cx="300" cy="158" r="2.2" fill="#dfb564"/>
+<!-- zodiac ticks -->
+<g>
+<use href="#tk" transform="translate(300 158) rotate(0)"/>
+<use href="#tk" transform="translate(300 158) rotate(30)"/>
+<use href="#tk" transform="translate(300 158) rotate(60)"/>
+<use href="#tk" transform="translate(300 158) rotate(90)"/>
+<use href="#tk" transform="translate(300 158) rotate(120)"/>
+<use href="#tk" transform="translate(300 158) rotate(150)"/>
+<use href="#tk" transform="translate(300 158) rotate(180)"/>
+<use href="#tk" transform="translate(300 158) rotate(210)"/>
+<use href="#tk" transform="translate(300 158) rotate(240)"/>
+<use href="#tk" transform="translate(300 158) rotate(270)"/>
+<use href="#tk" transform="translate(300 158) rotate(300)"/>
+<use href="#tk" transform="translate(300 158) rotate(330)"/>
+</g>
+<!-- small dots on mandala -->
+<g fill="#dfb564">
+<circle cx="300" cy="62.5" r="1.6"/>
+<circle cx="348" cy="74.5" r="1.6"/>
+<circle cx="383.5" cy="110" r="1.6"/>
+<circle cx="383.5" cy="206" r="1.6"/>
+<circle cx="348" cy="241.5" r="1.6"/>
+<circle cx="252" cy="241.5" r="1.6"/>
+<circle cx="216.5" cy="206" r="1.6"/>
+<circle cx="216.5" cy="110" r="1.6"/>
+<circle cx="252" cy="74.5" r="1.6"/>
+</g>
+<!-- stars / ornaments -->
+<g>
+<use href="#star" transform="translate(83 84) rotate(15)"/>
+<use href="#star" transform="translate(517 84) rotate(15)"/>
+<use href="#star" transform="translate(98 198) scale(0.75)"/>
+<use href="#star" transform="translate(502 198) scale(0.75)"/>
+<use href="#star" transform="translate(300 76) scale(0.7)"/>
+</g>
+<!-- delicate outer dots -->
+<g fill="#c99a8b">
+<circle cx="72" cy="122" r="1.2"/>
+<circle cx="528" cy="122" r="1.2"/>
+<circle cx="88" cy="152" r="1"/>
+<circle cx="512" cy="152" r="1"/>
+</g>
+<!-- SUN left -->
+<g transform="translate(132 108)">
+<circle r="13.5" fill="#fbe09b" stroke="#dfb564" stroke-width="1.6"/>
+<circle r="20.5" fill="none" stroke="#dfb564" stroke-width="1.2"/>
+<g stroke="#dfb564" stroke-width="1.4" stroke-linecap="round">
+<line x1="0" y1="-20.5" x2="0" y2="-26.5"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(30)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(60)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(90)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(120)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(150)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(180)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(210)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(240)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(270)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(300)"/>
+<line x1="0" y1="-20.5" x2="0" y2="-26.5" transform="rotate(330)"/>
+</g>
+<circle r="1.3" fill="#dfb564" transform="translate(0 -8)"/>
+</g>
+<!-- MOON right -->
+<g transform="translate(468 108)">
+<circle r="20.5" fill="none" stroke="#dfb564" stroke-width="1.2"/>
+<path d="M0 -13.5 A13.5 13.5 0 1 0 0 13.5 A9.5 9.5 0 0 0 0 -13.5Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="2.2" cy="-4.5" r="1.1" fill="#dfb564" opacity="0.95"/>
+<circle cx="-1.5" cy="2.5" r="0.9" fill="#dfb564" opacity="0.95"/>
+</g>
+<!-- tree branches and roots -->
+<g fill="none" stroke="#dfb564" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+<!-- branches -->
+<path d="M297 185 C282 182 256 177 236 164 C225 156 216 143 208 133"/>
+<path d="M303 185 C318 182 344 177 364 164 C375 156 384 143 392 133"/>
+<path d="M296.5 174 C283 168.5 268 157 253 138 C245 127.5 240 115 238 104.2"/>
+<path d="M303.5 174 C317 168.5 332 157 347 138 C355 127.5 360 115 362 104.2"/>
+<path d="M298 168 C290 158 284 144 279 129.5 C276 119 275 109.5 274 100"/>
+<path d="M302 168 C310 158 316 144 321 129.5 C324 119 325 109.5 326 100"/>
+<path d="M300 168 C300 149 299.5 123 300 97.5"/>
+<!-- secondary twigs -->
+<path d="M236 164 C228 158 222 149 218 140" stroke-width="1.3"/>
+<path d="M364 164 C372 158 378 149 382 140" stroke-width="1.3"/>
+<path d="M253 138 C247 131 243 122 241 113" stroke-width="1.3"/>
+<path d="M347 138 C353 131 357 122 359 113" stroke-width="1.3"/>
+<!-- roots -->
+<path d="M298.5 232 C287 240.5 271.5 248 255 248 C242 248 231.5 241 223.5 233"/>
+<path d="M301.5 232 C313 240.5 328.5 248 345 248 C358 248 368.5 241 376.5 233"/>
+<path d="M297 232 C290 242 281.5 251.5 272 258 C265 262 258 263.2 252 261"/>
+<path d="M303 232 C310 242 318.5 251.5 328 258 C335 262 342 263.2 348 261"/>
+<path d="M300 232 C299.2 242 300 252 300 263.5"/>
+<path d="M295 232 C288 238 279 243 270 244.5" stroke-width="1.3"/>
+<path d="M305 232 C312 238 321 243 330 244.5" stroke-width="1.3"/>
+</g>
+<!-- trunk solid -->
+<path d="M300 232 L295.2 205 L297 168 L303 168 L304.8 205Z" fill="#1b2550" stroke="#dfb564" stroke-width="1.6" stroke-linejoin="round"/>
+<!-- trunk ornament -->
+<g fill="none" stroke="#dfb564" stroke-width="1.2" stroke-linecap="round">
+<path d="M299 210 C298 200 298 188 300 178 C302 188 302 200 301 210"/>
+<circle cx="300" cy="193" r="1.3" fill="#dfb564" stroke="none"/>
+<circle cx="300" cy="203.5" r="1" fill="#c99a8b" stroke="none"/>
+</g>
+<!-- leaves -->
+<g>
+<use href="#la" transform="translate(208 133) rotate(-42)"/>
+<use href="#la" transform="translate(392 133) rotate(42)"/>
+<use href="#lb" transform="translate(218 140) rotate(-30)"/>
+<use href="#lb" transform="translate(382 140) rotate(30)"/>
+<use href="#la" transform="translate(238 104.2) rotate(-32)"/>
+<use href="#la" transform="translate(362 104.2) rotate(32)"/>
+<use href="#lb" transform="translate(241 113) rotate(-18)"/>
+<use href="#lb" transform="translate(359 113) rotate(18)"/>
+<use href="#la" transform="translate(274 100) rotate(-12)"/>
+<use href="#la" transform="translate(326 100) rotate(12)"/>
+<use href="#lb" transform="translate(300 97.5) rotate(0)"/>
+<use href="#la" transform="translate(285 124) rotate(-45)"/>
+<use href="#la" transform="translate(315 124) rotate(45)"/>
+<use href="#lb" transform="translate(236 164) rotate(-55)"/>
+<use href="#lb" transform="translate(364 164) rotate(55)"/>
+<use href="#la" transform="translate(253 138) rotate(-48)"/>
+<use href="#la" transform="translate(347 138) rotate(48)"/>
+</g>
+<!-- lotus at base -->
+<g transform="translate(300 232.5)">
+<!-- outer petals 5 -->
+<use href="#lp" transform="rotate(-54) translate(0 -1)"/>
+<use href="#lp" transform="rotate(-27) translate(0 -1)"/>
+<use href="#lp" transform="rotate(0) translate(0 -1)"/>
+<use href="#lp" transform="rotate(27) translate(0 -1)"/>
+<use href="#lp" transform="rotate(54) translate(0 -1)"/>
+<!-- inner small petals 3 -->
+<use href="#lps" transform="rotate(-22) translate(0 -6)"/>
+<use href="#lps" transform="rotate(0) translate(0 -7)"/>
+<use href="#lps" transform="rotate(22) translate(0 -6)"/>
+<!-- center pod -->
+<ellipse cx="0" cy="5.2" rx="9.2" ry="5.8" fill="#dfb564" stroke="#a67c00" stroke-width="1.2"/>
+<g fill="#1b2550" opacity="0.95">
+<circle cx="-3.2" cy="5.2" r="1"/>
+<circle cx="0" cy="5.2" r="1"/>
+<circle cx="3.2" cy="5.2" r="1"/>
+<circle cx="-1.6" cy="7.2" r="0.8"/>
+<circle cx="1.6" cy="7.2" r="0.8"/>
+</g>
+<ellipse cx="0" cy="5.2" rx="9.2" ry="5.8" fill="none" stroke="#dfb564" stroke-width="0.9"/>
+<!-- base gold arc -->
+<path d="M-24 9 C-12 15.5 12 15.5 24 9" fill="none" stroke="#dfb564" stroke-width="1.4" stroke-linecap="round"/>
+<path d="M-18 12.5 C-9 16 9 16 18 12.5" fill="none" stroke="#dfb564" stroke-width="1.1" stroke-linecap="round"/>
+</g>
+<!-- bottom dots ornament -->
+<g fill="#dfb564">
+<circle cx="300" cy="260" r="1.4"/>
+<circle cx="294" cy="258.5" r="1"/>
+<circle cx="306" cy="258.5" r="1"/>
+</g>
+</svg>

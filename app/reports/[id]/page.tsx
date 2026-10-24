@@ -4,7 +4,8 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Clock, Lock, Star } from "lucide-react";
+import dynamic from "next/dynamic";
+import { AlertTriangle, ArrowLeft, BookOpen, Clock, Lock, Star } from "lucide-react";
 import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
 import Masonry from "@/components/ui/Masonry";
@@ -20,6 +21,7 @@ import { DESIGNED_SCREENS } from "@/components/reports/designed-screens";
 import { useReport, type ReportReady } from "@/hooks/useReport";
 import { useTour, useTourReady } from "@/providers/tour-provider";
 import { useAuth } from "@/providers/auth-provider";
+import { useNewFeature } from "@/hooks/useFeature";
 import {
   humanizeKey,
   isPlanetStrengthArray,
@@ -50,6 +52,9 @@ function sectionHeadingKey(reportKey: string, id: string): string {
 
 type ReportSection = ReportReady["sections"][number];
 
+/** The book (grabfold and its artwork) is only fetched when someone opens it. */
+const ReportBook = dynamic(() => import("@/components/reports/book/ReportBook"), { ssr: false });
+
 /**
  * The reading view for a single purchased report. No profile switcher here —
  * the `id` in the URL already pins a specific profile's report; if the
@@ -63,7 +68,10 @@ export default function ReportDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { state, data, failedError, owedPaise, retry } = useReport(id, i18n.language);
-  const { user } = useAuth();
+  const { user, activeProfile } = useAuth();
+  const { enabled: bookEnabled } = useNewFeature("nav.reportBook");
+  const { enabled: handwriting } = useNewFeature("nav.reportBookHandwriting");
+  const [bookOpen, setBookOpen] = useState(false);
 
   // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (6 min) — long enough that a
   // user idly scrolls the page while it's essentially empty. PageTransition only resets scroll
@@ -437,6 +445,17 @@ export default function ReportDetailPage() {
         {ready && !pdf.capturing && (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <PdfDownloadButton onClick={pdf.download} />
+            {bookEnabled && (
+              <button
+                type="button"
+                onClick={() => setBookOpen(true)}
+                data-testid="report-book-open"
+                className="flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 text-xs font-semibold text-gold"
+              >
+                <BookOpen size={14} />
+                {t("reports.book.open", "Read as a book")}
+              </button>
+            )}
             {!hasRatedReport(id) && !showRatingModal && (
               <button
                 type="button"
@@ -448,6 +467,19 @@ export default function ReportDetailPage() {
               </button>
             )}
           </div>
+        )}
+
+        {bookOpen && data && (
+          <ReportBook
+            title={title}
+            handwriting={handwriting}
+            name={activeProfile?.displayName ?? user?.displayName ?? null}
+            reportKey={data.reportKey}
+            sections={data.sections}
+            scores={data.scores}
+            headings={data.sections.map(resolveHeading)}
+            onClose={() => setBookOpen(false)}
+          />
         )}
 
         {showRatingModal && <ReportRatingSheet reportId={id} onClose={closeRatingModal} />}

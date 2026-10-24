@@ -386,6 +386,24 @@ export const resources = {
         },
         statsCount: "{{count}} reports generated",
         coversTitle: "What this report covers",
+        book: {
+          open: "Read as a book",
+          prev: "Previous page",
+          next: "Next page",
+          hint: "Drag a page, or tap the arrows, to turn it",
+          preparedFor: "Prepared for",
+          contents: "Contents",
+          backLine: "May the stars walk with you.",
+          closing: "The stars incline; they do not compel. Walk gently, and choose well.",
+          disclaimer: "This reading is traditional astrology offered for reflection. It is not medical, legal or financial advice.",
+          chart: {
+            scores: "Your report at a glance",
+            planets: "Strength of your planets",
+            windows: "Your best periods",
+            arc: "The arc of your years",
+          },
+          level: { HIGH: "strong", MEDIUM: "moderate", LOW: "gentle" },
+        },
         covers: {
           marriage: [
             "When is marriage most likely for me, and which years carry the strongest timing?",
@@ -2887,6 +2905,24 @@ export const resources = {
         },
         statsCount: "{{count}} रिपोर्ट्स तैयार की गईं",
         coversTitle: "इस रिपोर्ट में क्या शामिल है",
+        book: {
+          open: "किताब की तरह पढ़ें",
+          prev: "पिछला पन्ना",
+          next: "अगला पन्ना",
+          hint: "पन्ना खींचें, या तीर दबाकर पलटें",
+          preparedFor: "इनके लिए तैयार",
+          contents: "विषय-सूची",
+          backLine: "सितारे आपके साथ चलें।",
+          closing: "सितारे झुकाव देते हैं, बाध्य नहीं करते। धीरे चलें और सोच-समझकर चुनें।",
+          disclaimer: "यह रीडिंग पारंपरिक ज्योतिष है, चिंतन के लिए। यह चिकित्सा, कानूनी या वित्तीय सलाह नहीं है।",
+          chart: {
+            scores: "आपकी रिपोर्ट एक नज़र में",
+            planets: "आपके ग्रहों का बल",
+            windows: "आपके श्रेष्ठ समय",
+            arc: "आपके वर्षों की रेखा",
+          },
+          level: { HIGH: "प्रबल", MEDIUM: "मध्यम", LOW: "सौम्य" },
+        },
         covers: {
           marriage: [
             "मेरी शादी कब होने की सबसे ज़्यादा संभावना है, और किन वर्षों में समय सबसे शुभ है?",

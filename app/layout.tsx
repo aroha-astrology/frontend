@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Kalam } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -69,6 +69,16 @@ const notoDevanagari = Noto_Sans_Devanagari({
   display: "swap",
 });
 
+// The report book's handwriting (the reader's name on the cover, pull-quotes). Kalam draws both
+// Latin and Devanagari. Not preloaded: it is only fetched when a book is opened.
+const kalam = Kalam({
+  subsets: ["latin", "devanagari"],
+  variable: "--font-hand",
+  display: "swap",
+  weight: ["400", "700"],
+  preload: false,
+});
+
 const APP_DESCRIPTION =
   "Aroha Astrology in your browser: free Kundli, daily Panchang, Kundli matching and personalised reports. Sign in with the same account as the Android app.";
 
@@ -109,7 +119,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable}`}>
+      <body className={`${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>

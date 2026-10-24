@@ -52,27 +52,28 @@ interface ReportView {
   failedError: string | null;
   /** What the wallet still owes while the report is "locked". */
   owedPaise?: number;
+  refreshing: boolean;
 }
 
 export function useReport(id: string | null, language: string) {
   const { firebaseUser, loading: authLoading, user } = useAuth();
-  const [view, setView] = useState<ReportView>({ state: "idle", data: null, failedError: null });
+  const [view, setView] = useState<ReportView>({ state: "idle", data: null, failedError: null, refreshing: false });
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (authLoading || !firebaseUser || id === null) {
-      setView({ state: "idle", data: null, failedError: null });
+      setView({ state: "idle", data: null, failedError: null, refreshing: false });
       return;
     }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const cacheKey = user ? buildKey("report", user.id, id, language) : null;
-    const cached = cacheKey ? cacheGet<ReportReady>(cacheKey) : null;
+    let cached = cacheKey ? cacheGet<ReportReady>(cacheKey) : null;
     if (cached) {
-      setView({ state: "ready", data: cached, failedError: null });
+      setView({ state: "ready", data: cached, failedError: null, refreshing: false });
     } else {
-      setView({ state: "loading", data: null, failedError: null });
+      setView({ state: "loading", data: null, failedError: null, refreshing: false });
     }
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -86,25 +87,32 @@ export function useReport(id: string | null, language: string) {
           if (cancelled) return;
           consecutiveErrors = 0;
           if (res.status === "ready") {
-            setView({ state: "ready", data: res, failedError: null });
+            setView({ state: "ready", data: res, failedError: null, refreshing: false });
             if (cacheKey) cacheSet(cacheKey, res, Date.now() + SWR_TTL_MS);
             return;
           }
           if (res.status === "locked") {
             // Never keep showing a cached copy of a report that is now locked.
             if (cacheKey) cachePurge((key) => key === cacheKey);
-            setView({ state: "locked", data: null, failedError: null, owedPaise: res.owedPaise });
+            setView({ state: "locked", data: null, failedError: null, owedPaise: res.owedPaise, refreshing: false });
             return;
           }
           if (res.status === "failed") {
-            if (!cached) setView({ state: "failed", data: null, failedError: res.error });
+            if (!cached) setView({ state: "failed", data: null, failedError: res.error, refreshing: false });
             return;
           }
           // "generating" — keep polling until ready/failed or timed out.
-          if (!cached) setView((v) => ({ ...v, state: "generating" }));
+          const refreshing = res.refreshing === true;
+          if (refreshing) {
+            // An old report is being rewritten with the corrected chart: the owner's rule is
+            // that the old text is never shown again, so drop any cached copy of it too.
+            if (cacheKey) cachePurge((key) => key === cacheKey);
+            cached = null;
+          }
+          if (!cached) setView((v) => ({ ...v, state: "generating", refreshing }));
           const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
           if (Date.now() + delay > deadline) {
-            if (!cached) setView((v) => ({ ...v, state: "slow" }));
+            if (!cached) setView((v) => ({ ...v, state: "slow", refreshing: false }));
             return;
           }
           timer = setTimeout(poll, delay);
@@ -118,7 +126,7 @@ export function useReport(id: string | null, language: string) {
             timer = setTimeout(poll, delay);
             return;
           }
-          setView((v) => ({ ...v, state: "error" }));
+          setView((v) => ({ ...v, state: "error", refreshing: false }));
         });
     };
 

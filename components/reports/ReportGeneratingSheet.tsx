@@ -11,7 +11,7 @@ import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
  * plain rotating-ring GeneratingSpinner if the illustration at /reports/writing.gif
  * fails to load, same imgError pattern as ReportRowVisual/GemVisual.
  */
-export default function ReportGeneratingSheet({ onClose }: { onClose: () => void }) {
+export default function ReportGeneratingSheet({ onClose, refreshing }: { onClose: () => void; refreshing?: boolean }) {
   const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
 
@@ -30,8 +30,8 @@ export default function ReportGeneratingSheet({ onClose }: { onClose: () => void
           />
         )}
         <div className="flex flex-col gap-2">
-          <p className="text-base font-semibold text-foreground">{t("reports.view.generatingTitle")}</p>
-          <p className="text-sm text-muted">{t("reports.view.generatingBody")}</p>
+          <p data-testid={refreshing ? "report-refreshing" : undefined} className="text-base font-semibold text-foreground">{t(refreshing ? "reports.view.refreshingTitle" : "reports.view.generatingTitle")}</p>
+          <p className="text-sm text-muted">{t(refreshing ? "reports.view.refreshingBody" : "reports.view.generatingBody")}</p>
         </div>
         <p className="text-xs text-muted/80 leading-relaxed max-w-xs">{t("reports.view.generatingHint")}</p>
       </div>

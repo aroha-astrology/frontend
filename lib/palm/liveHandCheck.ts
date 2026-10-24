@@ -47,6 +47,9 @@ export function classifyFraming(landmarks: NormalizedLandmark[] | null): HandFra
  * VIDEO running mode. One detect every INTERVAL_MS is cheap and reuses the existing wrapper
  * unchanged; switch to VIDEO/LIVE_STREAM mode if the hint ever feels laggy on low-end devices.
  */
+/** Long edge of the copy the hand detector looks at. */
+const DETECT_LONG_EDGE = 960;
+
 export interface FrameHandCheckResult {
   framing: HandFraming;
   landmarks: NormalizedLandmark[] | null;
@@ -63,8 +66,11 @@ export async function checkFrameForHandDetailed(
     if (!video.videoWidth || !video.videoHeight) {
       return { framing: "none", landmarks: null, sharpness: 0 };
     }
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Detection does not need 4K: landmarks come back as fractions of the frame, so a 960 px copy
+    // gives the same answer in a fraction of the time (a 4K canvas made every check a long task).
+    const scale = Math.min(1, DETECT_LONG_EDGE / Math.max(video.videoWidth, video.videoHeight));
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return { framing: "none", landmarks: null, sharpness: 0 };
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Zap, ZapOff, Upload, RotateCcw, AlertTriangle } from "lucide-react";
 import { useCamera } from "@/hooks/useCamera";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
-import { sampleFrameBrightness, isLowLight, captureFrameToJpeg, looksBlurry, FINGERTIP_BOX } from "@/lib/palm/capture";
+import { sampleFrameBrightness, isLowLight, captureFrame, canvasLooksBlurry, looksBlurry, optimizePhoto, MAX_UPLOAD_BYTES, FINGERTIP_BOX } from "@/lib/palm/capture";
 import { computeMountRelief } from "@/lib/palm/computeMountRelief";
 import {
   checkFrameForHandDetailed,
@@ -74,6 +74,13 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [question, setQuestion] = useState("");
   // The demo photo for the current step, shown before every shot until "Got it".
   const [guideOpen, setGuideOpen] = useState(true);
+  /** A gallery photo is being prepared (decoded, shrunk) before the review screen. */
+  const [preparing, setPreparing] = useState(false);
+  /** The shutter was just pressed and the frame is being encoded: the screen answers at once, and
+   * the hand-detection loop stays off so it does not compete for the same processor. */
+  const [capturing, setCapturing] = useState(false);
+  /** Where the reader last tapped to focus (0-1 of the preview), for the ring that confirms it. */
+  const [focusRing, setFocusRing] = useState<{ x: number; y: number; id: number } | null>(null);
   // The live picture's real size. The preview shows the WHOLE frame (object-contain) in a box of
   // exactly this shape, so what the reader sees is what the saved photo holds (it used to be
   // cropped to fill the screen, and the saved photo looked "zoomed out" next to it).
@@ -133,47 +140,52 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
-  // Low-light sampling loop.
+  // Low-light sampling: a few times a second, and only while the camera is live. Every animation
+  // frame redrew the 4K video into a 32 px canvas (40-70 ms each on a slow phone), which competed
+  // with the shutter for the same processor.
   useEffect(() => {
-    if (camera.status !== "granted") return;
-    const loop = () => {
+    if (camera.status !== "granted" || reviewing || capturing) return;
+    const timer = setInterval(() => {
       const video = videoRef.current;
       const canvas = brightnessCanvasRef.current;
       if (video && canvas) {
         const b = sampleFrameBrightness(video, canvas);
         if (b !== null) setBrightness(b);
       }
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [camera.status]);
+    }, 400);
+    return () => clearInterval(timer);
+  }, [camera.status, reviewing, capturing]);
 
   const handleManualCapture = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || camera.status !== "granted") return;
+    if (!video || camera.status !== "granted" || capturing) return; // a double tap is one photo
     try {
+      setCapturing(true);
       // The fingertips shot is cut to the box drawn on the preview: only the four fingertips go.
-      const blob = await captureFrameToJpeg(
+      const { blob, canvas } = await captureFrame(
         video,
-        0.92,
-        2560,
+        undefined,
+        undefined,
         slot === "primaryFingertips" ? FINGERTIP_BOX : undefined,
       );
-      const blurry = (await looksBlurry(blob)) === true;
-      setReviewing({ blob, previewUrl: URL.createObjectURL(blob), blurry });
+      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
+      // The blur check runs AFTER the review screen is up, on the canvas already in memory.
+      setTimeout(() => {
+        const blurry = canvasLooksBlurry(canvas) === true;
+        setReviewing((r) => (r && r.blob === blob ? { ...r, blurry } : r));
+      }, 0);
     } catch {
       setUploadError(t("palm.capture.captureError"));
+    } finally {
+      setCapturing(false);
     }
-  }, [camera.status, slot, t]);
+  }, [camera.status, slot, capturing, t]);
 
   // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
   // Paused while reviewing a shot (nothing to guide), while the demo photo is up, and torn down
   // with the camera.
   useEffect(() => {
-    if (camera.status !== "granted" || reviewing || guideOpen) {
+    if (camera.status !== "granted" || reviewing || guideOpen || capturing) {
       setFraming("none");
       return;
     }
@@ -222,14 +234,34 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [camera.status, reviewing, guideOpen, autoCaptureOn, handleManualCapture]);
+  }, [camera.status, reviewing, guideOpen, capturing, autoCaptureOn, handleManualCapture]);
 
-  const handleFileFallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setReviewing({ blob: file, previewUrl: URL.createObjectURL(file) });
-  }, []);
+  // A gallery photo is shrunk and re-encoded before anything is uploaded: phone photos are often
+  // 5-12 MB (or HEIC) and the server refuses anything over 6 MB.
+  const handleFileFallback = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      setUploadError(null);
+      setPreparing(true);
+      try {
+        const blob = await optimizePhoto(file);
+        const blurry = (await looksBlurry(blob)) === true;
+        setReviewing({ blob, previewUrl: URL.createObjectURL(blob), blurry });
+      } catch {
+        // The browser could not read it (an unsupported format): only a small JPEG is safe to send as-is.
+        if (file.type === "image/jpeg" && file.size <= MAX_UPLOAD_BYTES) {
+          setReviewing({ blob: file, previewUrl: URL.createObjectURL(file) });
+        } else {
+          setUploadError(t("palm.capture.unreadable"));
+        }
+      } finally {
+        setPreparing(false);
+      }
+    },
+    [t],
+  );
 
   const handleRetake = useCallback(() => {
     if (reviewing) URL.revokeObjectURL(reviewing.previewUrl);
@@ -283,7 +315,11 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     // so an early failure is reported rather than becoming an unhandled rejection, and the
     // awaited Promise.all in advanceOrFinish still rejects on it.
     const upload = palmApi.uploadFrame(readingId, slot, reviewing.blob);
-    upload.catch(() => setUploadError(t("palm.capture.uploadError")));
+    upload.catch((err: unknown) =>
+      setUploadError(
+        err instanceof ApiError && err.status === 413 ? t("palm.capture.tooLarge") : t("palm.capture.uploadError"),
+      ),
+    );
     uploadsRef.current.push(upload);
 
     // CV mount-relief pass — front-view frames only (the only angle the region geometry in
@@ -433,7 +469,11 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           style={previewBoxStyle(videoDims)}
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
-            void camera.focusAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+            const x = (e.clientX - r.left) / r.width;
+            const y = (e.clientY - r.top) / r.height;
+            void camera.focusAt(x, y);
+            setFocusRing({ x, y, id: Date.now() });
+            setTimeout(() => setFocusRing((f) => (f && Date.now() - f.id >= 1100 ? null : f)), 1200);
           }}
         >
           <video
@@ -444,6 +484,14 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             onResize={(e) => setVideoDims({ w: e.currentTarget.videoWidth, h: e.currentTarget.videoHeight })}
             className="h-full w-full object-contain"
           />
+          {focusRing && (
+            <div
+              key={focusRing.id}
+              data-testid="palm-focus-ring"
+              className="pointer-events-none absolute h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gold"
+              style={{ left: `${focusRing.x * 100}%`, top: `${focusRing.y * 100}%`, animation: "palm-focus-ring 1.1s ease-out forwards" }}
+            />
+          )}
           {slot === "primaryFingertips" && !guideOpen && (
             <div
               data-testid="palm-fingertip-box"
@@ -481,6 +529,12 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             </button>
           </div>
         ) : null}
+        {capturing && <div data-testid="palm-shutter-flash" className="pointer-events-none absolute inset-0 z-10 bg-white/35" />}
+        {preparing && (
+          <p data-testid="palm-preparing" className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 text-sm text-white">
+            {t("palm.capture.preparing")}
+          </p>
+        )}
         <canvas ref={brightnessCanvasRef} className="hidden" />
         <canvas ref={handCanvasRef} className="hidden" />
       </div>
@@ -508,7 +562,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       )}
 
       {/* Instruction + captured thumbnails */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 to-transparent pt-16 pb-8 px-5">
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 to-transparent pt-16 pb-8 px-5 [&_button]:pointer-events-auto [&_input]:pointer-events-auto [&_label]:pointer-events-auto">
         {!reviewing && (
           <div className="mb-4 px-4 space-y-1.5">
             {stepHand && (
@@ -534,6 +588,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
             placeholder={t("palm.capture.questionPlaceholder", "Ask a question about your palm (optional)")}
             className="mb-3 w-full rounded-2xl border border-white/25 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-gold"
           />
+        )}
+
+        {!reviewing && camera.status === "granted" && (
+          <p className="mb-2 text-center text-[11px] text-white/60">{t("palm.capture.tapFocus")}</p>
         )}
 
         {reviewing?.blurry && (
@@ -601,7 +659,7 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
         ) : null}
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileFallback} className="hidden" />
+      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={(e) => void handleFileFallback(e)} className="hidden" />
       <div className="hidden">{primaryHand}</div>
     </CaptureShell>
   );

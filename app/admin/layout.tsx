@@ -53,6 +53,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin/referrals", label: "Referrals" },
   { href: "/admin/gift-campaigns", label: "Gift Campaigns" },
   { href: "/admin/report-generations", label: "Report Generations" },
+  { href: "/admin/report-refresh", label: "Report Rebuilds" },
   { href: "/admin/report-ratings", label: "Report Ratings" },
   { href: "/admin/call-feedback", label: "Call Feedback" },
   { href: "/admin/sky", label: "Same Sky" },

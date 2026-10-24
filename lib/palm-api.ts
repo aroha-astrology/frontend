@@ -69,10 +69,16 @@ export interface PalmEvent {
   locked?: boolean;
 }
 
-/** Whether the reader's Aroha Pass covers the full reading now, and how many are left this period. */
+/** What unlocking the full reading costs this reader now: free when `left` > 0 for a Pass member
+ * (or always for an admin group, `unlimited`), otherwise `pricePaise` from the wallet. */
 export interface PalmAllowance {
   passMember: boolean;
+  /** Free readings left in this Pass period. */
   left: number;
+  /** The normal price of one reading, in paise. */
+  pricePaise: number;
+  /** An admin user group's member: every reading is free and none is counted. */
+  unlimited?: boolean;
 }
 
 export interface PalmReadingResponse {

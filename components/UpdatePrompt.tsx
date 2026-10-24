@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, Sparkles } from "lucide-react";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
@@ -21,6 +22,8 @@ export default function UpdatePrompt() {
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { tourActive, tourPending } = useTour();
   const [visible, setVisible] = useState(false);
+  // Palmistry asks an old build to update on its own screen (PalmUpdateGate); two prompts would stack.
+  const onPalm = (usePathname() ?? "").startsWith("/palm");
 
   useEffect(() => {
     if (!permissionsResolved) return;
@@ -53,7 +56,7 @@ export default function UpdatePrompt() {
   // Never render underneath a running tour's scrim — the tour is the one
   // overlay that must finish before any launch-time prompt gets the screen.
   // tourPending covers the gap before tourActive itself flips true.
-      {visible && !tourActive && !tourPending && (
+      {visible && !onPalm && !tourActive && !tourPending && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

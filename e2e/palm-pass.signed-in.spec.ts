@@ -2,9 +2,9 @@ import { test, expect, type Page } from "@playwright/test";
 import { mockApi, callsTo, passStatus, PASS_OFFERS } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 
-// Owner, 2026-10-23: the full palm reading is an Aroha Pass benefit (every tier, one per 30-day
-// period, never the wallet; the scan stays free), and Question Packs are bought through Google
-// Play, never from the wallet.
+// Owner, 2026-10-24: the full palm reading is open to everyone at the normal price (Rs 199, from the
+// wallet); an Aroha Pass member gets one free per period; an admin group is never limited. The scan
+// stays free. Question Packs are bought through Google Play, never from the wallet.
 
 const ON = { enabled: true, pricePaise: null, originalPricePaise: null };
 const PASS_ON = {
@@ -31,7 +31,7 @@ function silverPass() {
   };
 }
 
-function observedReading(allowance: { passMember: boolean; left: number } | undefined) {
+function observedReading(allowance: { passMember: boolean; left: number; pricePaise: number; unlimited?: boolean } | undefined) {
   return {
     id: READING,
     status: "observed",
@@ -91,25 +91,60 @@ async function asAndroid(page: Page, opts: { cancel?: boolean } = {}) {
 }
 
 test.describe("Palm Reading on the Aroha Pass", () => {
-  test("without a Pass the full reading shows the Pass lock, never a wallet price", async ({ page }) => {
+  test("without a Pass anyone can unlock for Rs 199 from the wallet, and is told about the Pass", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
       user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 100_000 },
       overrides: {
-        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: false, left: 0 }) }),
+        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: false, left: 0, pricePaise: 19900 }) }),
+        "POST /v1/palm/readings/:id/unlock": () => ({ json: { status: "generating" } }),
         "GET /v1/pass": () => ({ json: passStatus() }),
       },
     });
     await openTeaser(page);
 
-    const lock = page.getByTestId("pass-lock");
-    await expect(lock.getByTestId("pass-lock-hook")).toHaveText("Your hand holds your story. Read every line.");
-    await expect(lock).toContainText("The full palm reading is part of Aroha Pass");
-    // Every tier includes it, so the lock asks for the Pass itself, not a higher tier.
-    await expect(lock.getByTestId("pass-lock-cta")).toHaveAttribute("href", "/pass?tier=silver");
-    await expect(page.getByText(/₹99|Spend .* to unlock/)).toHaveCount(0);
-    await expect(page.getByTestId("palm-pass-unlock")).toHaveCount(0);
+    // The price, not a lock.
+    await expect(page.getByTestId("pass-lock")).toHaveCount(0);
+    await expect(page.getByTestId("palm-paid-unlock")).toHaveText(/Unlock · ₹199/);
+    // One friendly line about the Pass, with its free monthly reading and a way to see it.
+    const nudge = page.getByTestId("palm-pass-nudge");
+    await expect(nudge).toContainText("Why pay each time?");
+    await expect(nudge).toContainText("one palm reading free every month");
+    await expect(page.getByTestId("palm-pass-nudge-cta")).toHaveAttribute("href", "/pass?tier=silver");
+
+    await page.getByTestId("palm-paid-unlock").click();
+    await expect(page.getByText("Spend ₹199 to unlock your full reading?")).toBeVisible();
+    await page.getByTestId("palm-confirm-yes").click();
+    await expect.poll(() => callsTo(api, `POST /v1/palm/readings/${READING}/unlock`).length).toBe(1);
+  });
+
+  test("a short wallet is sent to add credits, never charged, and the Pass line still shows", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    const api = await mockApi(page, {
+      user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 5_000 },
+      overrides: {
+        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: false, left: 0, pricePaise: 19900 }) }),
+        "GET /v1/pass": () => ({ json: passStatus() }),
+      },
+    });
+    await openTeaser(page);
+    await expect(page.getByTestId("palm-get-credits")).toHaveAttribute("href", "/payment");
+    await expect(page.getByTestId("palm-paid-unlock")).toHaveCount(0);
+    await expect(page.getByTestId("palm-pass-nudge")).toBeVisible();
     expect(callsTo(api, `POST /v1/palm/readings/${READING}/unlock`)).toHaveLength(0);
+  });
+
+  test("with the Pass switched off there is no Pass line, just the price", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: { features: { "home.palmReading": ON }, walletBalancePaise: 100_000 },
+      overrides: {
+        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: false, left: 0, pricePaise: 19900 }) }),
+      },
+    });
+    await openTeaser(page);
+    await expect(page.getByTestId("palm-paid-unlock")).toBeVisible();
+    await expect(page.getByTestId("palm-pass-nudge")).toHaveCount(0);
   });
 
   test("a member unlocks this period's reading with the Pass", async ({ page }) => {
@@ -119,7 +154,7 @@ test.describe("Palm Reading on the Aroha Pass", () => {
       user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 0 },
       overrides: {
         "GET /v1/palm/readings/:id": () => ({
-          json: unlocked ? { ...observedReading(undefined), status: "generating" } : observedReading({ passMember: true, left: 1 }),
+          json: unlocked ? { ...observedReading(undefined), status: "generating" } : observedReading({ passMember: true, left: 1, pricePaise: 19900 }),
         }),
         "POST /v1/palm/readings/:id/unlock": () => {
           unlocked = true;
@@ -138,41 +173,62 @@ test.describe("Palm Reading on the Aroha Pass", () => {
     await expect.poll(() => callsTo(api, `POST /v1/palm/readings/${READING}/unlock`).length).toBe(1);
   });
 
-  test("a member who used this period's reading is told when the next one opens", async ({ page }) => {
+  test("a member who used this month's free reading is told when the next free one opens, and can buy another", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
-      user: { features: { ...PASS_ON, "home.palmReading": ON } },
+      user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 100_000 },
       overrides: {
-        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: true, left: 0 }) }),
+        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: true, left: 0, pricePaise: 19900 }) }),
         "GET /v1/pass": () => ({ json: passStatus({ pass: silverPass() }) }),
       },
     });
     await openTeaser(page);
 
     await expect(page.getByTestId("palm-pass-used")).toHaveText(
-      /You've used this period's palm reading\. Your next one opens on (Nov 5|5 Nov)\./,
+      /You've used this month's free palm reading; your next free one opens on (Nov 5|5 Nov)\. Another one now is ₹199\./,
     );
     await expect(page.getByTestId("palm-pass-unlock")).toHaveCount(0);
+    // They already have the Pass: no Pass line, but the paid unlock is there.
+    await expect(page.getByTestId("palm-pass-nudge")).toHaveCount(0);
+    await expect(page.getByTestId("palm-paid-unlock")).toHaveText(/Unlock · ₹199/);
     expect(callsTo(api, `POST /v1/palm/readings/${READING}/unlock`)).toHaveLength(0);
   });
 
-  test("when the server says this period's reading is used, the drawer says so instead of an error", async ({ page }) => {
+  test("an admin group member sees it free and unlimited", async ({ page }) => {
     await skipLaunchOverlays(page);
     await mockApi(page, {
-      user: { features: { ...PASS_ON, "home.palmReading": ON } },
+      user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 0 },
       overrides: {
-        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: true, left: 1 }) }),
+        "GET /v1/palm/readings/:id": () => ({
+          json: observedReading({ passMember: true, left: 0, pricePaise: 19900, unlimited: true }),
+        }),
+        "GET /v1/pass": () => ({ json: passStatus() }),
+      },
+    });
+    await openTeaser(page);
+    await expect(page.getByText("Free for you, no limit")).toBeVisible();
+    await expect(page.getByTestId("palm-pass-unlock")).toBeVisible();
+    await expect(page.getByTestId("palm-pass-nudge")).toHaveCount(0);
+    await expect(page.getByTestId("palm-pass-used")).toHaveCount(0);
+  });
+
+  test("if a free unlock turns out to be charged and the wallet is short, the drawer says so", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: { features: { ...PASS_ON, "home.palmReading": ON }, walletBalancePaise: 0 },
+      overrides: {
+        "GET /v1/palm/readings/:id": () => ({ json: observedReading({ passMember: true, left: 1, pricePaise: 19900 }) }),
         "POST /v1/palm/readings/:id/unlock": () => ({
-          status: 403,
-          json: { error: { code: "FORBIDDEN", message: "PALM_PERIOD_LIMIT" } },
+          status: 409,
+          json: { error: { code: "CONFLICT", message: "INSUFFICIENT_CREDITS" } },
         }),
         "GET /v1/pass": () => ({ json: passStatus({ pass: silverPass() }) }),
       },
     });
     await openTeaser(page);
     await page.getByTestId("palm-pass-unlock").click();
-    await page.getByRole("button", { name: "Yes, Unlock" }).click();
-    await expect(page.getByTestId("palm-pass-used")).toBeVisible();
+    await page.getByTestId("palm-confirm-yes").click();
+    await expect(page.getByText("You need ₹199 but have ₹0.")).toBeVisible();
   });
 
   test("every Pass tier lists the palm reading", async ({ page }) => {

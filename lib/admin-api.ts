@@ -439,6 +439,51 @@ export interface AdminDeletionActionResponse {
   deletionRequestedAt: string | null;
 }
 
+// ─── Google Play refunds ───────────────────────────────────────────────────
+
+/** One refund Google made, as GET /v1/admin/play-refunds returns it (backend admin-play-refunds.routes.ts). */
+export interface AdminPlayRefundRow {
+  id: string;
+  /** "top_up" | "question_pack" | "pass" | "unknown". */
+  kind: string;
+  productId: string | null;
+  googleOrderId: string | null;
+  userId: string | null;
+  userName: string | null;
+  amountPaise: number;
+  questionCredits: number;
+  /** "recorded" (switch off) | "clawed_back" | "skipped" | "pass" | "unmatched". */
+  status: string;
+  clawedBackPaise: number;
+  clawedBackQuestions: number;
+  reportsLocked: number;
+  walletBalancePaise: number | null;
+  purchasesBlocked: boolean;
+  voidedAt: string | null;
+  purchasedAt: string | null;
+  voidedReason: number | null;
+  voidedSource: number | null;
+  detectedVia: string;
+  createdAt: string;
+}
+
+export interface AdminPlayRefundsPage {
+  clawbackOn: boolean;
+  total: number;
+  page: number;
+  pageSize: number;
+  refunds: AdminPlayRefundRow[];
+}
+
+export interface AdminPlayRefundCheck {
+  checked: number;
+  recorded: number;
+  clawedBack: number;
+  pass: number;
+  unmatched: number;
+  skipped: number;
+}
+
 // ─── Gemini Keys ───────────────────────────────────────────────────────────
 
 export type GeminiKeyTier = "free" | "paid";
@@ -750,6 +795,22 @@ export const adminApi = {
   hardDeleteUser: (userId: string) =>
     request<{ id: string }>(`/v1/admin/deletion-requests/${userId}`, { method: "DELETE", auth: true }),
 
+  /** Google Play refunds found so far, newest first (25 a page). */
+  listPlayRefunds: (page: number) =>
+    request<AdminPlayRefundsPage>(`/v1/admin/play-refunds?page=${page}`, { auth: true }),
+
+  /** Ask Google for refunds now instead of waiting for the hourly check. */
+  checkPlayRefunds: () =>
+    request<AdminPlayRefundCheck>("/v1/admin/play-refunds/check", { method: "POST", auth: true }),
+
+  /** Block or unblock new purchases for an account (set by itself after a second refund). */
+  setPurchasesBlocked: (userId: string, blocked: boolean) =>
+    request<{ blocked: boolean }>(`/v1/admin/users/${userId}/purchases-block`, {
+      method: "POST",
+      body: { blocked },
+      auth: true,
+    }),
+
   /** Every Gemini key: free ones, then paid ones in the order they are tried. */
   listGeminiKeys: () => request<{ keys: AdminGeminiKeyRow[] }>("/v1/admin/gemini-keys", { auth: true }),
 
@@ -765,6 +826,14 @@ export const adminApi = {
   useGeminiKeyFirst: (id: string) =>
     request<{ keys: AdminGeminiKeyRow[] }>(`/v1/admin/gemini-keys/${id}/use-first`, {
       method: "POST",
+      auth: true,
+    }),
+
+  /** Move a paid key one place up (used sooner) or down (used later). Returns the reordered list. */
+  moveGeminiKey: (id: string, direction: "up" | "down") =>
+    request<{ keys: AdminGeminiKeyRow[] }>(`/v1/admin/gemini-keys/${id}/move`, {
+      method: "POST",
+      body: { direction },
       auth: true,
     }),
 

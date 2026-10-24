@@ -99,6 +99,8 @@ export interface User {
   walletBalancePaise: number;
   /** Prepaid chat questions from Question Packs (roadmap step 10). Absent on an older backend. */
   questionCredits?: number;
+  /** True after repeated Google Play refunds: top-ups, packs and the Pass are refused. */
+  purchasesBlocked?: boolean;
   /** A festival's free chat questions (backend pass/chat-gifts.repo.ts), spent before the
    * Pass, packs and wallet; null/absent when none is running. validUntil is ISO 8601. */
   chatGift?: {
@@ -679,7 +681,7 @@ export interface TopUpAmount {
   popular?: boolean;
 }
 
-export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
+export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refund_pending" | "refunded";
 
 export interface Order {
   id: string;
@@ -732,7 +734,8 @@ export type TransactionKind =
   | "question_pack"
   | "aroha_pass"
   | "digital_yantra"
-  | "relocation";
+  | "relocation"
+  | "play_refund";
 
 export type Transaction =
   | { id: string; kind: "recharge"; createdAt: string; amountPaise: number; status: OrderStatus }

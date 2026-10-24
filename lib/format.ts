@@ -1,8 +1,12 @@
-/** Formats an integer paise amount as a ₹ string, e.g. 20000 -> "₹200", 4950 -> "₹49.50". */
+/**
+ * Formats an integer paise amount as a ₹ string, e.g. 20000 -> "₹200", 4950 -> "₹49.50".
+ * A wallet is below zero only after a Google Play refund took back spent money: -9410 -> "−₹94.10".
+ */
 export function formatRupees(paise: number | null | undefined): string {
-  const rupees = (paise ?? 0) / 100;
+  const value = paise ?? 0;
+  const rupees = Math.abs(value) / 100;
   if (!Number.isFinite(rupees)) return "₹0";
-  return `₹${Number.isInteger(rupees) ? rupees : rupees.toFixed(2)}`;
+  return `${value < 0 ? "−" : ""}₹${Number.isInteger(rupees) ? rupees : rupees.toFixed(2)}`;
 }
 
 /**

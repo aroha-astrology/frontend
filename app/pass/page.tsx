@@ -27,7 +27,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { refreshPassStatus } from "@/hooks/usePassStatus";
 
 /** "pending" = Play took a slow payment (some UPI and cash options) that Google hasn't confirmed yet. */
-type ActionError = "funds" | "failed" | "pending" | "otherAccount";
+/** "blocked": no purchases after repeated Google Play refunds (backend billing/purchase-block.ts). */
+type ActionError = "funds" | "failed" | "pending" | "otherAccount" | "blocked";
 type Platform = "android" | "ios" | "web";
 
 /** The user backed out of the Play purchase sheet — not an error. */
@@ -44,6 +45,7 @@ function actionErrorOf(err: unknown): ActionError {
     if (err.message === "INSUFFICIENT_CREDITS") return "funds";
     if (err.message === "PLAY_SUBSCRIPTION_PENDING") return "pending";
     if (err.message === "PLAY_SUBSCRIPTION_OTHER_ACCOUNT") return "otherAccount";
+    if (err.message === "PURCHASES_BLOCKED") return "blocked";
   }
   return "failed";
 }
@@ -53,6 +55,7 @@ const ERROR_TEXT: Record<ActionError, string> = {
   failed: "pass.failed",
   pending: "pass.pendingPayment",
   otherAccount: "pass.otherAccount",
+  blocked: "refunds.purchasesBlocked",
 };
 
 function StoreLink({ label }: { label: string }) {
@@ -135,6 +138,11 @@ function PassPage() {
 
   /** Subscribes to `offer`, or with `upgrade` swaps the subscription held now for it. */
   async function buyWithPlay(offer: PassOffer, upgrade: boolean) {
+    // The server never sees a Pass before Google has charged for it, so a blocked account stops here.
+    if (user?.purchasesBlocked) {
+      setError("blocked");
+      return;
+    }
     await run(async () => {
       let oldPurchaseToken: string | undefined;
       if (upgrade) {
@@ -175,6 +183,10 @@ function PassPage() {
    */
   async function buyPack(pack: QuestionPack, questions: number) {
     setPackNote(null);
+    if (user?.purchasesBlocked) {
+      setError("blocked");
+      return;
+    }
     const ok = await run(async () => {
       const { productId } = await passApi.packCheckout(pack);
       const purchase = await PlayBilling.purchaseProduct({ productId, userId: user?.id, productType: "inapp" });

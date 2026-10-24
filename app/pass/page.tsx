@@ -11,29 +11,36 @@ import Card from "@/components/ui/Card";
 import PassBenefits from "@/components/pass/PassBenefits";
 import { api, ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
+import { formatFiat } from "@/lib/money";
 import { shortDate } from "@/lib/calendar-format";
 import {
   passApi,
   PASS_PLAY_PRODUCT_ID,
   PLAY_SUBSCRIPTIONS_URL,
   type PassOffer,
+  type PassTier,
   type PassStatus,
   type QuestionPack,
 } from "@/lib/pass-api";
 import { isNativeAndroid, isNativeIOS, PlayBilling } from "@/lib/play-billing";
+import { AppStore, isAppStoreCancelled, type AppStorePrice } from "@/lib/app-store";
 import { installedAndroidBuild, PLAY_PASS_UPGRADE_BUILD, PLAY_SUBSCRIPTIONS_BUILD } from "@/lib/app-update";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
 import { refreshPassStatus } from "@/hooks/usePassStatus";
 
-/** "pending" = Play took a slow payment (some UPI and cash options) that Google hasn't confirmed yet. */
-type ActionError = "funds" | "failed" | "pending" | "otherAccount";
+/** "pending" = a store took a slow payment (some UPI and cash options, Ask to Buy) that isn't confirmed yet. */
+type ActionError = "funds" | "failed" | "pending" | "otherAccount" | "webPending";
 type Platform = "android" | "ios" | "web";
 
 /** The user backed out of the Play purchase sheet — not an error. */
 function isUserCancelled(err: unknown): boolean {
+  if (err instanceof UserBackedOut || isAppStoreCancelled(err)) return true;
   return err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
 }
+
+/** The user closed Razorpay Checkout without paying: not an error. */
+class UserBackedOut extends Error {}
 
 /** Play has the purchase but the payment is still pending: nothing to confirm yet. */
 class PaymentPending extends Error {}
@@ -43,7 +50,9 @@ function actionErrorOf(err: unknown): ActionError {
   if (err instanceof ApiError) {
     if (err.message === "INSUFFICIENT_CREDITS") return "funds";
     if (err.message === "PLAY_SUBSCRIPTION_PENDING") return "pending";
-    if (err.message === "PLAY_SUBSCRIPTION_OTHER_ACCOUNT") return "otherAccount";
+    if (err.message === "PLAY_SUBSCRIPTION_OTHER_ACCOUNT" || err.message === "APP_STORE_OTHER_ACCOUNT") return "otherAccount";
+    if (err.message === "PASS_PAYMENT_PENDING") return "webPending";
+    if (err.message === "APP_STORE_SUBSCRIPTION_NOT_ACTIVE") return "pending";
   }
   return "failed";
 }
@@ -53,6 +62,7 @@ const ERROR_TEXT: Record<ActionError, string> = {
   failed: "pass.failed",
   pending: "pass.pendingPayment",
   otherAccount: "pass.otherAccount",
+  webPending: "pass.web.pending",
 };
 
 function StoreLink({ label }: { label: string }) {
@@ -94,6 +104,8 @@ function PassPage() {
   const [wanted, setWanted] = useState<string | null>(null);
   // What Google Play really charges per base plan, in the user's currency (app 1.17+).
   const [playPrices, setPlayPrices] = useState<Record<string, string>>({});
+  // What the App Store really charges per product, in the user's currency.
+  const [applePrices, setApplePrices] = useState<Record<string, string>>({});
 
   useEffect(() => {
     passApi
@@ -156,6 +168,57 @@ function PassPage() {
     });
   }
 
+  /** Web Pass: a Razorpay subscription, Checkout, then the server checks the signature and records it. */
+  async function buyOnWeb(offer: PassOffer) {
+    await run(async () => {
+      const sub = await passApi.webSubscribe(offer.tier, offer.web?.currency);
+      const { payWithRazorpaySubscription } = await import("@/lib/razorpay");
+      const result = await payWithRazorpaySubscription({
+        keyId: sub.keyId,
+        subscriptionId: sub.subscriptionId,
+        name: "Aroha Astrology",
+        description: t("pass.title"),
+        prefill: {
+          ...(user?.displayName ? { name: user.displayName } : {}),
+          ...(user?.email ? { email: user.email } : {}),
+        },
+      });
+      // The user closed Checkout without paying: nothing happened.
+      if (!result) throw new UserBackedOut();
+      return passApi.webVerify({
+        razorpayPaymentId: result.razorpay_payment_id,
+        razorpaySubscriptionId: result.razorpay_subscription_id,
+        razorpaySignature: result.razorpay_signature,
+      });
+    });
+  }
+
+  async function cancelWeb() {
+    if (!pass || !window.confirm(t("pass.web.cancelConfirm", { date: shortDate(pass.periodEnd.slice(0, 10), lang) }))) return;
+    await run(() => passApi.webCancel());
+  }
+
+  /** iPhone: StoreKit buys it, the server checks Apple's signature and records it. */
+  async function buyWithApple(offer: PassOffer) {
+    if (!offer.appStore || !user?.id) return;
+    await run(async () => {
+      const purchase = await AppStore.purchase({ productId: offer.appStore!.productId, appAccountToken: user.id });
+      if (purchase.state === "pending") throw new PaymentPending();
+      const status = await passApi.confirmAppStore(purchase.signedTransaction);
+      await AppStore.finish({ productId: purchase.productId, signedTransaction: purchase.signedTransaction }).catch(() => {});
+      return status;
+    });
+  }
+
+  async function restoreApple() {
+    await run(async () => {
+      const { purchases } = await AppStore.currentSubscriptions();
+      let latest = await passApi.status();
+      for (const p of purchases) latest = await passApi.confirmAppStore(p.signedTransaction);
+      return latest;
+    });
+  }
+
   async function restorePlay() {
     await run(async () => {
       const { purchases } = await PlayBilling.queryActiveSubscriptions();
@@ -199,6 +262,16 @@ function PassPage() {
       .catch(() => {});
   }, [canSubscribe, hasOffers]);
 
+  // Show the App Store's own price for each tier on an iPhone.
+  const appleProducts = offers.flatMap((o) => (o.appStore ? [o.appStore.productId] : []));
+  const appleKey = appleProducts.join(",");
+  useEffect(() => {
+    if (platform !== "ios" || !appleKey) return;
+    AppStore.prices({ productIds: appleKey.split(",") })
+      .then(({ prices }) => setApplePrices(Object.fromEntries(prices.map((p: AppStorePrice) => [p.productId, p.displayPrice]))))
+      .catch(() => {});
+  }, [platform, appleKey]);
+
   // A failed renewal payment: Google Play's own message with its fix-payment link (app 1.17+).
   // If the user fixes it from there, the Pass is confirmed again straight away.
   useEffect(() => {
@@ -212,7 +285,14 @@ function PassPage() {
       .catch(() => {});
   }, [paymentIssue, platform]);
 
-  const priceOf = (offer: PassOffer) => playPrices[offer.play.basePlanId] ?? formatRupees(offer.pricePaise);
+  // What the shown price is: the App Store's on an iPhone, the website's own on the web, else Google Play's.
+  const priceOf = (offer: PassOffer) => {
+    if (platform === "ios" && offer.appStore) return applePrices[offer.appStore.productId] ?? formatRupees(offer.pricePaise);
+    if (platform === "web" && offer.web) return formatFiat(offer.web.amountMinor, offer.web.currency);
+    return playPrices[offer.play.basePlanId] ?? formatRupees(offer.pricePaise);
+  };
+  const webOffers = offers.filter((o) => o.web);
+  const appleOffers = offers.filter((o) => o.appStore);
   const canUpgrade = platform === "android" && build != null && build >= PLAY_PASS_UPGRADE_BUILD;
   // Where the user's own Pass sits among the tiers on offer; -1 without a tiered Pass.
   const ownIndex = pass?.tier ? offers.findIndex((o) => o.tier === pass.tier) : -1;
@@ -277,7 +357,45 @@ function PassPage() {
                   <MessageCircle size={14} className="text-gold" />
                   {t("pass.active.questionsLeft", { count: pass.questionsLeft, total: pass.questionsPerPeriod })}
                 </p>
-                {pass.source === "google_play" ? (
+                {pass.freeReportsPerPeriod != null && pass.freeReportsPerPeriod > 0 && (
+                  <p className="text-xs text-gold" data-testid="pass-free-report">
+                    {t(status.freeReportAvailable ? "pass.freeReportReady" : "pass.freeReportUsed")}
+                  </p>
+                )}
+                {pass.source === "razorpay" ? (
+                  <>
+                    <p className="text-[11px] text-muted">
+                      {t("pass.web.sourceWeb")} · {t(pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
+                    </p>
+                    {pass.autoRenew ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void cancelWeb()}
+                        className="text-xs font-medium text-gold underline underline-offset-2 disabled:opacity-40"
+                        data-testid="pass-web-cancel"
+                      >
+                        {t("pass.web.cancel")}
+                      </button>
+                    ) : (
+                      <p className="text-[11px] text-muted">
+                        {t("pass.web.cancelled", { date: shortDate(pass.periodEnd.slice(0, 10), lang) })}
+                      </p>
+                    )}
+                  </>
+                ) : pass.source === "app_store" ? (
+                  <>
+                    <p className="text-[11px] text-muted">
+                      {t("pass.appStore.sourceApp")} · {t(pass.autoRenew ? "pass.active.autoRenewOn" : "pass.active.autoRenewOff")}
+                    </p>
+                    <a
+                      href="https://apps.apple.com/account/subscriptions"
+                      className="text-xs font-medium text-gold underline underline-offset-2"
+                    >
+                      {t("pass.appStore.manage")}
+                    </a>
+                  </>
+                ) : pass.source === "google_play" ? (
                   <>
                     <p className="text-[11px] text-muted">
                       {t("pass.active.sourcePlay")} ·{" "}
@@ -389,6 +507,28 @@ function PassPage() {
                             {t("pass.buyPlay")}
                           </button>
                         )}
+                        {!pass && platform === "web" && offer.web && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void buyOnWeb(offer)}
+                            className="mt-auto w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
+                            data-testid={`pass-web-buy-${offer.tier}`}
+                          >
+                            {t("pass.web.subscribe")}
+                          </button>
+                        )}
+                        {!pass && platform === "ios" && offer.appStore && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void buyWithApple(offer)}
+                            className="mt-auto w-full h-12 rounded-full bg-yellow-500 text-black text-sm font-semibold disabled:opacity-40"
+                            data-testid={`pass-apple-buy-${offer.tier}`}
+                          >
+                            {t("pass.appStore.buy")}
+                          </button>
+                        )}
                         {upgradable && i > ownIndex && canUpgrade && (
                           <button
                             type="button"
@@ -425,14 +565,34 @@ function PassPage() {
                         <StoreLink label={t("pass.updateApp")} />
                       </div>
                     )}
-                    {platform === "web" && (
+                    {platform === "web" && webOffers.length > 0 && (
+                      <p className="text-xs text-muted" data-testid="pass-web-note">
+                        {t("pass.web.note")}
+                      </p>
+                    )}
+                    {platform === "web" && webOffers.length === 0 && (
                       <div className="space-y-2" data-testid="pass-android-only">
                         <p className="text-sm text-foreground/90">{t("pass.androidOnly")}</p>
                         <StoreLink label={t("pass.getAndroidApp")} />
                       </div>
                     )}
-                    {platform === "ios" && <p className="text-sm text-foreground/90">{t("pass.iosSoon")}</p>}
-                    <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>
+                    {platform === "ios" && appleOffers.length > 0 && (
+                      <div className="space-y-2" data-testid="pass-apple-note">
+                        <p className="text-xs text-muted">{t("pass.appStore.note")}</p>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void restoreApple()}
+                          className="mx-auto block text-[11px] text-muted underline underline-offset-2"
+                        >
+                          {t("pass.appStore.restore")}
+                        </button>
+                      </div>
+                    )}
+                    {platform === "ios" && appleOffers.length === 0 && (
+                      <p className="text-sm text-foreground/90">{t("pass.iosSoon")}</p>
+                    )}
+                    {platform !== "web" && platform !== "ios" && <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>}
                   </div>
                 )}
 

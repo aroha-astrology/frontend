@@ -39,6 +39,8 @@ export default function PassBenefits({
     ...((benefits.monthlyCoins ?? 0) > 0
       ? [{ text: t("pass.benefits.monthlyCoins", { amount: formatRupees((benefits.monthlyCoins ?? 0) * 100) }), included: true }]
       : []),
+    // The Platinum free report (switch money.platinumReport): shown only on a tier that gives one.
+    ...((benefits.freeReportsPerPeriod ?? 0) > 0 ? [{ text: t("pass.benefits.freeReport"), included: true }] : []),
     ...FEATURE_LINES.filter(({ feature }) => feature !== "palm" || palmOn).map(({ feature, key }) => ({
       // Only the voice line has a {{minutes}}; a server from before the per-tier minutes gave every Pass 3.
       text: t(key, { minutes: benefits.voiceFreeMinutes ?? 3 }),

@@ -16,6 +16,7 @@ import PassSummaryCard from "@/components/pass/PassSummaryCard";
 import { api, ApiError, type TopUpAmount } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { isNativeAndroid, isNativeIOS } from "@/lib/play-billing";
+import { useNewFeature } from "@/hooks/useFeature";
 import { maybeRequestReview, PLAY_STORE_URL } from "@/lib/app-review";
 
 /** Bare 10-digit national number, whatever shape the stored number is in. */
@@ -167,7 +168,11 @@ export default function PaymentPage() {
   }, []);
 
   const razorpayAvailable = razorpayEnabled && platformReady && !playAvailable && !iosNative;
-  const canPay = playAvailable || razorpayAvailable;
+  // On an iPhone coin packs are bought with StoreKit once money.storekit is on (and only the
+  // coin packs: the older top-ups have no App Store products).
+  const { enabled: storekitOn } = useNewFeature("money.storekit");
+  const appleAvailable = iosNative && storekitOn && amounts.some((a) => a.coins != null);
+  const canPay = playAvailable || razorpayAvailable || appleAvailable;
 
   // A completed top-up is the clearest "this app was worth paying for" moment we
   // get, so it's one of the milestones that offers Google's review card.
@@ -186,7 +191,7 @@ export default function PaymentPage() {
     if (!selectedAmount) return;
     setPaying(true);
     setPayError(null);
-    const method = playAvailable ? "google_play" : "razorpay";
+    const method = playAvailable ? "google_play" : appleAvailable ? "app_store" : "razorpay";
     track("topup_started", { amountPaise: selectedAmount.amountPaise, method });
     try {
       if (method === "google_play") {
@@ -200,6 +205,17 @@ export default function PaymentPage() {
           purchaseToken: purchase.purchaseToken,
           productId: purchase.productId,
         });
+      } else if (method === "app_store") {
+        if (!user?.id) return;
+        const { AppStore } = await import("@/lib/app-store");
+        const purchase = await AppStore.purchase({ productId: selectedAmount.id, appAccountToken: user.id });
+        // Ask to Buy or a slow payment: Apple confirms later and the coins arrive then.
+        if (purchase.state === "pending") {
+          setPayError(t("pass.pendingPayment"));
+          return;
+        }
+        await api.confirmAppStoreCoins(purchase.signedTransaction);
+        await AppStore.finish({ productId: purchase.productId, signedTransaction: purchase.signedTransaction }).catch(() => {});
       } else {
         const { order, razorpayOrderId, razorpayKeyId } = await api.razorpayCheckout(
           selectedAmount.id,
@@ -238,7 +254,10 @@ export default function PaymentPage() {
       setSuccess({ walletBalancePaise: creditPaiseOf(selectedAmount) });
     } catch (err) {
       const isUserCancelled =
-        err !== null && typeof err === "object" && "code" in err && (err as { code?: string }).code === "1";
+        err !== null &&
+        typeof err === "object" &&
+        "code" in err &&
+        ((err as { code?: string }).code === "1" || (err as { code?: string }).code === "cancelled");
       if (isUserCancelled) {
         // User backed out of the Play purchase sheet — not an error, nothing to show.
       } else if (err instanceof ApiError) {

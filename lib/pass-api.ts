@@ -34,6 +34,8 @@ export interface PassTierBenefits {
   voiceFreeMinutes?: number;
   /** Coins gifted each period (Gold 100, Platinum 200); 0 or absent while money.passCoins is off. */
   monthlyCoins?: number;
+  /** Reports free each period (Platinum 1); 0 or absent while money.platinumReport is off. */
+  freeReportsPerPeriod?: number;
   reportDiscountPct: number;
   features: PassFeature[];
 }
@@ -42,8 +44,12 @@ export interface PassOffer extends PassTierBenefits {
   tier: PassTier;
   variant: "A" | "B" | "C";
   pricePaise: number;
-  /** The Pass is a Google Play subscription only — never paid from the wallet. */
+  /** The Play subscription (Android). Never paid from the wallet. */
   play: { productId: string; basePlanId: string };
+  /** The website's Razorpay subscription (money.razorpayPass); amount in the minor unit of `currency`. */
+  web?: { currency: string; amountMinor: number };
+  /** The App Store subscription on an iPhone (money.storekit). */
+  appStore?: { productId: string };
 }
 
 /**
@@ -80,6 +86,8 @@ export interface PassStatus {
   questionCredits: number;
   packs: Array<{ pack: QuestionPack; questions: number; pricePaise: number }>;
   periodDays: number;
+  /** This period's Platinum free report is still there to use. Absent from an older server. */
+  freeReportAvailable?: boolean;
 }
 
 /** The cheapest tier on offer that unlocks `feature`, if any. */
@@ -143,6 +151,20 @@ export interface PassSubscribersPage {
 
 export const passApi = {
   status: () => request<PassStatus>("/v1/pass", { auth: true }),
+  /** Step 1 of the web Pass: a Razorpay subscription for the tier, to open in Checkout. */
+  webSubscribe: (tier: PassTier, currency?: string) =>
+    request<{ subscriptionId: string; keyId: string; tier: PassTier; currency: string; amountMinor: number }>(
+      "/v1/pass/razorpay/subscribe",
+      { method: "POST", body: { tier, ...(currency ? { currency } : {}) }, auth: true },
+    ),
+  /** Step 3: Checkout paid; the server checks Razorpay's signature and records the Pass. */
+  webVerify: (body: { razorpayPaymentId: string; razorpaySubscriptionId: string; razorpaySignature: string }) =>
+    request<PassStatus>("/v1/pass/razorpay/verify", { method: "POST", body, auth: true }),
+  /** Stops a web Pass from renewing; it runs to the end of the paid month. */
+  webCancel: () => request<PassStatus>("/v1/pass/razorpay/cancel", { method: "POST", auth: true }),
+  /** Records an App Store Pass the iOS app bought or restored (Apple's signed transaction). */
+  confirmAppStore: (signedTransaction: string) =>
+    request<PassStatus>("/v1/pass/app-store", { method: "POST", body: { signedTransaction }, auth: true }),
   confirmPlay: (productId: string, purchaseToken: string) =>
     request<PassStatus>("/v1/pass/google-play", { method: "POST", body: { productId, purchaseToken }, auth: true }),
   /**

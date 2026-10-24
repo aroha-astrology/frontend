@@ -39,6 +39,54 @@ function loadCheckoutScript(): Promise<void> {
   return scriptPromise;
 }
 
+interface RazorpaySubscriptionResult {
+  razorpay_payment_id: string;
+  razorpay_subscription_id: string;
+  razorpay_signature: string;
+}
+
+/**
+ * Opens Razorpay Checkout for a subscription (the Aroha Pass on the website). Same outcomes as
+ * `payWithRazorpay`: the ids on success, `null` when the user closed it, a rejection on failure.
+ */
+export async function payWithRazorpaySubscription(options: {
+  keyId: string;
+  subscriptionId: string;
+  name: string;
+  description: string;
+  prefill?: { name?: string; contact?: string; email?: string };
+}): Promise<RazorpaySubscriptionResult | null> {
+  await loadCheckoutScript();
+  const Razorpay = window.Razorpay;
+  if (!Razorpay) throw new Error("Could not load the payment gateway");
+
+  return new Promise<RazorpaySubscriptionResult | null>((resolve, reject) => {
+    let settled = false;
+    const checkout = new Razorpay({
+      key: options.keyId,
+      subscription_id: options.subscriptionId,
+      name: options.name,
+      description: options.description,
+      prefill: options.prefill ?? {},
+      theme: { color: "#dfb564" },
+      handler: (result: RazorpaySubscriptionResult) => {
+        settled = true;
+        resolve(result);
+      },
+      modal: {
+        ondismiss: () => {
+          if (!settled) resolve(null);
+        },
+      },
+    });
+    checkout.on("payment.failed", (response) => {
+      settled = true;
+      reject(new Error(response.error?.description ?? "Payment failed"));
+    });
+    checkout.open();
+  });
+}
+
 /**
  * Opens the Razorpay modal and settles once the user is done:
  * resolves with the payment ids on success, resolves `null` if they closed

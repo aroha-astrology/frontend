@@ -33,8 +33,12 @@ export default function PriceBreakdown({ entry }: { entry: ReportCatalogueEntry 
   const bestPct =
     passPct === 0 && status && !status.pass ? Math.max(0, ...status.offers.map((o) => o.reportDiscountPct)) : 0;
 
+  // The Platinum free report (money.platinumReport): this period's one is still unused. The server
+  // applies it to a report bought on its own (a multi-month bundle is charged as usual).
+  const freeReport = Boolean(status?.pass && (status.pass.freeReportsPerPeriod ?? 0) > 0 && status.freeReportAvailable);
+
   // A plain price with nothing taken off and nothing to offer: the buy button already says it.
-  if (mrpPaise === null && passPct === 0 && bestPct === 0) return null;
+  if (mrpPaise === null && passPct === 0 && bestPct === 0 && !freeReport) return null;
 
   return (
     <div className="mb-3 rounded-2xl border border-gold/15 bg-background/40 p-3.5" data-testid="price-breakdown">
@@ -70,6 +74,12 @@ export default function PriceBreakdown({ entry }: { entry: ReportCatalogueEntry 
       {savedPaise > 0 && (
         <p className="mt-1.5 text-right text-[11px] font-medium text-emerald-400">
           {t("pass.price.saved", { amount: formatRupees(savedPaise) })}
+        </p>
+      )}
+      {freeReport && (
+        <p className="mt-2 text-[11px] font-medium leading-relaxed text-gold" data-testid="price-free-report">
+          <Crown size={12} className="mr-1 inline -mt-0.5" />
+          {t("pass.freeReportReady")}
         </p>
       )}
       {bestPct > 0 && (

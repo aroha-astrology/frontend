@@ -1621,6 +1621,14 @@ export const api = {
       auth: true,
     }),
 
+  /** Credit a coin pack bought on an iPhone (iOS app only): Apple's signed transaction, checked by the server. */
+  confirmAppStoreCoins: (signedTransaction: string) =>
+    request<{ order: Order; walletBalancePaise: number }>("/v1/billing/app-store/confirm", {
+      method: "POST",
+      body: { signedTransaction },
+      auth: true,
+    }),
+
   /** The current user's full payment history — recharges plus every spend and refund, most recent first. */
   transactionHistory: () =>
     request<{ transactions: Transaction[] }>("/v1/billing/transactions", { auth: true }),

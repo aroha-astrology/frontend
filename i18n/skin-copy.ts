@@ -20,6 +20,12 @@ export const COSMIC_COPY: Record<string, Record<string, string>> = {
     "tour.askAiTitle": "Ask Orion",
     "tour.chat.introTitle": "Ask Orion anything",
     "tour.chat.voiceTitle": "Call Orion",
+    // Where the Classic look names Yogi Baba, the Cosmic look names the guide the reader chose (Orion by default)
+    "pass.benefits.voiceCall": "Voice call with Orion: {{minutes}} free minutes every month",
+    "pass.lock.hook.voiceCall": "Talk to Orion, live. Just ask.",
+    "pass.launch.body": "More questions for Aroha, live calls with Orion, your Life Timeline and money off every report. All in one membership.",
+    "aiChatPage.voiceTrialUsed": "You've used your {{minutes}} free minutes. Get Aroha Pass to keep talking to Orion.",
+    "callFeedback.title": "How was your call with Orion?",
     // Kundli Matching: two people, not "boy" and "girl"
     "compatibilityPage.person1": "Person A",
     "compatibilityPage.person2": "Person B",

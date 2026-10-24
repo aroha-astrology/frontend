@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { mockApi, type Handlers } from "./fixtures/mock-api";
+import { mockApi, passStatus, type Handlers } from "./fixtures/mock-api";
 import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 import type { ExperienceInfo } from "../lib/experience";
 
@@ -279,5 +279,36 @@ test.describe("Short menu", () => {
     await expect(page.getByText("Calendar", { exact: true })).toBeVisible();
     await expect(page.getByText("Profile & Experience")).toHaveCount(0);
     await expect(page.getByText("More", { exact: true })).toHaveCount(0);
+  });
+});
+
+test.describe("Modern Cosmic wording and layout on a phone", () => {
+  test("on a 360px phone the sign-shift explanation sits under the pills, not squeezed beside them", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await openKundli(page, on("experience.signShift"), chartWith(310, 10));
+    const row = page.getByTestId("sign-shift-sun");
+    await expect(row).toBeVisible();
+    const pills = await row.locator("span").first().boundingBox();
+    const text = await row.locator("p").boundingBox();
+    expect(text!.width).toBeGreaterThan(220);
+    expect(text!.y).toBeGreaterThan(pills!.y + pills!.height - 2);
+  });
+
+  test("the Pass voice line names the Cosmic guide, not Yogi Baba", async ({ page }) => {
+    await skipLaunchOverlays(page);
+    await mockApi(page, {
+      user: {
+        features: {
+          ...on("experience.picker", "nav.arohaPass"),
+          "paid.arohaPassA": { ...ON, pricePaise: 19900 },
+          "paid.arohaPassB": { ...ON, pricePaise: 29900 },
+          "paid.arohaPassC": { ...ON, pricePaise: 39900 },
+        },
+      },
+      overrides: { ...cosmicExperience(), "GET /v1/pass": () => ({ json: passStatus() }) },
+    });
+    await signIn(page, "/pass");
+    await expect(page.getByText("Voice call with Orion: 15 free minutes every month")).toBeVisible();
+    await expect(page.getByText(/Voice call with Yogi Baba/)).toHaveCount(0);
   });
 });

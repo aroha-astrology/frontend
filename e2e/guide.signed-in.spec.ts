@@ -99,3 +99,15 @@ test.describe("the guide", () => {
     await expect(page.getByTestId("guide-row")).toContainText("Yogi Baba");
   });
 });
+
+test("the opening greeting names the guide the reader chose, not Yogi Baba", async ({ page }) => {
+  await skipLaunchOverlays(page);
+  await mockApi(page, {
+    user: { features: { "chat.personas": ON } },
+    overrides: personaServer("MODERN_COSMIC", "maya"),
+  });
+  await signIn(page, "/ai-chat");
+  await expect(page.getByTestId("chat-guide-name")).toHaveText("Maya");
+  await expect(page.getByText(/I am Maya/)).toBeVisible();
+  await expect(page.getByText(/I am Yogi Baba/)).toHaveCount(0);
+});

@@ -252,11 +252,13 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
    * after the free tap is spent. The server re-checks atomically; this only drives the badge. */
   const freeFollowUpAvailable =
     !user?.nextFreeFollowUpAt || new Date(user.nextFreeFollowUpAt).getTime() <= Date.now();
+  // Baba Ji memory: the chosen guide's name, the free first reply after a check-in, and the birth-time chip.
+  const { customName: guideCustomName } = usePersona();
   const greetingMessage = (): Message => ({
     id: crypto.randomUUID(),
     role: "assistant",
     content: t("aiChatPage.personaGreeting", {
-      name: t(ASTROLOGER.nameKey),
+      name: guideCustomName ?? t(ASTROLOGER.nameKey),
       specialty: t(ASTROLOGER.specialtyKey),
     }),
     isGreeting: true,
@@ -286,8 +288,6 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     if (q && about) pendingCompareProfileIdRef.current = about;
   }, []);
   const [streaming, setStreaming] = useState(false);
-  // Baba Ji memory: the chosen guide's name, the free first reply after a check-in, and the birth-time chip.
-  const { customName: guideCustomName } = usePersona();
   const { summary: memorySummary, refresh: refreshMemorySummary } = useMemorySummary();
   const rectifyChipOn = useNewFeature("memory.rectifyChip").enabled;
   const wasStreaming = useRef(false);
@@ -581,24 +581,20 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // the greeting while the chat is still in its pristine just-opened state
   // (no loaded session, nothing sent yet), so it never rewrites a real
   // conversation already in progress.
+  // The chosen guide's name can arrive after the first draw, so the greeting follows it too (chat.personas).
   useEffect(() => {
     if (sessionIdRef.current) return;
     const moonSignEnglish = getUserMoonSign(kundli);
-    if (!moonSignEnglish) return;
+    const name = guideCustomName ?? t(ASTROLOGER.nameKey);
+    const specialty = t(ASTROLOGER.specialtyKey);
     setMessages((prev) => {
       if (prev.length !== 1 || !prev[0]?.isGreeting) return prev;
-      return [
-        {
-          ...prev[0],
-          content: t("aiChatPage.personaGreetingWithMoon", {
-            name: t(ASTROLOGER.nameKey),
-            specialty: t(ASTROLOGER.specialtyKey),
-            moonSign: zodiacSignLabel(t, moonSignEnglish),
-          }),
-        },
-      ];
+      const content = moonSignEnglish
+        ? t("aiChatPage.personaGreetingWithMoon", { name, specialty, moonSign: zodiacSignLabel(t, moonSignEnglish) })
+        : t("aiChatPage.personaGreeting", { name, specialty });
+      return content === prev[0].content ? prev : [{ ...prev[0], content }];
     });
-  }, [kundli, t]);
+  }, [kundli, t, guideCustomName]);
 
   useEffect(() => {
     const el = messagesContainerRef.current;

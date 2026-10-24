@@ -34,8 +34,8 @@ export default function SignShiftCard({
       <h3 className="mb-3 text-sm font-medium text-foreground">{t("cosmicChart.signShift.title")}</h3>
       <div className="space-y-2.5">
         {rows.map(({ key, body, diff, same }) => (
-          <div key={key} data-testid={`sign-shift-${key}`} className="flex items-center gap-3">
-            <div className="flex shrink-0 gap-1.5">
+          <div key={key} data-testid={`sign-shift-${key}`} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex flex-wrap gap-1.5 sm:shrink-0">
               <span className="rounded-full border border-gold/40 px-2.5 py-1 text-[11px] text-foreground">
                 {t("cosmicChart.signShift.western")} · {name(body.western)}
               </span>

@@ -24,6 +24,7 @@ const REASONS = [
   "Fraud",
   "Friendly fraud",
   "Bank chargeback",
+  "Never confirmed by the app",
 ];
 const SOURCES = ["the buyer", "us (Play Console)", "Google"];
 
@@ -32,6 +33,7 @@ const STATUS: Record<string, { label: string; tone: string }> = {
   clawed_back: { label: "Taken back", tone: "bg-green-500/15 text-green-400" },
   skipped: { label: "Nothing to take (order not paid)", tone: "bg-white/10 text-muted" },
   pass: { label: "Pass: Google ends it", tone: "bg-white/10 text-muted" },
+  not_credited: { label: "Never credited (lost sale)", tone: "bg-red-500/15 text-red-400" },
   unmatched: { label: "No matching order", tone: "bg-red-500/15 text-red-400" },
 };
 
@@ -199,7 +201,8 @@ export default function AdminPlayRefundsPage() {
         Every Google Play refund and chargeback, found by an hourly check and by Google&apos;s notice. With the switch{" "}
         <span className="font-mono">paid.refundClawback</span> off (Features), refunds are only recorded. With it on, the
         refunded money or questions are taken back, even below zero, reports bought with that money lock until it is
-        paid, and a second refund blocks purchases.
+        paid, and a second refund blocks purchases. &quot;Never credited&quot; means the buyer paid but the app never
+        confirmed it, so Google refunded it by itself after 3 days.
       </p>
       {data && (
         <p data-testid="clawback-switch" className={`text-xs mb-4 ${data.clawbackOn ? "text-green-400" : "text-amber-400"}`}>
@@ -212,7 +215,8 @@ export default function AdminPlayRefundsPage() {
         <p data-testid="check-result" className="text-xs text-foreground mb-4">
           Google listed {checkResult.checked} refunds in the last 30 days: {checkResult.recorded} new recorded,{" "}
           {checkResult.clawedBack} taken back, {checkResult.pass} Pass, {checkResult.unmatched} unmatched,{" "}
-          {checkResult.skipped} skipped. The rest were already handled.
+          {checkResult.skipped} skipped, {checkResult.notCredited} never credited. The rest were already
+          handled.
         </p>
       )}
       {actionError && <p className="text-sm text-red-400 mb-3">{actionError}</p>}

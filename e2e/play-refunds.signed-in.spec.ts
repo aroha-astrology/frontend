@@ -100,7 +100,7 @@ test.describe("Admin → Play Refunds", () => {
           },
         }),
         "POST /v1/admin/play-refunds/check": () => ({
-          json: { checked: 1, recorded: 0, clawedBack: 0, pass: 0, unmatched: 0, skipped: 0 },
+          json: { checked: 1, recorded: 0, clawedBack: 0, pass: 0, unmatched: 0, skipped: 0, notCredited: 0 },
         }),
         "POST /v1/admin/users/:id/purchases-block": (c) => {
           blocked = (c.body as { blocked: boolean }).blocked;

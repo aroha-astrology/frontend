@@ -452,7 +452,7 @@ export interface AdminPlayRefundRow {
   userName: string | null;
   amountPaise: number;
   questionCredits: number;
-  /** "recorded" (switch off) | "clawed_back" | "skipped" | "pass" | "unmatched". */
+  /** "recorded" (switch off) | "clawed_back" | "skipped" | "pass" | "not_credited" | "unmatched". */
   status: string;
   clawedBackPaise: number;
   clawedBackQuestions: number;
@@ -482,6 +482,8 @@ export interface AdminPlayRefundCheck {
   pass: number;
   unmatched: number;
   skipped: number;
+  /** Payments the app never confirmed, which Google refunded by itself. */
+  notCredited: number;
 }
 
 // ─── Gemini Keys ───────────────────────────────────────────────────────────

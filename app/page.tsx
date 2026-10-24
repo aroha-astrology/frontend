@@ -18,6 +18,16 @@ import BondsCard from "@/components/bonds/BondsCard";
 import NowBarCard from "@/components/home/NowBarCard";
 import MorningRitualCard from "@/components/ritual/MorningRitualCard";
 import CirclesCard from "@/components/circles/CirclesCard";
+import {
+  DiyaHomeCard,
+  KavachHomeCard,
+  MysteryHomeCard,
+  RahasyaHomeCard,
+  ReceiptsHomeCard,
+  ShubhLabhHomeCard,
+  SleepHomeCard,
+  TextHomeCard,
+} from "@/components/hooks/HookHomeCard";
 import PendingCircleInvite from "@/components/circles/PendingCircleInvite";
 import JournalPromptCard from "@/components/journal/JournalPromptCard";
 import MoonBackground from "@/components/MoonBackground";
@@ -194,10 +204,28 @@ function RemediesSection() {
   );
 }
 
+// The eight daily-return hooks (switches hooks.*): each is one card, hidden while its switch is off.
+const hookSection = (Card: ComponentType): ComponentType =>
+  function HookSection() {
+    return (
+      <div className={CARD_SECTION}>
+        <Card />
+      </div>
+    );
+  };
+
 const SECTION_COMPONENTS: Record<string, ComponentType> = {
   nowBar: NowBarSection,
   morningRitual: MorningRitualSection,
   circles: CirclesSection,
+  hookRahasya: hookSection(RahasyaHomeCard),
+  hookShubhLabh: hookSection(ShubhLabhHomeCard),
+  hookKavach: hookSection(KavachHomeCard),
+  hookDiya: hookSection(DiyaHomeCard),
+  hookReceipts: hookSection(ReceiptsHomeCard),
+  hookText: hookSection(TextHomeCard),
+  hookSleep: hookSection(SleepHomeCard),
+  hookMystery: hookSection(MysteryHomeCard),
   todayReading: TodayReadingSection,
   astroWeather: AstroWeatherSection,
   journalPrompt: JournalPromptSection,
@@ -286,6 +314,7 @@ export default function HomePage() {
     layout,
     skinToLook(experience?.skin ?? null),
     new Date(),
+    { timeMorph: resolveFeature(user?.features, "home.timeMorph", { failClosed: true }).enabled },
   );
 
   return (

@@ -50,6 +50,8 @@ export interface NotificationPrefs {
   transitAlerts?: NotificationChannelPrefs;
   muhurta?: NotificationChannelPrefs;
   marketing?: NotificationChannelPrefs;
+  /** The daily-return hooks (Sprint 6). */
+  hooks?: NotificationChannelPrefs;
 }
 
 /** Do-not-disturb window, "HH:mm" in the user's own timezone; null = off. */
@@ -1273,6 +1275,14 @@ export const api = {
   circleInvitePreview: (code: string) => request<InvitePreview>(`/v1/public/circle-invites/${code}`),
   circleAcceptInvite: (code: string) =>
     request<{ inviterName: string }>(`/v1/circles/invites/${code}/accept`, { method: "POST", auth: true }),
+
+  /** The eight daily-return hooks (switches hooks.*). The server reads the sky at the saved home city. */
+  hookGet: <T>(path: string) => request<T>(`/v1/hooks/${path}`, { auth: true }),
+  hookPost: <T>(path: string, body?: unknown) =>
+    request<T>(`/v1/hooks/${path}`, { method: "POST", body: body ?? {}, auth: true }),
+  hookPrefs: () => request<{ off: string[] }>("/v1/hooks/prefs", { auth: true }),
+  hookSetPref: (hook: string, push: boolean) =>
+    request<{ off: string[] }>("/v1/hooks/prefs", { method: "PUT", body: { hook, push }, auth: true }),
 
   /** Baba Ji memory (switches memory.*). */
   memoryVault: () => request<MemoryVault>("/v1/me/memory", { auth: true }),

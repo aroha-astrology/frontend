@@ -5,12 +5,13 @@ import { useTranslation } from "react-i18next";
 import { Sun, Orbit, CalendarDays, Gift, BellOff } from "lucide-react";
 import ListRow from "@/components/ui/ListRow";
 import WebPushSetting from "@/components/settings/WebPushSetting";
+import HookPushSettings from "@/components/settings/HookPushSettings";
 import Switch from "@/components/ui/Switch";
 import { useAuth } from "@/providers/auth-provider";
 import { api, type NotificationPrefs, type QuietHours } from "@/lib/api";
 import { track } from "@/lib/analytics";
 
-type Category = "dailyHoroscope" | "transitAlerts" | "muhurta" | "marketing";
+type Category = "dailyHoroscope" | "transitAlerts" | "muhurta" | "marketing" | "hooks";
 
 const QUIET_HOURS: QuietHours = { start: "22:00", end: "07:00" };
 
@@ -86,6 +87,7 @@ export default function NotificationSettings() {
           />
         );
       })}
+      <HookPushSettings masterOn={prefs.hooks?.push !== false} disabled={saving} onMaster={(on) => toggleCategory("hooks", on)} />
       <ListRow
         icon={<BellOff size={16} />}
         label={t("settings.notifQuietHours")}

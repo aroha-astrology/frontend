@@ -28,6 +28,14 @@ export const HOME_CARDS: readonly HomeCardMeta[] = [
   { id: "kundliCard", featureKey: "home.kundliCard", label: "Kundli" },
   { id: "bonds", featureKey: "home.bondsCard", label: "Aroha Bonds", isNew: true },
   { id: "circles", featureKey: "circles.circles", label: "Cosmic Circle", isNew: true },
+  { id: "hookRahasya", featureKey: "hooks.kundliRahasya", label: "Kundli Rahasya", isNew: true },
+  { id: "hookShubhLabh", featureKey: "hooks.shubhLabh", label: "Shubh-Labh radar", isNew: true },
+  { id: "hookKavach", featureKey: "hooks.gharKavach", label: "Ghar Ka Kavach", isNew: true },
+  { id: "hookDiya", featureKey: "hooks.sankalpDiya", label: "Sankalp Diya", isNew: true },
+  { id: "hookReceipts", featureKey: "hooks.cosmicReceipts", label: "Cosmic Receipts", isNew: true },
+  { id: "hookText", featureKey: "hooks.textTiming", label: "Text them now?", isNew: true },
+  { id: "hookSleep", featureKey: "hooks.sleepSync", label: "Sleep Sync", isNew: true },
+  { id: "hookMystery", featureKey: "hooks.mysteryDrop", label: "Mystery Synastry", isNew: true },
   { id: "horoscopeSlider", featureKey: "home.horoscopeSlider", label: "Moon sign horoscope", wide: true },
   { id: "reportsSlider", featureKey: "home.reportsSection", label: "Reports", wide: true },
   { id: "matchmaking", featureKey: "home.matchmaking", label: "Match making" },
@@ -111,8 +119,9 @@ export function arrangeCards<T extends { id: string }>(
   layout: HomeLayoutDoc | null,
   look: LookName,
   now: Date,
+  opts: { timeMorph?: boolean } = {},
 ): T[] {
-  if (!layout) return [...items];
+  if (!layout) return opts.timeMorph ? promoteMoment(items, slotAt(now, DEFAULT_SLOTS)) : [...items];
   const lookLayout = layout[look];
   const byId = new Map(items.map((i) => [i.id, i]));
   const placed: T[] = [];
@@ -127,12 +136,36 @@ export function arrangeCards<T extends { id: string }>(
   const rest = items.filter((i) => !seen.has(i.id));
   const ordered = [...placed, ...rest];
 
-  const hero = lookLayout.heroBySlot[slotAt(now, layout.slots)];
-  if (!hero) return ordered;
+  const slot = slotAt(now, layout.slots);
+  const hero = lookLayout.heroBySlot[slot];
+  // The owner's hero for the slot wins; with home.timeMorph on and none set, the card whose moment it is leads.
+  if (!hero) return opts.timeMorph ? promoteMoment(ordered, slot) : ordered;
   const at = ordered.findIndex((i) => i.id === hero);
   if (at <= 0) return ordered;
   const [heroItem] = ordered.splice(at, 1);
   return [heroItem!, ...ordered];
+}
+
+/**
+ * With home.timeMorph on: the cards whose moment is this part of the day, best first. Kavach and Sleep
+ * Sync belong to the morning, the diya and the radar to midday, Mystery and Rahasya to the evening,
+ * and Receipts to the night. Only the first one that is on Home moves to the top.
+ */
+export const MOMENT_CARDS: Record<SlotName, readonly string[]> = {
+  morning: ["hookKavach", "hookSleep"],
+  midday: ["hookDiya", "hookShubhLabh"],
+  evening: ["hookMystery", "hookRahasya"],
+  night: ["hookReceipts"],
+};
+
+function promoteMoment<T extends { id: string }>(items: readonly T[], slot: SlotName): T[] {
+  const id = MOMENT_CARDS[slot].find((c) => items.some((i) => i.id === c));
+  if (!id) return [...items];
+  const at = items.findIndex((i) => i.id === id);
+  if (at <= 0) return [...items];
+  const copy = [...items];
+  const [card] = copy.splice(at, 1);
+  return [card!, ...copy];
 }
 
 /** Move a card one place up (-1) or down (+1) in an order. Returns the same array at either end. */

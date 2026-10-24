@@ -107,7 +107,7 @@ describe("home.timeMorph", () => {
 
   it("does nothing while the switch is off", () => {
     expect(ids(arrangeCards(cards, null, "vedic", at(7)))).toEqual(ids(cards));
-    expect(ids(arrangeCards(cards, defaultHomeLayout(), "vedic", at(7)))).toEqual(ids(cards));
+    expect(ids(arrangeCards(cards, defaultHomeLayout(), "vedic", at(7), { timeMorph: false }))).toEqual(ids(arrangeCards(cards, defaultHomeLayout(), "vedic", at(7))));
   });
 
   it("brings the card whose moment it is to the front, without a saved layout", () => {

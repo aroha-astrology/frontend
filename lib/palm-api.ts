@@ -55,7 +55,7 @@ export interface PalmLineNote {
 
 export type PalmEventKind = "marriage" | "child" | "careerChange" | "promotion" | "wealth" | "relocation";
 
-/** One life event read off the hand and dated against the birth chart. While the reading is
+/** One life event read off the hand (palmistry stands alone: no birth chart is involved). While the reading is
  * only scanned (free), `ages` is empty and `locked` is true: the photo shows WHICH events the
  * hand indicates and where, and the ages unlock with the full reading. */
 export interface PalmEvent {
@@ -65,15 +65,8 @@ export interface PalmEvent {
   mark?: string;
   /** 0-1 point on the front photo the callout points at, or null. */
   anchor: [number, number] | null;
-  ages: Array<{ age: number; palmAge: number | null; agreement: "match" | "adjusted" | "chart"; past: boolean }>;
+  ages: Array<{ age: number; palmAge: number | null; agreement: "match" | "adjusted" | "chart" | "hand" | "later"; past: boolean }>;
   locked?: boolean;
-}
-
-export interface PalmKundliMatch {
-  percent: number;
-  timing: { agree: number; total: number } | null;
-  scores: { agree: number; total: number } | null;
-  mounts: { agree: number; total: number } | null;
 }
 
 /** Whether the reader's Aroha Pass covers the full reading now, and how many are left this period. */
@@ -96,10 +89,6 @@ export interface PalmReadingResponse {
    * through untouched. */
   observations?: Record<string, unknown>;
   scores?: Record<string, number>;
-  /** The birth chart's own 0-10 verdict on the same six areas. The palm scores are already
-   * clamped to within a band of these server-side, so this is shown for transparency, not as a
-   * competing number. */
-  chartScores?: Record<string, number>;
   lineNotes?: Record<string, PalmLineNote>;
   /** { primary, secondary, primaryRegions, secondaryRegions } — relief scores per hand plus,
    * where the capture recorded them, each mount's real position on that hand's photograph. */
@@ -108,8 +97,6 @@ export interface PalmReadingResponse {
   events?: PalmEvent[];
   /** The question typed before the scan and its answer (raw when the question was "Subir Raw"). */
   question?: { text: string; raw: boolean; answer: string };
-  /** How much of what the hand shows the birth chart independently confirms (paid reading). */
-  kundliMatch?: PalmKundliMatch;
   /** The hand the app asked for vs the one the vision pass saw in the photograph. */
   handCheck?: { expected: string; detected: string };
   /** On a scanned, not-yet-unlocked reading only. The full reading is an Aroha Pass benefit. */

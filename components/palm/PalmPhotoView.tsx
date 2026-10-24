@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { PalmCaptureSlot, PalmEvent, PalmKundliMatch } from "@/lib/palm-api";
+import type { PalmCaptureSlot, PalmEvent } from "@/lib/palm-api";
 import { usePdfCapturing } from "@/components/pdf/PdfCapturingContext";
 
 /**
@@ -24,10 +24,9 @@ export interface PalmPhotoViewProps {
   events?: PalmEvent[];
   /** Ages are shown only for a paid reading; a scan-only reading shows locked cards. */
   unlocked?: boolean;
-  kundliMatch?: PalmKundliMatch | null;
 }
 
-export default function PalmPhotoView({ photos, events = [], unlocked = false, kundliMatch = null }: PalmPhotoViewProps) {
+export default function PalmPhotoView({ photos, events = [], unlocked = false }: PalmPhotoViewProps) {
   const { t } = useTranslation();
   const capturing = usePdfCapturing();
   const scroller = useRef<HTMLDivElement>(null);
@@ -39,10 +38,14 @@ export default function PalmPhotoView({ photos, events = [], unlocked = false, k
   const sourceLabel = (source: string) =>
     source === "marriageLine" || source === "childrenLine" ? t(`palm.map.${source}`) : t(`palm.line.${source}`);
 
+  // A paid reading shows the age; an event the hand indicates but cannot date (children lines)
+  // says so instead of looking locked.
   const ageText = (e: PalmEvent) =>
-    !unlocked || e.locked || e.ages.length === 0
+    !unlocked || e.locked
       ? t("palm.map.lockedAge")
-      : t("palm.map.age", { age: e.ages.map((a) => a.age).join(" · ") });
+      : e.ages.length === 0
+        ? t("palm.map.noAge")
+        : t("palm.map.age", { age: e.ages.map((a) => a.age).join(" · ") });
 
   function onScroll() {
     const el = scroller.current;
@@ -79,11 +82,6 @@ export default function PalmPhotoView({ photos, events = [], unlocked = false, k
           )}
         </div>
 
-        {kundliMatch && (
-          <span className="absolute left-3 top-3 rounded-full border border-emerald-400/60 bg-black/75 px-3 py-1 text-xs font-extrabold text-emerald-300 backdrop-blur-md">
-            {t("palm.map.kundliMatch", { percent: kundliMatch.percent })}
-          </span>
-        )}
       </div>
 
       {shown.length > 1 && (

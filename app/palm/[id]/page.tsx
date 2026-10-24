@@ -142,7 +142,6 @@ export default function PalmReadingPage() {
               photos={photos}
               events={data.events}
               unlocked={isFullyReady}
-              kundliMatch={isFullyReady ? data.kundliMatch : null}
             />
 
             {data.question && (
@@ -171,21 +170,6 @@ export default function PalmReadingPage() {
                     {t("palm.view.retakeCta")}
                   </button>
                 </div>
-              </div>
-            )}
-
-            {isFullyReady && data.kundliMatch && (
-              <div className="rounded-3xl border border-gold/20 bg-card p-5 space-y-2">
-                <div className="flex items-baseline justify-between">
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wider">
-                    {t("palm.map.matchTitle")}
-                  </p>
-                  <span className="font-display text-2xl text-gold">{data.kundliMatch.percent}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-surface overflow-hidden">
-                  <div className="h-full bg-gold rounded-full" style={{ width: `${data.kundliMatch.percent}%` }} />
-                </div>
-                <p className="text-[11px] text-muted leading-relaxed">{t("palm.map.matchBody")}</p>
               </div>
             )}
 
@@ -225,32 +209,16 @@ export default function PalmReadingPage() {
                 </p>
                 {SCORE_ORDER.map((key) => {
                   const value = (data.scores as Record<string, number>)[key] ?? 0;
-                  const chartValue = data.chartScores?.[key];
                   return (
                     <div key={key} className="flex items-center gap-3">
                       <span className="text-xs text-foreground/80 w-28 shrink-0">{t(SCORE_LABEL_KEY[key]!)}</span>
                       <div className="relative flex-1 h-2 rounded-full bg-surface overflow-hidden">
                         <div className="h-full bg-gold rounded-full" style={{ width: `${value * 10}%` }} />
-                        {/* The chart's own reading of the same area. The palm score is already
-                            constrained to sit near it, so this marker shows agreement rather
-                            than inviting a comparison the two could lose. */}
-                        {typeof chartValue === "number" && (
-                          <span
-                            className="absolute top-0 h-full w-[2px] bg-foreground/50"
-                            style={{ left: `calc(${chartValue * 10}% - 1px)` }}
-                            title={t("palm.scores.chartMarker", { score: chartValue })}
-                          />
-                        )}
                       </div>
                       <span className="text-xs text-gold w-5 text-right">{value}</span>
                     </div>
                   );
                 })}
-                {data.chartScores && (
-                  <p className="text-[11px] text-muted leading-relaxed pt-1">
-                    {t("palm.scores.chartLegend")}
-                  </p>
-                )}
               </div>
             )}
 

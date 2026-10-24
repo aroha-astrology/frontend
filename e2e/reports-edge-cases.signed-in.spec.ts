@@ -102,4 +102,27 @@ test.describe("Report edge cases", () => {
     await page.getByRole("button", { name: "Try Again" }).click();
     await expect(page.getByText("Past Life Report").first()).toBeVisible();
   });
+
+  test("an old report shows the free update screen, then the rebuilt report", async ({ page }) => {
+    await page.clock.install();
+    await skipLaunchOverlays(page);
+    let calls = 0;
+    await mockApi(page, {
+      overrides: {
+        "GET /v1/reports/:id": () => {
+          calls += 1;
+          if (calls === 1) return { status: 202, json: { status: "generating", refreshing: true } };
+          return { json: READY };
+        },
+      },
+    });
+    await signIn(page, `/reports/${REPORT_ID}`);
+    await expect(page.getByTestId("report-refreshing")).toHaveText("Updating your report…");
+    for (let i = 0; i < 30; i++) {
+      await page.clock.fastForward("00:15");
+      if (await page.getByText("Your year ahead").count()) break;
+    }
+    await expect(page.getByText("Your year ahead")).toBeVisible();
+    await expect(page.getByText("Slow and steady wins this year.")).toBeVisible();
+  });
 });

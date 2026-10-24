@@ -486,6 +486,20 @@ export interface AdminPlayRefundCheck {
   notCredited: number;
 }
 
+// ─── Old-report rebuilds ───────────────────────────────────────────────────
+
+/** as GET /v1/admin/report-refresh returns it, backend admin-report-refresh.routes.ts */
+export interface AdminReportRefresh {
+  switchOn: boolean;
+  model: string | null;
+  contentVersion: number;
+  waiting: number;
+  running: number;
+  failed: number;
+  rebuilt: number;
+  byModel: { model: string; count: number }[];
+}
+
 // ─── Gemini Keys ───────────────────────────────────────────────────────────
 
 export type GeminiKeyTier = "free" | "paid";
@@ -811,6 +825,13 @@ export const adminApi = {
   /** Ask Google for refunds now instead of waiting for the hourly check. */
   checkPlayRefunds: () =>
     request<AdminPlayRefundCheck>("/v1/admin/play-refunds/check", { method: "POST", auth: true }),
+
+  /** Current old-report rebuild status. */
+  reportRefreshStatus: () => request<AdminReportRefresh>("/v1/admin/report-refresh", { auth: true }),
+
+  /** Retry failed old-report rebuilds. */
+  retryFailedReportRefreshes: () =>
+    request<{ reset: number }>("/v1/admin/report-refresh/retry-failed", { method: "POST", auth: true }),
 
   /** Block or unblock new purchases for an account (set by itself after a second refund). */
   setPurchasesBlocked: (userId: string, blocked: boolean) =>

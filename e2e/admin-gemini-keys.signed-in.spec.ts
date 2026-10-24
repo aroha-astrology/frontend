@@ -43,7 +43,7 @@ function keyServer() {
   ];
   const list = () => {
     let n = 0;
-    keys = keys.map((k) => ({ ...k, paidPosition: k.tier === "paid" ? ++n : null }));
+    keys = keys.map((k) => ({ ...k, paidPosition: k.tier === "paid" && k.enabled ? ++n : null }));
     return { keys };
   };
   const idOf = (path: string) => path.split("/")[4]!;
@@ -64,6 +64,16 @@ function keyServer() {
       const id = idOf(c.path);
       const chosen = keys.find((k) => k.id === id)!;
       keys = [...keys.filter((k) => k.tier === "free"), chosen, ...keys.filter((k) => k.tier === "paid" && k.id !== id)];
+      return { json: list() };
+    },
+    "POST /v1/admin/gemini-keys/:id/move": (c) => {
+      const id = idOf(c.path);
+      const free = keys.filter((k) => k.tier === "free");
+      const paid = keys.filter((k) => k.tier === "paid");
+      const from = paid.findIndex((k) => k.id === id);
+      const to = (c.body as { direction: "up" | "down" }).direction === "up" ? from - 1 : from + 1;
+      if (to >= 0 && to < paid.length) [paid[from], paid[to]] = [paid[to]!, paid[from]!];
+      keys = [...free, ...paid];
       return { json: list() };
     },
     "POST /v1/admin/gemini-keys/:id/test": (c) => {
@@ -127,5 +137,29 @@ test.describe("Admin → Gemini Keys", () => {
     // Nothing on the page pushes it sideways at phone width.
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("moves paid keys with the arrows and shows which one is used first", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await skipLaunchOverlays(page);
+    const api = await mockApi(page, { user: { isAdmin: true }, overrides: keyServer() });
+    await signIn(page, "/admin/gemini-keys");
+
+    await expect.poll(() => paidNames(page)).toEqual(["subir2", "subir1719"]);
+    await expect(page.getByTestId("gemini-key-k-subir2")).toContainText("Used first now");
+    // The top key cannot go higher and the bottom one cannot go lower.
+    await expect(page.getByRole("button", { name: "Move subir2 up" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Move subir1719 down" })).toBeDisabled();
+
+    await page.getByRole("button", { name: "Move subir1719 up" }).click();
+    await expect.poll(() => paidNames(page)).toEqual(["subir1719", "subir2"]);
+    expect(callsTo(api, "POST /v1/admin/gemini-keys/k-subir1719/move")[0]!.body).toEqual({ direction: "up" });
+    await expect(page.getByTestId("gemini-key-k-subir1719")).toContainText("Used first now");
+
+    // A switched-off key loses its number, so the next one shows as used first.
+    await page.getByTestId("gemini-key-k-subir1719").getByRole("button", { name: "Switch off" }).click();
+    await expect(page.getByTestId("gemini-key-k-subir1719")).toContainText("Off: skipped");
+    await expect(page.getByTestId("gemini-key-k-subir2")).toContainText("#1");
+    await expect(page.getByTestId("gemini-key-k-subir2")).toContainText("Used first now");
   });
 });

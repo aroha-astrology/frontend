@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif, Kalam } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -79,6 +79,16 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+// The report book's handwriting (the reader's name on the cover, pull-quotes). Kalam draws both
+// Latin and Devanagari. Not preloaded: it is only fetched when a book is opened.
+const kalam = Kalam({
+  subsets: ["latin", "devanagari"],
+  variable: "--font-hand",
+  display: "swap",
+  weight: ["400", "700"],
+  preload: false,
+});
+
 const APP_DESCRIPTION =
   "Aroha Astrology in your browser: free Kundli, daily Panchang, Kundli matching and personalised reports. Sign in with the same account as the Android app.";
 
@@ -123,7 +133,7 @@ export default function RootLayout({
         {/* Puts the remembered look on <html> before the first paint, so a Modern Cosmic user never sees a gold flash. */}
         <script dangerouslySetInnerHTML={{ __html: SKIN_BOOT_SCRIPT }} />
       </head>
-      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable}`}>
+      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>

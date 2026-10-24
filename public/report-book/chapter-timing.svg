@@ -1,0 +1,90 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="g1" cx="0" cy="0" r="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#1b2550"/><stop offset="100%" stop-color="#0f1633"/></radialGradient>
+<g id="pO"><path d="M0 -15 C4 -8 4 -1 0 11 C-4 -1 -4 -8 0 -15Z" fill="#1b2550" stroke="#dfb564" stroke-width="1.3" stroke-linejoin="round"/></g>
+<g id="pI"><path d="M0 -11 C3 -6 3 0 0 8 C-3 0 -3 -6 0 -11Z" fill="#0f1633" stroke="#dfb564" stroke-width="1.2" stroke-linejoin="round"/></g>
+<g id="st"><path d="M0 -3.6 L1 -1 3.6 0 1 1 0 3.6 -1 1 -3.6 0 -1 -1Z" fill="#fbe09b" stroke="#dfb564" stroke-width="0.6" stroke-linejoin="round"/></g>
+<g id="dot"><circle r="1.25" fill="#fbe09b" stroke="#dfb564" stroke-width="0.5"/></g>
+</defs>
+
+<!-- faint arch between moons -->
+<path d="M192 146 A115 115 0 0 1 408 146" fill="none" stroke="#dfb564" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="1.8 7" opacity="0.9"/>
+
+<!-- 8 moon phases arc -->
+<g stroke-linecap="round" stroke-linejoin="round">
+<!-- New -->
+<g transform="translate(192 146)"><circle r="12.2" fill="#0f1633" stroke="#dfb564" stroke-width="1.4"/><circle r="1" fill="#dfb564" opacity="0.9" cy="-3"/><circle r="0.7" fill="#c99a8b" cx="2.5" cy="2"/></g>
+<!-- Waxing Crescent -->
+<g transform="translate(211.5 111)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><ellipse cx="-4" cy="0" rx="11" ry="12.2" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+<!-- First Quarter -->
+<g transform="translate(242.5 85.5)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><path d="M0 -12.2 H-12.2 V12.2 H0Z" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+<!-- Waxing Gibbous -->
+<g transform="translate(280 72)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><ellipse cx="-7.2" cy="0" rx="5.2" ry="12.2" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+<!-- Full -->
+<g transform="translate(320 72)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><circle r="12.2" fill="none" stroke="#a67c00" stroke-width="0.7" opacity="0.9"/><circle r="1.1" fill="#dfb564" opacity="0.35" cx="-3" cy="-2"/><circle r="0.9" fill="#c99a8b" opacity="0.4" cx="2.5" cy="3"/></g>
+<!-- Waning Gibbous -->
+<g transform="translate(357.5 85.5)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><ellipse cx="7.2" cy="0" rx="5.2" ry="12.2" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+<!-- Last Quarter -->
+<g transform="translate(388 111)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><path d="M0 -12.2 H12.2 V12.2 H0Z" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+<!-- Waning Crescent -->
+<g transform="translate(408 146)"><circle r="12.2" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.4"/><ellipse cx="4" cy="0" rx="11" ry="12.2" fill="#0f1633"/><circle r="12.2" fill="none" stroke="#dfb564" stroke-width="1.4"/></g>
+</g>
+
+<!-- tiny stars between moons -->
+<g fill="#fbe09b" stroke="#dfb564" stroke-width="0.6">
+<circle r="1" cx="200.5" cy="126"/><circle r="0.8" cx="226" cy="95"/><circle r="1" cx="261" cy="74"/><circle r="0.8" cx="300" cy="66"/><circle r="1" cx="339" cy="74"/><circle r="0.8" cx="374" cy="95"/><circle r="1" cx="399.5" cy="126"/>
+</g>
+
+<!-- ZODIAC WHEEL -->
+<g transform="translate(300 185)">
+<!-- outer lotus 24 petals -->
+<g opacity="0.98">
+<use href="#pO" transform="rotate(0) translate(0 -102)"/><use href="#pO" transform="rotate(15) translate(0 -102)"/><use href="#pO" transform="rotate(30) translate(0 -102)"/><use href="#pO" transform="rotate(45) translate(0 -102)"/><use href="#pO" transform="rotate(60) translate(0 -102)"/><use href="#pO" transform="rotate(75) translate(0 -102)"/><use href="#pO" transform="rotate(90) translate(0 -102)"/><use href="#pO" transform="rotate(105) translate(0 -102)"/><use href="#pO" transform="rotate(120) translate(0 -102)"/><use href="#pO" transform="rotate(135) translate(0 -102)"/><use href="#pO" transform="rotate(150) translate(0 -102)"/><use href="#pO" transform="rotate(165) translate(0 -102)"/><use href="#pO" transform="rotate(180) translate(0 -102)"/><use href="#pO" transform="rotate(195) translate(0 -102)"/><use href="#pO" transform="rotate(210) translate(0 -102)"/><use href="#pO" transform="rotate(225) translate(0 -102)"/><use href="#pO" transform="rotate(240) translate(0 -102)"/><use href="#pO" transform="rotate(255) translate(0 -102)"/><use href="#pO" transform="rotate(270) translate(0 -102)"/><use href="#pO" transform="rotate(285) translate(0 -102)"/><use href="#pO" transform="rotate(300) translate(0 -102)"/><use href="#pO" transform="rotate(315) translate(0 -102)"/><use href="#pO" transform="rotate(330) translate(0 -102)"/><use href="#pO" transform="rotate(345) translate(0 -102)"/>
+</g>
+<!-- mandala rings -->
+<circle r="92" fill="none" stroke="#dfb564" stroke-width="1.6"/>
+<circle r="88.5" fill="none" stroke="#a67c00" stroke-width="1"/>
+<circle r="85" fill="url(#g1)" stroke="#dfb564" stroke-width="1.4"/>
+<circle r="69" fill="none" stroke="#dfb564" stroke-width="1.3"/>
+<circle r="67" fill="none" stroke="#dfb564" stroke-width="0.7" opacity="0.6"/>
+<circle r="54" fill="none" stroke="#dfb564" stroke-width="1.2"/>
+<circle r="23" fill="none" stroke="#dfb564" stroke-width="1.2"/>
+<circle r="20" fill="none" stroke="#a67c00" stroke-width="0.7"/>
+<!-- 12 divisions -->
+<g stroke="#dfb564" stroke-width="1.35" stroke-linecap="round" opacity="0.95">
+<line y1="-85" y2="-69"/><g transform="rotate(30)"><line y1="-85" y2="-69"/></g><g transform="rotate(60)"><line y1="-85" y2="-69"/></g><g transform="rotate(90)"><line y1="-85" y2="-69"/></g><g transform="rotate(120)"><line y1="-85" y2="-69"/></g><g transform="rotate(150)"><line y1="-85" y2="-69"/></g><g transform="rotate(180)"><line y1="-85" y2="-69"/></g><g transform="rotate(210)"><line y1="-85" y2="-69"/></g><g transform="rotate(240)"><line y1="-85" y2="-69"/></g><g transform="rotate(270)"><line y1="-85" y2="-69"/></g><g transform="rotate(300)"><line y1="-85" y2="-69"/></g><g transform="rotate(330)"><line y1="-85" y2="-69"/></g>
+</g>
+<!-- ticks on outer rim -->
+<g stroke="#fbe09b" stroke-width="1.4" stroke-linecap="round">
+<g transform="rotate(0)"><line y1="-92" y2="-88"/></g><g transform="rotate(30)"><line y1="-92" y2="-88"/></g><g transform="rotate(60)"><line y1="-92" y2="-88"/></g><g transform="rotate(90)"><line y1="-92" y2="-88"/></g><g transform="rotate(120)"><line y1="-92" y2="-88"/></g><g transform="rotate(150)"><line y1="-92" y2="-88"/></g><g transform="rotate(180)"><line y1="-92" y2="-88"/></g><g transform="rotate(210)"><line y1="-92" y2="-88"/></g><g transform="rotate(240)"><line y1="-92" y2="-88"/></g><g transform="rotate(270)"><line y1="-92" y2="-88"/></g><g transform="rotate(300)"><line y1="-92" y2="-88"/></g><g transform="rotate(330)"><line y1="-92" y2="-88"/></g>
+<!-- minor ticks -->
+<g stroke="#dfb564" stroke-width="0.9" opacity="0.9">
+<g transform="rotate(15)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(45)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(75)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(105)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(135)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(165)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(195)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(225)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(255)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(285)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(315)"><line y1="-88.5" y2="-86"/></g><g transform="rotate(345)"><line y1="-88.5" y2="-86"/></g>
+</g>
+</g>
+<!-- 12 tiny stars in segments -->
+<g>
+<use href="#st" transform="rotate(15) translate(0 -77)"/><use href="#st" transform="rotate(45) translate(0 -77)"/><use href="#st" transform="rotate(75) translate(0 -77)"/><use href="#st" transform="rotate(105) translate(0 -77)"/><use href="#st" transform="rotate(135) translate(0 -77)"/><use href="#st" transform="rotate(165) translate(0 -77)"/><use href="#st" transform="rotate(195) translate(0 -77)"/><use href="#st" transform="rotate(225) translate(0 -77)"/><use href="#st" transform="rotate(255) translate(0 -77)"/><use href="#st" transform="rotate(285) translate(0 -77)"/><use href="#st" transform="rotate(315) translate(0 -77)"/><use href="#st" transform="rotate(345) translate(0 -77)"/>
+</g>
+<!-- 12 dots on middle ring -->
+<g>
+<use href="#dot" transform="rotate(0) translate(0 -61)"/><use href="#dot" transform="rotate(30) translate(0 -61)"/><use href="#dot" transform="rotate(60) translate(0 -61)"/><use href="#dot" transform="rotate(90) translate(0 -61)"/><use href="#dot" transform="rotate(120) translate(0 -61)"/><use href="#dot" transform="rotate(150) translate(0 -61)"/><use href="#dot" transform="rotate(180) translate(0 -61)"/><use href="#dot" transform="rotate(210) translate(0 -61)"/><use href="#dot" transform="rotate(240) translate(0 -61)"/><use href="#dot" transform="rotate(270) translate(0 -61)"/><use href="#dot" transform="rotate(300) translate(0 -61)"/><use href="#dot" transform="rotate(330) translate(0 -61)"/>
+</g>
+<!-- inner 8 lotus -->
+<g>
+<use href="#pI" transform="rotate(0) translate(0 -30)"/><use href="#pI" transform="rotate(45) translate(0 -30)"/><use href="#pI" transform="rotate(90) translate(0 -30)"/><use href="#pI" transform="rotate(135) translate(0 -30)"/><use href="#pI" transform="rotate(180) translate(0 -30)"/><use href="#pI" transform="rotate(225) translate(0 -30)"/><use href="#pI" transform="rotate(270) translate(0 -30)"/><use href="#pI" transform="rotate(315) translate(0 -30)"/>
+</g>
+<!-- center -->
+<circle r="11.5" fill="#0f1633" stroke="#dfb564" stroke-width="1.4"/>
+<circle r="7.2" fill="#dfb564" stroke="#fbe09b" stroke-width="0.7"/>
+<circle r="2.2" fill="#f3ecd9" stroke="none"/>
+<circle r="1" fill="#dfb564" opacity="0.9"/>
+<!-- small crescent accents at cardinal inner -->
+<g fill="none" stroke="#c99a8b" stroke-width="1.05" opacity="0.9" stroke-linecap="round">
+<path d="M0 -61 A6 6 0 0 1 3.2 -55.5 A4.5 4.5 0 0 0 0 -61" transform="rotate(0)"/>
+<path d="M0 -61 A6 6 0 0 1 3.2 -55.5 A4.5 4.5 0 0 0 0 -61" transform="rotate(90)"/>
+<path d="M0 -61 A6 6 0 0 1 3.2 -55.5 A4.5 4.5 0 0 0 0 -61" transform="rotate(180)"/>
+<path d="M0 -61 A6 6 0 0 1 3.2 -55.5 A4.5 4.5 0 0 0 0 -61" transform="rotate(270)"/>
+</g>
+</g>
+</svg>

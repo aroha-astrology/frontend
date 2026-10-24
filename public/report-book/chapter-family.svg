@@ -1,0 +1,206 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<path id="pl" d="M0 0 C5.2 -8.2 9.5 -4.5 0 12 C-9.5 -4.5 -5.2 -8.2 0 0 Z"/>
+<path id="st" d="M0 -6.5 L1.7 -1.7 L6.5 0 L1.7 1.7 L0 6.5 L-1.7 1.7 L-6.5 0 L-1.7 -1.7 Z"/>
+<g id="tk"><line x1="0" y1="-96" x2="0" y2="-87.5" stroke="#dfb564" stroke-width="1.4" stroke-linecap="round"/><circle cx="0" cy="-99.5" r="1.4" fill="#dfb564"/></g>
+<path id="pet" d="M0 -10 C4.5 -5 4.5 5 0 10 C-4.5 5 -4.5 -5 0 -10 Z"/>
+</defs>
+<!-- zodiac mandala -->
+<circle cx="300" cy="122" r="96.5" fill="none" stroke="#dfb564" stroke-width="1.4" opacity="0.95"/>
+<circle cx="300" cy="122" r="88.5" fill="none" stroke="#dfb564" stroke-width="1.2" opacity="0.42"/>
+<circle cx="300" cy="122" r="101.5" fill="none" stroke="#dfb564" stroke-width="1.2" opacity="0.22"/>
+<g opacity="0.95">
+<use href="#tk" transform="rotate(0 300 122)"/>
+<use href="#tk" transform="rotate(30 300 122)"/>
+<use href="#tk" transform="rotate(60 300 122)"/>
+<use href="#tk" transform="rotate(90 300 122)"/>
+<use href="#tk" transform="rotate(120 300 122)"/>
+<use href="#tk" transform="rotate(150 300 122)"/>
+<use href="#tk" transform="rotate(180 300 122)"/>
+<use href="#tk" transform="rotate(210 300 122)"/>
+<use href="#tk" transform="rotate(240 300 122)"/>
+<use href="#tk" transform="rotate(270 300 122)"/>
+<use href="#tk" transform="rotate(300 300 122)"/>
+<use href="#tk" transform="rotate(330 300 122)"/>
+</g>
+<!-- crescent moon -->
+<g transform="translate(300,41)">
+<path d="M -6 -15.5 A 20 20 0 1 0 -6 15.5 A 13.5 13.5 0 1 1 -6 -15.5 Z" fill="#f3ecd9" stroke="#dfb564" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="-2.5" cy="-4.5" r="1" fill="#dfb564" opacity="0.9"/>
+<circle cx="1.8" cy="2.2" r="0.9" fill="#dfb564" opacity="0.6"/>
+</g>
+<!-- stars -->
+<g fill="#dfb564" stroke="#dfb564" stroke-width="1.2">
+<use href="#st" x="228" y="36" fill="none"/>
+<use href="#st" x="373" y="34" fill="none"/>
+<use href="#st" x="252" y="58" fill="none"/>
+<use href="#st" x="348" y="59" fill="none"/>
+<use href="#st" x="210" y="68" fill="none"/>
+<use href="#st" x="390" y="68" fill="none"/>
+<use href="#st" x="238" y="86" fill="none"/>
+<use href="#st" x="362" y="86" fill="none"/>
+</g>
+<circle cx="222" cy="48" r="1.2" fill="#dfb564"/>
+<circle cx="378" cy="48" r="1.2" fill="#dfb564"/>
+<circle cx="265" cy="28" r="1" fill="#fbe09b"/>
+<circle cx="335" cy="26" r="1" fill="#fbe09b"/>
+<circle cx="219" cy="84" r="0.9" fill="#c99a8b"/>
+<circle cx="381" cy="84" r="0.9" fill="#c99a8b"/>
+<!-- canopy foliage -->
+<g stroke="#dfb564" stroke-linejoin="round">
+<circle cx="300" cy="108" r="58" fill="#0f1633" stroke-width="1.7"/>
+<circle cx="242" cy="137" r="45" fill="#1b2550" stroke-width="1.6"/>
+<circle cx="358" cy="137" r="45" fill="#1b2550" stroke-width="1.6"/>
+<circle cx="203" cy="160" r="30" fill="#0f1633" stroke-width="1.5"/>
+<circle cx="397" cy="160" r="30" fill="#0f1633" stroke-width="1.5"/>
+<circle cx="300" cy="78" r="26" fill="#1b2550" stroke-width="1.4"/>
+<circle cx="272" cy="92" r="18" fill="#0f1633" stroke-width="1.3" opacity="0.95"/>
+<circle cx="328" cy="92" r="18" fill="#0f1633" stroke-width="1.3" opacity="0.95"/>
+</g>
+<!-- delicate dot mandalas on foliage -->
+<g fill="#dfb564">
+<circle cx="300" cy="108" r="1.4"/>
+<circle cx="300" cy="92" r="1"/>
+<circle cx="300" cy="124" r="1"/>
+<circle cx="284" cy="108" r="1"/>
+<circle cx="316" cy="108" r="1"/>
+<circle cx="242" cy="137" r="1.3"/>
+<circle cx="358" cy="137" r="1.3"/>
+<circle cx="203" cy="160" r="1.1"/>
+<circle cx="397" cy="160" r="1.1"/>
+</g>
+<g fill="none" stroke="#dfb564" stroke-width="1.2" opacity="0.55">
+<circle cx="242" cy="137" r="11"/>
+<circle cx="358" cy="137" r="11"/>
+<circle cx="300" cy="108" r="16"/>
+</g>
+<!-- trunk + aerial roots -->
+<path d="M291.5 260 L291.5 168 Q300 156 308.5 168 L308.5 260 Z" fill="#0f1633" stroke="#dfb564" stroke-width="1.6" stroke-linejoin="round"/>
+<!-- bark lines -->
+<path d="M297 200 C297 215 297 235 297 250" stroke="#dfb564" stroke-width="1.2" stroke-linecap="round" opacity="0.5" fill="none"/>
+<path d="M303 200 C303 215 303 235 303 250" stroke="#dfb564" stroke-width="1.2" stroke-linecap="round" opacity="0.5" fill="none"/>
+<!-- hanging banyan roots -->
+<g fill="none" stroke="#dfb564" stroke-width="1.4" stroke-linecap="round">
+<path d="M218 183 C218 197 218 210 218.5 226"/>
+<path d="M256 172 C256 186 256.5 200 257 224"/>
+<path d="M343 172 C343 186 342.5 200 343 224"/>
+<path d="M382 183 C382 197 381.5 210 381.5 226"/>
+<path d="M228 188 C228 200 228 212 228.2 218"/>
+<path d="M372 188 C372 200 372 212 371.8 218"/>
+</g>
+<g fill="#f3ecd9" stroke="#dfb564" stroke-width="1.3">
+<circle cx="218.5" cy="229.5" r="3.2"/>
+<circle cx="257" cy="227.5" r="3.2"/>
+<circle cx="343" cy="227.5" r="3.2"/>
+<circle cx="381.5" cy="229.5" r="3.2"/>
+<circle cx="228.2" cy="220.5" r="2.2"/>
+<circle cx="371.8" cy="220.5" r="2.2"/>
+<circle cx="218.5" cy="229.5" r="1" fill="#a67c00" stroke="none"/>
+<circle cx="257" cy="227.5" r="1" fill="#a67c00" stroke="none"/>
+<circle cx="343" cy="227.5" r="1" fill="#a67c00" stroke="none"/>
+<circle cx="381.5" cy="229.5" r="1" fill="#a67c00" stroke="none"/>
+</g>
+<!-- temple house -->
+<g stroke="#dfb564" stroke-linejoin="round">
+<!-- platform -->
+<rect x="236" y="252.5" width="128" height="9.5" rx="1.6" fill="#f3ecd9" stroke-width="1.6"/>
+<rect x="242" y="246.5" width="116" height="6" rx="1" fill="#fbe09b" stroke-width="1.3"/>
+<!-- main walls -->
+<rect x="250" y="212" width="100" height="34.5" fill="#f3ecd9" stroke-width="1.6"/>
+<!-- pillars -->
+<rect x="262.5" y="218" width="5.5" height="28" rx="1.2" fill="none" stroke-width="1.4"/>
+<rect x="280.5" y="218" width="5.5" height="28" rx="1.2" fill="none" stroke-width="1.4"/>
+<rect x="314" y="218" width="5.5" height="28" rx="1.2" fill="none" stroke-width="1.4"/>
+<rect x="332" y="218" width="5.5" height="28" rx="1.2" fill="none" stroke-width="1.4"/>
+<!-- beam -->
+<rect x="250" y="208.5" width="100" height="5.5" fill="#dfb564" stroke-width="1.3"/>
+<circle cx="265.2" cy="211.2" r="1" fill="#0f1633" stroke="none"/>
+<circle cx="283.2" cy="211.2" r="1" fill="#0f1633" stroke="none"/>
+<circle cx="316.8" cy="211.2" r="1" fill="#0f1633" stroke="none"/>
+<circle cx="334.8" cy="211.2" r="1" fill="#0f1633" stroke="none"/>
+<!-- door arch -->
+<path d="M286.5 246.5 L286.5 228 Q300 214 313.5 228 L313.5 246.5 Z" fill="#1b2550" stroke-width="1.6"/>
+<path d="M290.5 246.5 L290.5 231 Q300 221 309.5 231 L309.5 246.5" fill="none" stroke="#dfb564" stroke-width="1.3"/>
+<circle cx="300" cy="226.5" r="1.8" fill="#dfb564" stroke="none"/>
+<circle cx="300" cy="226.5" r="0.7" fill="#fbe09b" stroke="none"/>
+<!-- windows / jali -->
+<g fill="none" stroke-width="1.3">
+<rect x="254.5" y="222" width="7" height="14" rx="0.8" stroke="#a67c00"/>
+<line x1="254.5" y1="226" x2="261.5" y2="226" stroke="#a67c00" stroke-width="1.1"/>
+<line x1="258" y1="222" x2="258" y2="236" stroke="#a67c00" stroke-width="1.1"/>
+<rect x="338.5" y="222" width="7" height="14" rx="0.8" stroke="#a67c00"/>
+<line x1="338.5" y1="226" x2="345.5" y2="226" stroke="#a67c00" stroke-width="1.1"/>
+<line x1="342" y1="222" x2="342" y2="236" stroke="#a67c00" stroke-width="1.1"/>
+</g>
+<!-- diya dots -->
+<circle cx="272.5" cy="238" r="1.1" fill="#a67c00" stroke="none"/>
+<circle cx="327.5" cy="238" r="1.1" fill="#a67c00" stroke="none"/>
+<!-- roof tiers -->
+<rect x="240" y="197.5" width="120" height="11" rx="1.2" fill="#f3ecd9" stroke-width="1.6"/>
+<rect x="250" y="186" width="100" height="11.5" rx="1.2" fill="#f3ecd9" stroke-width="1.5"/>
+<rect x="262" y="174.5" width="76" height="11.5" rx="1.2" fill="#f3ecd9" stroke-width="1.5"/>
+<!-- roof gold bands -->
+<rect x="240" y="202" width="120" height="2" fill="#dfb564" stroke="none"/>
+<rect x="250" y="190.5" width="100" height="2" fill="#dfb564" stroke="none"/>
+<!-- kalash top -->
+<path d="M290 174.5 L310 174.5 L306.5 166 L293.5 166 Z" fill="#dfb564" stroke-width="1.4"/>
+<rect x="294.5" y="159" width="11" height="7" rx="1" fill="#f3ecd9" stroke-width="1.4"/>
+<circle cx="300" cy="152.2" r="5" fill="#fbe09b" stroke-width="1.4"/>
+<circle cx="300" cy="152.2" r="1.4" fill="#dfb564" stroke="none"/>
+<!-- lotus on pediment -->
+<g fill="#dfb564" stroke="none" opacity="0.95">
+<use href="#pl" transform="translate(300,196) scale(0.58)"/>
+</g>
+<g fill="#fbe09b" stroke="none">
+<use href="#pl" transform="translate(300,196) scale(0.32)"/>
+</g>
+</g>
+<!-- small hanging bells? dot ornaments under eaves -->
+<g fill="#dfb564">
+<circle cx="250" cy="210.5" r="1.4"/>
+<circle cx="350" cy="210.5" r="1.4"/>
+<circle cx="262" cy="198.5" r="1.1"/>
+<circle cx="338" cy="198.5" r="1.1"/>
+</g>
+<!-- ground line + lotus border -->
+<line x1="72" y1="262" x2="528" y2="262" stroke="#dfb564" stroke-width="1.6" stroke-linecap="round"/>
+<g fill="#f3ecd9" stroke="#dfb564" stroke-width="1.5" stroke-linejoin="round">
+<use href="#pl" transform="translate(130,262)"/>
+<use href="#pl" transform="translate(170,262)"/>
+<use href="#pl" transform="translate(210,262)"/>
+<use href="#pl" transform="translate(250,262)"/>
+<use href="#pl" transform="translate(300,262)"/>
+<use href="#pl" transform="translate(350,262)"/>
+<use href="#pl" transform="translate(390,262)"/>
+<use href="#pl" transform="translate(430,262)"/>
+<use href="#pl" transform="translate(470,262)"/>
+</g>
+<g fill="#dfb564" opacity="0.95">
+<circle cx="150" cy="262" r="1.6"/>
+<circle cx="190" cy="262" r="1.6"/>
+<circle cx="230" cy="262" r="1.6"/>
+<circle cx="270" cy="262" r="1.6"/>
+<circle cx="330" cy="262" r="1.6"/>
+<circle cx="370" cy="262" r="1.6"/>
+<circle cx="410" cy="262" r="1.6"/>
+<circle cx="450" cy="262" r="1.6"/>
+</g>
+<g fill="#fbe09b" stroke="none">
+<use href="#pl" transform="translate(130,262) scale(0.45)"/>
+<use href="#pl" transform="translate(170,262) scale(0.45)"/>
+<use href="#pl" transform="translate(210,262) scale(0.45)"/>
+<use href="#pl" transform="translate(250,262) scale(0.45)"/>
+<use href="#pl" transform="translate(300,262) scale(0.45)"/>
+<use href="#pl" transform="translate(350,262) scale(0.45)"/>
+<use href="#pl" transform="translate(390,262) scale(0.45)"/>
+<use href="#pl" transform="translate(430,262) scale(0.45)"/>
+<use href="#pl" transform="translate(470,262) scale(0.45)"/>
+</g>
+<!-- outer frame dots -->
+<g fill="#dfb564" opacity="0.7">
+<circle cx="78" cy="262" r="1.5"/>
+<circle cx="522" cy="262" r="1.5"/>
+<circle cx="92" cy="257" r="1"/>
+<circle cx="508" cy="257" r="1"/>
+</g>
+</svg>

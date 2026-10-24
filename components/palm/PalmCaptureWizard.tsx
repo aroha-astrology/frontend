@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Zap, ZapOff, Upload, RotateCcw, AlertTriangle } from "lucide-react";
 import { useCamera } from "@/hooks/useCamera";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
-import { sampleFrameBrightness, isLowLight, captureFrameToJpeg } from "@/lib/palm/capture";
+import { sampleFrameBrightness, isLowLight, captureFrameToJpeg, looksBlurry, FINGERTIP_BOX } from "@/lib/palm/capture";
 import { computeMountRelief } from "@/lib/palm/computeMountRelief";
 import {
   checkFrameForHandDetailed,
@@ -25,6 +25,8 @@ import PalmStepGuide, { SLOT_GUIDE_IMAGE } from "./PalmStepGuide";
 interface CapturedFrame {
   blob: Blob;
   previewUrl: string;
+  /** The photo looks out of focus: the reader is nudged to retake it (never blocked). */
+  blurry?: boolean;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -72,6 +74,10 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
   const [question, setQuestion] = useState("");
   // The demo photo for the current step, shown before every shot until "Got it".
   const [guideOpen, setGuideOpen] = useState(true);
+  // The live picture's real size. The preview shows the WHOLE frame (object-contain) in a box of
+  // exactly this shape, so what the reader sees is what the saved photo holds (it used to be
+  // cropped to fill the screen, and the saved photo looked "zoomed out" next to it).
+  const [videoDims, setVideoDims] = useState<{ w: number; h: number } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   /**
@@ -149,12 +155,19 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     const video = videoRef.current;
     if (!video || camera.status !== "granted") return;
     try {
-      const blob = await captureFrameToJpeg(video);
-      setReviewing({ blob, previewUrl: URL.createObjectURL(blob) });
+      // The fingertips shot is cut to the box drawn on the preview: only the four fingertips go.
+      const blob = await captureFrameToJpeg(
+        video,
+        0.92,
+        2560,
+        slot === "primaryFingertips" ? FINGERTIP_BOX : undefined,
+      );
+      const blurry = (await looksBlurry(blob)) === true;
+      setReviewing({ blob, previewUrl: URL.createObjectURL(blob), blurry });
     } catch {
       setUploadError(t("palm.capture.captureError"));
     }
-  }, [camera.status, t]);
+  }, [camera.status, slot, t]);
 
   // Live hand-framing check — the replacement for the old fixed hand-silhouette overlay.
   // Paused while reviewing a shot (nothing to guide), while the demo photo is up, and torn down
@@ -388,15 +401,22 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
         </button>
       )}
 
-      {/* Torch */}
-      {camera.torchSupported && (
+      {/* Flashlight: a labelled button, and it pulses when the room is dark. */}
+      {camera.torchSupported && !reviewing && (
         <button
           type="button"
           onClick={camera.toggleTorch}
           aria-label={t("palm.capture.torch")}
-          className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15"
+          aria-pressed={camera.torchOn}
+          data-testid="palm-torch"
+          className={`absolute top-4 right-4 z-20 flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold backdrop-blur-md ${
+            camera.torchOn
+              ? "border-gold bg-gold/25 text-gold"
+              : `border-white/15 bg-black/60 text-white ${isLowLight(brightness) ? "animate-pulse border-amber-300" : ""}`
+          }`}
         >
-          {camera.torchOn ? <Zap size={16} className="text-gold" /> : <ZapOff size={16} />}
+          {camera.torchOn ? <Zap size={15} /> : <ZapOff size={15} />}
+          {camera.torchOn ? t("palm.capture.flashOn") : t("palm.capture.flash")}
         </button>
       )}
 
@@ -408,12 +428,40 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           so the stream never got attached and the preview stayed blank even once
           camera.status flipped to "granted". */}
       <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className={`w-full h-full object-cover ${!reviewing && camera.status === "granted" ? "" : "hidden"}`}
-        />
+        <div
+          className={!reviewing && camera.status === "granted" ? "relative overflow-hidden" : "hidden"}
+          style={previewBoxStyle(videoDims)}
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            void camera.focusAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+          }}
+        >
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            onLoadedMetadata={(e) => setVideoDims({ w: e.currentTarget.videoWidth, h: e.currentTarget.videoHeight })}
+            onResize={(e) => setVideoDims({ w: e.currentTarget.videoWidth, h: e.currentTarget.videoHeight })}
+            className="h-full w-full object-contain"
+          />
+          {slot === "primaryFingertips" && !guideOpen && (
+            <div
+              data-testid="palm-fingertip-box"
+              className="pointer-events-none absolute rounded-2xl border-2 border-gold"
+              style={{
+                left: `${FINGERTIP_BOX.x * 100}%`,
+                top: `${FINGERTIP_BOX.y * 100}%`,
+                width: `${FINGERTIP_BOX.w * 100}%`,
+                height: `${FINGERTIP_BOX.h * 100}%`,
+                boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)",
+              }}
+            >
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-xs font-semibold text-gold">
+                {t("palm.capture.fingertipsBox")}
+              </span>
+            </div>
+          )}
+        </div>
         {reviewing ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={reviewing.previewUrl} alt="" className="w-full h-full object-contain" />
@@ -488,6 +536,28 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
           />
         )}
 
+        {reviewing?.blurry && (
+          <p data-testid="palm-blurry" className="mb-2 text-center text-xs text-amber-300">
+            {t("palm.capture.blurry")}
+          </p>
+        )}
+
+        {!reviewing && camera.status === "granted" && camera.zoom && camera.zoom.max > camera.zoom.min && (
+          <label className="mx-auto mb-3 flex max-w-xs items-center gap-3 text-[11px] text-white/80">
+            {t("palm.capture.zoom")}
+            <input
+              type="range"
+              data-testid="palm-zoom"
+              min={camera.zoom.min}
+              max={camera.zoom.max}
+              step={camera.zoom.step || 0.1}
+              value={camera.zoom.value}
+              onChange={(e) => void camera.setZoom(Number(e.target.value))}
+              className="h-1 flex-1 accent-[#D4AF37]"
+            />
+          </label>
+        )}
+
         {reviewing ? (
           <div className="flex items-center justify-center gap-3">
             <button
@@ -535,6 +605,13 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
       <div className="hidden">{primaryHand}</div>
     </CaptureShell>
   );
+}
+
+/** The box the live picture is shown in: the video's own shape, as large as fits the screen. */
+function previewBoxStyle(dims: { w: number; h: number } | null): React.CSSProperties {
+  if (!dims || dims.w === 0 || dims.h === 0 || typeof window === "undefined") return { width: "100%", height: "100%" };
+  const wide = dims.w / dims.h >= window.innerWidth / window.innerHeight;
+  return { aspectRatio: `${dims.w} / ${dims.h}`, ...(wide ? { width: "100%" } : { height: "100%" }) };
 }
 
 function CaptureShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {

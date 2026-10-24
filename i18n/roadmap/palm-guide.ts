@@ -19,7 +19,7 @@ export const palmGuideBundle: RoadmapBundle = {
           },
           "primaryFingertips": {
             "title": "Your four fingertips",
-            "tip": "Hold your four fingers side by side, pads facing the camera, about 10 cm away. Tap the screen on the fingertips to focus. The swirls must be sharp."
+            "tip": "Hold your four fingers side by side, pads facing the camera, about 10 cm away. Place the fingertips inside the gold box and tap them on the screen to focus. The swirls must be sharp."
           },
           "primaryThumb": {
             "title": "Your thumb",
@@ -51,7 +51,7 @@ export const palmGuideBundle: RoadmapBundle = {
           },
           "primaryFingertips": {
             "title": "आपकी चारों उंगलियों के सिरे",
-            "tip": "चारों उंगलियाँ साथ-साथ रखें, पोर कैमरे की ओर, लगभग 10 सेमी दूर। फ़ोकस के लिए स्क्रीन पर उंगलियों के सिरों पर टैप करें। रेखाएँ साफ़ दिखनी चाहिए।"
+            "tip": "चारों उंगलियाँ साथ-साथ रखें, पोर कैमरे की ओर, लगभग 10 सेमी दूर। उंगलियों के सिरे सुनहरे बॉक्स के अंदर रखें और फ़ोकस के लिए स्क्रीन पर उन पर टैप करें। रेखाएँ साफ़ दिखनी चाहिए।"
           },
           "primaryThumb": {
             "title": "आपका अंगूठा",

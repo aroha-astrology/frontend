@@ -192,6 +192,8 @@ export interface ReportBasis {
 export type ReportDetailResult =
   | { status: "generating" }
   | { status: "failed"; error: string | null }
+  /** Bought with money a Google Play refund took back; opens again once the wallet is back to zero. */
+  | { status: "locked"; owedPaise: number }
   | {
       status: "ready";
       reportKey: string;

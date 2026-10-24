@@ -29,8 +29,11 @@ import { PLAY_STORE_URL } from "@/lib/app-review";
 import { useAuth } from "@/providers/auth-provider";
 import { refreshPassStatus } from "@/hooks/usePassStatus";
 
-/** "pending" = a store took a slow payment (some UPI and cash options, Ask to Buy) that isn't confirmed yet. */
-type ActionError = "funds" | "failed" | "pending" | "otherAccount" | "webPending";
+/**
+ * "pending" = a store took a slow payment (some UPI and cash options, Ask to Buy) that isn't confirmed yet.
+ * "blocked": no purchases after repeated Google Play refunds (backend billing/purchase-block.ts).
+ */
+type ActionError = "funds" | "failed" | "pending" | "otherAccount" | "webPending" | "blocked";
 type Platform = "android" | "ios" | "web";
 
 /** The user backed out of the Play purchase sheet — not an error. */
@@ -53,6 +56,7 @@ function actionErrorOf(err: unknown): ActionError {
     if (err.message === "PLAY_SUBSCRIPTION_OTHER_ACCOUNT" || err.message === "APP_STORE_OTHER_ACCOUNT") return "otherAccount";
     if (err.message === "PASS_PAYMENT_PENDING") return "webPending";
     if (err.message === "APP_STORE_SUBSCRIPTION_NOT_ACTIVE") return "pending";
+    if (err.message === "PURCHASES_BLOCKED") return "blocked";
   }
   return "failed";
 }
@@ -63,6 +67,7 @@ const ERROR_TEXT: Record<ActionError, string> = {
   pending: "pass.pendingPayment",
   otherAccount: "pass.otherAccount",
   webPending: "pass.web.pending",
+  blocked: "refunds.purchasesBlocked",
 };
 
 function StoreLink({ label }: { label: string }) {
@@ -147,6 +152,11 @@ function PassPage() {
 
   /** Subscribes to `offer`, or with `upgrade` swaps the subscription held now for it. */
   async function buyWithPlay(offer: PassOffer, upgrade: boolean) {
+    // The server never sees a Pass before Google has charged for it, so a blocked account stops here.
+    if (user?.purchasesBlocked) {
+      setError("blocked");
+      return;
+    }
     await run(async () => {
       let oldPurchaseToken: string | undefined;
       if (upgrade) {
@@ -238,6 +248,10 @@ function PassPage() {
    */
   async function buyPack(pack: QuestionPack, questions: number) {
     setPackNote(null);
+    if (user?.purchasesBlocked) {
+      setError("blocked");
+      return;
+    }
     const ok = await run(async () => {
       const { productId } = await passApi.packCheckout(pack);
       const purchase = await PlayBilling.purchaseProduct({ productId, userId: user?.id, productType: "inapp" });

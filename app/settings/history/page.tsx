@@ -16,6 +16,8 @@ function statusLabel(t: (key: string) => string, status: OrderStatus): string {
     case "pending": return t("paymentHistory.statusPending");
     case "failed": return t("paymentHistory.statusFailed");
     case "cancelled": return t("paymentHistory.statusCancelled");
+    case "refund_pending":
+    case "refunded": return t("paymentHistory.statusRefunded");
   }
 }
 
@@ -49,6 +51,7 @@ function kindIcon(kind: Transaction["kind"]) {
     case "aroha_pass": return <Crown size={16} />;
     case "digital_yantra": return <Hexagon size={16} />;
     case "relocation": return <Globe size={16} />;
+    case "play_refund": return <RotateCcw size={16} />;
     case "admin_adjustment": return <Gift size={16} />;
   }
 }
@@ -75,6 +78,7 @@ function kindLabel(t: (key: string, opts?: Record<string, unknown>) => string, t
     case "aroha_pass": return t("paymentHistory.arohaPass");
     case "digital_yantra": return t("paymentHistory.digitalYantra");
     case "relocation": return t("paymentHistory.relocation");
+    case "play_refund": return t("paymentHistory.playRefund");
     // Shared bucket for Telegram admin grants/deductions, campaign-bonus claims (Independence
     // Day, festival gifts) and their expiry clawbacks — see parseReason in billing.service.ts.
     case "admin_adjustment":

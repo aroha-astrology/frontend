@@ -172,7 +172,11 @@ export default function PaymentPage() {
   // coin packs: the older top-ups have no App Store products).
   const { enabled: storekitOn } = useNewFeature("money.storekit");
   const appleAvailable = iosNative && storekitOn && amounts.some((a) => a.coins != null);
-  const canPay = playAvailable || razorpayAvailable || appleAvailable;
+  // Blocked after repeated Google Play refunds (backend billing/purchase-block.ts).
+  const purchasesBlocked = user?.purchasesBlocked === true;
+  const canPay = (playAvailable || razorpayAvailable || appleAvailable) && !purchasesBlocked;
+  // Below zero only after a Google Play refund took back money already spent.
+  const owedPaise = Math.max(0, -(user?.walletBalancePaise ?? 0));
 
   // A completed top-up is the clearest "this app was worth paying for" moment we
   // get, so it's one of the milestones that offers Google's review card.
@@ -260,6 +264,8 @@ export default function PaymentPage() {
         ((err as { code?: string }).code === "1" || (err as { code?: string }).code === "cancelled");
       if (isUserCancelled) {
         // User backed out of the Play purchase sheet — not an error, nothing to show.
+      } else if (err instanceof ApiError && err.message === "PURCHASES_BLOCKED") {
+        setPayError(t("refunds.purchasesBlocked"));
       } else if (err instanceof ApiError) {
         setPayError(err.status === 403 ? t("payment.notLiveYet") : t("payment.genericError"));
       } else {
@@ -293,6 +299,13 @@ export default function PaymentPage() {
           </div>
           <WalletBalance paise={user?.walletBalancePaise ?? 0} size="md" />
         </Card>
+        {owedPaise > 0 && (
+          <Card className="p-4 mb-5 border-amber-500/30 lg:col-start-1" data-testid="refund-debt">
+            <p className="text-xs text-foreground leading-relaxed">
+              {t("refunds.walletOwes", { amount: formatRupees(owedPaise) })}
+            </p>
+          </Card>
+        )}
 
         <div className="lg:col-start-1">
         {success ? (
@@ -376,7 +389,13 @@ export default function PaymentPage() {
               </Card>
             )}
 
-            {!canPay && platformReady && !packsLoading && (
+            {purchasesBlocked && (
+              <Card className="p-4 mb-4 text-center" data-testid="purchases-blocked">
+                <p className="text-sm text-foreground leading-relaxed">{t("refunds.purchasesBlocked")}</p>
+              </Card>
+            )}
+
+            {!canPay && !purchasesBlocked && platformReady && !packsLoading && (
               <Card className="p-4 mb-4 text-center">
                 <p className="text-sm text-foreground leading-relaxed">
                   {t(iosNative ? "payment.iosComingSoon" : "payment.androidOnly")}
@@ -420,6 +439,11 @@ export default function PaymentPage() {
             {canPay && (
               <p className="text-[10px] text-muted text-center mt-3 px-4 leading-relaxed">
                 {t(playAvailable ? "payment.gatewayNote" : "payment.gatewayNoteWeb")}
+              </p>
+            )}
+            {canPay && (
+              <p className="text-[10px] text-muted text-center mt-2 px-4 leading-relaxed" data-testid="refund-notice">
+                {t("refunds.notice")}
               </p>
             )}
           </>

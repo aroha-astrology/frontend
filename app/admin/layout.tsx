@@ -47,6 +47,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: "/admin/home-layout", label: "Home Layout" },
   { href: "/admin/gemini-keys", label: "Gemini Keys" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/play-refunds", label: "Play Refunds" },
   { href: "/admin/active-users", label: "Active Users" },
   { href: "/admin/groups", label: "Groups" },
   { href: "/admin/referrals", label: "Referrals" },

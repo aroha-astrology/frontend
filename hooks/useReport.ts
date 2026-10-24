@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { reportsApi, type ReportDetailResult } from "@/lib/reports-api";
 import { nextPollDelay } from "@/lib/poll-backoff";
-import { buildKey, cacheGet, cacheSet } from "@/lib/cache";
+import { buildKey, cacheGet, cachePurge, cacheSet } from "@/lib/cache";
 import { useAuth } from "@/providers/auth-provider";
 
 /** "slow": still generating when this screen stopped waiting (the report may yet finish — offer
  * Check again, never "failed"). "error": the status check itself kept failing (network). */
-export type ReportViewState = "idle" | "loading" | "generating" | "slow" | "ready" | "failed" | "error";
+/** "locked": bought with money a Google Play refund took back, closed until the wallet is back to zero. */
+export type ReportViewState = "idle" | "loading" | "generating" | "slow" | "ready" | "failed" | "error" | "locked";
 
 export type ReportReady = Extract<ReportDetailResult, { status: "ready" }>;
 
@@ -49,6 +50,8 @@ interface ReportView {
   state: ReportViewState;
   data: ReportReady | null;
   failedError: string | null;
+  /** What the wallet still owes while the report is "locked". */
+  owedPaise?: number;
 }
 
 export function useReport(id: string | null, language: string) {
@@ -85,6 +88,12 @@ export function useReport(id: string | null, language: string) {
           if (res.status === "ready") {
             setView({ state: "ready", data: res, failedError: null });
             if (cacheKey) cacheSet(cacheKey, res, Date.now() + SWR_TTL_MS);
+            return;
+          }
+          if (res.status === "locked") {
+            // Never keep showing a cached copy of a report that is now locked.
+            if (cacheKey) cachePurge((key) => key === cacheKey);
+            setView({ state: "locked", data: null, failedError: null, owedPaise: res.owedPaise });
             return;
           }
           if (res.status === "failed") {

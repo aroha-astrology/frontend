@@ -4,12 +4,14 @@ import { formatCoins, getMoneyMode } from "./money";
  * Formats an integer paise amount as a ₹ string, e.g. 20000 -> "₹200", 4950 -> "₹49.50". While the
  * app is in coins mode (switch `money.coins`, lib/money.ts) the same amount is written as coins, "🪙 200",
  * so every caller switches at once. The payment sheet's real money uses `formatFiat` instead.
+ * A wallet is below zero only after a Google Play refund took back spent money: -9410 -> "−₹94.10".
  */
 export function formatRupees(paise: number | null | undefined): string {
   if (getMoneyMode() === "coins") return formatCoins(paise);
-  const rupees = (paise ?? 0) / 100;
+  const value = paise ?? 0;
+  const rupees = Math.abs(value) / 100;
   if (!Number.isFinite(rupees)) return "₹0";
-  return `₹${Number.isInteger(rupees) ? rupees : rupees.toFixed(2)}`;
+  return `${value < 0 ? "−" : ""}₹${Number.isInteger(rupees) ? rupees : rupees.toFixed(2)}`;
 }
 
 /**

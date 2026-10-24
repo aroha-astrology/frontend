@@ -215,6 +215,9 @@ function KeyCard({
   onTest,
   onToggle,
   onUseFirst,
+  onMove,
+  isTop,
+  isBottom,
   onMoveTier,
   onRename,
   onDelete,
@@ -225,6 +228,9 @@ function KeyCard({
   onTest: () => void;
   onToggle: () => void;
   onUseFirst: () => void;
+  onMove: (direction: "up" | "down") => void;
+  isTop: boolean;
+  isBottom: boolean;
   onMoveTier: () => void;
   onRename: () => void;
   onDelete: () => void;
@@ -237,9 +243,33 @@ function KeyCard({
       className={`rounded-2xl border border-border p-4 ${row.enabled ? "" : "opacity-60"}`}
     >
       <div className="flex flex-wrap items-center gap-2 mb-1">
+        {row.tier === "paid" && (
+          <div className="flex flex-col -my-1 mr-1">
+            <button
+              type="button"
+              aria-label={`Move ${row.name} up`}
+              onClick={() => onMove("up")}
+              disabled={busy || isTop}
+              className="px-1.5 leading-none text-sm text-muted hover:text-gold disabled:opacity-30"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              aria-label={`Move ${row.name} down`}
+              onClick={() => onMove("down")}
+              disabled={busy || isBottom}
+              className="px-1.5 leading-none text-sm text-muted hover:text-gold disabled:opacity-30"
+            >
+              ▼
+            </button>
+          </div>
+        )}
         {row.paidPosition !== null && (
           <span className="text-xs font-semibold text-gold">#{row.paidPosition}</span>
         )}
+        {row.paidPosition === 1 && <Badge tone="green">Used first now</Badge>}
+        {row.tier === "paid" && !row.enabled && <Badge tone="grey">Off: skipped</Badge>}
         <span data-testid="gemini-key-name" className="font-medium text-foreground break-all">
           {row.name}
         </span>
@@ -376,7 +406,7 @@ export default function AdminGeminiKeysPage() {
   const free = keys?.filter((k) => k.tier === "free") ?? [];
   const paid = keys?.filter((k) => k.tier === "paid") ?? [];
 
-  function card(row: AdminGeminiKeyRow) {
+  function card(row: AdminGeminiKeyRow, index: number, list: AdminGeminiKeyRow[]) {
     return (
       <KeyCard
         key={row.id}
@@ -388,6 +418,11 @@ export default function AdminGeminiKeysPage() {
           run(row.id, () => adminApi.updateGeminiKey(row.id, { enabled: !row.enabled }), "Could not change the key")
         }
         onUseFirst={() => run(row.id, () => adminApi.useGeminiKeyFirst(row.id), "Could not change the order")}
+        onMove={(direction) =>
+          run(row.id, () => adminApi.moveGeminiKey(row.id, direction), "Could not change the order")
+        }
+        isTop={index === 0}
+        isBottom={index === list.length - 1}
         onMoveTier={() =>
           run(
             row.id,
@@ -425,8 +460,9 @@ export default function AdminGeminiKeysPage() {
       </div>
       <p className="text-xs text-muted mb-6 max-w-2xl">
         Free keys are used first and take turns. Once every free key is out of quota, paid keys are used in
-        order, #1 first. A switched-off key is never used. Changes reach every server within 30 seconds. Test
-        sends one tiny real request, so a paid key is billed a few tokens for it.
+        order, #1 first. Use ▲ ▼ to change which paid key is used first. A switched-off key is never used and
+        gets no number. Changes apply on every server straight away. Test sends one tiny real request, so a paid
+        key is billed a few tokens for it.
       </p>
 
       {loading && !keys && <p className="text-sm text-muted text-center py-10">Loading…</p>}

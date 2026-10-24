@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Clock, Star } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock, Lock, Star } from "lucide-react";
 import ReportGeneratingSheet from "@/components/reports/ReportGeneratingSheet";
 import IconButton from "@/components/ui/IconButton";
 import Masonry from "@/components/ui/Masonry";
@@ -36,6 +36,7 @@ import { hasRatedReport } from "@/lib/report-rating";
 import { PdfCapturingContext } from "@/components/pdf/PdfCapturingContext";
 import { PdfDownloadButton, PdfStatusLayer, usePdfDownload } from "@/components/pdf/PdfDownload";
 import { pdfFileName } from "@/lib/pdf/save";
+import { formatRupees } from "@/lib/format";
 
 /** `id`-namespaced section headings are flat (`reports.sectionHeading.<id>`) for every report
  * type except match_report, whose ids (life-area names like "wealth"/"health") are ambiguous
@@ -61,7 +62,7 @@ export default function ReportDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const { state, data, failedError, retry } = useReport(id, i18n.language);
+  const { state, data, failedError, owedPaise, retry } = useReport(id, i18n.language);
   const { user } = useAuth();
 
   // The "writing your report…" wait can run up to POLL_TIMEOUT_MS (6 min) — long enough that a
@@ -312,6 +313,20 @@ export default function ReportDetailPage() {
             <p className="text-xs text-muted max-w-xs">{t("reports.view.failedBody")}</p>
             <Link href="/reports" className="mt-2 text-sm font-semibold text-gold underline underline-offset-4">
               {t("reports.view.tryAgain")}
+            </Link>
+          </div>
+        )}
+
+        {/* Bought with money a Google Play refund took back: closed until the wallet is back to zero. */}
+        {state === "locked" && (
+          <div className="flex flex-col items-center text-center gap-3 py-16" data-testid="report-locked">
+            <Lock size={28} className="text-gold" />
+            <p className="text-sm font-semibold text-foreground">{t("refunds.reportLockedTitle")}</p>
+            <p className="text-xs text-muted max-w-xs">
+              {t("refunds.reportLockedBody", { amount: formatRupees(owedPaise ?? 0) })}
+            </p>
+            <Link href="/payment" className="mt-2 text-sm font-semibold text-gold underline underline-offset-4">
+              {t("refunds.addMoney")}
             </Link>
           </div>
         )}

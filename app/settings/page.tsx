@@ -36,6 +36,7 @@ import MemoryRow from "@/components/memory/MemoryRow";
 import { useAuth } from "@/providers/auth-provider";
 import { useTour } from "@/providers/tour-provider";
 import { api, type Profile } from "@/lib/api";
+import { passApi, PLAY_SUBSCRIPTIONS_URL } from "@/lib/pass-api";
 import { RELATIONSHIP_KEYS } from "@/components/ProfileSwitcher";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -77,7 +78,7 @@ function ProfileRow({ profile, onDelete }: { profile: Profile; onDelete: () => v
 export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { signOut, profiles, refreshProfiles } = useAuth();
+  const { user, signOut, profiles, refreshProfiles } = useAuth();
   const { resetAll } = useTour();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -86,6 +87,16 @@ export default function SettingsPage() {
   // acknowledgement instead of closing, and only signs out once it's read.
   const [deleteRequested, setDeleteRequested] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // A Google Play Pass the deletion would cancel: the dialog says so (no refund for this period).
+  const [hasPlayPass, setHasPlayPass] = useState(false);
+  const passOn = user?.features?.["nav.arohaPass"]?.enabled === true;
+  useEffect(() => {
+    if (!showDeleteConfirm || !passOn) return;
+    passApi
+      .status()
+      .then((s) => setHasPlayPass(s.pass?.source === "google_play" || s.paymentIssue === "hold"))
+      .catch(() => {});
+  }, [showDeleteConfirm, passOn]);
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   // The Play listing only exists for the native Android build — never offer it
@@ -310,6 +321,14 @@ export default function SettingsPage() {
           ) : (
             <>
               <p className="text-sm text-muted mb-5">{t("settings.deleteAccountConfirmBody")}</p>
+              {hasPlayPass && (
+                <p className="text-sm text-foreground/90 mb-5" data-testid="delete-account-pass-note">
+                  {t("pass.deleteAccountNote")}{" "}
+                  <a href={PLAY_SUBSCRIPTIONS_URL} className="font-medium text-gold underline underline-offset-2">
+                    {t("pass.active.manage")}
+                  </a>
+                </p>
+              )}
               {deleteError && <p className="text-[12px] text-red-400 mb-3">{deleteError}</p>}
               <div className="flex gap-3">
                 <button

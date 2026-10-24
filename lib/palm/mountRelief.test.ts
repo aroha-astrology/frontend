@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { computeRegionLuminanceStdDev, normalizeReliefScores } from "./mountRelief";
+import {
+  computeRegionLuminanceStdDev,
+  normalizeReliefScores,
+  computeRegionDomeConvexity,
+  normalizeDomeReliefScores,
+} from "./mountRelief";
 import type { MountRegion } from "./mountRegions";
 
 /** Builds a synthetic RGBA buffer of the given size, filled by a per-pixel luminance callback
@@ -73,5 +78,61 @@ describe("normalizeReliefScores", () => {
     for (const v of Object.values(normalized)) {
       expect(v).toBeCloseTo(0.5, 5);
     }
+  });
+});
+
+describe("computeRegionDomeConvexity", () => {
+  it("returns ~0 for a flat region", () => {
+    const size = 60;
+    const pixels = buildImage(size, size, () => 140);
+    const score = computeRegionDomeConvexity(pixels, size, size, CENTERED_REGION);
+    expect(score).toBeCloseTo(0, 1);
+  });
+
+  it("scores positively when center is brighter than the annulus (dome convexity)", () => {
+    const size = 80;
+    const cx = 40;
+    const cy = 40;
+    // Bright center dome sloping down to darker annulus
+    const pixels = buildImage(size, size, (x, y) => {
+      const dist = Math.hypot(x - cx, y - cy);
+      return Math.max(50, 200 - dist * 4);
+    });
+    const score = computeRegionDomeConvexity(pixels, size, size, CENTERED_REGION);
+    expect(score).toBeGreaterThan(15);
+  });
+
+  it("compares against Rahu plain reference when provided", () => {
+    const size = 100;
+    const rahuRegion: MountRegion = { cx: 0.5, cy: 0.8, radius: 0.15 };
+    const mountRegion: MountRegion = { cx: 0.5, cy: 0.3, radius: 0.15 };
+    // Mount is bright, Rahu plain is dim flat
+    const pixels = buildImage(size, size, (_x, y) => {
+      if (y > 60) return 80; // Rahu plain area
+      return 180; // Mount area
+    });
+    const score = computeRegionDomeConvexity(pixels, size, size, mountRegion, rahuRegion);
+    expect(score).toBeGreaterThan(20);
+  });
+});
+
+describe("normalizeDomeReliefScores", () => {
+  it("normalizes the 8 non-Rahu mounts to [0, 1] and fixes Rahu at 0.5", () => {
+    const raw = {
+      jupiter: 10,
+      saturn: 30,
+      apollo: 20,
+      mercury: 50,
+      venus: 15,
+      luna: 25,
+      marsUpper: 35,
+      marsLower: 12,
+      rahuPlain: 999, // should be ignored in min/max and pinned to 0.5
+    };
+    const normalized = normalizeDomeReliefScores(raw as never);
+    expect(normalized.rahuPlain).toBe(0.5);
+    expect(normalized.jupiter).toBeCloseTo(0, 5);
+    expect(normalized.mercury).toBeCloseTo(1, 5);
+    expect(normalized.saturn).toBeGreaterThan(normalized.apollo);
   });
 });

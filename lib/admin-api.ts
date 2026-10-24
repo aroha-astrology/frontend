@@ -135,6 +135,10 @@ export interface AdminUserRow {
   uiSkin?: "CLASSIC_VEDIC" | "MODERN_COSMIC" | null;
   /** When their next change of look is allowed (ISO); null when allowed now. */
   uiSkinNextChangeAt?: string | null;
+  /** price_variant of the user's current active Pass: 'A'=Silver, 'B'=Gold, 'C'=Platinum. Null when no active Pass. */
+  passActiveTier?: string | null;
+  /** ISO date of when the active Pass period ends, null when no active Pass. */
+  passActiveUntil?: string | null;
 }
 
 export interface AdminUsersResponse {

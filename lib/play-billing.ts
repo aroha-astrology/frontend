@@ -6,6 +6,19 @@ export interface PlayBillingPurchase {
   orderId: string;
   /** Subscriptions only: the server acknowledges them (never consumed). */
   acknowledged?: boolean;
+  /**
+   * "pending": paid by a slow method (some UPI and cash options) that Google hasn't confirmed
+   * yet — nothing is granted until it is. Absent before app 1.17 (treat as "purchased").
+   */
+  purchaseState?: "purchased" | "pending";
+}
+
+/** What Google Play charges for one base plan, in the user's own currency. */
+export interface PlaySubscriptionPrice {
+  basePlanId: string;
+  formattedPrice: string;
+  priceAmountMicros: number;
+  currencyCode: string;
 }
 
 interface PlayBillingPluginInterface {
@@ -26,6 +39,14 @@ interface PlayBillingPluginInterface {
   queryUnconsumedPurchases(): Promise<{ purchases: PlayBillingPurchase[] }>;
   /** Needs the app release that added subscriptions (1.13+); older builds reject. */
   queryActiveSubscriptions(): Promise<{ purchases: PlayBillingPurchase[] }>;
+  /**
+   * Google Play's own "payment declined" message (with its fix-payment link) when a
+   * subscription on this Play account is in a grace period or on hold. `updated` = the user
+   * fixed it from there. Needs app 1.17+; older builds reject.
+   */
+  showPaymentIssueMessage(): Promise<{ updated: boolean; purchaseToken?: string }>;
+  /** Play's real price for each base plan of `productId`. Needs app 1.17+; older builds reject. */
+  getSubscriptionPrices(options: { productId: string }): Promise<{ prices: PlaySubscriptionPrice[] }>;
 }
 
 /**

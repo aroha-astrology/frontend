@@ -48,11 +48,22 @@ Findings:
 - Written by the local models in the coins sprint (planner wrote all tests): `lib/profile-offer.ts` (qwen3, 8K), `lib/house-offer.ts` (qwen3, 16K), `components/ui/HouseBundleButton.tsx` (ornith, 16K).
 
 ## Active
-- (none)
+- None (Palmistry V2 code implementation is complete).
+
+## Completed (Recent)
+- 2026-10-21 - **Palmistry V2** (branch `feat/palmistry-v2` in frontend & backend):
+  - Step 0A: Auto-capture with Laplacian variance & landmark movement tracking behind `palm.autoCapture`.
+  - Step 0B: Reduced capture slots from 6 to 3 (`primaryFront`, `primaryPercussion`, `primaryFingertips`), backward-compat legacy slot support, updated 7 Indian language translations and 14 generated locale files.
+  - Step 1: MediaPipe 21 landmarks (`detectHand`) ingested and forwarded from client to backend.
+  - Step 2: Pixel-space hand geometry biometrics (`palm-biometrics.ts`), dome mount relief scorer (`mountRelief.ts`), feature-flagged biometric overrides, lighting guard.
+  - Step 3: Anatomical prompt anchors for Stage A; Gemini fallback per-line confidence gating.
+  - Step 4: Multi-scale Hessian ridge crease snapping and Viterbi alignment (`crease-snap.ts`); convex bounding polygon and sideline gate (`trace-gate.ts`).
+  - Step 5: Anatomical line timing with landmark projection; $\pm 2$ year chart clamp; null anchors for marriage/children callouts.
+  - Step 6: Polling timeout raised to 20 minutes with 5s cap (`usePalmReading.ts`); Lines/Mounts toggle in `PalmAnnotatedView.tsx` behind `palm.mountsToggle`. All tests passing (backend 10/10 suites, frontend 74/74 suites).
 
 ## Blockers
-- None. Open item: confirm Antigravity IDE loads `.agents/mcp_config.json` (else paste the block into its global MCP settings).
-- The `run_local_coder` MCP tool is not attached to Claude Code sessions. The planner calls the same function directly: `.venv/Scripts/python.exe -c "import asyncio,sys; sys.path.insert(0,'tools/local_agent'); import mcp_server; print(asyncio.run(mcp_server.run_local_coder('Implement the task in CLOUD_HANDOFF.md')))"` with `LOCAL_CODER_MODEL=qwen3-8b-agent` and `pnpm` on PATH.
+- None.
 
 ## Next
-- Keep delegating single pure-logic files; keep UI with the planner.
+- 10-real-palm validation review (by user).
+- Toggle feature switches in admin when ready.

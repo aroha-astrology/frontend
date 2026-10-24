@@ -13,7 +13,9 @@ export type PassFeature =
   | "findMyDate"
   | "birthTime"
   | "relocation"
-  | "voiceCall";
+  | "voiceCall"
+  /** The full palm reading: every tier, one per Pass period (the photo scan is free). */
+  | "palm";
 
 /**
  * Free voice-call minutes a Pass gives each period, for text that doesn't know
@@ -44,9 +46,19 @@ export interface PassOffer extends PassTierBenefits {
   play: { productId: string; basePlanId: string };
 }
 
+/**
+ * A Google Play renewal payment that failed: "grace" = the Pass still works while Google
+ * retries, "hold" = it has stopped until the payment method is fixed in Google Play.
+ */
+export type PassPaymentIssue = "grace" | "hold";
+
 /** Mirrors backend modules/pass/pass.service.ts. */
 export interface PassStatus {
   enabled: boolean;
+  /** Absent from a server older than the 2026-10-23 lifecycle fixes. */
+  paymentIssue?: PassPaymentIssue | null;
+  /** The tier of the Pass on hold. */
+  heldTier?: PassTier | null;
   /** Every tier that is switched on, cheapest first. */
   offers: PassOffer[];
   pass:
@@ -77,6 +89,8 @@ export function offerFor(status: PassStatus, feature: PassFeature): PassOffer | 
 
 export interface PassStats {
   active: { total: number; bySource: Record<string, number>; byVariant: Record<string, number> };
+  /** Play Passes whose renewal payment failed. Absent from an older server. */
+  paymentIssues?: { grace: number; onHold: number };
   walletRevenuePaise30d: number;
   started30d: number;
   endedOrCancelled30d: number;
@@ -104,13 +118,46 @@ export interface PassLaunchSend {
   skipped: number;
 }
 
+/** One active Pass holder, as returned by GET /v1/admin/pass-subscribers. */
+export interface PassSubscriberRow {
+  userId: string;
+  displayName: string | null;
+  phoneE164: string | null;
+  /** price_variant: 'A' = Silver, 'B' = Gold, 'C' = Platinum, null = before tiers. */
+  tier: string | null;
+  source: "wallet" | "google_play" | string;
+  pricePaise: number;
+  periodEnd: string;
+  autoRenew: boolean;
+  startedAt: string;
+  /** Google's state for a Play Pass, e.g. SUBSCRIPTION_STATE_IN_GRACE_PERIOD. */
+  playState?: string | null;
+}
+
+export interface PassSubscribersPage {
+  subscribers: PassSubscriberRow[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
 export const passApi = {
   status: () => request<PassStatus>("/v1/pass", { auth: true }),
   confirmPlay: (productId: string, purchaseToken: string) =>
     request<PassStatus>("/v1/pass/google-play", { method: "POST", body: { productId, purchaseToken }, auth: true }),
-  buyPack: (pack: QuestionPack) =>
-    request<PassStatus>(`/v1/question-packs/${pack}/buy`, { method: "POST", auth: true }),
+  /**
+   * Question Packs are bought through Google Play, never from the wallet (owner, 2026-10-23).
+   * This records the pending order and names the Play product to launch; the purchase is then
+   * confirmed through `api.confirmGooglePlayOrder`, the same as a wallet top-up.
+   */
+  packCheckout: (pack: QuestionPack) =>
+    request<{ productId: string; questions: number }>(`/v1/question-packs/${pack}/checkout`, {
+      method: "POST",
+      auth: true,
+    }),
   adminStats: () => request<PassStats>("/v1/admin/pass-stats", { auth: true }),
+  adminSubscribers: (offset = 0, limit = 20) =>
+    request<PassSubscribersPage>(`/v1/admin/pass-subscribers?offset=${offset}&limit=${limit}`, { auth: true }),
   launchReadiness: () => request<PassLaunchReadiness>("/v1/admin/pass-launch", { auth: true }),
   /** Sends the launch notification to everyone who has not had it; `onlyMe` sends a try-out to the calling admin. */
   sendLaunch: (onlyMe: boolean) =>
@@ -126,6 +173,8 @@ export function isPassRequired(err: unknown): boolean {
   return err instanceof ApiError && err.status === 403 && err.message === "PASS_REQUIRED";
 }
 
+/** The one Play subscription; its base plans are the tiers. Mirrors backend PASS_PLAY_PRODUCT_ID. */
+export const PASS_PLAY_PRODUCT_ID = "aroha_pass_monthly";
+
 /** Where a Play Pass is managed (cancel, change payment). */
-export const PLAY_SUBSCRIPTIONS_URL =
-  "https://play.google.com/store/account/subscriptions?sku=aroha_pass_monthly&package=com.aroha.astrology";
+export const PLAY_SUBSCRIPTIONS_URL = `https://play.google.com/store/account/subscriptions?sku=${PASS_PLAY_PRODUCT_ID}&package=com.aroha.astrology`;

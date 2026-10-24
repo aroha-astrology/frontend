@@ -592,7 +592,9 @@ function PassPage() {
                     {platform === "ios" && appleOffers.length === 0 && (
                       <p className="text-sm text-foreground/90">{t("pass.iosSoon")}</p>
                     )}
-                    {platform !== "web" && platform !== "ios" && <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>}
+                    {platform !== "ios" && !(platform === "web" && webOffers.length > 0) && (
+                      <p className="text-[11px] text-muted">{t("pass.playOnly")}</p>
+                    )}
                   </div>
                 )}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { PalmUpdateNotice, usePalmBuildGate } from "@/components/palm/PalmUpdateGate";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,7 @@ const SCORE_ORDER = ["career", "wealth", "marriage", "health", "fame", "spiritua
 const LOW_VISIBILITY_THRESHOLD = 5;
 
 export default function PalmReadingPage() {
+  const buildGate = usePalmBuildGate();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -95,6 +97,10 @@ export default function PalmReadingPage() {
     setUnlockOpen(false);
     retry();
   };
+
+  // An older Android build is asked to update before it can use Palmistry.
+  if (buildGate === "checking") return null;
+  if (buildGate === "update") return <PalmUpdateNotice />;
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>

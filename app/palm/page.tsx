@@ -7,6 +7,7 @@ import { Hand } from "lucide-react";
 import SectionTitle from "@/components/SectionTitle";
 import ProfileSwitchTrigger from "@/components/ui/ProfileSwitchTrigger";
 import PalmCaptureWizard from "@/components/palm/PalmCaptureWizard";
+import { PalmUpdateNotice, usePalmBuildGate } from "@/components/palm/PalmUpdateGate";
 import { useFeature } from "@/hooks/useFeature";
 import { palmApi, type PalmReadingResponse } from "@/lib/palm-api";
 
@@ -19,6 +20,7 @@ export default function PalmPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { enabled } = useFeature("home.palmReading");
+  const buildGate = usePalmBuildGate();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [readings, setReadings] = useState<PalmReadingResponse[] | null>(null);
 
@@ -35,6 +37,9 @@ export default function PalmPage() {
   }, [enabled]);
 
   if (!enabled) return null;
+  // An older Android build is asked to update before it can use Palmistry.
+  if (buildGate === "checking") return null;
+  if (buildGate === "update") return <PalmUpdateNotice />;
 
   return (
     <main className="min-h-screen pb-tab-safe" style={{ background: "var(--background)" }}>

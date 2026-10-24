@@ -56,6 +56,27 @@ export const PLAY_SUBSCRIPTIONS_BUILD = 16;
  */
 export const PLAY_PASS_UPGRADE_BUILD = 17;
 
+/**
+ * First Android build (1.18) Palmistry works with. A reader on an older build is asked to update
+ * before they can open Palmistry (components/palm/PalmUpdateGate.tsx).
+ */
+export const PALM_MIN_BUILD = 21;
+
+/**
+ * Whether Palmistry must ask this reader to update first. Only when the installed Android build is
+ * older than PALM_MIN_BUILD AND that build is already on Play (LATEST_PLAY_BUILD has been raised to
+ * it): until it is published, blocking would send people to a Play page with nothing newer. So the
+ * release steps are: upload the build, raise LATEST_PLAY_BUILD, and the gate is live. Web, iOS and
+ * an unreadable build are never blocked.
+ */
+export function palmNeedsUpdate(
+  installed: number | null,
+  latestOnPlay: number = LATEST_PLAY_BUILD,
+  min: number = PALM_MIN_BUILD,
+): boolean {
+  return installed !== null && latestOnPlay >= min && installed < min;
+}
+
 /** The installed Android versionCode, or null on the web / iOS / when it can't be read. */
 export async function installedAndroidBuild(): Promise<number | null> {
   try {

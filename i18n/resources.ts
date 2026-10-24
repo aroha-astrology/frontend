@@ -2502,6 +2502,12 @@ export const resources = {
           body: "Unlock the full reading for a detailed chapter on every line, every mount, and how it compares to your birth chart.",
           cta: "Unlock Full Reading",
         },
+        update: {
+          title: "Update Aroha to use Palmistry",
+          body: "Palmistry needs the latest version of the app for the new camera and your reading. It only takes a minute.",
+          cta: "Update now",
+          back: "Go back",
+        },
         unlock: {
           title: "Unlock Full Reading",
           body: "Get a detailed reading of every line and mount on your palm: love, career, health, timing and more.",
@@ -4910,6 +4916,12 @@ export const resources = {
           title: "आपका स्कैन तैयार है",
           body: "हर रेखा, हर पर्वत का विस्तृत अध्याय और अपनी जन्म कुंडली से तुलना पाने के लिए पूरी रीडिंग अनलॉक करें।",
           cta: "पूरी रीडिंग अनलॉक करें",
+        },
+        update: {
+          title: "हस्तरेखा के लिए Aroha अपडेट करें",
+          body: "हस्तरेखा के लिए ऐप का नया वर्शन चाहिए, नए कैमरे और आपकी रीडिंग के लिए। बस एक मिनट लगेगा।",
+          cta: "अभी अपडेट करें",
+          back: "वापस जाएँ",
         },
         unlock: {
           title: "पूरी रीडिंग अनलॉक करें",

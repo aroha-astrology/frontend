@@ -194,6 +194,24 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [walletTarget, setWalletTarget] = useState<AdminUserRow | null>(null);
+  const [palmNote, setPalmNote] = useState<string | null>(null);
+
+  /** Hands back a user's free palm reading (or everyone's), after a confirm. */
+  async function resetPalm(user: AdminUserRow | null) {
+    const who = user ? user.displayName?.trim() || user.phoneE164 || "this user" : "EVERY user";
+    if (!window.confirm(`Reset the free palm reading count for ${who}? Their Aroha Pass reading comes back.`)) return;
+    try {
+      if (user) {
+        await adminApi.resetUserPalmCount(user.id);
+        setPalmNote(`Palm count reset for ${who}.`);
+      } else {
+        const res = await adminApi.resetAllPalmCounts();
+        setPalmNote(`Palm count reset for ${res.count} accounts.`);
+      }
+    } catch (err) {
+      setPalmNote(err instanceof ApiError ? err.message : "Could not reset the palm count");
+    }
+  }
   const [sortBy, setSortBy] = useState<SortColumn>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -255,7 +273,22 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-gold mb-4">Users</h1>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-semibold text-gold">Users</h1>
+        <button
+          type="button"
+          onClick={() => void resetPalm(null)}
+          data-testid="palm-reset-all"
+          className="px-3 py-1.5 rounded-full border border-gold/40 text-gold text-xs hover:bg-gold/10 transition-colors"
+        >
+          Reset palm count for everyone
+        </button>
+        {palmNote && (
+          <span className="text-xs text-muted" data-testid="palm-reset-note">
+            {palmNote}
+          </span>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
         <input
@@ -478,6 +511,15 @@ export default function AdminUsersPage() {
                             className="px-3 py-1.5 rounded-full border border-gold/40 text-gold text-xs hover:bg-gold/10 transition-colors"
                           >
                             Wallet
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void resetPalm(u)}
+                            data-testid="palm-reset-user"
+                            title="Hand back this user's free palm reading"
+                            className="px-3 py-1.5 rounded-full border border-border text-muted text-xs hover:text-foreground transition-colors"
+                          >
+                            Reset palm
                           </button>
                           <Link
                             href={`/admin/tickets?userId=${encodeURIComponent(u.id)}`}

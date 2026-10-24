@@ -662,6 +662,13 @@ export const adminApi = {
       auth: true,
     }),
 
+  /** Hands one user's free (Aroha Pass) palm reading back: their count restarts from now. */
+  resetUserPalmCount: (userId: string) =>
+    request<{ userId: string }>(`/v1/admin/users/${userId}/palm-reset`, { method: "POST", auth: true }),
+
+  /** Hands everyone's free palm reading back; returns how many accounts were reset. */
+  resetAllPalmCounts: () => request<{ count: number }>("/v1/admin/palm/reset-all", { method: "POST", auth: true }),
+
   /** All user groups. */
   listGroups: () => request<{ groups: AdminGroupRow[] }>("/v1/admin/groups", { auth: true }),
 

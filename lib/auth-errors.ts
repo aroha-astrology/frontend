@@ -21,6 +21,30 @@ const CODE_TO_KEY: Record<string, string> = {
   "auth/unauthorized-domain": "auth.googleUnavailable",
 };
 
+// Native Google sign-in on Android rejects with no code at all: the plugin
+// only sets one for Firebase's own errors, and Google's ApiException arrives
+// as the message "<status>: <text>". 12501 = the account chooser was closed,
+// 7 = no network, 8 = INTERNAL_ERROR inside Google Play services on the phone
+// (seen 2026-10-25 on 1.17). 10 (DEVELOPER_ERROR) and 12500 are our own
+// setup, so they stay unmapped and keep reaching the ops chat.
+const GOOGLE_STATUS_TO_KEY: Record<string, string> = {
+  "12501": "auth.googleCancelled",
+  "7": "auth.googleNetwork",
+  "8": "auth.googlePhoneError",
+};
+
+/** Statuses the person can't fix from our side but we still want to count. */
+const GOOGLE_STATUS_TO_REPORT = new Set(["8"]);
+
+function googleStatus(err: unknown, step: AuthStep): string | undefined {
+  if (step !== "google") return undefined;
+  const code = (err as { code?: unknown } | null)?.code;
+  if (typeof code === "string" && /^\d+$/.test(code)) return code;
+  const message = (err as { message?: unknown } | null)?.message;
+  if (typeof message !== "string") return undefined;
+  return /^(\d+):/.exec(message)?.[1];
+}
+
 /**
  * Returns the i18n key for a Firebase auth error (or unknown error). `step`
  * is where in sign-in it happened — it travels with the report of an
@@ -28,7 +52,11 @@ const CODE_TO_KEY: Record<string, string> = {
  */
 export function authErrorKey(err: unknown, step: AuthStep): string {
   const code = (err as { code?: string } | null)?.code ?? "";
-  const key = CODE_TO_KEY[code] ?? "auth.genericError";
+  const status = CODE_TO_KEY[code] ? undefined : googleStatus(err, step);
+  const key =
+    CODE_TO_KEY[code] ?? (status && GOOGLE_STATUS_TO_KEY[status]) ?? "auth.genericError";
+
+  if (status && GOOGLE_STATUS_TO_REPORT.has(status)) reportAuthError(err, step);
 
   // Everything unmapped collapses into one "Something went wrong", which makes
   // every distinct failure look identical to the user AND to us. That cost

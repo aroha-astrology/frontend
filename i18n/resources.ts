@@ -1531,6 +1531,8 @@ export const resources = {
         googleCancelled: "Sign-in was cancelled. Please try again.",
         googleBlocked: "Pop-up blocked. Please allow pop-ups and try again.",
         googleUnavailable: "Google sign-in isn't available right now. Please try again later.",
+        googleNetwork: "No internet connection. Please check your connection and try again.",
+        googlePhoneError: "Google sign-in failed on this phone. Please try again. If it keeps failing, update Google Play services from the Play Store and restart your phone.",
         emailLabel: "Email",
       },
       onboarding: {

@@ -1,14 +1,15 @@
-// Fills in the strings a language is missing, using Oxion (oxionai.com/v1).
+// Fills in the strings a language is missing, using apinex (apinex.bond/v1, owner's choice 2026-10-25).
 //
 // Every language falls back to English for a key it lacks. This finds each key the English tree
 // has and a language does not (in resources.ts, the roadmap bundles or i18n/generated/<code>.json),
-// asks Oxion to translate only those, checks the {{placeholders}} survived, and merges the result
+// asks apinex to translate only those, checks the {{placeholders}} survived, and merges the result
 // into i18n/generated/<code>.json (which i18n/generated.test.ts then verifies).
 //
 //   node_modules/.pnpm/vite-node@3.2.4*/node_modules/vite-node/vite-node.mjs scripts/translate-missing.ts [prefix ...] [--dry]
 //
-// A prefix (e.g. `palm.` `reports.book.`) limits it to those keys. Key: OXION_API_KEY, or `oxionai=`
-// in ../backend/.env.
+// A prefix (e.g. `palm.` `reports.book.`) limits it to those keys. Key: APINEX_API_KEY (it lives as
+// APINEX_API_KEYS in /etc/aroha-marketing/secrets.env on the Sydney marketing box). apinex allows 5
+// requests a minute, so calls are spaced 13 s apart. Only app strings go to it, never user data.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -16,7 +17,10 @@ import { resources } from "../i18n/resources";
 import { ROADMAP_BUNDLES } from "../i18n/roadmap";
 
 type Tree = { [key: string]: unknown };
-const MODEL = "gemini-3.7-flash";
+// Free on the owner's apinex plan; gemini-3.1-pro and qwen-3.8-max there need a paid subscription.
+const MODEL = "free/gemini-3.8-flash";
+const GAP_MS = 13_000;
+let lastCall = 0;
 const CODES: Record<string, string> = {
   hi: "Hindi", bn: "Bengali", mr: "Marathi", te: "Telugu", ta: "Tamil", gu: "Gujarati", kn: "Kannada",
   es: "Spanish", fr: "French", de: "German", pt: "Portuguese", it: "Italian", ru: "Russian", ja: "Japanese",
@@ -53,9 +57,9 @@ function setPath(tree: Tree, dotted: string, value: string) {
 const placeholders = (s: string) => [...s.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort().join(",");
 
 function key(): string {
-  if (process.env.OXION_API_KEY) return process.env.OXION_API_KEY;
-  const env = fs.readFileSync(path.resolve(__dirname, "../../backend/.env"), "utf8");
-  return env.match(/^oxionai=(.*)$/m)![1]!.trim().replace(/^"|"$/g, "");
+  const k = process.env.APINEX_API_KEY?.split(",")[0]?.trim();
+  if (!k) throw new Error("Set APINEX_API_KEY");
+  return k;
 }
 
 async function ask(language: string, batch: Record<string, string>): Promise<Record<string, string>> {
@@ -65,10 +69,12 @@ async function ask(language: string, batch: Record<string, string>): Promise<Rec
     `(Aroha, Aroha Pass, Life Timeline, Bonds, Palmistry) in English letters. Return ONLY a JSON object with the ` +
     `same keys and the translated strings as values.\n\n${JSON.stringify(batch)}`;
   for (let attempt = 1; attempt <= 6; attempt++) {
-    const res = await fetch("https://oxionai.com/v1/chat/completions", {
+    await new Promise((r) => setTimeout(r, Math.max(0, lastCall + GAP_MS - Date.now())));
+    lastCall = Date.now();
+    const res = await fetch("https://apinex.bond/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, max_tokens: 16000, response_format: { type: "json_object" }, messages: [{ role: "user", content: prompt }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 16000, temperature: 0.2, messages: [{ role: "user", content: prompt }] }),
       signal: AbortSignal.timeout(240_000),
     });
     const body = await res.text();
@@ -80,7 +86,7 @@ async function ask(language: string, batch: Record<string, string>): Promise<Rec
     console.log(`  ${language}: attempt ${attempt} failed (${res.status} ${body.slice(0, 80).replace(/\s+/g, " ")}), retrying`);
     await new Promise((r) => setTimeout(r, 20_000 * attempt));
   }
-  throw new Error(`Oxion would not translate into ${language}`);
+  throw new Error(`apinex would not translate into ${language}`);
 }
 
 async function main() {

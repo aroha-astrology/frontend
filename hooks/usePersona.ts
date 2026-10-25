@@ -33,11 +33,21 @@ export function guideName(info: PersonaInfo | null, translatedDefault: string): 
   return current.name;
 }
 
+/** Guides with their own portrait in public/guides; anyone else (Yogi Baba, an unknown id) shows Yogi Baba's. */
+const GUIDE_PORTRAITS = new Set(["pandit-vikram", "gauri", "kavitha-ji", "orion", "soren", "maya", "elena"]);
+
+/** The portrait for a guide id; Yogi Baba's for him, an unknown id, or nothing chosen. */
+export function guideAvatarSrc(personaId: string | null | undefined): string {
+  return personaId && GUIDE_PORTRAITS.has(personaId) ? `/guides/${personaId}.webp` : "/yogi-baba.webp";
+}
+
 export function usePersona(): {
   enabled: boolean;
   info: PersonaInfo | null;
   /** The chosen guide's plain name; null for Yogi Baba, the switch being off, or before it loads. */
   customName: string | null;
+  /** The chosen guide's portrait; Yogi Baba's while the switch is off or before it loads. */
+  avatarSrc: string;
   choose: (personaId: string) => Promise<boolean>;
 } {
   const { user } = useAuth();
@@ -81,5 +91,5 @@ export function usePersona(): {
 
   const current = enabled && info ? info.options.find((o) => o.id === info.current) : undefined;
   const customName = current && current.id !== "yogi-baba" ? current.name : null;
-  return { enabled, info: enabled ? info : null, customName, choose };
+  return { enabled, info: enabled ? info : null, customName, avatarSrc: guideAvatarSrc(current?.id), choose };
 }

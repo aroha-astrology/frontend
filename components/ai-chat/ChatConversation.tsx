@@ -253,7 +253,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const freeFollowUpAvailable =
     !user?.nextFreeFollowUpAt || new Date(user.nextFreeFollowUpAt).getTime() <= Date.now();
   // Baba Ji memory: the chosen guide's name, the free first reply after a check-in, and the birth-time chip.
-  const { customName: guideCustomName } = usePersona();
+  const { customName: guideCustomName, avatarSrc: guideAvatar } = usePersona();
   const greetingMessage = (): Message => ({
     id: crypto.randomUUID(),
     role: "assistant",
@@ -897,7 +897,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
           <VoiceCall locale={i18n.language} />
         </div>
         <h1 className="text-2xl font-bold text-gold font-display text-center flex items-center justify-center gap-2">
-          <YogiBabaAvatar size={32} /> <span data-testid="chat-guide-name">{guideCustomName ?? t(ASTROLOGER.nameKey)}</span>
+          <YogiBabaAvatar size={32} src={guideAvatar} /> <span data-testid="chat-guide-name">{guideCustomName ?? t(ASTROLOGER.nameKey)}</span>
         </h1>
       </div>
 
@@ -964,7 +964,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             >
               <div className={msg.role === "user" ? "flex justify-end w-full" : "flex justify-start"}>
                 {msg.role === "assistant" && (
-                  <YogiBabaAvatar size={28} className="mr-2 mt-1" />
+                  <YogiBabaAvatar size={28} className="mr-2 mt-1" src={guideAvatar} />
                 )}
                 <div
                   className={
@@ -1131,7 +1131,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
             animate={{ opacity: 1 }}
             className="flex justify-start items-center"
           >
-            <YogiBabaAvatar size={28} className="mr-2" />
+            <YogiBabaAvatar size={28} className="mr-2" src={guideAvatar} />
             <div
               className="rounded-[16px_16px_16px_3px] px-4 py-3 border flex gap-2.5 items-center"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}

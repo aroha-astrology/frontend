@@ -10,6 +10,7 @@ import { ASTROLOGER } from "@/lib/personas";
 import { formatRupees } from "@/lib/format";
 import { VOICE_TRIAL_MINUTES } from "@/lib/pass-api";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
+import { usePersona } from "@/hooks/usePersona";
 import type { VoiceCall } from "@/hooks/useVoiceCall";
 
 /** In a trial call's last minute the screen says the free call is ending and points to the Pass. */
@@ -42,6 +43,8 @@ const TRIAL_ENDING_SECONDS = 60;
 export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
   const { t } = useTranslation();
   const router = useRouter();
+  // The chosen guide (chat.personas) speaks on the call, so the screen shows their face and name.
+  const { customName: guideName, avatarSrc: guideAvatar } = usePersona();
 
   // `document` does not exist during SSR, and portalling on the very first
   // client render would not match the server-rendered markup — so mount first,
@@ -117,11 +120,11 @@ export default function VoiceCallOverlay({ call }: { call: VoiceCall }) {
                   />
                 ))}
             </AnimatePresence>
-            <YogiBabaAvatar size={112} className="border-2" />
+            <YogiBabaAvatar size={112} className="border-2" src={guideAvatar} />
           </div>
 
-          <h2 className="text-2xl font-bold text-gold font-display text-center">
-            {t(ASTROLOGER.nameKey)}
+          <h2 className="text-2xl font-bold text-gold font-display text-center" data-testid="voice-guide-name">
+            {guideName ?? t(ASTROLOGER.nameKey)}
           </h2>
 
           <p className="mt-2 flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>

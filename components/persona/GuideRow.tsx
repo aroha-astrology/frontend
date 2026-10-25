@@ -5,7 +5,8 @@ import { UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ListRow from "@/components/ui/ListRow";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
-import { guideName, usePersona } from "@/hooks/usePersona";
+import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
+import { guideAvatarSrc, guideName, usePersona } from "@/hooks/usePersona";
 
 /**
  * Settings → "Your guide" (switch chat.personas): who answers in chat and on calls. Four guides for
@@ -71,12 +72,15 @@ export default function GuideRow() {
                 aria-pressed={o.id === info.current}
                 disabled={busy}
                 onClick={() => void pick(o.id)}
-                className={`flex w-full flex-col rounded-2xl border px-4 py-3 text-left ${
+                className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left ${
                   o.id === info.current ? "border-gold bg-gold/10" : "border-gold/20"
                 }`}
               >
-                <span className="text-sm font-semibold text-foreground">{nameOf(o.id, o.name)}</span>
-                <span className="text-[11px] text-muted">{t(`guide.tag.${o.id}`)}</span>
+                <YogiBabaAvatar size={44} src={guideAvatarSrc(o.id)} />
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-sm font-semibold text-foreground">{nameOf(o.id, o.name)}</span>
+                  <span className="text-[11px] text-muted">{t(`guide.tag.${o.id}`)}</span>
+                </span>
               </button>
             ))}
           </div>

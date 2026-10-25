@@ -48,6 +48,11 @@ test.describe("the guide", () => {
     await page.getByTestId("guide-row").click();
     for (const g of CLASSIC) await expect(page.getByTestId(`guide-option-${g.id}`)).toBeVisible();
     await expect(page.getByTestId("guide-option-orion")).toHaveCount(0);
+    // Each guide shows their own face in the picker, and the picture really loads.
+    const gauriFace = page.getByTestId("guide-option-gauri").locator("img");
+    await expect(gauriFace).toHaveAttribute("src", "/guides/gauri.webp");
+    await expect.poll(() => gauriFace.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    await expect(page.getByTestId("guide-option-yogi-baba").locator("img")).toHaveAttribute("src", "/yogi-baba.webp");
 
     await page.getByTestId("guide-option-gauri").click();
     await expect(page.getByTestId("guide-message")).toHaveText("Your guide is now Gauri.");
@@ -55,6 +60,10 @@ test.describe("the guide", () => {
 
     await page.goto("/ai-chat");
     await expect(page.getByTestId("chat-guide-name")).toHaveText("Gauri");
+    await expect(page.locator("h1").filter({ has: page.getByTestId("chat-guide-name") }).locator("img")).toHaveAttribute(
+      "src",
+      "/guides/gauri.webp",
+    );
   });
 
   test("a Cosmic reader gets the four Cosmic guides", async ({ page }) => {

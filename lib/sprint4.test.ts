@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { EVENT_KINDS, formatEventDate, kindKey, splitVault, type VaultEntry } from "./memory";
 import { REPORT_REASONS, signOfRoom, skyProblemOf } from "./same-sky";
 import { makeNamer, nameKey } from "./panchang-names";
-import { guideName, type PersonaInfo } from "@/hooks/usePersona";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { guideAvatarSrc, guideName, type PersonaInfo } from "@/hooks/usePersona";
 import { PILL_GROUPS, visiblePills } from "./nav-pills";
 import { languageStrings } from "../scripts/i18n-parity";
 
@@ -113,5 +115,18 @@ describe("guideName", () => {
     expect(guideName(null, "योगी बाबा")).toBe("योगी बाबा");
     expect(guideName(info("maya"), "योगी बाबा")).toBe("Maya");
     expect(guideName({ ...info("yogi-baba"), options: [{ id: "yogi-baba", name: "Yogi Baba" }] }, "योगी बाबा")).toBe("योगी बाबा");
+  });
+});
+
+describe("guideAvatarSrc", () => {
+  it("gives every guide a portrait file that exists, and Yogi Baba's for him or an unknown id", () => {
+    for (const id of ["pandit-vikram", "gauri", "kavitha-ji", "orion", "soren", "maya", "elena"]) {
+      const src = guideAvatarSrc(id);
+      expect(src).toBe(`/guides/${id}.webp`);
+      expect(existsSync(join(process.cwd(), "public", src)), id).toBe(true);
+    }
+    expect(guideAvatarSrc("yogi-baba")).toBe("/yogi-baba.webp");
+    expect(guideAvatarSrc("someone-new")).toBe("/yogi-baba.webp");
+    expect(guideAvatarSrc(null)).toBe("/yogi-baba.webp");
   });
 });

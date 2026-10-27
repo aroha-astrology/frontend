@@ -1642,6 +1642,7 @@ export const resources = {
           mangal: "Mangal Dosha",
           kaalSarp: "Kaal Sarp Dosha",
           sadeSati: "Sade Sati",
+          dhaiya: "Shani Dhaiya",
           pitra: "Pitra Dosha",
           kemDruma: "Kemdrum Dosha",
           grahan: "Grahan Dosha",

@@ -23,6 +23,15 @@ export interface SadeSati {
   severity?: 'low' | 'medium' | 'high';
   description?: string;
 }
+// Shani Dhaiya: Saturn in the 4th (Kantaka Shani) or 8th (Ashtama Shani) sign
+// from the Moon. Live like Sade Sati, and also says "active".
+export interface Dhaiya {
+  active: boolean;
+  phase?: '4th' | '8th' | 'none';
+  name?: string;
+  severity?: string;
+  description?: string;
+}
 export interface SimpleDosha {
   present: boolean;
   severity?: 'low' | 'medium' | 'high';
@@ -39,6 +48,7 @@ export interface DoshaAnalysis {
   mangal?: MangalDosha;
   kaalSarp?: KaalSarpDosha;
   sadeSati?: SadeSati;
+  dhaiya?: Dhaiya;
   pitra?: SimpleDosha;
   kemDruma?: SimpleDosha;
   grahan?: GrahanDosha;
@@ -58,6 +68,7 @@ export const DOSHA_NAME_I18N_KEYS: Record<string, string> = {
   mangal: 'kundli.doshaNames.mangal',
   kaalSarp: 'kundli.doshaNames.kaalSarp',
   sadeSati: 'kundli.doshaNames.sadeSati',
+  dhaiya: 'kundli.doshaNames.dhaiya',
   pitra: 'kundli.doshaNames.pitra',
   kemDruma: 'kundli.doshaNames.kemDruma',
   grahan: 'kundli.doshaNames.grahan',
@@ -87,6 +98,9 @@ function extractDoshas(analysis: DoshaAnalysis): Dosha[] {
   }
   if (analysis.sadeSati?.active) {
     out.push({ key: 'sadeSati', severity: sev(analysis.sadeSati.severity), description: analysis.sadeSati.description, meta: analysis.sadeSati.phase ? `Phase: ${analysis.sadeSati.phase}` : undefined });
+  }
+  if (analysis.dhaiya?.active) {
+    out.push({ key: 'dhaiya', severity: sev(analysis.dhaiya.severity), description: analysis.dhaiya.description, meta: analysis.dhaiya.name || undefined });
   }
   if (analysis.pitra?.present) {
     out.push({ key: 'pitra', severity: sev(analysis.pitra.severity), description: analysis.pitra.description });

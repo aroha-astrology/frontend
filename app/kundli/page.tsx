@@ -318,6 +318,7 @@ function YogaDoshaSection({
         doshas.mangal?.present,
         doshas.kaalSarp?.present,
         doshas.sadeSati?.active,
+        doshas.dhaiya?.active,
         doshas.pitra?.present,
         doshas.kemDruma?.present,
         doshas.grahan?.present && doshas.grahan?.type !== "none",

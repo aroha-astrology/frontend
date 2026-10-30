@@ -16,7 +16,11 @@ import { useTopBarRightContent } from "@/providers/topbar-provider";
 import HouseUnlockDrawer from "@/components/ui/HouseUnlockDrawer";
 import DashaTimeline from "@/components/ui/DashaTimeline";
 import YogaCard, { type Yoga } from "@/components/ui/YogaCard";
-import DoshaCard, { type DoshaAnalysis } from "@/components/ui/DoshaCard";
+import DoshaCard, {
+  countPresentDoshas,
+  hasDoshaCardContent,
+  type DoshaAnalysis,
+} from "@/components/ui/DoshaCard";
 import VargaChartTabs from "@/components/ui/VargaChartTabs";
 import ChartCarousel from "@/components/ui/ChartCarousel";
 import SignShiftCard from "@/components/experience/SignShiftCard";
@@ -313,20 +317,12 @@ function YogaDoshaSection({
   const [showDoshas, setShowDoshas] = useState(true);
 
   const presentYogas = yogas.filter((y) => y.present);
-  const presentDoshaCount = doshas
-    ? [
-        doshas.mangal?.present,
-        doshas.kaalSarp?.present,
-        doshas.sadeSati?.active,
-        doshas.dhaiya?.active,
-        doshas.pitra?.present,
-        doshas.kemDruma?.present,
-        doshas.grahan?.present && doshas.grahan?.type !== "none",
-        doshas.guruChandal?.present,
-      ].filter(Boolean).length
-    : 0;
+  // A cancelled Mangal Dosha is not counted; the card still shows it as cancelled, and shows a
+  // Sade Sati or Dhaiya on a break or coming next even when nothing is running.
+  const presentDoshaCount = doshas ? countPresentDoshas(doshas) : 0;
+  const showDoshaCard = doshas ? hasDoshaCardContent(doshas) : false;
 
-  if (!presentYogas.length && !presentDoshaCount) return null;
+  if (!presentYogas.length && !presentDoshaCount && !showDoshaCard) return null;
 
   return (
     <Card className="p-4">
@@ -370,7 +366,7 @@ function YogaDoshaSection({
       )}
 
       {/* Expanded dosha list */}
-      {showDoshas && doshas && presentDoshaCount > 0 && (
+      {showDoshas && doshas && showDoshaCard && (
         <div className="mt-2 border-t border-gold/10 pt-3">
           <DoshaCard doshas={doshas} mode={mode} />
         </div>

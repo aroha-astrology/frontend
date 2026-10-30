@@ -1632,6 +1632,9 @@ export const resources = {
           title: "Doshas Detected",
           showLess: "Show less",
           showAll: "Show all {{count}} doshas",
+          cancelled: "Cancelled",
+          onBreak: "{{name}}: on a break until {{date}}",
+          nextFrom: "Next: {{name}} from {{date}}",
           plainBlurb: {
             low: "A mild influence — generally manageable with awareness.",
             medium: "A moderate influence that deserves attention in key life areas.",

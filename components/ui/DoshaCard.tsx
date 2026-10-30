@@ -6,10 +6,13 @@ import { useTranslation } from 'react-i18next';
 // Real shapes from KundliReady.doshas — each key has distinct "present" field names
 export interface MangalDosha {
   present: boolean;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: string;
+  /** 'cancelled' means not Manglik: Mars is in a dosha house but a traditional exception applies. */
+  type?: 'partial' | 'full' | 'cancelled' | 'none' | string;
   affectedHouses?: number[];
   description?: string;
-  cancellation?: string;
+  /** The exceptions that cancel it, e.g. "Mars in own sign Aries - cancellation applies". */
+  cancellations?: string[];
 }
 export interface KaalSarpDosha {
   present: boolean;
@@ -20,8 +23,12 @@ export interface KaalSarpDosha {
 export interface SadeSati {
   active: boolean; // NOTE: "active", not "present"
   phase?: string;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: string;
   description?: string;
+  /** Set while Saturn has stepped out on a retrograde: when the Sade Sati comes back. */
+  resumesOn?: string | null;
+  /** When none is running: the next one. */
+  next?: { startDate: string; endDate: string } | null;
 }
 // Shani Dhaiya: Saturn in the 4th (Kantaka Shani) or 8th (Ashtama Shani) sign
 // from the Moon. Live like Sade Sati, and also says "active".
@@ -31,10 +38,12 @@ export interface Dhaiya {
   name?: string;
   severity?: string;
   description?: string;
+  resumesOn?: string | null;
+  next?: { phase: '4th' | '8th'; startDate: string; endDate: string } | null;
 }
 export interface SimpleDosha {
   present: boolean;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: string;
   description?: string;
 }
 export interface GrahanDosha {
@@ -57,7 +66,7 @@ export interface DoshaAnalysis {
 
 interface Dosha {
   key: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: 'low' | 'medium' | 'high' | 'cancelled';
   description?: string;
   meta?: string; // e.g. phase, cancellation, type
 }
@@ -79,19 +88,77 @@ export const DOSHA_NAME_I18N_KEYS: Record<string, string> = {
 // astro-engine dosha detectors) — translate it rather than silently bucketing
 // every unrecognized value to 'medium', which previously made every dosha
 // look identically "moderate" regardless of its real computed severity.
+// 'none' is the mildest, never 'medium' (a cancelled Mangal Dosha carries 'none').
 function sev(s?: string): 'low' | 'medium' | 'high' {
   if (s === 'high' || s === 'medium' || s === 'low') return s;
-  if (s === 'mild') return 'low';
+  if (s === 'mild' || s === 'none') return 'low';
   if (s === 'moderate') return 'medium';
   if (s === 'severe') return 'high';
   return 'medium';
+}
+
+/** Cancelled means not Manglik (the backend still sets `present`, with type 'cancelled'). */
+function mangalCancelled(m?: MangalDosha): boolean {
+  return !!m?.present && m.type === 'cancelled';
+}
+
+/** The "doshas found" count: running ones only, never a cancelled Mangal Dosha. */
+export function countPresentDoshas(d: DoshaAnalysis): number {
+  return [
+    d.mangal?.present && !mangalCancelled(d.mangal),
+    d.kaalSarp?.present,
+    d.sadeSati?.active,
+    d.dhaiya?.active,
+    d.pitra?.present,
+    d.kemDruma?.present,
+    d.grahan?.present && d.grahan?.type !== 'none',
+    d.guruChandal?.present,
+  ].filter(Boolean).length;
+}
+
+interface SaturnNote {
+  key: 'sadeSati' | 'dhaiya';
+  kind: 'onBreak' | 'nextFrom';
+  date: string;
+}
+
+/** Sade Sati and Dhaiya that are not running today: on a retrograde break, or the next one's start. */
+function saturnNotes(d: DoshaAnalysis): SaturnNote[] {
+  const out: SaturnNote[] = [];
+  for (const key of ['sadeSati', 'dhaiya'] as const) {
+    const s = d[key];
+    if (!s || s.active) continue;
+    if (s.resumesOn) out.push({ key, kind: 'onBreak', date: s.resumesOn });
+    else if (s.next?.startDate) out.push({ key, kind: 'nextFrom', date: s.next.startDate });
+  }
+  return out;
+}
+
+/** Whether the card has anything to show: a dosha, a cancelled Mangal, or a Saturn break/next date. */
+export function hasDoshaCardContent(d: DoshaAnalysis): boolean {
+  return extractDoshas(d).length > 0 || saturnNotes(d).length > 0;
+}
+
+function formatDay(iso: string, lang: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso.slice(0, 10);
+  // English as the app writes dates elsewhere ("3 Jun 2027"), not the US "Jun 3, 2027".
+  const locale = !lang || lang === 'en' ? 'en-IN' : lang;
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function extractDoshas(analysis: DoshaAnalysis): Dosha[] {
   const out: Dosha[] = [];
 
   if (analysis.mangal?.present) {
-    out.push({ key: 'mangal', severity: sev(analysis.mangal.severity), description: analysis.mangal.description, meta: analysis.mangal.cancellation ? `Cancellation: ${analysis.mangal.cancellation}` : undefined });
+    const cancelled = mangalCancelled(analysis.mangal);
+    const reasons = (analysis.mangal.cancellations ?? []).map((c) => c.replace(/ - cancellation applies$/, ''));
+    out.push({
+      key: 'mangal',
+      severity: cancelled ? 'cancelled' : sev(analysis.mangal.severity),
+      description: analysis.mangal.description,
+      meta: reasons.length ? `Cancellation: ${reasons.join('; ')}` : undefined,
+    });
   }
   if (analysis.kaalSarp?.present) {
     out.push({ key: 'kaalSarp', severity: sev(analysis.kaalSarp.severity), description: analysis.kaalSarp.description, meta: analysis.kaalSarp.type });
@@ -121,6 +188,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   high: 'border-red-500/25 bg-red-500/5 text-red-400',
   medium: 'border-orange-500/25 bg-orange-500/5 text-orange-400',
   low: 'border-yellow-500/25 bg-yellow-500/5 text-yellow-400',
+  cancelled: 'border-white/10 bg-white/[0.03] text-muted',
 };
 
 const PLAIN_BLURB_I18N_KEYS: Record<string, string> = {
@@ -154,10 +222,11 @@ interface DoshaCardProps {
 }
 
 export default function DoshaCard({ doshas, mode = 'technical', className = '' }: DoshaCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const list = extractDoshas(doshas);
-  if (!list.length) return null;
+  const notes = saturnNotes(doshas);
+  if (!list.length && !notes.length) return null;
 
   const shown = expanded ? list : list.slice(0, 2);
 
@@ -176,14 +245,16 @@ export default function DoshaCard({ doshas, mode = 'technical', className = '' }
             <div key={d.key} className={`p-3 rounded-xl border ${colorClass}`}>
               <div className="flex items-center justify-between mb-1 gap-2">
                 <span className="text-xs font-bold">{t(DOSHA_NAME_I18N_KEYS[d.key])}</span>
-                {mode === 'technical' && (
+                {d.severity === 'cancelled' ? (
+                  <span className="text-[9px] uppercase tracking-wider opacity-70">{t('kundli.doshaCard.cancelled')}</span>
+                ) : mode === 'technical' && (
                   <span className="text-[9px] uppercase tracking-wider opacity-70">{d.severity}</span>
                 )}
               </div>
               <p className="text-[11px] text-muted leading-relaxed">
                 {d.description
                   ? (mode === 'plain' ? plainify(d.description) : d.description)
-                  : t(PLAIN_BLURB_I18N_KEYS[d.severity])}
+                  : d.severity !== 'cancelled' && t(PLAIN_BLURB_I18N_KEYS[d.severity])}
               </p>
               {mode === 'technical' && d.meta && (
                 <p className="text-[10px] text-muted/60 mt-1">{d.meta}</p>
@@ -200,6 +271,19 @@ export default function DoshaCard({ doshas, mode = 'technical', className = '' }
         >
           {expanded ? t('kundli.doshaCard.showLess') : t('kundli.doshaCard.showAll', { count: list.length })}
         </button>
+      )}
+
+      {notes.length > 0 && (
+        <div className={`${list.length ? 'mt-2 ' : ''}space-y-1`}>
+          {notes.map((n) => (
+            <p key={n.key} className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.03] text-[11px] text-muted">
+              {t(`kundli.doshaCard.${n.kind}`, {
+                name: t(DOSHA_NAME_I18N_KEYS[n.key]),
+                date: formatDay(n.date, i18n?.language),
+              })}
+            </p>
+          ))}
+        </div>
       )}
     </div>
   );

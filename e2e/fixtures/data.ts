@@ -3,7 +3,7 @@
  * them minimal — a field only needs to be here if a screen under test reads it.
  */
 
-export const LEGAL_VERSION = "1.4.0"; // lib/legal-content.ts — a mismatch shows ConsentGate
+export const LEGAL_VERSION = "1.5.0"; // lib/legal-content.ts — a mismatch shows ConsentGate
 
 const ALL_TOURS = ["home", "kundli", "reports-list", "report-detail", "ai-chat", "horoscope", "panchang", "remedies", "vastu", "palm"];
 

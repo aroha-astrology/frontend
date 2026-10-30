@@ -1421,6 +1421,8 @@ export const resources = {
       birthTimeAsk: {
         title: "Where does your birth time come from?",
         body: "Your readings lean on it. Tell us how sure it is and we'll word them honestly.",
+        titleFor: "Where does {{name}}'s birth time come from?",
+        bodyFor: "Their readings lean on it. Tell us how sure it is and we'll word them honestly.",
         record: { label: "From a birth record", hint: "A certificate, hospital paper or diary" },
         family: { label: "Someone in the family remembers it", hint: "Close, but maybe not to the minute" },
         unsure: { label: "I'm not sure", hint: "A guess or a rough time of day" },

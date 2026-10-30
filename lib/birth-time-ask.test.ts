@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ANSWER_BODY, SNOOZE_MS, shouldAskBirthTime } from "./birth-time-ask";
+import { ANSWER_BODY, SNOOZE_MS, birthTimeAskTarget, shouldAskBirthTime } from "./birth-time-ask";
 
 /**
  * Audit M7: 388 readers with a ready chart never said how sure their birth time is, so chat, voice and
@@ -42,5 +42,38 @@ describe("ANSWER_BODY", () => {
     expect(ANSWER_BODY.record).toEqual({ birthTimeAccuracy: "exact", birthTimeSource: "birth_certificate" });
     expect(ANSWER_BODY.family).toEqual({ birthTimeAccuracy: "approximate", birthTimeSource: "family_memory" });
     expect(ANSWER_BODY.unsure).toEqual({ birthTimeAccuracy: "unknown", birthTimeSource: "unknown" });
+  });
+});
+
+const family = {
+  id: "p-1",
+  isPrimary: false,
+  isActive: true,
+  displayName: "Meera",
+  timeOfBirth: "06:30",
+  birthTimeAccuracy: null,
+};
+const self = { id: "primary", isPrimary: true, isActive: true, displayName: "Asha", timeOfBirth: "10:15:00", birthTimeAccuracy: null };
+
+describe("birthTimeAskTarget", () => {
+  it("asks about the account owner when their own profile is the active one", () => {
+    expect(birthTimeAskTarget(reader, self, { enabled: true })).toEqual({ id: "primary", name: null, isSelf: true });
+    expect(birthTimeAskTarget(reader, null, { enabled: true })).toEqual({ id: "primary", name: null, isSelf: true });
+  });
+
+  it("asks about a saved family profile when that one is active and its time is unrated", () => {
+    expect(birthTimeAskTarget(reader, family, { enabled: true })).toEqual({ id: "p-1", name: "Meera", isSelf: false });
+  });
+
+  it("asks about the family profile even when the owner's own time is already rated", () => {
+    const rated = { ...reader, birthTimeAccuracy: "exact" as const };
+    expect(birthTimeAskTarget(rated, family, { enabled: true })?.id).toBe("p-1");
+  });
+
+  it("asks about nobody once the active family profile is rated, or has no time, or the switch is off", () => {
+    const rated = { ...reader, birthTimeAccuracy: "exact" as const };
+    expect(birthTimeAskTarget(rated, { ...family, birthTimeAccuracy: "unknown" }, { enabled: true })).toBeNull();
+    expect(birthTimeAskTarget(rated, { ...family, timeOfBirth: null }, { enabled: true })).toBeNull();
+    expect(birthTimeAskTarget(reader, family, { enabled: false })).toBeNull();
   });
 });

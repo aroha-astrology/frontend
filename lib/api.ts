@@ -1199,6 +1199,10 @@ export const api = {
   createProfile: (body: CreateProfileBody) =>
     request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
 
+  /** Change fields of an added (family) profile, e.g. its birth-time accuracy and source. Not for 'primary': use updateMe. */
+  updateBirthProfile: (id: string, body: Pick<UpdateMeBody, "birthTimeAccuracy" | "birthTimeSource">) =>
+    request<unknown>(`/v1/birth-profiles/${id}`, { method: "PATCH", body, auth: true }),
+
   /**
    * Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc.
    * Throws ApiError with status 404 if `id` is unknown or not owned by this

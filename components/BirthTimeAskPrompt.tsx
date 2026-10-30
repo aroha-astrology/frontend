@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
@@ -11,13 +11,16 @@ import {
   BIRTH_TIME_ASK_FEATURE,
   SNOOZE_KEY,
   SNOOZE_MS,
-  shouldAskBirthTime,
+  birthTimeAskTarget,
   type BirthTimeAnswer,
 } from "@/lib/birth-time-ask";
 import { useNewFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
+
+/** The owner keeps the original key so an earlier "Not now" still counts; each saved profile has its own. */
+const snoozeKeyFor = (id: string): string => (id === "primary" ? SNOOZE_KEY : `${SNOOZE_KEY}:${id}`);
 
 const OPTIONS: { answer: BirthTimeAnswer; key: string }[] = [
   { answer: "record", key: "record" },
@@ -26,46 +29,52 @@ const OPTIONS: { answer: BirthTimeAnswer; key: string }[] = [
 ];
 
 /**
- * Asks a reader who typed a birth time but never rated it where the time comes from (audit M7, switch
- * `home.birthTimeAsk`, ships off). The answer is saved with the normal profile update, so the
+ * Asks where a birth time comes from when it was typed but never rated (audit M7, switch
+ * `home.birthTimeAsk`, ships off): for the account owner, and for a saved family profile while it is the
+ * active one. The answer is saved with the normal profile update, so the
  * profile is rated from then on and never asked again; "Not now" waits two weeks (this device only).
  * Waits for the permissions prompt and any tour, and stays off report and onboarding screens, so it
  * never lands on top of something else.
  */
 export default function BirthTimeAskPrompt() {
   const { t } = useTranslation();
-  const { user, refresh } = useAuth();
+  const { user, refresh, activeProfile, refreshProfiles } = useAuth();
   const pathname = usePathname();
   const enabled = useNewFeature(BIRTH_TIME_ASK_FEATURE).enabled;
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { tourActive, tourPending } = useTour();
-  const [open, setOpen] = useState(false);
+  const target = useMemo(
+    () => birthTimeAskTarget(user, activeProfile, { enabled }),
+    [user, activeProfile, enabled],
+  );
+  /** Id of the person the open sheet is about. */
+  const [openId, setOpenId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (open || typeof window === "undefined") return;
+    if (openId !== null || !target || typeof window === "undefined") return;
     if (!permissionsResolved || tourActive || tourPending) return;
     if (pathname?.startsWith("/reports/") || pathname?.startsWith("/onboarding")) return;
     let snoozedUntil: number | null = null;
     try {
-      const raw = window.localStorage.getItem(SNOOZE_KEY);
+      const raw = window.localStorage.getItem(snoozeKeyFor(target.id));
       snoozedUntil = raw ? Number(raw) : null;
     } catch {
       // localStorage blocked: ask now; a later answer still ends the question for good.
     }
-    if (shouldAskBirthTime(user, { enabled, snoozedUntil, now: Date.now() })) setOpen(true);
-  }, [open, pathname, permissionsResolved, tourActive, tourPending, user, enabled]);
+    if (snoozedUntil === null || snoozedUntil <= Date.now()) setOpenId(target.id);
+  }, [openId, target, pathname, permissionsResolved, tourActive, tourPending]);
 
-  if (!open) return null;
+  if (openId === null || !target || target.id !== openId) return null;
 
   const later = () => {
     try {
-      window.localStorage.setItem(SNOOZE_KEY, String(Date.now() + SNOOZE_MS));
+      window.localStorage.setItem(snoozeKeyFor(target.id), String(Date.now() + SNOOZE_MS));
     } catch {
       // nothing to remember it with: it will simply ask again next open
     }
-    setOpen(false);
+    setOpenId(null);
   };
 
   const answer = async (a: BirthTimeAnswer) => {
@@ -73,9 +82,14 @@ export default function BirthTimeAskPrompt() {
     setSaving(true);
     setFailed(false);
     try {
-      await api.updateMe(ANSWER_BODY[a]);
-      await refresh();
-      setOpen(false);
+      if (target.isSelf) {
+        await api.updateMe(ANSWER_BODY[a]);
+        await refresh();
+      } else {
+        await api.updateBirthProfile(target.id, ANSWER_BODY[a]);
+        await refreshProfiles();
+      }
+      setOpenId(null);
     } catch {
       setFailed(true);
     } finally {
@@ -90,12 +104,12 @@ export default function BirthTimeAskPrompt() {
       header={
         <h2 className="flex items-center gap-2 text-base font-display text-foreground">
           <Clock size={18} className="text-gold" />
-          {t("birthTimeAsk.title")}
+          {target.isSelf ? t("birthTimeAsk.title") : t("birthTimeAsk.titleFor", { name: target.name ?? "" })}
         </h2>
       }
     >
       <div data-testid="birth-time-ask">
-        <p className="mb-4 text-sm text-muted leading-relaxed">{t("birthTimeAsk.body")}</p>
+        <p className="mb-4 text-sm text-muted leading-relaxed">{target.isSelf ? t("birthTimeAsk.body") : t("birthTimeAsk.bodyFor", { name: target.name ?? "" })}</p>
         <div className="flex flex-col gap-2.5">
           {OPTIONS.map(({ answer: a, key }) => (
             <button

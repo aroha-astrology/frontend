@@ -260,6 +260,7 @@ export interface UpdateMeBody {
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  birthTimeSource?: "birth_certificate" | "hospital_record" | "family_memory" | "rectified" | "unknown";
   currentLocation?: PlaceOfBirth | null;
   /** The device's IANA zone, for users who never shared a location. */
   currentTimezone?: string;

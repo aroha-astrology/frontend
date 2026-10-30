@@ -1418,6 +1418,15 @@ export const resources = {
         cta: "Update Now",
         later: "Later",
       },
+      birthTimeAsk: {
+        title: "Where does your birth time come from?",
+        body: "Your readings lean on it. Tell us how sure it is and we'll word them honestly.",
+        record: { label: "From a birth record", hint: "A certificate, hospital paper or diary" },
+        family: { label: "Someone in the family remembers it", hint: "Close, but maybe not to the minute" },
+        unsure: { label: "I'm not sure", hint: "A guess or a rough time of day" },
+        later: "Not now",
+        failed: "We couldn't save that. Please try again.",
+      },
       sharePrompt: {
         title: "Share & Earn {{referrerBonus}}!",
         body: "Share Aroha Astrology with friends and family — earn {{referrerBonus}} for every friend who joins!",

@@ -19,10 +19,13 @@ export type PassFeature =
 
 /**
  * Free voice-call minutes a Pass gives each period, for text that doesn't know
- * the tier: Silver 10, Gold 15, Platinum 20 (backend PASS_TIERS voiceFreeMinutes,
- * 2026-10-17). Where the tier is known, use its `voiceFreeMinutes`.
+ * the tier: Silver 20, Gold 30, Platinum 40 (backend PASS_TIERS voiceFreeMinutes,
+ * doubled 2026-10-30). Where the tier is known, use its `voiceFreeMinutes`.
  */
-export const PASS_VOICE_FREE_MINUTES_RANGE = "10–20";
+/** The crossed-out "was" price shown beside a tier price: ₹100 above it (₹299 / ₹399 / ₹499 for ₹199 / ₹299 / ₹399). Display only. */
+export const passOriginalPaise = (pricePaise: number) => pricePaise + 10000;
+
+export const PASS_VOICE_FREE_MINUTES_RANGE = "20–40";
 
 /** Free voice-call minutes every user gets once, Pass or not. Mirrors backend VOICE_TRIAL_MINUTES. */
 export const VOICE_TRIAL_MINUTES = 3;

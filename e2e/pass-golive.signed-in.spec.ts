@@ -54,7 +54,7 @@ test.describe("the Pass lock", () => {
     const lock = page.getByTestId("pass-lock");
     await expect(lock.getByTestId("pass-lock-hook")).toHaveText("Big decision? Know your right time first.");
     await expect(lock.getByText("Decision Astrology is part of Aroha Pass Gold")).toBeVisible();
-    await expect(lock.getByText("30 questions to Aroha every 30 days")).toBeVisible();
+    await expect(lock.getByText("60 questions to Aroha every 30 days")).toBeVisible();
 
     await lock.getByRole("link", { name: "Unlock with Aroha Pass Gold" }).click();
     await page.waitForURL("**/pass?tier=gold");
@@ -261,16 +261,16 @@ test.describe("report price steps", () => {
     await card.getByRole("button", { name: "Buy", exact: true }).click();
   };
 
-  test("a Platinum member sees the sale, then 30% more off for the Pass, then what they pay", async ({ page }) => {
+  test("a Platinum member sees the sale, then 40% more off for the Pass, then what they pay", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
       user: { features: PASS_ON, walletBalancePaise: 100_000 },
       overrides: {
         "GET /v1/pass": () => ({ json: passStatus({ pass: member("platinum") }) }),
-        // ₹499 marked down to ₹199 for everyone, then 30% off that for the Pass: ₹139.30.
+        // ₹499 marked down to ₹199 for everyone, then 40% off that for the Pass: ₹119.40.
         "GET /v1/reports": () => ({
           json: {
-            reports: [report({ originalPricePaise: 49_900, listPricePaise: 19_900, passDiscountPct: 30, pricePaise: 13_930 })],
+            reports: [report({ originalPricePaise: 49_900, listPricePaise: 19_900, passDiscountPct: 40, pricePaise: 11_940 })],
           },
         }),
         "POST /v1/reports/purchase": () => ({
@@ -286,13 +286,13 @@ test.describe("report price steps", () => {
     await expect(steps.getByText("₹499")).toBeVisible();
     await expect(steps.getByText("Today's offer (60% off)")).toBeVisible();
     await expect(steps.getByText("₹199", { exact: true })).toBeVisible();
-    await expect(steps.getByTestId("price-pass-line")).toHaveText("Your Aroha Pass (extra 30% off)−₹59.70");
-    await expect(steps.getByTestId("price-total")).toHaveText("₹139.30");
-    await expect(steps.getByText("You save ₹359.70")).toBeVisible();
+    await expect(steps.getByTestId("price-pass-line")).toHaveText("Your Aroha Pass (extra 40% off)−₹79.60");
+    await expect(steps.getByTestId("price-total")).toHaveText("₹119.40");
+    await expect(steps.getByText("You save ₹379.60")).toBeVisible();
     await expect(steps.getByTestId("price-pass-teaser")).toHaveCount(0);
 
     // The button and the confirm step ask for the same final amount.
-    await page.getByRole("button", { name: /^Buy · ₹139\.30/ }).click();
+    await page.getByRole("button", { name: /^Buy · ₹119.40/ }).click();
     await page.getByRole("button", { name: "Yes, Unlock" }).click();
     await expect.poll(() => callsTo(api, "POST /v1/reports/purchase").length).toBe(1);
   });
@@ -316,7 +316,7 @@ test.describe("report price steps", () => {
     await expect(steps.getByTestId("price-pass-line")).toHaveCount(0);
     await expect(steps.getByTestId("price-total")).toHaveText("₹199");
     await expect(steps.getByTestId("price-pass-teaser")).toContainText(
-      "Aroha Pass members pay up to 30% less on every report.",
+      "Aroha Pass members pay up to 40% less on every report.",
     );
     await expect(steps.getByRole("link", { name: "See the Pass" })).toHaveAttribute("href", "/pass");
   });

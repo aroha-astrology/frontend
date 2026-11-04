@@ -81,6 +81,31 @@ test.describe("Phone OTP", () => {
     await page.waitForURL((url) => !url.pathname.startsWith("/sign-in"));
   });
 
+  // Production report 2026-11-04: "Sending the OTP" failed with auth/internal-error
+  // thrown from RecaptchaVerifier._reset → assertNotDestroyed. Firebase resets the
+  // verifier when a send finishes, so a send whose verifier was cleared while it
+  // was still running fails that way. Two taps landing before React disables
+  // the button start two sends; the second used to clear the first one's verifier.
+  test("Two Send OTP taps in a row still send an OTP without an error", async ({ page }) => {
+    const before = (await sentCodes(page)).length;
+
+    await openSignIn(page);
+    await page.locator('input[type="tel"]').fill(PHONE);
+    await page.evaluate(() => {
+      const btn = [...document.querySelectorAll("button")].find((b) => /Send OTP/.test(b.textContent ?? ""))!;
+      btn.click();
+      btn.click();
+    });
+    await expect(page.getByRole("button", { name: /Resend/ })).toBeVisible();
+    await expect(page.locator("p.text-red-400")).toHaveCount(0);
+    await expect.poll(async () => (await sentCodes(page)).length).toBe(before + 1);
+
+    const codes = await sentCodes(page);
+    await typeOtp(page, codes[codes.length - 1]);
+    await page.getByRole("button", { name: /Verify/ }).click();
+    await page.waitForURL((url) => !url.pathname.startsWith("/sign-in"));
+  });
+
   test("Change number, then Send OTP again, still sends an OTP", async ({ page }) => {
     const before = (await sentCodes(page)).length;
 

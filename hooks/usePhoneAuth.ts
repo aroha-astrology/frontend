@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
@@ -34,21 +34,11 @@ export function usePhoneAuth() {
   const [verifying, setVerifying] = useState(false);
 
   const confirmationRef = useRef<ConfirmationResult | null>(null);
-  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
+  // Set synchronously, so a second tap that lands before React re-renders the
+  // disabled button cannot start a second send.
+  const sendInFlightRef = useRef(false);
 
-  function resetRecaptcha() {
-    if (recaptchaRef.current) {
-      try { recaptchaRef.current.clear(); } catch { /* ignore stale verifier */ }
-      recaptchaRef.current = null;
-    }
-    const el = typeof document !== "undefined"
-      ? document.getElementById(RECAPTCHA_CONTAINER_ID)
-      : null;
-    if (el) el.innerHTML = "";
-  }
-
-  function initRecaptcha() {
-    resetRecaptcha();
+  function createVerifier(): { verifier: RecaptchaVerifier; mount: HTMLElement } {
     // grecaptcha remembers every element it has rendered a widget into and
     // refuses a second one there ("reCAPTCHA has already been rendered in this
     // element"), even once the element is emptied. Firebase renders an
@@ -59,32 +49,41 @@ export function usePhoneAuth() {
     if (!host) throw new Error("reCAPTCHA host element is missing from the page");
     const mount = document.createElement("div");
     host.appendChild(mount);
-    recaptchaRef.current = new RecaptchaVerifier(getFirebaseAuth(), mount, {
-      size: "invisible",
-    });
+    const verifier = new RecaptchaVerifier(getFirebaseAuth(), mount, { size: "invisible" });
+    return { verifier, mount };
   }
-
-  useEffect(() => resetRecaptcha, []);
 
   /** `phoneLocal` is the 10-digit national number (no +91). */
   async function sendOtp(phoneLocal: string): Promise<SendResult> {
+    if (sendInFlightRef.current) return { ok: false };
     setErrorKey(null);
     const local = phoneLocal.replace(/\D/g, "").replace(/^0/, "");
     if (!/^[6-9]\d{9}$/.test(local)) {
       setErrorKey("auth.phoneError");
       return { ok: false };
     }
+    sendInFlightRef.current = true;
     setSending(true);
+    let recaptcha: ReturnType<typeof createVerifier> | null = null;
     try {
-      initRecaptcha();
-      const result = await signInWithPhoneNumber(getFirebaseAuth(), `+91${local}`, recaptchaRef.current!);
+      recaptcha = createVerifier();
+      const result = await signInWithPhoneNumber(getFirebaseAuth(), `+91${local}`, recaptcha.verifier);
       confirmationRef.current = result;
       return { ok: true };
     } catch (err) {
       setErrorKey(authErrorKey(err, "otp-send"));
-      resetRecaptcha();
       return { ok: false };
     } finally {
+      // Firebase resets the verifier as the send finishes and throws
+      // auth/internal-error if it was cleared first, so a verifier is only
+      // ever cleared here, by the send that owns it, once that send is over.
+      // This also covers the page closing mid-send. Confirming the OTP later
+      // needs only the ConfirmationResult, not the verifier.
+      if (recaptcha) {
+        try { recaptcha.verifier.clear(); } catch { /* already cleared */ }
+        recaptcha.mount.remove();
+      }
+      sendInFlightRef.current = false;
       setSending(false);
     }
   }

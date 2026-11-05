@@ -102,3 +102,31 @@ test("closing the sheet leaves the chat as it was and takes nothing", async ({ p
   await expect(page.getByTestId("permission-sheet")).toHaveCount(0);
   expect(startCalls(api)).toHaveLength(0);
 });
+
+test.describe("at 360px", () => {
+  test.use({ viewport: { width: 360, height: 640 } });
+
+  test("every screen of the sheet fits: no sideways scroll, buttons fully on screen", async ({ page }, info) => {
+    await setup(page, "denied");
+    await page.getByRole("button", { name: "Start voice chat" }).click();
+    const sheet = page.getByTestId("permission-sheet");
+
+    const fits = async (label: string) => {
+      const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+      expect(noSideScroll, `${label}: page scrolls sideways`).toBe(true);
+      for (const button of await sheet.getByRole("button").all()) {
+        const box = (await button.boundingBox())!;
+        expect(box.x, `${label}: button left edge`).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width, `${label}: button right edge`).toBeLessThanOrEqual(360);
+        expect(box.y + box.height, `${label}: button bottom edge`).toBeLessThanOrEqual(640);
+        expect(box.height, `${label}: tap target`).toBeGreaterThanOrEqual(40);
+      }
+      await page.screenshot({ path: info.outputPath(`${label}.png`) });
+    };
+
+    await fits("why");
+    await sheet.getByRole("button", { name: "Allow" }).click();
+    await expect(sheet).toContainText("Settings → Apps → Aroha");
+    await fits("blocked");
+  });
+});

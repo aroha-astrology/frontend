@@ -43,6 +43,14 @@ export interface AdminLlmCostByAgentRow {
   paidTokensIn: number;
   paidTokensOut: number;
   paidCalls: number;
+  /** Optional: an older backend does not send the cache and voice fields (audit S6). */
+  cachedTokensIn?: number;
+  paidCachedTokensIn?: number;
+  cacheReportedCalls?: number;
+  tokensInOfCacheReportedCalls?: number;
+  /** Voice: seconds of audio minted (60 per minute), and the paid-key share of it. */
+  audioSeconds?: number;
+  paidAudioSeconds?: number;
 }
 
 export interface AdminOverview {

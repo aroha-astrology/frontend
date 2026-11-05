@@ -16,8 +16,9 @@ import { ApiError } from "@/lib/api";
 import { formatRupees } from "@/lib/format";
 import {
   addGst,
-  estimateLlmCostPaise,
-  estimateLlmListPricePaise,
+  billedAgentCostPaise,
+  cacheHitPercent,
+  listAgentCostPaise,
   GEMINI_INPUT_USD_PER_MILLION_TOKENS,
   GEMINI_OUTPUT_USD_PER_MILLION_TOKENS,
   GST_RATE,
@@ -162,8 +163,8 @@ function AdminOverviewContent() {
       ...row,
       // GST-inclusive: this account is billed in INR, so Google adds GST on top
       // of the converted list price and that is what reaches the invoice.
-      costPaise: addGst(estimateLlmCostPaise(row, fx.rate)),
-      listPricePaise: addGst(estimateLlmListPricePaise(row, fx.rate)),
+      costPaise: addGst(billedAgentCostPaise(row, fx.rate)),
+      listPricePaise: addGst(listAgentCostPaise(row, fx.rate)),
     }));
     // Sort by list price, not billed cost: on a normal day everything is free
     // tier and billed cost is ₹0 across the board, which would leave the table
@@ -193,7 +194,7 @@ function AdminOverviewContent() {
         const totals = {} as Record<(typeof BILLING_PERIODS)[number], number>;
         BILLING_PERIODS.forEach((preset, i) => {
           totals[preset] = results[i].llmCostByAgent.reduce(
-            (sum, row) => sum + addGst(estimateLlmCostPaise(row, fx.rate)),
+            (sum, row) => sum + addGst(billedAgentCostPaise(row, fx.rate)),
             0,
           );
         });
@@ -563,6 +564,7 @@ function AdminOverviewContent() {
                         <th className="pb-2 font-medium text-right">Tokens In</th>
                         <th className="pb-2 font-medium text-right">Tokens Out</th>
                         <th className="pb-2 font-medium text-right">Calls</th>
+                        <th className="pb-2 font-medium text-right" title="Share of input Gemini served from its prompt cache (calls recorded since the cache column was added)">Cache hit</th>
                         <th className="pb-2 font-medium text-right">Paid Calls</th>
                         <th className="pb-2 font-medium text-right">Billed (₹)</th>
                         <th className="pb-2 font-medium text-right">If Unsubsidised (₹)</th>
@@ -572,7 +574,7 @@ function AdminOverviewContent() {
                     <tbody>
                       {llmCostRows.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="text-muted text-center py-4">
+                          <td colSpan={9} className="text-muted text-center py-4">
                             {userId ? "No AI usage for this user in this range" : "No data"}
                           </td>
                         </tr>
@@ -581,9 +583,24 @@ function AdminOverviewContent() {
                           {llmCostRows.map((row) => (
                             <tr key={row.agent} className="border-t border-border">
                               <td className="py-2 text-foreground">{row.agent}</td>
-                              <td className="py-2 text-right text-foreground">{row.tokensIn.toLocaleString()}</td>
-                              <td className="py-2 text-right text-foreground">{row.tokensOut.toLocaleString()}</td>
+                              {row.audioSeconds ? (
+                                <td
+                                  colSpan={2}
+                                  className="py-2 text-right text-foreground"
+                                  title="Minutes of voice minted. Real talk time is not known to the server, so the cost is an upper bound."
+                                >
+                                  {Math.round(row.audioSeconds / 60).toLocaleString()} min of audio
+                                </td>
+                              ) : (
+                                <>
+                                  <td className="py-2 text-right text-foreground">{row.tokensIn.toLocaleString()}</td>
+                                  <td className="py-2 text-right text-foreground">{row.tokensOut.toLocaleString()}</td>
+                                </>
+                              )}
                               <td className="py-2 text-right text-foreground">{row.calls.toLocaleString()}</td>
+                              <td className="py-2 text-right text-muted">
+                                {cacheHitPercent(row) === null ? "–" : `${cacheHitPercent(row)}%`}
+                              </td>
                               <td className="py-2 text-right text-foreground">{row.paidCalls.toLocaleString()}</td>
                               <td className="py-2 text-right text-foreground">{formatRupees(row.costPaise)}</td>
                               <td className="py-2 text-right text-muted">{formatRupees(row.listPricePaise)}</td>
@@ -594,6 +611,7 @@ function AdminOverviewContent() {
                           ))}
                           <tr className="border-t border-border font-semibold">
                             <td className="py-2 text-foreground">Total</td>
+                            <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-foreground" />
                             <td className="py-2 text-right text-foreground" />
@@ -625,8 +643,11 @@ function AdminOverviewContent() {
                   {fx.isFallback ? " (offline fallback rate — live lookup failed)" : ` (ECB, ${fx.asOf})`} and shown
                   inclusive of {Math.round(GST_RATE * 100)}% GST, since this account is billed in INR. GST is normally
                   recoverable as input tax credit, so net cost is {(1 / (1 + GST_RATE)).toFixed(3)}× these figures.{" "}
-                  <strong>Voice calls are not counted here at all</strong> — Gemini Live is billed separately and never
-                  writes to <code>ai_usage</code>. Reports appear per type (
+                  <strong>Voice</strong> is priced per minute of audio ($0.005 in + $0.018 out), counting every minted
+                  minute as fully used, so it is an upper bound: the server never hears the call. <strong>Cache hit</strong>{" "}
+                  is the share of input Gemini served from its prompt cache, billed at a tenth of the normal input price;
+                  the ₹ figures above do not apply that discount yet, so with caching they read high.
+                  "–" means no call in this range has reported a cache figure. Reports appear per type (
                   <code>report:marriage</code> and so on); rows recorded before per-user attribution shipped have no
                   user and will not appear under a user filter.
                 </p>

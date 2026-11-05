@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFeature, useNewFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
+import { usePermission } from "@/providers/permission-provider";
 import {
   startVoiceSession,
   extendVoiceSession,
@@ -136,6 +137,7 @@ function refusedWith(err: unknown, code: string): boolean {
 export function useVoiceCall(locale: string): VoiceCall {
   const { t } = useTranslation();
   const { user, refresh } = useAuth();
+  const { ensurePermission } = usePermission();
   const feature = useFeature("paid.voiceChat");
   const trial = useNewFeature("chat.voiceTrial");
   // money.voiceSlices also brings the gentler silence rule: a nudge at 10 s, hang up at 15 s.
@@ -403,6 +405,11 @@ export function useVoiceCall(locale: string): VoiceCall {
 
   const handleStart = useCallback(async () => {
     setError(null);
+    // The microphone is settled BEFORE the server is asked for a minute. The
+    // grant is what takes a free, Pass or paid minute, so a call that cannot
+    // hear the caller must never get that far. (The server's refund for a call
+    // that never connected stays as the backstop for a mid-call failure.)
+    if (!(await ensurePermission("microphone"))) return;
     setState("connecting");
     try {
       const grant = await startVoiceSession(locale);
@@ -423,7 +430,7 @@ export function useVoiceCall(locale: string): VoiceCall {
           : t("aiChatPage.voiceChatError"),
       );
     }
-  }, [begin, locale, t]);
+  }, [begin, ensurePermission, locale, t]);
 
   const acceptConsent = useCallback(async () => {
     await grantVoiceConsent();

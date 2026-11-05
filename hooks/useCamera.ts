@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePermission } from "@/providers/permission-provider";
 
 export type CameraStatus = "idle" | "requesting" | "granted" | "denied" | "unavailable";
 
@@ -44,6 +45,7 @@ const IDLE: CameraState = { status: "idle", torchSupported: false, torchOn: fals
 export function useCamera(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const [state, setState] = useState<CameraState>(IDLE);
   const streamRef = useRef<MediaStream | null>(null);
+  const { ensurePermission } = usePermission();
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -59,6 +61,11 @@ export function useCamera(videoRef: React.RefObject<HTMLVideoElement | null>) {
       return;
     }
     setState((s) => ({ ...s, status: "requesting" }));
+    // Explain and ask first (or show the way to settings) instead of a bare failure.
+    if (!(await ensurePermission("camera"))) {
+      setState({ ...IDLE, status: "denied" });
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices
         .getUserMedia({
@@ -102,7 +109,7 @@ export function useCamera(videoRef: React.RefObject<HTMLVideoElement | null>) {
     } catch {
       setState({ ...IDLE, status: "denied" });
     }
-  }, [videoRef]);
+  }, [videoRef, ensurePermission]);
 
   const toggleTorch = useCallback(async () => {
     const t = track();

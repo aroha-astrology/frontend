@@ -9,6 +9,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { ActivityHeartbeatProvider } from "@/providers/activity-heartbeat-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
+import { PermissionProvider } from "@/providers/permission-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TourProvider } from "@/providers/tour-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
@@ -141,6 +142,7 @@ export default function RootLayout({
               <AuthProvider>
                 <ActivityHeartbeatProvider>
                   <PermissionsPromptProvider>
+                   <PermissionProvider>
                     <BackHandlerProvider>
                       <TopBarProvider>
                         <AuthGuard>
@@ -170,6 +172,7 @@ export default function RootLayout({
                       <SkinSync />
                       <GooglePlayPurchaseReconciler />
                     </BackHandlerProvider>
+                   </PermissionProvider>
                   </PermissionsPromptProvider>
                 </ActivityHeartbeatProvider>
               </AuthProvider>

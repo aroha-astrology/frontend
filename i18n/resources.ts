@@ -2178,6 +2178,38 @@ export const resources = {
         webPushBlocked: "Blocked in your browser settings. Allow notifications for this site from the address bar, then reload.",
         webPushInstall: "On iPhone, add Aroha to your Home Screen first (Share, then Add to Home Screen) to get notifications.",
       },
+      permissionSheet: {
+        why: {
+          microphone: "Baba needs your microphone to hear you. The call starts only after you allow it.",
+          camera: "Aroha needs your camera to take the photo.",
+          location: "Aroha uses your location to show timings for where you are.",
+          notifications: "Turn on notifications so Aroha can tell you when your reading is ready.",
+        },
+        title: {
+          microphone: "Allow the microphone",
+          camera: "Allow the camera",
+          location: "Allow your location",
+          notifications: "Allow notifications",
+        },
+        name: {
+          microphone: "Microphone",
+          camera: "Camera",
+          location: "Location",
+          notifications: "Notifications",
+        },
+        allow: "Allow",
+        notNow: "Not now",
+        tryAgain: "Try again",
+        close: "Close",
+        deniedBody: "It is still off. Tap Try again and choose Allow when your phone asks.",
+        blockedBody: "Your phone is not asking any more because this was turned off for Aroha. You can turn it on yourself in your phone's settings.",
+        settingsPath: "Settings → Apps → Aroha → Permissions → {{name}}",
+        openSettings: "Open settings",
+        noDevice: {
+          microphone: "This device has no microphone, so a voice call is not possible here.",
+          camera: "This device has no camera. You can upload a photo instead.",
+        },
+      },
       tour: {
         kundli: {
           headerTitle: "Your chart at a glance",

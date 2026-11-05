@@ -23,6 +23,7 @@ import { useMemorySummary } from "@/hooks/useMemorySummary";
 import YogiBabaAvatar from "@/components/ui/YogiBabaAvatar";
 import { CHAT_PENDING_CONTEXT_KEY } from "@/lib/chat-handoff";
 import { useAuth } from "@/providers/auth-provider";
+import { usePermission } from "@/providers/permission-provider";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { getTtsBackend } from "@/lib/tts";
 import { LANGUAGES, type LangCode } from "@/providers/language-provider";
@@ -324,6 +325,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   const abortControllerRef = useRef<AbortController | null>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const { ensurePermission } = usePermission();
   // Feature-detected once per mount, not on every render — the constructor
   // itself never changes mid-session.
   const SpeechRecognitionCtor = useMemo(() => getSpeechRecognitionCtor(), []);
@@ -413,12 +415,14 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
   // as the only way to ask a question in a language that's slow to type on a
   // phone keyboard. Appends onto whatever's already in the box rather than
   // replacing it, so a user can dictate part of a question and type the rest.
-  const listen = useCallback((onTranscript: (transcript: string) => void) => {
+  const listen = useCallback(async (onTranscript: (transcript: string) => void) => {
     if (!SpeechRecognitionCtor) return;
     if (isListening) {
       recognitionRef.current?.stop();
       return;
     }
+    // Dictation needs the microphone: explain and ask first, never a silent stop.
+    if (!(await ensurePermission("microphone"))) return;
     const recognition = new SpeechRecognitionCtor();
     recognition.lang = i18n.language;
     recognition.interimResults = false;
@@ -436,7 +440,7 @@ export default function ChatConversation({ chartId }: { chartId?: string } = {})
     } catch {
       setIsListening(false);
     }
-  }, [SpeechRecognitionCtor, isListening, i18n.language]);
+  }, [SpeechRecognitionCtor, isListening, i18n.language, ensurePermission]);
 
   const handleDictate = useCallback(() => {
     listen((transcript) => setInput((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript)));

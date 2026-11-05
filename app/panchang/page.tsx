@@ -302,7 +302,7 @@ export default function PanchangPage() {
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="flex rounded-xl border border-gold/15 p-1 bg-surface/40">
             <button
-              onClick={() => (userData ? setSource("mine") : geo.request())}
+              onClick={() => (userData ? setSource("mine") : void geo.request({ ask: true }))}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 source === "mine" && userData ? "bg-gold text-[#1a0e00]" : "text-muted"
               }`}

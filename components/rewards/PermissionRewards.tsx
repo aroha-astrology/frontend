@@ -97,7 +97,7 @@ export default function PermissionRewards() {
   // rule needs (see lib/push-permission.ts).
   const enableLocation = () => {
     setBusy("location");
-    geo.request();
+    void geo.request({ ask: true });
     setBusy(null);
   };
 

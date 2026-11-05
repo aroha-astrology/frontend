@@ -16,18 +16,21 @@ export default function BottomSheetModal({
   header,
   children,
   closeLabel,
+  layerClass = "z-[100]",
 }: {
   onClose: () => void;
   header: React.ReactNode;
   children: React.ReactNode;
   closeLabel: string;
+  /** Stacking layer (a full class such as "z-[300]"): raise it for a sheet that must show over a full-screen screen. */
+  layerClass?: string;
 }) {
   return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, pointerEvents: "none" }}
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+      className={`fixed inset-0 ${layerClass} flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm`}
       onClick={onClose}
     >
       <motion.div

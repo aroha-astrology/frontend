@@ -39,6 +39,7 @@ import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import { useKundli } from "@/hooks/useKundli";
 import { extractChartSigns } from "@/lib/kundli-helpers";
 import { formatTimeOfBirth } from "@/lib/format";
+import { describeBirthTime } from "@/lib/birth-time-display";
 import { zodiacSignLabel } from "@/data/zodiac";
 import { LANGUAGES } from "@/providers/language-provider";
 import Card from "@/components/ui/Card";
@@ -324,12 +325,23 @@ export default function AppMenuDrawer({ open, onClose }: { open: boolean; onClos
                         {new Date(user.dateOfBirth).toLocaleDateString()}
                       </span>
                     )}
-                    {user?.timeOfBirth && (
-                      <span title={t("profile.tob")} className="flex items-center gap-1 text-[11px] text-muted">
-                        <Clock size={12} className="text-gold/70 shrink-0" />
-                        {formatTimeOfBirth(user.timeOfBirth)}
-                      </span>
-                    )}
+                    {(() => {
+                      // A part-of-day reader has a stand-in time saved; show the part of the day, not that time.
+                      const shown = describeBirthTime({ time: user?.timeOfBirth, accuracy: user?.birthTimeAccuracy });
+                      if (shown.kind === "none") return null;
+                      return (
+                        <span
+                          title={t("profile.tob")}
+                          data-testid="menu-birth-time"
+                          className="flex items-center gap-1 text-[11px] text-muted"
+                        >
+                          <Clock size={12} className="text-gold/70 shrink-0" />
+                          {shown.kind === "window"
+                            ? t(`onboarding.window.${shown.key}`)
+                            : formatTimeOfBirth(user?.timeOfBirth)}
+                        </span>
+                      );
+                    })()}
                     {user?.placeOfBirth?.name && (
                       <span
                         title={t("profile.place")}

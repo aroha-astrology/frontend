@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, List } from "lucide-react";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
+import { tick } from "@/lib/haptics";
 import type { ReportReady } from "@/hooks/useReport";
 import { readVarshik } from "./data";
 import PageFrame, { CHAPTER_EN } from "./PageFrame";
@@ -29,6 +30,11 @@ export default function VarshikReportView({ data }: { data: ReportReady }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [jump, setJump] = useState(false);
+
+  // The moment the report is ready: one light tap (Android; a short vibrate in browsers that have it).
+  useEffect(() => {
+    if (!reduce) void tick(14);
+  }, [reduce]);
 
   const goIndex = useCallback(
     (next: number) => {
@@ -81,7 +87,14 @@ export default function VarshikReportView({ data }: { data: ReportReady }) {
 
   return (
     <ReportSurface>
-      <div ref={top} className="flex min-w-0 scroll-mt-4 flex-col gap-3" data-testid="varshik-report">
+      <motion.div
+        ref={top}
+        className="flex min-w-0 scroll-mt-4 flex-col gap-3"
+        data-testid="varshik-report"
+        initial={{ opacity: reduce ? 1 : 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: reduce ? 0 : 0.7, ease: "easeOut" }}
+      >
         <nav className="flex items-center justify-between gap-2" aria-label={t("varshik.nav.label", { defaultValue: "Report pages" })}>
           <button type="button" onClick={() => setJump(true)} className="vk-panel flex items-center gap-2 px-3 py-2 text-xs" aria-haspopup="dialog">
             <List size={16} aria-hidden="true" style={{ color: "var(--gold)" }} />
@@ -155,7 +168,7 @@ export default function VarshikReportView({ data }: { data: ReportReady }) {
             <ChevronRight size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {jump ? (
         <BottomSheetModal onClose={() => setJump(false)} closeLabel={t("common.close")} header={<div />}>

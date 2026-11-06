@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ArtSlot from "./ArtSlot";
 import Narrative from "./Narrative";
@@ -17,6 +19,34 @@ const TIERS: { tier: Tier; range: string }[] = [
 ];
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI"];
 const HAND = "var(--font-hand), var(--font-serif-alt), serif";
+
+/** The reader's name, written out a letter at a time (whole letters, so Indic conjuncts never split). Instant for reduced motion. */
+function WritesItself({ text }: { text: string }) {
+  const reduce = useReducedMotion();
+  const letters = (() => {
+    try {
+      return Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text), (s) => s.segment);
+    } catch {
+      return Array.from(text);
+    }
+  })();
+  const [shown, setShown] = useState(reduce ? letters.length : 0);
+  useEffect(() => {
+    if (reduce) {
+      setShown(letters.length);
+      return;
+    }
+    setShown(0);
+    const id = setInterval(() => setShown((n) => (n >= letters.length ? (clearInterval(id), n) : n + 1)), 90);
+    return () => clearInterval(id);
+  }, [text, reduce, letters.length]);
+  return (
+    <span aria-label={text}>
+      <span aria-hidden="true">{letters.slice(0, shown).join("")}</span>
+      <span aria-hidden="true" style={{ opacity: 0 }}>{letters.slice(shown).join("")}</span>
+    </span>
+  );
+}
 
 /** Page 1. Title, year and the reader's name are live text (translatable, reusable for 2028); the art carries no words. */
 export function CoverBody({ ctx }: { ctx: PageCtx }) {
@@ -38,7 +68,9 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
       {ctx.name ? (
         <p className="m-0 flex min-w-0 flex-col items-center gap-1 break-words">
           <span className="vk-caption">{t("varshik.page.preparedForLabel", { defaultValue: "Prepared for" })}</span>
-          <span style={{ fontFamily: HAND, fontSize: "1.75rem", color: "var(--gold)" }}>{ctx.name}</span>
+          <span style={{ fontFamily: HAND, fontSize: "1.75rem", color: "var(--gold)" }}>
+            <WritesItself text={ctx.name} />
+          </span>
         </p>
       ) : null}
     </div>

@@ -190,7 +190,14 @@ export interface ReportBasis {
 }
 
 export type ReportDetailResult =
-  | { status: "generating"; refreshing?: boolean }
+  | {
+      status: "generating";
+      refreshing?: boolean;
+      /** Which report is being written (so the waiting screen can match it). */
+      reportKey?: string;
+      /** Varshik Rashifal only: groups of sections already written, out of all of them. */
+      progress?: { done: number; total: number };
+    }
   | { status: "failed"; error: string | null }
   /** Bought with money a Google Play refund took back; opens again once the wallet is back to zero. */
   | { status: "locked"; owedPaise: number }

@@ -53,6 +53,9 @@ interface ReportView {
   /** What the wallet still owes while the report is "locked". */
   owedPaise?: number;
   refreshing: boolean;
+  /** While generating: which report, and how far along it is (only some reports say). */
+  reportKey?: string;
+  progress?: { done: number; total: number };
 }
 
 export function useReport(id: string | null, language: string) {
@@ -109,7 +112,7 @@ export function useReport(id: string | null, language: string) {
             if (cacheKey) cachePurge((key) => key === cacheKey);
             cached = null;
           }
-          if (!cached) setView((v) => ({ ...v, state: "generating", refreshing }));
+          if (!cached) setView((v) => ({ ...v, state: "generating", refreshing, reportKey: res.reportKey, progress: res.progress }));
           const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
           if (Date.now() + delay > deadline) {
             if (!cached) setView((v) => ({ ...v, state: "slow", refreshing: false }));

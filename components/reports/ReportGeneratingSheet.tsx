@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
+import VarshikWaiting from "./varshik/VarshikWaiting";
 
 /**
  * "Writing your report…" bottom sheet, shown while any report type is generating —
@@ -11,9 +12,30 @@ import GeneratingSpinner from "@/components/ui/GeneratingSpinner";
  * plain rotating-ring GeneratingSpinner if the illustration at /reports/writing.gif
  * fails to load, same imgError pattern as ReportRowVisual/GemVisual.
  */
-export default function ReportGeneratingSheet({ onClose, refreshing }: { onClose: () => void; refreshing?: boolean }) {
+export default function ReportGeneratingSheet({
+  onClose,
+  refreshing,
+  reportKey,
+  progress,
+}: {
+  onClose: () => void;
+  refreshing?: boolean;
+  /** Which report is being written; Varshik Rashifal gets its own wheel and steps. */
+  reportKey?: string;
+  progress?: { done: number; total: number };
+}) {
   const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
+
+  if (reportKey === "varshik_rashifal_2027" && !refreshing) {
+    return (
+      <BottomSheetModal onClose={onClose} closeLabel={t("common.close")} header={<div />}>
+        <div className="py-2">
+          <VarshikWaiting progress={progress} />
+        </div>
+      </BottomSheetModal>
+    );
+  }
 
   return (
     <BottomSheetModal onClose={onClose} closeLabel={t("common.close")} header={<div />}>

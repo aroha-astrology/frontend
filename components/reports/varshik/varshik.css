@@ -130,3 +130,43 @@
     radial-gradient(90% 32% at 85% 0%, color-mix(in srgb, var(--gold) 11%, transparent), transparent 70%),
     var(--background);
 }
+
+/* A drop cap on the first paragraph of a chapter's text. Latin scripts only: the component adds this class only for them. */
+.vk-dropcap::first-letter {
+  float: left;
+  font-family: var(--font-serif-alt), Georgia, serif;
+  font-size: 3.4em;
+  line-height: 0.82;
+  padding: 0.06em 0.1em 0 0;
+  color: var(--gold);
+}
+
+/* A pull-quote: one striking sentence, serif italic with a gold bar. */
+.vk-quote {
+  font-family: var(--font-serif-alt), var(--font-devanagari), Georgia, serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1.45;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--gold);
+  color: var(--foreground);
+}
+
+/* Body copy at the report's one type scale: 15 / 1.6. */
+.vk-body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+.vk-caption {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* The page-turn: the page settles in. Skipped for reduced motion by MotionConfig and by this query. */
+@media (prefers-reduced-motion: reduce) {
+  .vk-quote {
+    scroll-behavior: auto;
+  }
+}

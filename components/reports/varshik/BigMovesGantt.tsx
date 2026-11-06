@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { signName } from "./sign-name";
 import type { TransitRow } from "./types";
 import { monthShort } from "./format";
 
@@ -118,7 +119,7 @@ export default function BigMovesGantt({
                     from: monthShort(s.from, lang),
                     to: monthShort(s.to, lang),
                     house: s.house,
-                    sign: s.sign,
+                    sign: signName(t, s.sign),
                     bindus: Math.round(s.avg),
                   })}
                 </li>

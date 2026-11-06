@@ -67,7 +67,7 @@ export default function ReportDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const { state, data, failedError, owedPaise, retry, refreshing } = useReport(id, i18n.language);
+  const { state, data, failedError, owedPaise, retry, refreshing, reportKey: waitingKey, progress } = useReport(id, i18n.language);
   const { user, activeProfile } = useAuth();
   const { enabled: bookEnabled } = useNewFeature("nav.reportBook");
   const { enabled: handwriting } = useNewFeature("nav.reportBookHandwriting");
@@ -311,7 +311,7 @@ export default function ReportDetailPage() {
         )}
 
         {(state === "idle" || state === "loading" || state === "generating" || (state === "ready" && !data)) && (
-          <ReportGeneratingSheet refreshing={refreshing} onClose={() => router.push("/reports")} />
+          <ReportGeneratingSheet refreshing={refreshing} reportKey={waitingKey} progress={progress} onClose={() => router.push("/reports")} />
         )}
 
         {state === "failed" && (

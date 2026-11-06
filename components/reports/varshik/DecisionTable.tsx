@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecisionRow, Tier } from "./types";
 import { TIER_COLOR, TIER_GLYPH, TIER_WORD, useChartMode } from "./tiers";
@@ -13,10 +14,14 @@ const spaced = (key: string) => {
 };
 
 /** When to act, by persona: a 12-month tier strip per decision, its best window and the months to hold. */
-export default function DecisionTable({ rows }: { rows: DecisionRow[] }) {
+export default function DecisionTable({ rows, filterable = false }: { rows: DecisionRow[]; filterable?: boolean }) {
   const { t, i18n } = useTranslation();
   const mode = useChartMode();
+  // "all" or one row's key. The reader's main decision starts selected when filtering is on.
+  const [pick, setPick] = useState<string>(() => (filterable ? (rows.find((r) => r.isMain)?.key ?? "all") : "all"));
   if (rows.length === 0) return null;
+  const shown = pick === "all" ? rows : rows.filter((r) => r.key === pick);
+  const title = (key: string) => t(`varshik.decision.${key}`, { defaultValue: spaced(key) });
   const lang = i18n.language;
   const tierWord = (tier: Tier) => t(TIER_WORD[tier].key, { defaultValue: TIER_WORD[tier].en });
   const inBest = (r: DecisionRow, m: number) =>
@@ -24,6 +29,26 @@ export default function DecisionTable({ rows }: { rows: DecisionRow[] }) {
 
   return (
     <div className="flex flex-col gap-3 leading-[1.45]">
+      {filterable ? (
+        <div role="group" aria-label={t("varshik.decision.filter", { defaultValue: "Show one decision" })} className="flex flex-wrap gap-2">
+          {[{ key: "all", label: t("varshik.decision.all", { defaultValue: "All" }) }, ...rows.map((r) => ({ key: r.key, label: title(r.key) }))].map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={pick === o.key}
+              onClick={() => setPick(o.key)}
+              className="rounded-full border px-3 py-1 text-xs leading-[1.45]"
+              style={{
+                borderColor: pick === o.key ? "var(--gold)" : "var(--border-faint)",
+                color: pick === o.key ? "var(--gold)" : "var(--text-muted)",
+                background: pick === o.key ? "color-mix(in srgb, var(--gold) 12%, transparent)" : "transparent",
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div className="grid grid-cols-12 gap-[2px]" aria-hidden="true">
         {[0, 3, 6, 9].map((m) => (
           <span key={m} className="col-span-3 whitespace-nowrap text-[11px]" style={{ color: "var(--text-muted)" }}>
@@ -32,7 +57,7 @@ export default function DecisionTable({ rows }: { rows: DecisionRow[] }) {
         ))}
       </div>
       <ul className="m-0 flex list-none flex-col gap-3 p-0">
-        {rows.map((r) => (
+        {shown.map((r) => (
           <li
             key={r.key}
             className="flex flex-col gap-2 vk-panel p-3"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { signName } from "./sign-name";
 import type { VarshaYear } from "./types";
 
 /** The Varsha (solar-return) years on one timeline, with a card of start, end, Lagna, Muntha and Year Lord. */
@@ -59,8 +60,8 @@ export default function VarshaTimeline({ years, timezone }: { years: VarshaYear[
           const rows: [string, string, string][] = [
             ["starts", "Starts", fmt(y.startsAt)],
             ["ends", "Ends", fmt(y.endsAt)],
-            ["lagna", "Varsha Lagna", y.lagna],
-            ["muntha", "Muntha", `${y.muntha.sign}, ${t("varshik.timeline.house", { defaultValue: "house {{n}}", n: y.muntha.house })}${y.muntha.auspicious ? " ✓" : ""}`],
+            ["lagna", "Varsha Lagna", signName(t, y.lagna)],
+            ["muntha", "Muntha", `${signName(t, y.muntha.sign)}, ${t("varshik.timeline.house", { defaultValue: "house {{n}}", n: y.muntha.house })}${y.muntha.auspicious ? " ✓" : ""}`],
             ["yearLord", "Year Lord", y.yearLord],
           ];
           return (

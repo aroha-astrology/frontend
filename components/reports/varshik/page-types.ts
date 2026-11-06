@@ -1,0 +1,22 @@
+import type { ReactNode } from "react";
+import type { VarshikData } from "./data";
+
+export interface PageCtx extends VarshikData {
+  name: string | null;
+  lang: string;
+  /** Jump to a page by its key (e.g. "month_03_a"). */
+  go: (key: string) => void;
+  /** Jump to the first page of a chapter. */
+  goChapter: (chapter: number) => void;
+  pages: { key: string; chapter: number; title: string }[];
+}
+
+export interface PageDef {
+  key: string;
+  /** 0 front matter, 1-6 the chapters. */
+  chapter: number;
+  /** Heading shown on the page and in the contents list; empty for a bare page (cover, opener). */
+  title: string;
+  eyebrow?: string;
+  Body: (props: { ctx: PageCtx }) => ReactNode;
+}

@@ -138,3 +138,68 @@ export interface VarshikChartFacts {
   yogas: YogaFact[];
   skyEvents: SkyEventFact[];
 }
+
+export interface PlanetRow {
+  planet: string;
+  sign: string;
+  signIndex: number;
+  degree: number;
+  house: number;
+  nakshatra: string;
+  pada: number;
+  retrograde: boolean;
+  combust: boolean;
+  dignity: string;
+}
+
+export interface WindowFact {
+  fromDate: string;
+  toDate: string;
+  peakDate: string;
+  score: number;
+  tier: Tier;
+}
+
+export interface ReliefEvent {
+  date: string;
+  kind: string;
+  effect: "relief" | "hard";
+  detail: string;
+  temporary?: boolean;
+}
+
+/** The whole frozen facts object the report screen reads (a superset of what the charts read). */
+export interface VarshikFacts extends Omit<VarshikChartFacts, "scores"> {
+  window: { start: string; end: string };
+  reader: {
+    name: string | null;
+    birthDate: string;
+    birthTime: string;
+    timezone: string;
+    answers: { relationship?: string; occupation?: string; children?: string; mainDecision?: string };
+    facts: { id: string; fact: string }[];
+  };
+  birth: {
+    lagna: { sign: string; signIndex: number; degree: number; nakshatra: string; pada: number };
+    planets: PlanetRow[];
+  };
+  dashas: { balance: { planet: string; yearsLeft: number } };
+  calendar: { festivals: { date: string; month: number; name: string; importance: "major" | "minor" }[] };
+  scores: VarshikChartFacts["scores"] & {
+    areaOverall: Record<string, Cell>;
+    why: { lifting: { key: string; effect: number }[]; weighing: { key: string; effect: number }[] }[];
+    answerWindows: Record<string, { best: WindowFact; then: WindowFact | null; weak: boolean }>;
+    relief: {
+      lookbackFrom: string;
+      lookbackTo: string;
+      lookback: ReliefEvent[];
+      wasHard: boolean;
+      saturnDamperDays: number;
+      varsha2026: { yearLord: string; munthaHouse: number; munthaAuspicious: boolean; endedOn: string } | null;
+      ahead: ReliefEvent[];
+      nextRelief: ReliefEvent | null;
+      reliefInYear: boolean;
+      nextReliefBeyondYear: ReliefEvent | null;
+    };
+  };
+}

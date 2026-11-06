@@ -20,6 +20,8 @@ import YogaList from "@/components/reports/varshik/YogaList";
 import SkyCalendar from "@/components/reports/varshik/SkyCalendar";
 import ArtSlot from "@/components/reports/varshik/ArtSlot";
 import ReportSurface, { ReportSection } from "@/components/reports/varshik/ReportSurface";
+import VarshikReportView from "@/components/reports/varshik/VarshikReportView";
+import { sampleReport } from "@/components/reports/varshik/fixtures/sample-report";
 
 /** Long Indic sentences for the engine-written text that is not in the bundle (dosha notes), so wrapping is tested at real length. */
 const INDIC = {
@@ -42,6 +44,7 @@ export default function PreviewClient() {
   useEffect(() => {
     void switchLanguage(lang);
   }, [lang]);
+  const view = typeof window === "undefined" ? "" : (new URLSearchParams(window.location.search).get("view") ?? "");
   const indic = lang === "hi" || lang === "ta" ? INDIC[lang] : null;
   const doshas = useMemo(
     () => (indic ? f.doshas.map((d) => ({ ...d, touches: indic.text, remedy: indic.text })) : f.doshas),
@@ -49,6 +52,15 @@ export default function PreviewClient() {
   );
   const v = f.varsha[f.varsha.length - 1];
   const love = f.scores.timingMap.love;
+  if (view === "report") {
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
+          <VarshikReportView data={sampleReport} />
+        </main>
+      </ReportSurface>
+    );
+  }
   return (
     <ReportSurface page className="min-h-screen">
     <main className="mx-auto flex max-w-[420px] flex-col gap-5 p-4">

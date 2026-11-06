@@ -8,18 +8,20 @@ import { useTranslation } from "react-i18next";
  *   banner    16:9  (1376x768)  month banners, area headers, Chapter VI banners, the closing image
  *   opener    9:16  (768x1376)  chapter openers, framed inside the A4 page and never stretched
  *   medallion 1:1   (1024x1024) planet medallions and remedy icons
+ *   divider   20:3  (2000x300)  the gold ornament rule (A47)
  *
  * Without `src` it draws the app's card surface with a fine gold frame and the slot code (e.g. "A24"), so a
  * missing image is obvious in review. It must never reach a reader: the art is added before release.
  */
-export type ArtKind = "banner" | "opener" | "medallion";
+export type ArtKind = "banner" | "opener" | "medallion" | "divider";
 
-const RATIO: Record<ArtKind, string> = { banner: "16 / 9", opener: "9 / 16", medallion: "1 / 1" };
+const RATIO: Record<ArtKind, string> = { banner: "16 / 9", opener: "9 / 16", medallion: "1 / 1", divider: "20 / 3" };
 
 export const ART_SIZE: Record<ArtKind, { w: number; h: number }> = {
   banner: { w: 1376, h: 768 },
   opener: { w: 768, h: 1376 },
   medallion: { w: 1024, h: 1024 },
+  divider: { w: 2000, h: 300 },
 };
 
 export default function ArtSlot({
@@ -42,7 +44,7 @@ export default function ArtSlot({
 }) {
   const { t } = useTranslation();
   const { w, h } = ART_SIZE[kind];
-  const radius = kind === "medallion" ? "9999px" : "0.75rem";
+  const radius = kind === "medallion" ? "9999px" : kind === "divider" ? "0.4rem" : "0.75rem";
 
   return (
     <div
@@ -64,12 +66,14 @@ export default function ArtSlot({
         <img src={src} alt={alt} width={w} height={h} className="h-full w-full object-contain" />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center leading-[1.45]">
-          <span className="text-sm font-semibold tracking-wide" style={{ color: "var(--gold)" }}>
+          <span className={`font-semibold tracking-wide ${kind === "medallion" ? "text-[10px]" : "text-sm"}`} style={{ color: "var(--gold)" }}>
             {code}
           </span>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {w} × {h}
-          </span>
+          {kind === "medallion" || kind === "divider" ? null : (
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+              {w} × {h}
+            </span>
+          )}
         </div>
       )}
     </div>

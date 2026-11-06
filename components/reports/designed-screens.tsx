@@ -15,6 +15,7 @@ import KpReportView from "./kp/KpReportView";
 import RemediesReportView from "./remedies/RemediesReportView";
 import RelationshipReportView from "./relationship/RelationshipReportView";
 import MatchReportView from "./match/MatchReportView";
+import VarshikReportView from "./varshik/VarshikReportView";
 import NameChangeReportView from "./name-change/NameChangeReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
@@ -132,6 +133,12 @@ export const DESIGNED_SCREENS: Record<string, DesignedScreen> = {
     View: RelationshipReportView,
     artSrc: "/reports/relationship_monthly.png",
     subtitleKey: "relationshipReport.subtitle",
+  },
+  varshik_rashifal_2027: {
+    View: VarshikReportView,
+    // The catalogue card (A39) arrives with the rest of the art; until then the hero hides itself.
+    artSrc: "/reports/varshik_rashifal_2027.png",
+    subtitleKey: "varshikReport.subtitle",
   },
   match_report: {
     View: MatchReportView,

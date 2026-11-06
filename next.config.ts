@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import packageJson from "./package.json";
 
 const nextConfig: NextConfig = {
+  // ESLint is an explicit command (`npm run lint:varshik`), not part of the build: the older screens were
+  // never linted and would fail it. Builds behave exactly as they did before the lint config existed.
+  eslint: { ignoreDuringBuilds: true },
   env: {
     // Surfaced in the profile panel footer (see components/AppMenuDrawer.tsx)
     // as `process.env.NEXT_PUBLIC_APP_VERSION`. Sourced from this package's

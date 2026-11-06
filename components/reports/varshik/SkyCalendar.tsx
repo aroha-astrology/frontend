@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next";
 import type { SkyEventFact, SkyEventKind } from "./types";
 import { dayOfYear, monthShort } from "./format";
+import { skyLabel } from "./sky-text";
 
 const GLYPH: Record<SkyEventKind, string> = {
   ingress: "→",
@@ -13,16 +14,6 @@ const GLYPH: Record<SkyEventKind, string> = {
   "eclipse-solar": "●",
   "eclipse-lunar": "◗",
 };
-/** Whole sentences, one per kind, so every language can order the words its own way. */
-const SKY_EN: Record<SkyEventKind, string> = {
-  ingress: "{{planet}} enters {{sign}}, house {{house}}",
-  "station-retrograde": "{{planet}} turns retrograde in {{sign}}, house {{house}}",
-  "station-direct": "{{planet}} turns direct in {{sign}}, house {{house}}",
-  "combust-in": "{{planet}} goes combust in {{sign}}, house {{house}}",
-  "combust-out": "{{planet}} leaves combustion in {{sign}}, house {{house}}",
-  "eclipse-solar": "Solar eclipse in {{sign}}, house {{house}} of your chart",
-  "eclipse-lunar": "Lunar eclipse in {{sign}}, house {{house}} of your chart",
-};
 const MONTH_START = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 const SLOT = 3;
 
@@ -32,7 +23,6 @@ export default function SkyCalendar({ events }: { events: SkyEventFact[] }) {
   if (events.length === 0) return null;
   const lang = i18n.language;
   const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
-  const word = (p: string) => t(`varshik.planet.${p.toLowerCase()}`, { defaultValue: p });
   const dateFmt = (iso: string) => {
     try {
       return new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
@@ -113,12 +103,7 @@ export default function SkyCalendar({ events }: { events: SkyEventFact[] }) {
                     {dateFmt(e.date)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    {t(`varshik.sky.${e.kind}`, {
-                      defaultValue: SKY_EN[e.kind],
-                      planet: word(e.planet),
-                      sign: e.sign,
-                      house: e.natalHouse,
-                    })}
+                    {skyLabel(t, e)}
                   </span>
                 </li>
               ))}

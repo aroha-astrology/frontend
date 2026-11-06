@@ -20,11 +20,14 @@ export default function TimingMap({
   order = AREAS,
   peakMonths = [],
   restMonth,
+  onMonth,
 }: {
   map: Record<string, Cell[]>;
   order?: readonly string[];
   peakMonths?: number[];
   restMonth?: number;
+  /** When given, every tile opens that month (keyboard and tap). */
+  onMonth?: (month: number) => void;
 }) {
   const { t, i18n } = useTranslation();
   const mode = useChartMode();
@@ -79,7 +82,7 @@ export default function TimingMap({
                 return (
                   <motion.div
                     key={m}
-                    className="flex aspect-square items-center justify-center rounded-[4px]"
+                    className={`flex aspect-square items-center justify-center rounded-[4px] ${onMonth ? "cursor-pointer" : ""}`}
                     style={{
                       background: `linear-gradient(160deg, color-mix(in srgb, ${c} 82%, #fff 18%), ${c} 55%, color-mix(in srgb, ${c} 80%, #000 20%))`,
                       color: ink(cell.tier),
@@ -87,6 +90,19 @@ export default function TimingMap({
                     }}
                     title={`${area}, ${monthShort(m, i18n.language)}: ${Math.round(cell.score)}, ${tierWord(cell.tier)}`}
                     aria-label={`${area}, ${monthShort(m, i18n.language)}: ${Math.round(cell.score)}, ${tierWord(cell.tier)}`}
+                    {...(onMonth
+                      ? {
+                          role: "button" as const,
+                          tabIndex: 0,
+                          onClick: () => onMonth(m),
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              onMonth(m);
+                            }
+                          },
+                        }
+                      : {})}
                     initial={{ opacity: reduce ? 1 : 0, scale: reduce ? 1 : 0.7 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true, margin: "0px 0px -6% 0px" }}

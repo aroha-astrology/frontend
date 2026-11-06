@@ -76,6 +76,48 @@ export interface SahamWindow {
   strength: number;
 }
 
+export interface DoshaFact {
+  key: string;
+  label: string;
+  status: "present" | "cancelled" | "not_present";
+  cancellations: string[];
+  activeMonths: number[];
+  because: Record<string, string[]>;
+  touches: string;
+  remedy: string;
+}
+
+export interface YogaFact {
+  source: "natal" | "tajika";
+  name: string;
+  kind: string;
+  planets: string[];
+  months: number[];
+  because: Record<string, string[]>;
+  targetYear: number | null;
+  reason?: string;
+}
+
+export type SkyEventKind =
+  | "ingress"
+  | "station-retrograde"
+  | "station-direct"
+  | "combust-in"
+  | "combust-out"
+  | "eclipse-solar"
+  | "eclipse-lunar";
+
+export interface SkyEventFact {
+  kind: SkyEventKind;
+  planet: string;
+  date: string;
+  month: number;
+  sign: string;
+  fromSign: string | null;
+  natalHouse: number;
+  varshaHouse: number;
+}
+
 /** What each chart reads, by name, from the facts object. */
 export interface VarshikChartFacts {
   scores: {
@@ -92,4 +134,7 @@ export interface VarshikChartFacts {
   varsha: VarshaYear[];
   ashtakavarga: { transits: TransitRow[] };
   sahamWindows: SahamWindow[];
+  doshas: DoshaFact[];
+  yogas: YogaFact[];
+  skyEvents: SkyEventFact[];
 }

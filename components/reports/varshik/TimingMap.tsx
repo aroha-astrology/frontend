@@ -36,23 +36,33 @@ export default function TimingMap({
     <div className="flex flex-col gap-3 leading-[1.45]">
       <div
         className="grid gap-[3px]"
-        style={{ gridTemplateColumns: "minmax(4.5rem, 26%) repeat(12, minmax(0, 1fr))" }}
+        style={{ gridTemplateColumns: "minmax(5rem, 32%) repeat(12, minmax(0, 1fr))" }}
       >
         <div />
         {Array.from({ length: 12 }, (_, m) => (
-          <div key={m} className="flex min-w-0 flex-col items-center">
+          <div key={m} className="flex min-w-0 items-end justify-center">
             <span
               aria-hidden="true"
-              className="mb-0.5 h-1.5 w-1.5 rounded-full"
+              className="h-1.5 w-1.5 rounded-full"
               style={{
                 background: peakMonths.includes(m) ? "var(--gold)" : "transparent",
                 border: m === restMonth ? "1px solid var(--text-muted)" : "none",
               }}
             />
-            <span className="text-center text-[9px] min-[400px]:text-[10px]" style={{ color: "var(--text-muted)" }}>
-              {monthShort(m, i18n.language)}
-            </span>
           </div>
+        ))}
+        {/* Names for Jan, Apr, Jul and Oct only: 12 names never fit 12 narrow columns in Hindi or Tamil.
+            Every cell below still carries its own full month in its title and aria-label. */}
+        <div />
+        {[0, 3, 6, 9].map((m) => (
+          <span
+            key={m}
+            aria-hidden="true"
+            className="col-span-3 min-w-0 whitespace-nowrap text-[10px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {monthShort(m, i18n.language)}
+          </span>
         ))}
         {keys.map((key) => {
           const area = t(`varshik.area.${key}`, { defaultValue: cap(key) });
@@ -64,7 +74,7 @@ export default function TimingMap({
               {map[key].map((cell, m) => (
                 <div
                   key={m}
-                  className="flex aspect-square min-h-[22px] items-center justify-center rounded-[3px]"
+                  className="flex aspect-square items-center justify-center rounded-[3px]"
                   style={{ background: TIER_COLOR[mode][cell.tier], color: ink(cell.tier) }}
                   title={`${area}, ${monthShort(m, i18n.language)}: ${Math.round(cell.score)}, ${tierWord(cell.tier)}`}
                   aria-label={`${area}, ${monthShort(m, i18n.language)}: ${Math.round(cell.score)}, ${tierWord(cell.tier)}`}

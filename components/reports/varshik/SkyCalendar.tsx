@@ -4,14 +4,24 @@ import { useTranslation } from "react-i18next";
 import type { SkyEventFact, SkyEventKind } from "./types";
 import { dayOfYear, monthShort } from "./format";
 
-const KIND: Record<SkyEventKind, { glyph: string; en: string }> = {
-  ingress: { glyph: "→", en: "changes sign" },
-  "station-retrograde": { glyph: "℞", en: "turns retrograde" },
-  "station-direct": { glyph: "▶", en: "turns direct" },
-  "combust-in": { glyph: "◐", en: "goes combust" },
-  "combust-out": { glyph: "○", en: "leaves combustion" },
-  "eclipse-solar": { glyph: "●", en: "solar eclipse" },
-  "eclipse-lunar": { glyph: "◗", en: "lunar eclipse" },
+const GLYPH: Record<SkyEventKind, string> = {
+  ingress: "→",
+  "station-retrograde": "℞",
+  "station-direct": "▶",
+  "combust-in": "◐",
+  "combust-out": "○",
+  "eclipse-solar": "●",
+  "eclipse-lunar": "◗",
+};
+/** Whole sentences, one per kind, so every language can order the words its own way. */
+const SKY_EN: Record<SkyEventKind, string> = {
+  ingress: "{{planet}} enters {{sign}}, house {{house}}",
+  "station-retrograde": "{{planet}} turns retrograde in {{sign}}, house {{house}}",
+  "station-direct": "{{planet}} turns direct in {{sign}}, house {{house}}",
+  "combust-in": "{{planet}} goes combust in {{sign}}, house {{house}}",
+  "combust-out": "{{planet}} leaves combustion in {{sign}}, house {{house}}",
+  "eclipse-solar": "Solar eclipse in {{sign}}, house {{house}} of your chart",
+  "eclipse-lunar": "Lunar eclipse in {{sign}}, house {{house}} of your chart",
 };
 const MONTH_START = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 const SLOT = 3;
@@ -97,21 +107,18 @@ export default function SkyCalendar({ events }: { events: SkyEventFact[] }) {
                   style={{ color: "var(--foreground)", fontWeight: eclipse(e.kind) ? 600 : 400 }}
                 >
                   <span aria-hidden="true" className="w-4 shrink-0 text-center" style={{ color: eclipse(e.kind) ? "var(--gold)" : "var(--text-muted)" }}>
-                    {KIND[e.kind].glyph}
+                    {GLYPH[e.kind]}
                   </span>
                   <span className="w-14 shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>
                     {dateFmt(e.date)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    {eclipse(e.kind)
-                      ? t(`varshik.sky.${e.kind}`, { defaultValue: "{{kind}} in {{sign}}, house {{house}} of your chart", kind: KIND[e.kind].en.charAt(0).toUpperCase() + KIND[e.kind].en.slice(1), sign: e.sign, house: e.natalHouse })
-                      : t(`varshik.sky.${e.kind}`, {
-                          defaultValue: "{{planet}} {{kind}}: {{sign}}, house {{house}}",
-                          planet: word(e.planet),
-                          kind: KIND[e.kind].en,
-                          sign: e.sign,
-                          house: e.natalHouse,
-                        })}
+                    {t(`varshik.sky.${e.kind}`, {
+                      defaultValue: SKY_EN[e.kind],
+                      planet: word(e.planet),
+                      sign: e.sign,
+                      house: e.natalHouse,
+                    })}
                   </span>
                 </li>
               ))}

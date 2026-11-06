@@ -110,12 +110,13 @@ export default function BigMovesGantt({
             <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs" style={{ color: "var(--foreground)" }}>
               {segs.map((s) => (
                 <li key={s.from} className="min-w-0 break-words">
-                  {t("varshik.moves.segment", {
-                    defaultValue: "{{from}} to {{to}} · house {{house}} · {{sign}} · {{bindus}} bindus",
+                  {t(s.from === s.to ? "varshik.moves.segmentOne" : "varshik.moves.segment", {
+                    defaultValue:
+                      s.from === s.to
+                        ? "{{from}} · house {{house}} · {{sign}} · {{bindus}} bindus"
+                        : "{{from}} to {{to}} · house {{house}} · {{sign}} · {{bindus}} bindus",
                     from: monthShort(s.from, lang),
                     to: monthShort(s.to, lang),
-                    // a one-month stay reads "Jan", not "Jan to Jan"
-                    ...(s.from === s.to ? { defaultValue: "{{from}} · house {{house}} · {{sign}} · {{bindus}} bindus" } : {}),
                     house: s.house,
                     sign: s.sign,
                     bindus: Math.round(s.avg),

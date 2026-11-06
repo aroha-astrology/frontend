@@ -12,7 +12,8 @@ import { LEGAL_VERSION } from "@/lib/legal-content";
 // consent under the DPDP Act.
 // /circle/invite/<code> is the landing card behind a Cosmic Circle invite link: a friend without an
 // account has to be able to read it before signing up (the page keeps the code until they have one).
-const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/legal", "/circle/invite"];
+// /varshik-preview is the dev-only chart preview (the page itself 404s in production).
+const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/legal", "/circle/invite", "/varshik-preview"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { firebaseUser, user, loading } = useAuth();

@@ -19,15 +19,14 @@ export default function PanchadhikariTable({ year }: { year: VarshaYear }) {
           return (
             <li
               key={`${row.role}-${row.planet}`}
-              className="flex items-start gap-3 rounded-xl border border-[color:var(--border-faint)] p-3"
+              className="flex items-start gap-3 vk-panel p-3"
               style={{
-                background: "var(--card)",
                 borderLeft: isLord ? "3px solid var(--gold)" : undefined,
               }}
             >
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                  <span className="vk-h3 min-w-0 break-words">
                     {planetWord(row.planet)}
                   </span>
                   {isLord ? (
@@ -56,7 +55,7 @@ export default function PanchadhikariTable({ year }: { year: VarshaYear }) {
                 <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border-faint)" }}>
                   <div
                     className="h-full rounded-full"
-                    style={{ width: pct(row.strength), background: "var(--gold)" }}
+                    style={{ width: pct(row.strength), background: "linear-gradient(90deg, var(--vk-gold-lo), var(--gold) 70%, var(--vk-gold-hi))" }}
                   />
                 </div>
               </div>
@@ -67,7 +66,7 @@ export default function PanchadhikariTable({ year }: { year: VarshaYear }) {
 
       {sorted.length > 0 ? (
         <div className="flex flex-col gap-2.5">
-          <h3 className="m-0 min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+          <h3 className="vk-h3 m-0 min-w-0 break-words">
             {t("varshik.panchavargi.title", { defaultValue: "Five-fold strength of the planets" })}
           </h3>
           {sorted.map(([planet, value]) => (
@@ -80,7 +79,7 @@ export default function PanchadhikariTable({ year }: { year: VarshaYear }) {
                   className="h-full"
                   style={{
                     width: pct(value),
-                    background: "var(--gold)",
+                    background: "linear-gradient(90deg, var(--vk-gold-lo), var(--gold) 70%, var(--vk-gold-hi))",
                     borderRadius: "0 999px 999px 0",
                   }}
                 />

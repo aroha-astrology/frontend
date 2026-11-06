@@ -66,8 +66,7 @@ export default function VarshaTimeline({ years, timezone }: { years: VarshaYear[
           return (
             <div
               key={y.targetYear}
-              className="flex flex-col gap-1.5 rounded-xl border border-[color:var(--border-faint)] p-3"
-              style={{ background: "var(--card)" }}
+              className="flex flex-col gap-1.5 vk-panel p-3"
             >
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>

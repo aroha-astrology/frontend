@@ -58,11 +58,10 @@ export default function BigMovesGantt({
         return (
           <section
             key={planet}
-            className="flex flex-col gap-2 rounded-xl border border-[color:var(--border-faint)] p-3"
-            style={{ background: "var(--card)" }}
+            className="flex flex-col gap-2 vk-panel p-3"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <h3 className="m-0 min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <h3 className="vk-h3 m-0 min-w-0 break-words">
                 {word}
               </h3>
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>

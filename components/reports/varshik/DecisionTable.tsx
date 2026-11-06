@@ -35,11 +35,11 @@ export default function DecisionTable({ rows }: { rows: DecisionRow[] }) {
         {rows.map((r) => (
           <li
             key={r.key}
-            className="flex flex-col gap-2 rounded-xl border border-[color:var(--border-faint)] p-3"
-            style={{ background: "var(--card)", borderLeft: r.isMain ? "3px solid var(--gold)" : undefined }}
+            className="flex flex-col gap-2 vk-panel p-3"
+            style={{ borderLeft: r.isMain ? "3px solid var(--gold)" : undefined }}
           >
             <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-              <span className="min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <span className="vk-h3 min-w-0 break-words">
                 {t(`varshik.decision.${r.key}`, { defaultValue: spaced(r.key) })}
               </span>
               {r.isMain ? (
@@ -54,7 +54,8 @@ export default function DecisionTable({ rows }: { rows: DecisionRow[] }) {
                   key={m}
                   className="flex h-5 items-center justify-center rounded-[2px] text-[10px]"
                   style={{
-                    background: TIER_COLOR[mode][c.tier],
+                    background: `linear-gradient(160deg, color-mix(in srgb, ${TIER_COLOR[mode][c.tier]} 80%, #fff 20%), ${TIER_COLOR[mode][c.tier]} 60%, color-mix(in srgb, ${TIER_COLOR[mode][c.tier]} 78%, #000 22%))`,
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 5px -2px ${TIER_COLOR[mode][c.tier]}`,
                     color: "#ffffff",
                     outline: inBest(r, m) ? "2px solid var(--foreground)" : undefined,
                     outlineOffset: -2,

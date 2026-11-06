@@ -36,8 +36,7 @@ export default function PlanetImpactTable({
         return (
           <li
             key={r.planet}
-            className="flex gap-3 rounded-xl border border-[color:var(--border-faint)] p-3"
-            style={{ background: "var(--card)" }}
+            className="flex gap-3 vk-panel p-3"
           >
             {icons[r.planet] ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -53,7 +52,7 @@ export default function PlanetImpactTable({
             )}
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <span className="min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                <span className="vk-h3 min-w-0 break-words">
                   {word}
                 </span>
                 <span className="shrink-0 rounded-full border px-2 py-0.5 text-xs" style={{ borderColor: pill.color, color: pill.color }}>
@@ -89,7 +88,7 @@ export default function PlanetImpactTable({
                   <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border-faint)" }}>
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${Math.max(0, Math.min(100, (r.strength / 20) * 100))}%`, background: "var(--gold)" }}
+                      style={{ width: `${Math.max(0, Math.min(100, (r.strength / 20) * 100))}%`, background: "linear-gradient(90deg, var(--vk-gold-lo), var(--gold) 70%, var(--vk-gold-hi))" }}
                     />
                   </div>
                 </div>

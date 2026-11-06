@@ -30,11 +30,10 @@ export default function YogaList({ yogas }: { yogas: YogaFact[] }) {
                 return (
                   <li
                     key={`${y.name}-${y.targetYear ?? "n"}-${i}`}
-                    className="flex flex-col gap-1.5 rounded-xl border border-[color:var(--border-faint)] p-3"
-                    style={{ background: "var(--card)" }}
+                    className="flex flex-col gap-1.5 vk-panel p-3"
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                      <span className="min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                      <span className="vk-h3 min-w-0 break-words">
                         {y.name}
                         {y.targetYear && !y.name.includes(String(y.targetYear)) ? ` ${y.targetYear}` : ""}
                       </span>
@@ -50,6 +49,7 @@ export default function YogaList({ yogas }: { yogas: YogaFact[] }) {
                           <span
                             className="h-2.5 w-2.5 rounded-full"
                             style={{
+                              boxShadow: active.has(m) ? "0 0 8px var(--gold)" : "none",
                               background: active.has(m) ? "var(--gold)" : "transparent",
                               border: `1px solid ${active.has(m) ? "var(--gold)" : "var(--border-faint)"}`,
                             }}

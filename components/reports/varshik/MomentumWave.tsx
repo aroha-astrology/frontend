@@ -1,8 +1,10 @@
 "use client";
 
+import { useId } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { buildAreaPath, buildLinePath, type ChartPoint } from "@/lib/report-chart-geometry";
 import { dayOfYear, monthShort } from "./format";
+import { monotoneAreaPath, monotonePath, type Pt } from "./curve";
 
 interface MuddaPeriod {
   lord: string;
@@ -38,6 +40,8 @@ export default function MomentumWave({
   sahams?: SahamPin[];
 }) {
   const { t, i18n } = useTranslation();
+  const reduce = useReducedMotion();
+  const gid = useId().replace(/:/g, "");
   if (daily.length === 0) return null;
 
   const dateFmt = (iso: string) => {
@@ -50,7 +54,7 @@ export default function MomentumWave({
     }
   };
 
-  const points: ChartPoint[] = [];
+  const points: Pt[] = [];
   daily.forEach((score, i) => {
     if (i % 3 === 0 || i === daily.length - 1) points.push({ x: xOf(i), y: yOf(score) });
   });
@@ -94,14 +98,37 @@ export default function MomentumWave({
             strokeDasharray="3 4"
           />
         ))}
-        <path d={buildAreaPath(points, Y_BASE)} fill="var(--gold)" opacity={0.14} />
-        <path
-          d={buildLinePath(points)}
+        <defs>
+          <linearGradient id={`${gid}-fill`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.34" />
+            <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id={`${gid}-stroke`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--vk-gold-lo)" />
+            <stop offset="40%" stopColor="var(--vk-gold-hi)" />
+            <stop offset="100%" stopColor="var(--gold)" />
+          </linearGradient>
+          <filter id={`${gid}-glow`} x="-10%" y="-40%" width="120%" height="180%">
+            <feGaussianBlur stdDeviation="1.8" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <path d={monotoneAreaPath(points, Y_BASE)} fill={`url(#${gid}-fill)`} />
+        <motion.path
+          d={monotonePath(points)}
           fill="none"
-          stroke="var(--gold)"
-          strokeWidth={2}
+          stroke={`url(#${gid}-stroke)`}
+          strokeWidth={2.2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          filter={`url(#${gid}-glow)`}
+          initial={{ pathLength: reduce ? 1 : 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: reduce ? 0 : 1.6, ease: "easeInOut" }}
         />
         {MONTH_START.map((d) => (
           <line key={d} x1={xOf(d)} x2={xOf(d)} y1={132} y2={137} stroke="var(--text-muted)" strokeWidth={1} />

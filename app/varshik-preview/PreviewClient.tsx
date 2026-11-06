@@ -19,6 +19,7 @@ import DoshaTable from "@/components/reports/varshik/DoshaTable";
 import YogaList from "@/components/reports/varshik/YogaList";
 import SkyCalendar from "@/components/reports/varshik/SkyCalendar";
 import ArtSlot from "@/components/reports/varshik/ArtSlot";
+import ReportSurface, { ReportSection } from "@/components/reports/varshik/ReportSurface";
 
 /** Long Indic strings (about 1.5x the English width) so the layouts are tested the way the real report will be. */
 const INDIC = {
@@ -38,10 +39,9 @@ const TIER_KEYS = ["go", "steady", "weigh", "hold"];
 
 function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-faint)] bg-[color:var(--card)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--gold)]">{title}</h2>
+    <ReportSection id={id} eyebrow="Varshik Rashifal 2027" title={title} beam={id === "ring"}>
       {children}
-    </section>
+    </ReportSection>
   );
 }
 
@@ -66,6 +66,7 @@ export default function PreviewClient() {
   const v = f.varsha[f.varsha.length - 1];
   const love = f.scores.timingMap.love;
   return (
+    <ReportSurface page className="min-h-screen">
     <main className="mx-auto flex max-w-[420px] flex-col gap-5 p-4">
       <button
         type="button"
@@ -122,5 +123,6 @@ export default function PreviewClient() {
         <SkyCalendar events={f.skyEvents} />
       </Block>
     </main>
+    </ReportSurface>
   );
 }

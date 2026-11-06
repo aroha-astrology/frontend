@@ -26,11 +26,10 @@ export default function DoshaTable({ doshas }: { doshas: DoshaFact[] }) {
         return (
           <li
             key={d.key}
-            className="flex flex-col gap-2 rounded-xl border border-[color:var(--border-faint)] p-3"
-            style={{ background: "var(--card)" }}
+            className="flex flex-col gap-2 vk-panel p-3"
           >
             <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-              <span className="min-w-0 break-words text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <span className="vk-h3 min-w-0 break-words">
                 {t(`varshik.dosha.${d.key}`, { defaultValue: d.label })}
               </span>
               <span className="shrink-0 rounded-full border px-2 py-0.5 text-xs" style={{ borderColor: color, color }}>
@@ -55,7 +54,7 @@ export default function DoshaTable({ doshas }: { doshas: DoshaFact[] }) {
                     <div key={m} className="flex min-w-0 flex-col items-center gap-0.5">
                       <span
                         className="h-2.5 w-2.5 rounded-full"
-                        style={{ background: active.has(m) ? color : "transparent", border: `1px solid ${active.has(m) ? color : "var(--border-faint)"}` }}
+                        style={{ boxShadow: active.has(m) ? `0 0 8px ${color}` : "none", background: active.has(m) ? color : "transparent", border: `1px solid ${active.has(m) ? color : "var(--border-faint)"}` }}
                       />
                       <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
                         {monthShort(m, lang)}

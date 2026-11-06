@@ -77,6 +77,11 @@ export interface User {
   /** True while the stored time is only a part-of-day window midpoint — upgrading it to a
    *  real clock time is free and does not consume the one lifetime birth-detail edit. */
   canSetExactBirthTime: boolean;
+  /** The active profile's saved Kundli was built by an older calculation (opening Kundli rebuilds it).
+   *  Absent from an older API. */
+  kundliOutdated?: boolean;
+  /** That older Kundli is being rebuilt right now. */
+  kundliUpdating?: boolean;
   profileCompletedAt: string | null;
   /** Settings → Notifications; null until the user first changes them. */
   notificationPrefs?: NotificationPrefs | null;

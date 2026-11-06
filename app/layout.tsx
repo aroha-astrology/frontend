@@ -23,6 +23,7 @@ import ShareAppPrompt from "@/components/ShareAppPrompt";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import BirthTimeAskPrompt from "@/components/BirthTimeAskPrompt";
+import KundliUpdatePrompt from "@/components/KundliUpdatePrompt";
 import FestivalGiftModal from "@/components/FestivalGiftModal";
 import DailyRewardModal from "@/components/DailyRewardModal";
 import BackButtonListener from "@/components/BackButtonListener";
@@ -159,6 +160,7 @@ export default function RootLayout({
                             <ShareAppPrompt />
                             <FeedbackPrompt />
                             <BirthTimeAskPrompt />
+                            <KundliUpdatePrompt />
                             <FestivalGiftModal />
                             <DailyRewardModal />
                           </TourProvider>

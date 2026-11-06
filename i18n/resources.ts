@@ -1429,6 +1429,14 @@ export const resources = {
         later: "Not now",
         failed: "We couldn't save that. Please try again.",
       },
+      kundliUpdate: {
+        title: "Your Kundli needs a quick update",
+        body: "Some details in your chart are worked out a little differently now. Open your Kundli and the update starts. It takes a moment.",
+        updatingTitle: "Your Kundli is updating",
+        updatingBody: "The update is running now. Your Kundli will show the new details when it finishes.",
+        open: "Open Kundli",
+        later: "Later",
+      },
       sharePrompt: {
         title: "Share & Earn {{referrerBonus}}!",
         body: "Share Aroha Astrology with friends and family — earn {{referrerBonus}} for every friend who joins!",

@@ -15,7 +15,7 @@ The report runs to **51 pages** (owner's choice). The extra space goes into a tw
 
 **Owner decisions:**
 - The report covers Jan 1 – Dec 31 2027. The 2026 Varsha chart rules until the 2027 solar-return instant; the 2027 chart rules after it.
-- The price is ₹599 (`59900` paise), with Pass discounts of 10/20/30%.
+- The price is **₹599** (`59900` paise). The card shows a struck-through "real price" of **₹5,999** (`599900` paise, `defaultOriginalPricePaise`). Pass discounts of 10/20/30% apply on top of ₹599.
 - It ships OFF, tagged `new`.
 - It needs a confirmed birth time and coordinates, or the purchase is blocked.
 - It comes as a designed screen, a PDF and share cards. No video.
@@ -345,7 +345,7 @@ The owner's rule is that all copy goes through the **humanizer** (the repo-based
 - The Aroha logo in gold, as SVG or high-res PNG.
 - A high-res original of Baba Ji's portrait, if one exists (the app's `/yogi-baba.webp` is small).
 
-**Asset gate.** Sprints 1–4 don't need any images. The assets must be in hand before Sprint 5. Until they arrive, coloured placeholder boxes are used.
+**Asset gate (updated 2026-11-06, owner decision).** No sprint waits for images. Every asset (A1–A53, the Aroha gold logo, Baba Ji's portrait) is added at the END of the build, after the last sprint. S4, S5 and S6 use placeholder boxes behind the `assets.ts` map, so dropping in the real files later changes no layout. The S5 and S6 design gates are shown with placeholders; one final asset pass then swaps in the images, converts them to WebP and re-checks every page, light and dark, phone width and A4.
 
 ## Sprints (one new chat each)
 
@@ -377,9 +377,15 @@ The owner's rule is that all copy goes through the **humanizer** (the repo-based
 
 ### S3: Report wrapper and text (backend)
 - **Registration.**
-  - `config/reports.ts`: `varshik_rashifal_2027`, with `isYearly`, `basePricePaise: 59900` and no partner.
+  - `config/reports.ts`: `varshik_rashifal_2027`, with `isYearly`, `basePricePaise: 59900` and no partner. In `config/features.ts`: `defaultPricePaise: 59900`, `defaultOriginalPricePaise: 599900`.
   - `config/features.ts`: `defaultEnabled: false`, tag `new`.
   - `report-sections.ts`
+- **Price set from admin (owner request 2026-11-06).** The existing Admin → Features page already edits both price and original (struck) price for every entry in the feature registry. Registering the key, in group `reports`, is what makes it appear there.
+  - Confirm the purchase charges the admin price (`resolved.pricePaise`) and never the hard-coded `basePricePaise`.
+  - Confirm a price change takes effect on the next purchase without a deploy.
+  - Confirm Pass discounts apply on top of the admin price.
+  - If country pricing (`money.countryPricing`) is switched on, check the report follows the country tiers like the other reports.
+  - Add a backend test: admin sets ₹399, and the purchase is charged ₹399.
 - **Fixed window.** In `findActiveYearlyReportRow`, this key always expires on Dec 31 2027. **[fix]** It is on sale now through 2027. A buyer in mid-2027 still gets all 12 months, and the catalogue card says which months have already passed.
 - **Completeness contract.** Implement it in full: the `VarshikFacts` zod schema, the preflight that stops generation and refunds, the coverage check after the text is written, and `verify-claims` against `VarshikFacts`.
 - **Purchase guard.** Birth time and coordinates must be confirmed. The four pre-purchase questions go in `report-questions.ts`.
@@ -475,7 +481,8 @@ Branch feat/varshik-2027. Don't push.
 ```
 Sprint 3 of Varshik Rashifal 2027. Read frontend/docs/varshik-rashifal-2027-plan.md, including "Voice and tone", and do only "S3".
 Copy the kp_annual pattern (see frontend/docs/monthly-yearly-kp-reports-end-to-end.md §9).
-- Register varshik_rashifal_2027 at 59900 paise, OFF, tag new.
+- Register varshik_rashifal_2027 at 59900 paise with a struck original price of 599900 paise, OFF, tag new.
+- It must show in Admin → Features with both prices editable; the purchase charges the admin price (test: admin sets ₹399 → charged ₹399), and Pass discounts apply on top.
 - Fixed Jan–Dec 2027 window in findActiveYearlyReportRow.
 - Birth time + coordinates purchase guard; the 4 pre-purchase questions.
 - Generator with 5 checkpointed LLM calls; humanizer style block in the prompt.
@@ -501,6 +508,7 @@ Sprint 5 of Varshik Rashifal 2027. Read frontend/docs/varshik-rashifal-2027-plan
 My assets A1–A53, the Aroha gold logo and Baba Ji's portrait are in <FOLDER>. Follow the plan's "Premium standard" exactly (fonts, grid, gold, motion, Baba Ji letter and seal), and show me screenshots of every page before closing. Convert them to WebP in public/varshphal/, remove the backgrounds from the medallions, icons and A46, and write assets.ts.
 - Build VarshikReportView (51 pages, in plan order): contents, chapter openers, area pages, month spreads with festival dates, light and dark themes. Register it in designed-screens.tsx and YEARLY_REPORT_KEYS.
 - Add the catalogue card and the generating-sheet wheel with progress steps.
+- The catalogue card and the buy sheet show the live admin price and the struck original price from the features API (as other reports do), never prices written into the frontend.
 - In-app: tapping a Timing Map cell jumps to that month; decision filter pills.
 Delegate large single files to local-coder per CLAUDE.md. Show me the screen in the browser, light and dark.
 Branch feat/varshik-2027. Don't push.
@@ -525,7 +533,8 @@ Sprint 7 of Varshik Rashifal 2027. Read frontend/docs/varshik-rashifal-2027-plan
 - Run all new English UI copy through the humanizer skill.
 - Translate through apinex free/gemini-3.8-flash with the tone note (respectful "aap" etc.), then run i18n:check.
 - Humanizer spot review of the 3 test reports; feed recurring hits back into the prompt rules.
-- Playwright e2e (flag on for the test user): buy → generating sheet → screen → PDF, shown failing first. Backend tests for the purchase window and the birth-time guard.
+- Playwright e2e (flag on for the test user): buy → generating sheet → screen → PDF, shown failing first.
+- Admin price e2e: change the price in Admin → Features, and the catalogue card and the charge both follow. Backend tests for the purchase window and the birth-time guard.
 Then stop and ask me before deploying. The order is backend first, then the web, with the switch left OFF.
 ```
 

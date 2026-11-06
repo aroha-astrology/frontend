@@ -103,3 +103,48 @@ test("a Dhaiya on a retrograde break says when it resumes", async ({ page }) => 
   await expect(page.getByText("Shani Dhaiya: on a break until 20 Oct 2027")).toBeVisible();
   await noSideScroll(page);
 });
+
+test("Sade Sati shows its cycle number and Saturn's support, and fits 360px", async ({ page }) => {
+  const sign = (s: string, saturnBindus: number, sarvaBindus: number, now: boolean, dignity = "neutral") => ({
+    sign: s,
+    saturnBindus,
+    sarvaBindus,
+    dignity,
+    now,
+  });
+  await open(
+    page,
+    kundli({
+      sadeSati: {
+        active: true,
+        phase: "peak",
+        severity: "moderate",
+        description: "Saturn is over your Moon sign.",
+        cycle: 2,
+        strength: {
+          lagnaRole: "yogakaraka",
+          signs: [sign("Capricorn", 3, 25, false), sign("Aquarius", 5, 31, true), sign("Pisces", 4, 27, false)],
+        },
+      },
+      dhaiya: {
+        active: true,
+        phase: "8th",
+        name: "Ashtama Shani",
+        severity: "moderate",
+        description: "Saturn is in the 8th from your Moon.",
+        strength: { lagnaRole: null, signs: [sign("Aries", 2, 22, true, "debilitated")] },
+      },
+    }),
+  );
+
+  const sadeSati = page.getByTestId("saturn-facts-sadeSati");
+  await expect(sadeSati).toContainText("Your 2nd Sade Sati");
+  await expect(sadeSati).toContainText("Saturn in Aquarius: 5 of 8 own points, sign total 31");
+  await expect(sadeSati).toContainText("Good support from your chart");
+  await expect(sadeSati).toContainText("Saturn is a yogakaraka for your rising sign");
+  await expect(sadeSati).not.toContainText("Capricorn");
+  const dhaiya = page.getByTestId("saturn-facts-dhaiya");
+  await expect(dhaiya).toContainText("Saturn in Aries: 2 of 8 own points, sign total 22");
+  await expect(dhaiya).toContainText("Saturn is weak in this sign");
+  await noSideScroll(page);
+});

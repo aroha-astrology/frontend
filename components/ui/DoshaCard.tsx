@@ -20,11 +20,29 @@ export interface KaalSarpDosha {
   type?: string;
   description?: string;
 }
+/** Saturn's natal support in one sign it transits (backend doshas/saturnStrength.ts). */
+export interface SaturnSignStrength {
+  sign: string;
+  /** Saturn's own Bhinnashtakavarga bindus in the sign, 0-8. */
+  saturnBindus: number;
+  /** Sarvashtakavarga total in the sign (28 is the classical benchmark). */
+  sarvaBindus: number;
+  dignity?: 'exalted' | 'own' | 'friend' | 'neutral' | 'enemy' | 'debilitated' | string;
+  /** Saturn is in this sign right now. */
+  now: boolean;
+}
+export interface SaturnTransitStrength {
+  lagnaRole: 'lagna-lord' | 'yogakaraka' | null;
+  signs: SaturnSignStrength[];
+}
 export interface SadeSati {
   active: boolean; // NOTE: "active", not "present"
   phase?: string;
   severity?: string;
   description?: string;
+  /** Which Sade Sati of the reader's life this is: 1, 2, 3... Null without a birth chart. */
+  cycle?: number | null;
+  strength?: SaturnTransitStrength;
   /** Set while Saturn has stepped out on a retrograde: when the Sade Sati comes back. */
   resumesOn?: string | null;
   /** When none is running: the next one. */
@@ -38,6 +56,7 @@ export interface Dhaiya {
   name?: string;
   severity?: string;
   description?: string;
+  strength?: SaturnTransitStrength;
   resumesOn?: string | null;
   next?: { phase: '4th' | '8th'; startDate: string; endDate: string } | null;
 }
@@ -137,6 +156,48 @@ function saturnNotes(d: DoshaAnalysis): SaturnNote[] {
 /** Whether the card has anything to show: a dosha, a cancelled Mangal, or a Saturn break/next date. */
 export function hasDoshaCardContent(d: DoshaAnalysis): boolean {
   return extractDoshas(d).length > 0 || saturnNotes(d).length > 0;
+}
+
+/**
+ * How much natal support Saturn has in the sign it is in now. Phaladeepika 23.11 and 23.20: 5-8 own
+ * bindus and a sign total above 28 are good; 4 or fewer and 28 or less are hard. Anything else is mixed.
+ */
+export function saturnSupport(s: SaturnSignStrength): 'good' | 'mixed' | 'weak' {
+  if (s.saturnBindus >= 5 && s.sarvaBindus > 28) return 'good';
+  if (s.saturnBindus <= 4 && s.sarvaBindus <= 28) return 'weak';
+  return 'mixed';
+}
+
+/** The lines under a running Sade Sati or Dhaiya: which cycle it is, and Saturn's support in its current sign. */
+function saturnFacts(
+  key: string,
+  d: DoshaAnalysis,
+  t: (k: string, o?: Record<string, unknown>) => string,
+): string[] {
+  const src = key === 'sadeSati' ? d.sadeSati : key === 'dhaiya' ? d.dhaiya : undefined;
+  if (!src) return [];
+  const out: string[] = [];
+  const cycle = key === 'sadeSati' ? d.sadeSati?.cycle : null;
+  if (typeof cycle === 'number' && cycle >= 1) {
+    out.push(cycle <= 3 ? t(`kundli.doshaCard.cycle${cycle}`) : t('kundli.doshaCard.cycleN', { n: cycle }));
+  }
+  const now = src.strength?.signs?.find((s) => s.now);
+  if (src.strength && now) {
+    const signKey = String(now.sign).toLowerCase();
+    out.push(
+      t('kundli.doshaCard.strengthLine', {
+        sign: t(`zodiac.signs.${signKey}`, { defaultValue: now.sign }),
+        bindus: now.saturnBindus,
+        sarva: now.sarvaBindus,
+      }),
+    );
+    out.push(t(`kundli.doshaCard.support.${saturnSupport(now)}`));
+    if (now.dignity === 'exalted' || now.dignity === 'own') out.push(t('kundli.doshaCard.dignityStrong'));
+    if (now.dignity === 'debilitated') out.push(t('kundli.doshaCard.dignityWeak'));
+    if (src.strength.lagnaRole === 'lagna-lord') out.push(t('kundli.doshaCard.roleLagnaLord'));
+    if (src.strength.lagnaRole === 'yogakaraka') out.push(t('kundli.doshaCard.roleYogakaraka'));
+  }
+  return out;
 }
 
 function formatDay(iso: string, lang: string): string {
@@ -256,6 +317,13 @@ export default function DoshaCard({ doshas, mode = 'technical', className = '' }
                   ? (mode === 'plain' ? plainify(d.description) : d.description)
                   : d.severity !== 'cancelled' && t(PLAIN_BLURB_I18N_KEYS[d.severity])}
               </p>
+              {saturnFacts(d.key, doshas, t).length > 0 && (
+                <ul className="mt-1.5 space-y-0.5 text-[11px] text-muted" data-testid={`saturn-facts-${d.key}`}>
+                  {saturnFacts(d.key, doshas, t).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
               {mode === 'technical' && d.meta && (
                 <p className="text-[10px] text-muted/60 mt-1">{d.meta}</p>
               )}

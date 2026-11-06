@@ -205,6 +205,62 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
     },
     { id: "concern", type: "text", labelKey: "reports.questions.wealth.concern" },
   ],
+  // Varshik Rashifal 2027. The ids and the option VALUES are read by the backend as they are:
+  // jyotish-backend modules/reports/varshik-purchase.ts rejects anything else, the scorer's
+  // decision table (config/varshik-weights.ts) and the text check for what the report may say
+  // about a partner, children or work (lib/llm/reports/verify-varshik-text.ts) read the same
+  // values. Keep the four in step.
+  varshik_rashifal_2027: [
+    {
+      id: "relationship",
+      type: "select",
+      labelKey: "reports.questions.varshik_rashifal_2027.relationship.label",
+      options: [
+        { value: "single", labelKey: "reports.questions.varshik_rashifal_2027.relationship.single" },
+        { value: "partnered", labelKey: "reports.questions.varshik_rashifal_2027.relationship.partnered" },
+        { value: "married", labelKey: "reports.questions.varshik_rashifal_2027.relationship.married" },
+        { value: "previously_married", labelKey: "reports.questions.varshik_rashifal_2027.relationship.previouslyMarried" },
+      ],
+    },
+    {
+      id: "occupation",
+      type: "select",
+      labelKey: "reports.questions.varshik_rashifal_2027.occupation.label",
+      options: [
+        { value: "student", labelKey: "reports.questions.varshik_rashifal_2027.occupation.student" },
+        { value: "working", labelKey: "reports.questions.varshik_rashifal_2027.occupation.working" },
+        { value: "business", labelKey: "reports.questions.varshik_rashifal_2027.occupation.business" },
+        { value: "seeking_work", labelKey: "reports.questions.varshik_rashifal_2027.occupation.seekingWork" },
+        { value: "homemaker", labelKey: "reports.questions.varshik_rashifal_2027.occupation.homemaker" },
+        { value: "retired", labelKey: "reports.questions.varshik_rashifal_2027.occupation.retired" },
+      ],
+    },
+    {
+      id: "children",
+      type: "select",
+      labelKey: "reports.questions.varshik_rashifal_2027.children.label",
+      options: [
+        { value: "none", labelKey: "reports.questions.varshik_rashifal_2027.children.none" },
+        { value: "planning", labelKey: "reports.questions.varshik_rashifal_2027.children.planning" },
+        { value: "have", labelKey: "reports.questions.varshik_rashifal_2027.children.have" },
+      ],
+    },
+    {
+      id: "mainDecision",
+      type: "select",
+      labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.label",
+      options: [
+        { value: "job_change", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.jobChange" },
+        { value: "start_business", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.startBusiness" },
+        { value: "relationship", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.relationship" },
+        { value: "move_or_travel", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.moveOrTravel" },
+        { value: "money", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.money" },
+        { value: "health", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.health" },
+        { value: "study", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.study" },
+        { value: "nothing_specific", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.nothingSpecific" },
+      ],
+    },
+  ],
   marriage: [
     {
       id: "isMarried",

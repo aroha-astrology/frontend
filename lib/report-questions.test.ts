@@ -81,6 +81,35 @@ describe("REPORT_QUESTIONS", () => {
   });
 });
 
+describe("varshik_rashifal_2027 questions", () => {
+  // Mirrors VARSHIK_ANSWER_VALUES in jyotish-backend modules/reports/varshik-purchase.ts: the
+  // backend refuses any other value before the wallet is touched.
+  const BACKEND = {
+    relationship: ["single", "partnered", "married", "previously_married"],
+    occupation: ["student", "working", "business", "seeking_work", "homemaker", "retired"],
+    children: ["none", "planning", "have"],
+    mainDecision: ["job_change", "start_business", "relationship", "move_or_travel", "money", "health", "study", "nothing_specific"],
+  };
+
+  it("asks the four questions the backend reads, with exactly the values it accepts", () => {
+    const qs = REPORT_QUESTIONS.varshik_rashifal_2027!;
+    expect(qs.map((q) => q.id)).toEqual(Object.keys(BACKEND));
+    for (const q of qs) {
+      expect(q.type).toBe("select");
+      expect(q.options!.map((o) => o.value), q.id).toEqual(BACKEND[q.id as keyof typeof BACKEND]);
+    }
+  });
+
+  it("gives the reader no gender question: the Lagna maths does not need one", () => {
+    expect(questionsFor("varshik_rashifal_2027", null).map((q) => q.id)).toEqual(Object.keys(BACKEND));
+  });
+
+  it("is skippable with the general-report warning, like every report about the reader", () => {
+    expect(answeredNone(REPORT_QUESTIONS.varshik_rashifal_2027!, {})).toBe(true);
+    expect(answeredNone(REPORT_QUESTIONS.varshik_rashifal_2027!, { children: "have" })).toBe(false);
+  });
+});
+
 describe("answeredNone (the general-report warning)", () => {
   it("warns on every report that asks about the reader when nothing is answered", () => {
     for (const [reportKey, questions] of Object.entries(REPORT_QUESTIONS)) {

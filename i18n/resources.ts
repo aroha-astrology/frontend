@@ -352,6 +352,13 @@ export const resources = {
           relationshipNow: { label: "What is your relationship status now?", single: "Single", inRelationship: "In a relationship", married: "Married", previouslyMarried: "Separated / divorced / widowed" },
           workNow: { label: "What do you do for work right now?", job: "Job", business: "Own business", selfEmployed: "Freelance / self-employed", student: "Student", notWorking: "Not working now" },
           children: { label: "Do you have children?", none: "No", one: "One", twoOrMore: "Two or more" },
+          // Varshik Rashifal 2027: four short questions. English only until the Sprint 7 translation pass.
+          varshik_rashifal_2027: {
+            relationship: { label: "Where are you in your relationships right now?", single: "Single", partnered: "In a relationship", married: "Married", previouslyMarried: "Separated, divorced or widowed" },
+            occupation: { label: "What do you do right now?", student: "Student", working: "I work in a job", business: "I run a business", seekingWork: "Looking for work", homemaker: "I run a home", retired: "Retired" },
+            children: { label: "Do you have children?", none: "No, and none planned", planning: "Not yet, but hoping to", have: "Yes" },
+            mainDecision: { label: "What is the biggest decision you face in 2027?", jobChange: "A change of job", startBusiness: "Starting a business", relationship: "Something in a relationship", moveOrTravel: "A move or a long trip", money: "A money decision", health: "My health routine", study: "Study or an exam", nothingSpecific: "Nothing in particular" },
+          },
           baby_name: {
             hasChild: "Do you already have a child?",
             childGenderLabel: "Is it a girl or a boy?",

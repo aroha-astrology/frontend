@@ -5,8 +5,9 @@ import { MotionConfig } from "framer-motion";
 import "./varshik.css";
 
 /**
- * The report's look. Wrap any report content in this and every chart inside picks up the navy and
- * gold palette, and its animations obey the device's reduced-motion setting.
+ * The report's look. Wrap any report content in this and every chart inside picks up the app's own
+ * colours (so it follows dark, light and both skins), and its animations obey the device's
+ * reduced-motion setting.
  */
 export default function ReportSurface({
   children,
@@ -15,7 +16,7 @@ export default function ReportSurface({
 }: {
   children: ReactNode;
   className?: string;
-  /** Paint the full navy (or ivory) page behind the content. */
+  /** Paint the app's page background, with a faint gold glow, behind the content. */
   page?: boolean;
 }) {
   return (

@@ -32,7 +32,7 @@ export default function TimingMap({
   const keys = order.filter((k) => map[k]?.length === 12);
   if (keys.length === 0) return null;
   const tierWord = (tier: Tier) => t(TIER_WORD[tier].key, { defaultValue: TIER_WORD[tier].en });
-  const ink = (tier: Tier) => (mode === "dark" && tier !== "rust" ? "#0b0b2a" : "#ffffff");
+  const ink = (tier: Tier) => (mode === "dark" && tier !== "rust" ? "#0a0a0c" : "#ffffff");
 
   return (
     <div className="flex flex-col gap-4 leading-[1.45]">

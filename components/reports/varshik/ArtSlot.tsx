@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
  *   opener    9:16  (768x1376)  chapter openers, framed inside the A4 page and never stretched
  *   medallion 1:1   (1024x1024) planet medallions and remedy icons
  *
- * Without `src` it draws a navy field with a fine gold frame and the slot code (e.g. "A24"), so a
+ * Without `src` it draws the app's card surface with a fine gold frame and the slot code (e.g. "A24"), so a
  * missing image is obvious in review. It must never reach a reader: the art is added before release.
  */
 export type ArtKind = "banner" | "opener" | "medallion";
@@ -51,10 +51,10 @@ export default function ArtSlot({
         aspectRatio: RATIO[kind],
         maxWidth,
         borderRadius: radius,
-        // Deep navy to a soft violet haze, the art's own palette.
-        background: "linear-gradient(160deg, #0b0b2a 0%, #141432 70%, #1d1a45 100%)",
-        border: "1px solid rgba(223, 181, 100, 0.55)",
-        boxShadow: "inset 0 0 0 3px rgba(11, 11, 42, 1), inset 0 0 0 4px rgba(223, 181, 100, 0.25)",
+        // The app's own surface tokens, so the frame matches in dark, light and both skins.
+        background: "linear-gradient(160deg, var(--surface), var(--card))",
+        border: "1px solid var(--border)",
+        boxShadow: "inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--border-faint)",
       }}
       role={src ? undefined : "img"}
       aria-label={src ? undefined : t("varshik.art.missing", { defaultValue: "Artwork {{code}} to be added", code })}
@@ -64,10 +64,10 @@ export default function ArtSlot({
         <img src={src} alt={alt} width={w} height={h} className="h-full w-full object-contain" />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center leading-[1.45]">
-          <span className="text-sm font-semibold tracking-wide" style={{ color: "#dfb564" }}>
+          <span className="text-sm font-semibold tracking-wide" style={{ color: "var(--gold)" }}>
             {code}
           </span>
-          <span className="text-xs" style={{ color: "#e9e4f5", opacity: 0.8 }}>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
             {w} × {h}
           </span>
         </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REPORT_QUESTIONS, answeredNone, questionsFor } from "./report-questions";
+import { REPORT_QUESTIONS, answeredNone, missingRequired, questionsFor } from "./report-questions";
 import { resources } from "@/i18n/resources";
 
 type Tree = Record<string, unknown>;
@@ -82,29 +82,11 @@ describe("REPORT_QUESTIONS", () => {
 });
 
 describe("varshik_rashifal_2027 questions", () => {
-  // Mirrors VARSHIK_ANSWER_VALUES in jyotish-backend modules/reports/varshik-purchase.ts: the
-  // backend refuses any other value before the wallet is touched.
-  const BACKEND = {
-    relationship: ["single", "partnered", "married", "previously_married"],
-    occupation: ["student", "working", "business", "seeking_work", "homemaker", "retired"],
-    children: ["none", "planning", "have"],
-    mainDecision: ["job_change", "start_business", "relationship", "move_or_travel", "money", "health", "study", "nothing_specific"],
-  };
-
-  it("asks the four questions the backend reads, with exactly the values it accepts", () => {
-    const qs = REPORT_QUESTIONS.varshik_rashifal_2027!;
-    expect(qs.map((q) => q.id)).toEqual(Object.keys(BACKEND));
-    for (const q of qs) {
-      expect(q.type).toBe("select");
-      expect(q.options!.map((o) => o.value), q.id).toEqual(BACKEND[q.id as keyof typeof BACKEND]);
-    }
-  });
-
   it("gives the reader no gender question: the Lagna maths does not need one", () => {
-    expect(questionsFor("varshik_rashifal_2027", null).map((q) => q.id)).toEqual(Object.keys(BACKEND));
+    expect(questionsFor("varshik_rashifal_2027", null).some((q) => q.id === "readerGender")).toBe(false);
   });
 
-  it("is skippable with the general-report warning, like every report about the reader", () => {
+  it("counts as answered once any one question has an answer (the ten are checked one by one by missingRequired)", () => {
     expect(answeredNone(REPORT_QUESTIONS.varshik_rashifal_2027!, {})).toBe(true);
     expect(answeredNone(REPORT_QUESTIONS.varshik_rashifal_2027!, { children: "have" })).toBe(false);
   });
@@ -143,5 +125,44 @@ describe("answeredNone (the general-report warning)", () => {
         if (language !== "en") expect(text, `${language}: ${key}`).not.toBe(lookup("en", `reports.questions.${key}`));
       }
     }
+  });
+});
+
+describe("Varshik Rashifal 2027: every answer is required", () => {
+  const questions = questionsFor("varshik_rashifal_2027", null);
+  // The values the backend accepts (jyotish-backend modules/reports/varshik-purchase.ts, VARSHIK_ANSWER_VALUES).
+  const BACKEND: Record<string, string[]> = {
+    relationship: ["single", "partnered", "married", "previously_married"],
+    occupation: ["student", "working", "business", "seeking_work", "homemaker", "retired"],
+    children: ["none", "planning", "have"],
+    mainDecision: ["job_change", "start_business", "relationship", "move_or_travel", "money", "health", "study", "nothing_specific"],
+    livingWith: ["alone", "partner", "parents", "joint_family", "friends_or_others"],
+    home: ["own", "rented", "family_home", "buying_or_building"],
+    moneyFocus: ["saving", "investing", "clearing_debt", "earning_more", "big_purchase", "nothing_specific"],
+    travelPlan: ["abroad", "within_india", "none"],
+    studyPlan: ["exam", "course", "none"],
+    practice: ["daily", "sometimes", "never"],
+  };
+
+  it("asks the ten questions, all required, with exactly the values the backend accepts", () => {
+    expect(questions.map((q) => q.id)).toEqual(Object.keys(BACKEND));
+    for (const q of questions) {
+      expect(q.required, q.id).toBe(true);
+      expect(q.options?.map((o) => o.value), q.id).toEqual(BACKEND[q.id]);
+    }
+  });
+
+  it("lists what is still open, and nothing once all ten are answered", () => {
+    expect(missingRequired(questions, {}).length).toBe(10);
+    const some = { relationship: "single", occupation: "working" };
+    expect(missingRequired(questions, some).map((q) => q.id)).not.toContain("relationship");
+    expect(missingRequired(questions, some).length).toBe(8);
+    const all = Object.fromEntries(Object.entries(BACKEND).map(([id, values]) => [id, values[0]!]));
+    expect(missingRequired(questions, all)).toEqual([]);
+  });
+
+  it("a whitespace answer does not count, and other reports have no required question", () => {
+    expect(missingRequired(questions, { practice: "   " }).map((q) => q.id)).toContain("practice");
+    expect(missingRequired(questionsFor("wealth", null), {})).toEqual([]);
   });
 });

@@ -19,7 +19,7 @@ import {
   type PurchaseReportBody,
   type PurchaseReportResultRow,
 } from "@/lib/reports-api";
-import { questionsFor, answeredNone } from "@/lib/report-questions";
+import { questionsFor, answeredNone, missingRequired } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
 import GeneralReportWarning from "./GeneralReportWarning";
 import PriceBreakdown from "./PriceBreakdown";
@@ -125,6 +125,9 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   );
   const asksAboutReader = visibleQuestions.some((q) => !q.overridesAccount);
   const nothingAnswered = answeredNone(visibleQuestions, answers);
+  // Questions the report cannot do without (Varshik Rashifal): the Buy button stays shut until none is left.
+  const unanswered = missingRequired(visibleQuestions, answers);
+  const hasRequired = visibleQuestions.some((q) => q.required);
   // Buying with nothing answered first warns that the report will be general. "Answer the
   // questions" brings the reader back here and rings the questions until they answer one.
   const [generalWarningOpen, setGeneralWarningOpen] = useState(false);
@@ -136,6 +139,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
     const section = questionsRef.current;
     section?.scrollIntoView({ behavior: "smooth", block: "start" });
     section?.querySelector<HTMLElement>("button, input")?.focus({ preventScroll: true });
+  }, []);
+  /** Brings the reader to the first required question still open, and rings the open ones. */
+  const goToFirstUnanswered = useCallback(() => {
+    setPointToQuestions(true);
+    const open = questionsRef.current?.querySelector<HTMLElement>('[data-required-open="true"]');
+    open?.scrollIntoView({ behavior: "smooth", block: "center" });
+    open?.querySelector<HTMLElement>("button, input")?.focus({ preventScroll: true });
   }, []);
 
   // ── Monthly: current month only, no picker ────────────────────────────
@@ -282,12 +292,23 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
             {asksAboutReader && (
               <p className="flex items-start gap-2 rounded-2xl border border-gold/25 bg-gold/10 px-3.5 py-3 text-xs leading-relaxed text-foreground/90">
                 <Info size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
-                <span>{t("reports.questions.whyAsk")}</span>
+                <span>{hasRequired ? t("reports.questions.answerAllHint") : t("reports.questions.whyAsk")}</span>
               </p>
             )}
             {visibleQuestions.map((q) => (
-              <div key={q.id} className="flex flex-col gap-1.5">
-                <label className="text-xs text-muted ml-1">{t(q.labelKey)}</label>
+              <div
+                key={q.id}
+                data-required-open={q.required && (answers[q.id] ?? "").trim() === "" ? "true" : undefined}
+                className={`flex flex-col gap-1.5 rounded-xl ${
+                  pointToQuestions && q.required && (answers[q.id] ?? "").trim() === "" ? "ring-1 ring-gold/60 bg-gold/5 p-2 -m-2" : ""
+                }`}
+              >
+                <label className="text-xs text-muted ml-1">
+                  {t(q.labelKey)}
+                  {q.required && (
+                    <span className="ml-1.5 text-[10px] uppercase tracking-wider text-gold/80">{t("reports.questions.requiredTag")}</span>
+                  )}
+                </label>
                 {q.type === "text" ? (
                   <input
                     type="text"
@@ -573,7 +594,12 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               ) : (
                 <button
                   type="button"
+                  aria-disabled={unanswered.length > 0}
                   onClick={() => {
+                    if (unanswered.length > 0) {
+                      goToFirstUnanswered();
+                      return;
+                    }
                     if (!validateSpouseFields()) return;
                     if (nothingAnswered) {
                       setGeneralWarningOpen(true);
@@ -581,9 +607,13 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                     }
                     setConfirming(true);
                   }}
-                  className="w-full rounded-2xl bg-gold text-[#1a0e00] px-4 py-3 text-sm font-bold"
+                  className={`w-full rounded-2xl px-4 py-3 text-sm font-bold ${
+                    unanswered.length > 0 ? "bg-gold/30 text-foreground/70" : "bg-gold text-[#1a0e00]"
+                  }`}
                 >
-                  {t("reports.buy")} · {formatRupees(costPaise)}
+                  {unanswered.length > 0
+                    ? t("reports.questions.buyLocked", { n: unanswered.length })
+                    : `${t("reports.buy")} · ${formatRupees(costPaise)}`}
                 </button>
               )}
             </div>

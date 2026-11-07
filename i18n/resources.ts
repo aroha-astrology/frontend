@@ -339,6 +339,9 @@ export const resources = {
           skipContinue: "Continue with a general report",
           notSure: "Not sure",
           textPlaceholder: "Type here (optional)",
+          requiredTag: "Required",
+          answerAllHint: "Every question is needed, so your report is written from your own life and never from a guess.",
+          buyLocked: "Answer all questions ({{n}} left)",
           wealth: {
             incomeToday: "How do you earn today?",
             incomeSalaried: "Salary / job",
@@ -352,12 +355,18 @@ export const resources = {
           relationshipNow: { label: "What is your relationship status now?", single: "Single", inRelationship: "In a relationship", married: "Married", previouslyMarried: "Separated / divorced / widowed" },
           workNow: { label: "What do you do for work right now?", job: "Job", business: "Own business", selfEmployed: "Freelance / self-employed", student: "Student", notWorking: "Not working now" },
           children: { label: "Do you have children?", none: "No", one: "One", twoOrMore: "Two or more" },
-          // Varshik Rashifal 2027: four short questions. English only until the Sprint 7 translation pass.
+          // Varshik Rashifal 2027: ten short questions, every one required.
           varshik_rashifal_2027: {
             relationship: { label: "Where are you in your relationships right now?", single: "Single", partnered: "In a relationship", married: "Married", previouslyMarried: "Separated, divorced or widowed" },
             occupation: { label: "What do you do right now?", student: "Student", working: "I work in a job", business: "I run a business", seekingWork: "Looking for work", homemaker: "I run a home", retired: "Retired" },
             children: { label: "Do you have children?", none: "No, and none planned", planning: "Not yet, but hoping to", have: "Yes" },
             mainDecision: { label: "What is the biggest decision you face in 2027?", jobChange: "A change of job", startBusiness: "Starting a business", relationship: "Something in a relationship", moveOrTravel: "A move or a long trip", money: "A money decision", health: "My health routine", study: "Study or an exam", nothingSpecific: "Nothing in particular" },
+            livingWith: { label: "Who do you live with?", alone: "I live alone", partner: "With my partner or spouse", parents: "With my parents", jointFamily: "In a joint or extended family", friendsOrOthers: "With friends or others" },
+            home: { label: "What is your home situation?", own: "I own my home", rented: "I rent", familyHome: "I live in the family home", buyingOrBuilding: "I plan to buy or build a home" },
+            moneyFocus: { label: "What is your main money goal for 2027?", saving: "Saving", investing: "Investing", clearingDebt: "Clearing a loan or debt", earningMore: "Earning more", bigPurchase: "A big purchase", nothingSpecific: "Nothing in particular" },
+            travelPlan: { label: "Do you plan to travel in 2027?", abroad: "Yes, abroad", withinIndia: "Yes, within India", none: "No long travel planned" },
+            studyPlan: { label: "Are you studying or preparing for an exam in 2027?", exam: "Preparing for an exam", course: "Doing a course or studies", none: "No" },
+            practice: { label: "Do you keep a spiritual practice (puja, prayer, meditation)?", daily: "Yes, daily", sometimes: "Now and then", never: "No" },
           },
           baby_name: {
             hasChild: "Do you already have a child?",

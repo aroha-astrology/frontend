@@ -33,6 +33,8 @@ export interface ReportQuestion {
    * account already holds (numerology's phone number). Such a question gets no "why we ask" note
    * and never triggers the general-report warning. */
   overridesAccount?: true;
+  /** The reader cannot buy until this is answered (Varshik Rashifal: every answer is needed, nothing is guessed). */
+  required?: true;
 }
 
 /** True when the reader is about to buy a report without answering any of the questions that
@@ -41,6 +43,11 @@ export interface ReportQuestion {
 export function answeredNone(questions: ReportQuestion[], answers: Record<string, string>): boolean {
   if (!questions.some((q) => !q.overridesAccount)) return false;
   return !questions.some((q) => (answers[q.id] ?? "").trim() !== "");
+}
+
+/** The visible questions the reader has not answered yet but must: the Buy button stays shut until this is empty. */
+export function missingRequired(questions: ReportQuestion[], answers: Record<string, string>): ReportQuestion[] {
+  return questions.filter((q) => q.required && (answers[q.id] ?? "").trim() === "");
 }
 
 // ── Questions shared by more than one report ────────────────────────────────
@@ -209,11 +216,12 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
   // jyotish-backend modules/reports/varshik-purchase.ts rejects anything else, the scorer's
   // decision table (config/varshik-weights.ts) and the text check for what the report may say
   // about a partner, children or work (lib/llm/reports/verify-varshik-text.ts) read the same
-  // values. Keep the four in step.
+  // values. Keep the ten in step; every one is required.
   varshik_rashifal_2027: [
     {
       id: "relationship",
       type: "select",
+      required: true,
       labelKey: "reports.questions.varshik_rashifal_2027.relationship.label",
       options: [
         { value: "single", labelKey: "reports.questions.varshik_rashifal_2027.relationship.single" },
@@ -225,6 +233,7 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
     {
       id: "occupation",
       type: "select",
+      required: true,
       labelKey: "reports.questions.varshik_rashifal_2027.occupation.label",
       options: [
         { value: "student", labelKey: "reports.questions.varshik_rashifal_2027.occupation.student" },
@@ -238,6 +247,7 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
     {
       id: "children",
       type: "select",
+      required: true,
       labelKey: "reports.questions.varshik_rashifal_2027.children.label",
       options: [
         { value: "none", labelKey: "reports.questions.varshik_rashifal_2027.children.none" },
@@ -248,6 +258,7 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
     {
       id: "mainDecision",
       type: "select",
+      required: true,
       labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.label",
       options: [
         { value: "job_change", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.jobChange" },
@@ -258,6 +269,78 @@ export const REPORT_QUESTIONS: Record<string, ReportQuestion[]> = {
         { value: "health", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.health" },
         { value: "study", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.study" },
         { value: "nothing_specific", labelKey: "reports.questions.varshik_rashifal_2027.mainDecision.nothingSpecific" },
+      ],
+    },
+    {
+      id: "livingWith",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.livingWith.label",
+      options: [
+        { value: "alone", labelKey: "reports.questions.varshik_rashifal_2027.livingWith.alone" },
+        { value: "partner", labelKey: "reports.questions.varshik_rashifal_2027.livingWith.partner" },
+        { value: "parents", labelKey: "reports.questions.varshik_rashifal_2027.livingWith.parents" },
+        { value: "joint_family", labelKey: "reports.questions.varshik_rashifal_2027.livingWith.jointFamily" },
+        { value: "friends_or_others", labelKey: "reports.questions.varshik_rashifal_2027.livingWith.friendsOrOthers" },
+      ],
+    },
+    {
+      id: "home",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.home.label",
+      options: [
+        { value: "own", labelKey: "reports.questions.varshik_rashifal_2027.home.own" },
+        { value: "rented", labelKey: "reports.questions.varshik_rashifal_2027.home.rented" },
+        { value: "family_home", labelKey: "reports.questions.varshik_rashifal_2027.home.familyHome" },
+        { value: "buying_or_building", labelKey: "reports.questions.varshik_rashifal_2027.home.buyingOrBuilding" },
+      ],
+    },
+    {
+      id: "moneyFocus",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.label",
+      options: [
+        { value: "saving", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.saving" },
+        { value: "investing", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.investing" },
+        { value: "clearing_debt", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.clearingDebt" },
+        { value: "earning_more", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.earningMore" },
+        { value: "big_purchase", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.bigPurchase" },
+        { value: "nothing_specific", labelKey: "reports.questions.varshik_rashifal_2027.moneyFocus.nothingSpecific" },
+      ],
+    },
+    {
+      id: "travelPlan",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.travelPlan.label",
+      options: [
+        { value: "abroad", labelKey: "reports.questions.varshik_rashifal_2027.travelPlan.abroad" },
+        { value: "within_india", labelKey: "reports.questions.varshik_rashifal_2027.travelPlan.withinIndia" },
+        { value: "none", labelKey: "reports.questions.varshik_rashifal_2027.travelPlan.none" },
+      ],
+    },
+    {
+      id: "studyPlan",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.studyPlan.label",
+      options: [
+        { value: "exam", labelKey: "reports.questions.varshik_rashifal_2027.studyPlan.exam" },
+        { value: "course", labelKey: "reports.questions.varshik_rashifal_2027.studyPlan.course" },
+        { value: "none", labelKey: "reports.questions.varshik_rashifal_2027.studyPlan.none" },
+      ],
+    },
+    {
+      id: "practice",
+      type: "select",
+      required: true,
+      labelKey: "reports.questions.varshik_rashifal_2027.practice.label",
+      options: [
+        { value: "daily", labelKey: "reports.questions.varshik_rashifal_2027.practice.daily" },
+        { value: "sometimes", labelKey: "reports.questions.varshik_rashifal_2027.practice.sometimes" },
+        { value: "never", labelKey: "reports.questions.varshik_rashifal_2027.practice.never" },
       ],
     },
   ],

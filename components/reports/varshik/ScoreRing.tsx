@@ -95,7 +95,7 @@ export default function ScoreRing({ score, tier, caption, size = "11rem" }: Scor
           <span
             ref={ref}
             className="vk-foil vk-shimmer font-light leading-none tabular-nums"
-            style={{ fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "3.4rem" }}
+            style={{ fontFamily: "var(--vk-serif)", fontSize: "3.4rem" }}
           >
             {value}
           </span>

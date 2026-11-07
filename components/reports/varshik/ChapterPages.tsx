@@ -44,7 +44,7 @@ function MonthChip({ month, score, tier, lang, onClick }: { month: number; score
       style={{ borderColor: color }}
     >
       <span className="vk-h3 break-words">{monthLong(month, lang)}</span>
-      <span className="tabular-nums" style={{ color, fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "1.5rem" }}>
+      <span className="tabular-nums" style={{ color, fontFamily: "var(--vk-serif)", fontSize: "1.5rem" }}>
         {Math.round(score)}
       </span>
       <span className="vk-caption" style={{ color }}>

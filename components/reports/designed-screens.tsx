@@ -20,7 +20,7 @@ import NameChangeReportView from "./name-change/NameChangeReportView";
 import type { ReportReady } from "@/hooks/useReport";
 
 export interface DesignedScreen {
-  View: (props: { data: ReportReady }) => React.ReactNode;
+  View: (props: { data: ReportReady; /** The report's id, for views that print an edition number. */ reportId?: string }) => React.ReactNode;
   /** Hero artwork, sliced from a design sheet (scripts/assets/asset-manifest.json). */
   artSrc: string;
   /** i18n key for the one-line subtitle in the hero. */

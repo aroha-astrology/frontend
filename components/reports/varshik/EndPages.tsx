@@ -12,7 +12,7 @@ import type { Tier } from "./types";
 import type { PageCtx } from "./page-types";
 import type { ReportSection } from "@/lib/reports-api";
 
-const HAND = "var(--font-hand), var(--font-serif-alt), serif";
+const HAND = "var(--font-hand), var(--vk-serif)";
 const REMEDY_ICONS = ["A40", "A41", "A42", "A43", "A44", "A45"];
 
 /** Page 53. Simple remedies, at most three. */
@@ -65,7 +65,7 @@ export function YearCardBody({ ctx }: { ctx: PageCtx }) {
             style={{ borderColor: TIER_COLOR[mode][c.tier] }}
           >
             <span className="vk-caption">{monthShort(m, i18n.language)}</span>
-            <span className="tabular-nums" style={{ color: TIER_COLOR[mode][c.tier], fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "1.25rem" }}>
+            <span className="tabular-nums" style={{ color: TIER_COLOR[mode][c.tier], fontFamily: "var(--vk-serif)", fontSize: "1.25rem" }}>
               {Math.round(c.score)}
             </span>
           </li>

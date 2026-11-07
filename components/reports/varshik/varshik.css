@@ -11,8 +11,11 @@
   --vk-panel-bottom: rgba(255, 255, 255, 0);
   --vk-shadow: 0 16px 36px -22px rgba(0, 0, 0, 0.9);
   --vk-haze: color-mix(in srgb, var(--gold) 9%, transparent);
+  /* Latin in Cormorant and Inter; every Indic script in its own Noto Serif (self-hosted), never a system font. */
+  --vk-serif: var(--font-vk-serif), var(--font-serif-alt), var(--font-vk-deva), var(--font-vk-bn), var(--font-vk-ta), var(--font-vk-te), var(--font-vk-kn), var(--font-vk-gu), Georgia, serif;
+  --vk-sans: var(--font-body), var(--font-vk-deva), var(--font-vk-bn), var(--font-vk-ta), var(--font-vk-te), var(--font-vk-kn), var(--font-vk-gu), system-ui, sans-serif;
   color: var(--foreground);
-  font-family: var(--font-body), system-ui, sans-serif;
+  font-family: var(--vk-sans);
   line-height: 1.45;
 }
 
@@ -53,7 +56,7 @@
 }
 
 .vk-title {
-  font-family: var(--font-serif-alt), var(--font-devanagari), Georgia, serif;
+  font-family: var(--vk-serif);
   font-weight: 400;
   font-size: 1.75rem;
   line-height: 1.25;
@@ -134,7 +137,7 @@
 /* A drop cap on the first paragraph of a chapter's text. Latin scripts only: the component adds this class only for them. */
 .vk-dropcap::first-letter {
   float: left;
-  font-family: var(--font-serif-alt), Georgia, serif;
+  font-family: var(--vk-serif);
   font-size: 3.4em;
   line-height: 0.82;
   padding: 0.06em 0.1em 0 0;
@@ -143,7 +146,7 @@
 
 /* A pull-quote: one striking sentence, serif italic with a gold bar. */
 .vk-quote {
-  font-family: var(--font-serif-alt), var(--font-devanagari), Georgia, serif;
+  font-family: var(--vk-serif);
   font-style: italic;
   font-size: 1.25rem;
   line-height: 1.45;

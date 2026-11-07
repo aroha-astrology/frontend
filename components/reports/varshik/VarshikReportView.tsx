@@ -11,6 +11,7 @@ import { readVarshik } from "./data";
 import PageFrame, { CHAPTER_EN } from "./PageFrame";
 import ReportSurface from "./ReportSurface";
 import { buildPages } from "./pages";
+import { editionNumber } from "./facts-helpers";
 import type { PageCtx } from "./page-types";
 
 const SWIPE_PX = 70;
@@ -20,7 +21,7 @@ const SWIPE_PX = 70;
  * Swipe, use the buttons or the arrow keys; the contents list and the Timing Map open any page.
  * Everything on the pages is read from the frozen facts (`scores.varshik`) and the checked text.
  */
-export default function VarshikReportView({ data }: { data: ReportReady }) {
+export default function VarshikReportView({ data, reportId }: { data: ReportReady; reportId?: string }) {
   const { t, i18n } = useTranslation();
   const reduce = useReducedMotion();
   const top = useRef<HTMLDivElement>(null);
@@ -51,6 +52,7 @@ export default function VarshikReportView({ data }: { data: ReportReady }) {
     return {
       ...read,
       name: read.facts.reader.name,
+      edition: reportId ? editionNumber(reportId) : null,
       lang,
       pages: pages.map((p) => ({ key: p.key, chapter: p.chapter, title: p.title })),
       go: (key) => {
@@ -62,7 +64,7 @@ export default function VarshikReportView({ data }: { data: ReportReady }) {
         if (i >= 0) goIndex(i);
       },
     };
-  }, [read, lang, pages, goIndex]);
+  }, [read, lang, pages, goIndex, reportId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

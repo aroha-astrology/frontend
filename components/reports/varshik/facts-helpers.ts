@@ -4,6 +4,12 @@ import { AREAS } from "./types";
 const SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 const SIGN_LORD = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
 
+/** A six-digit edition number taken from the report id, the same every time for the same report. */
+export function editionNumber(reportId: string): string {
+  const n = parseInt(reportId.replace(/[^0-9a-f]/gi, "").slice(-6) || "0", 16) % 1_000_000;
+  return String(n).padStart(6, "0");
+}
+
 /** Full month name in the reader's language. */
 export function monthLong(m: number, lang: string): string {
   try {

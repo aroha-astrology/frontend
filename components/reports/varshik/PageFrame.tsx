@@ -52,7 +52,7 @@ export default function PageFrame({
       <div className="flex min-w-0 flex-col gap-5">{children}</div>
       <footer className="flex items-center justify-between pt-2">
         <span className="vk-caption" style={{ letterSpacing: "0.18em" }}>AROHA</span>
-        <span className="tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "1.1rem" }}>
+        <span className="tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--vk-serif)", fontSize: "1.1rem" }}>
           {pageNo} <span className="vk-caption">/ {total}</span>
         </span>
       </footer>

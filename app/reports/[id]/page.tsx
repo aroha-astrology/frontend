@@ -371,7 +371,7 @@ export default function ReportDetailPage() {
         {state === "ready" && data && designed && (
           <>
             <Masonry data-tour="report-body">
-              <designed.View data={data} />
+              <designed.View data={data} reportId={id} />
             </Masonry>
             {/* The 10 designed screens compose their own cards and never call
                 ReportScoreFacts, so the strength card is appended once here rather than

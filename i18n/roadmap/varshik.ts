@@ -280,6 +280,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "Baba Ji",
         "edition": "Edition 2027",
+        "editionNo": "Edition 2027 · No. {{n}}",
         "from": "A letter from",
         "howToRead": "How to read your colours",
         "monthly": "Open this report on the 1st of each month and read that month's two pages. The year is a map; the month is where you walk."
@@ -574,6 +575,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "Baba Ji",
         "edition": "संस्करण 2027",
+        "editionNo": "संस्करण 2027 · क्र. {{n}}",
         "from": "यह पत्र लिखा है",
         "howToRead": "अपने रंग कैसे पढ़ें",
         "monthly": "हर महीने की 1 तारीख़ को यह रिपोर्ट खोलें और उस महीने के दो पन्ने पढ़ें। वर्ष एक नक्शा है; महीना वह जगह है जहाँ आप चलते हैं।"
@@ -868,6 +870,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "বাবা জি",
         "edition": "এডিশন 2027",
+        "editionNo": "2027 সংস্করণ · নং {{n}}",
         "from": "একটি চিঠি",
         "howToRead": "আপনার রঙ কীভাবে পড়বেন",
         "monthly": "প্রতি মাসের প্রথম তারিখে এই রিপোর্ট খুলুন এবং ওই মাসের দুই পৃষ্ঠা পড়ুন। বছর হলো একটি মানচিত্র; মাস হলো যেখানে আপনি হাঁটবেন।"
@@ -1162,6 +1165,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "बाबा जी",
         "edition": "एडिशन 2027",
+        "editionNo": "संस्करण 2027 · क्र. {{n}}",
         "from": "पत्र",
         "howToRead": "तुमचे रंग कसे वाचावे",
         "monthly": "प्रत्येक महिन्याच्या पहिल्या तारखेला हे रिपोर्ट उघडा आणि त्या महिन्याची दोन पाने वाचा. वर्ष एक नकाशा आहे; महिना म्हणजे तुमचा प्रवास."
@@ -1456,6 +1460,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "బాబా జీ",
         "edition": "ఎడిషన్ 2027",
+        "editionNo": "2027 సంచిక · సంఖ్య {{n}}",
         "from": "వారి నుండి లేఖ",
         "howToRead": "మీ రంగులను ఎలా చదవాలి",
         "monthly": "ప్రతి నెల 1వ తేదీన ఈ నివేదికను తెరవండి మరియు ఆ నెల రెండు పేజీలను చదవండి. సంవత్సరం ఒక మ్యాప్; నెల మీరు నడిచే ప్రదేశం."
@@ -1750,6 +1755,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "பாபா ஜி",
         "edition": "பதிப்பு 2027",
+        "editionNo": "2027 பதிப்பு · எண் {{n}}",
         "from": "இதோ ஒரு கடிதம்",
         "howToRead": "உங்கள் நிறங்களை எப்படிப் படிப்பது",
         "monthly": "ஒவ்வொரு மாதத்தின் முதல் தேதியிலும் இந்த அறிக்கையைத் திறந்து, அந்த மாதத்தின் இரண்டு பக்கங்களைப் படியுங்கள். ஆண்டு ஒரு வரைபடம்; மாதம் நீங்கள் நடக்கும் பாதை."
@@ -2044,6 +2050,7 @@ export const varshikBundle: RoadmapBundle = {
       "welcome": {
         "babaJi": "બાબા જી",
         "edition": "સંસ્કરણ 2027",
+        "editionNo": "સંસ્કરણ 2027 · નં. {{n}}",
         "from": "પત્ર",
         "howToRead": "તમારા રંગો કેવી રીતે વાંચવા",
         "monthly": "દર મહિનાની 1 તારીખે આ રિપોર્ટ ખોલો અને તે મહિનાના બે પાના વાંચો. વર્ષ એ નકશો છે; મહિનો એ જગ્યા છે જ્યાં તમે ચાલો છો."

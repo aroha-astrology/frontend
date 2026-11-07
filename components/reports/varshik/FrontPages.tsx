@@ -18,7 +18,7 @@ const TIERS: { tier: Tier; range: string }[] = [
   { tier: "rust", range: "<45" },
 ];
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI"];
-const HAND = "var(--font-hand), var(--font-serif-alt), serif";
+const HAND = "var(--font-hand), var(--vk-serif)";
 
 /** The reader's name, written out a letter at a time (whole letters, so Indic conjuncts never split). Instant for reduced motion. */
 function WritesItself({ text }: { text: string }) {
@@ -68,7 +68,7 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
         <span className="vk-eyebrow">{t("varshik.cover.eyebrow", { defaultValue: "Varshik Rashifal" })}</span>
         <span
           className="vk-foil leading-none"
-          style={{ fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "5rem", fontWeight: 400 }}
+          style={{ fontFamily: "var(--vk-serif)", fontSize: "5rem", fontWeight: 400 }}
         >
           2027
         </span>
@@ -130,7 +130,11 @@ export function WelcomeBody({ ctx }: { ctx: PageCtx }) {
         <ArtSlot kind="medallion" code="A49" src={art("A49")} maxWidth="4.5rem" />
       </div>
       <hr className="vk-rule m-0" aria-hidden="true" />
-      <p className="vk-caption m-0 text-center">{t("varshik.welcome.edition", { defaultValue: "Edition 2027" })}</p>
+      <p className="vk-caption m-0 text-center">
+        {ctx.edition
+          ? t("varshik.welcome.editionNo", { defaultValue: "Edition 2027 · No. {{n}}", n: ctx.edition })
+          : t("varshik.welcome.edition", { defaultValue: "Edition 2027" })}
+      </p>
     </div>
   );
 }
@@ -156,7 +160,7 @@ export function ContentsBody({ ctx }: { ctx: PageCtx }) {
                 <span className="vk-eyebrow">{t("varshik.contents.chapter", { defaultValue: "Chapter {{n}}", n: ROMAN[r.chapter] })}</span>
                 <span className="vk-h3 break-words">{t(`varshik.chapter.${r.chapter}`, { defaultValue: CHAPTER_EN[r.chapter] })}</span>
               </span>
-              <span className="tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--font-serif-alt), Georgia, serif" }}>
+              <span className="tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--vk-serif)" }}>
                 {r.from}
                 {r.to !== r.from ? `–${r.to}` : ""}
               </span>

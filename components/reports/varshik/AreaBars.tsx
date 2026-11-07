@@ -39,7 +39,7 @@ export default function AreaBars({
               <span className="flex shrink-0 items-baseline gap-2">
                 <span
                   className="tabular-nums"
-                  style={{ fontFamily: "var(--font-serif-alt), Georgia, serif", fontSize: "1.5rem", color: "var(--foreground)" }}
+                  style={{ fontFamily: "var(--vk-serif)", fontSize: "1.5rem", color: "var(--foreground)" }}
                 >
                   {Math.round(score)}
                 </span>

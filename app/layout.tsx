@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif, Kalam } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif, Kalam, Noto_Serif_Devanagari, Noto_Serif_Bengali, Noto_Serif_Tamil, Noto_Serif_Telugu, Noto_Serif_Kannada, Noto_Serif_Gujarati } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -89,6 +89,24 @@ const kalam = Kalam({
   preload: false,
 });
 
+// The Varshik Rashifal report's own type (plan: "Premium standard"): Cormorant Garamond in the weights and the
+// italic the headings and pull-quotes use, and Noto Serif for each Indic script so the report never falls back to
+// a system font. next/font self-hosts them; none is preloaded, so only a reader of the report downloads them.
+const reportSerif = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-vk-serif",
+  display: "swap",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  preload: false,
+});
+const reportDeva = Noto_Serif_Devanagari({ subsets: ["devanagari"], variable: "--font-vk-deva", display: "swap", weight: ["400", "600"], preload: false });
+const reportBengali = Noto_Serif_Bengali({ subsets: ["bengali"], variable: "--font-vk-bn", display: "swap", weight: ["400", "600"], preload: false });
+const reportTamil = Noto_Serif_Tamil({ subsets: ["tamil"], variable: "--font-vk-ta", display: "swap", weight: ["400", "600"], preload: false });
+const reportTelugu = Noto_Serif_Telugu({ subsets: ["telugu"], variable: "--font-vk-te", display: "swap", weight: ["400", "600"], preload: false });
+const reportKannada = Noto_Serif_Kannada({ subsets: ["kannada"], variable: "--font-vk-kn", display: "swap", weight: ["400", "600"], preload: false });
+const reportGujarati = Noto_Serif_Gujarati({ subsets: ["gujarati"], variable: "--font-vk-gu", display: "swap", weight: ["400", "600"], preload: false });
+
 const APP_DESCRIPTION =
   "Aroha Astrology in your browser: free Kundli, daily Panchang, Kundli matching and personalised reports. Sign in with the same account as the Android app.";
 
@@ -133,7 +151,7 @@ export default function RootLayout({
         {/* Puts the remembered look on <html> before the first paint, so a Modern Cosmic user never sees a gold flash. */}
         <script dangerouslySetInnerHTML={{ __html: SKIN_BOOT_SCRIPT }} />
       </head>
-      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable}`}>
+      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable} ${reportSerif.variable} ${reportDeva.variable} ${reportBengali.variable} ${reportTamil.variable} ${reportTelugu.variable} ${reportKannada.variable} ${reportGujarati.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>

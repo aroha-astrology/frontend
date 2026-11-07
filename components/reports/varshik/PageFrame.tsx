@@ -33,7 +33,7 @@ export default function PageFrame({
 }) {
   const { t } = useTranslation();
   return (
-    <article className="vk-panel flex min-w-0 flex-col gap-4 p-5" aria-label={title}>
+    <article className="vk-panel vk-page-art flex min-w-0 flex-col gap-4 p-5" aria-label={title}>
       <header className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="vk-caption min-w-0 break-words">{t(`varshik.chapter.${chapter}`, { defaultValue: CHAPTER_EN[chapter] })}</span>
         {name ? (

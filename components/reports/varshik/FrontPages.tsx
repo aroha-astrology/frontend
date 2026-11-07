@@ -53,7 +53,17 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
   return (
     <div className="flex min-w-0 flex-col items-center gap-5 py-2 text-center">
-      <ArtSlot kind="opener" code="A1" src={art("A1")} maxWidth="15rem" />
+      {/* The cover art has an empty nameplate near the bottom; the reader's name is written on it. */}
+      <div className="relative w-full" style={{ maxWidth: "15rem" }}>
+        <ArtSlot kind="opener" code="A1" src={art("A1")} maxWidth="100%" />
+        {ctx.name ? (
+          <div className="pointer-events-none absolute inset-x-[16%] flex items-center justify-center overflow-hidden text-center" style={{ top: "84.2%", height: "8.4%" }}>
+            <span className="min-w-0 break-words leading-[1.15]" style={{ fontFamily: HAND, fontSize: "0.98rem", color: "var(--vk-gold-hi)", textShadow: "0 0 10px rgba(226,188,106,0.55)" }}>
+              <WritesItself text={ctx.name} />
+            </span>
+          </div>
+        ) : null}
+      </div>
       <div className="flex min-w-0 flex-col items-center gap-1">
         <span className="vk-eyebrow">{t("varshik.cover.eyebrow", { defaultValue: "Varshik Rashifal" })}</span>
         <span
@@ -64,15 +74,6 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
         </span>
         <h1 className="vk-title m-0 break-words">{t("varshik.cover.title", { defaultValue: "Your year ahead" })}</h1>
       </div>
-      <hr className="vk-rule m-0 w-40" aria-hidden="true" />
-      {ctx.name ? (
-        <p className="m-0 flex min-w-0 flex-col items-center gap-1 break-words">
-          <span className="vk-caption">{t("varshik.page.preparedForLabel", { defaultValue: "Prepared for" })}</span>
-          <span style={{ fontFamily: HAND, fontSize: "1.75rem", color: "var(--gold)" }}>
-            <WritesItself text={ctx.name} />
-          </span>
-        </p>
-      ) : null}
     </div>
   );
 }

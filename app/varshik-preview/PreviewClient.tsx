@@ -21,6 +21,7 @@ import SkyCalendar from "@/components/reports/varshik/SkyCalendar";
 import ArtSlot from "@/components/reports/varshik/ArtSlot";
 import ReportSurface, { ReportSection } from "@/components/reports/varshik/ReportSurface";
 import VarshikReportView from "@/components/reports/varshik/VarshikReportView";
+import VarshikWaiting from "@/components/reports/varshik/VarshikWaiting";
 import { sampleReport } from "@/components/reports/varshik/fixtures/sample-report";
 
 /** Long Indic sentences for the engine-written text that is not in the bundle (dosha notes), so wrapping is tested at real length. */
@@ -52,6 +53,16 @@ export default function PreviewClient() {
   );
   const v = f.varsha[f.varsha.length - 1];
   const love = f.scores.timingMap.love;
+  if (view === "wait") {
+    const done = typeof window === "undefined" ? 0 : Number(new URLSearchParams(window.location.search).get("done") ?? 0);
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto max-w-[420px] p-6">
+          <VarshikWaiting progress={{ done, total: 5 }} />
+        </main>
+      </ReportSurface>
+    );
+  }
   if (view === "report") {
     return (
       <ReportSurface page className="min-h-screen">

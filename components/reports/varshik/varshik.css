@@ -170,3 +170,33 @@
     scroll-behavior: auto;
   }
 }
+
+/* The page itself (A37 dark, A38 light, made in code): faint star dust in dark, warm paper grain in light, and a fine inner gold rule. */
+.vk-panel.vk-page-art {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 78% 9%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(1.4px 1.4px at 91% 34%, rgba(255, 244, 214, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 6% 64%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1px 1px at 55% 88%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1.3px 1.3px at 86% 92%, rgba(255, 244, 214, 0.45), transparent 60%),
+    radial-gradient(120% 80% at 0% 0%, var(--vk-haze), transparent 60%),
+    linear-gradient(160deg, var(--vk-panel-top), var(--vk-panel-bottom));
+}
+.light .vk-panel.vk-page-art {
+  background-image:
+    radial-gradient(1px 1px at 15% 22%, rgba(148, 106, 23, 0.22), transparent 60%),
+    radial-gradient(1px 1px at 84% 12%, rgba(148, 106, 23, 0.2), transparent 60%),
+    radial-gradient(1.2px 1.2px at 8% 80%, rgba(148, 106, 23, 0.18), transparent 60%),
+    radial-gradient(1px 1px at 92% 70%, rgba(148, 106, 23, 0.2), transparent 60%),
+    radial-gradient(120% 80% at 0% 0%, var(--vk-haze), transparent 60%),
+    linear-gradient(160deg, #fffdf6, #faf3e1);
+}
+.vk-page-art::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent);
+  border-radius: calc(1rem - 4px);
+  pointer-events: none;
+}

@@ -39,6 +39,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "Best months",
         "intro": "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time.",
+        "overall": "Overall for 2027",
         "rest": "Quietest month"
       },
       "art": {
@@ -185,7 +186,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "The big moves of the sky",
         "planets": "Planet by planet",
         "preparedFor": "Prepared for {{name}}",
-        "preparedForLabel": "Prepared for",
         "relief": "What you have been through, and what changes",
         "remedies": "Simple remedies",
         "rhythm": "The rhythm of your year",
@@ -333,6 +333,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "सबसे अच्छे महीने",
         "intro": "जीवन के सात पहलू, जिनमें से प्रत्येक को 2027 के पूरे वर्ष के लिए 100 में से अंकित किया गया है। अगले सात पृष्ठ उन्हें एक-एक करके ले जाएंगे।",
+        "overall": "2027 का समग्र फल",
         "rest": "सबसे शांत महीना"
       },
       "art": {
@@ -479,7 +480,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "आकाश की बड़ी चालें",
         "planets": "ग्रह-दर-ग्रह",
         "preparedFor": "{{name}} के लिए तैयार",
-        "preparedForLabel": "तैयार किया गया",
         "relief": "जो आपने झेला, और जो बदलने वाला है",
         "remedies": "सरल उपाय",
         "rhythm": "आपके वर्ष की लय",
@@ -627,6 +627,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "সেরা মাসগুলো",
         "intro": "জীবনের সাতটি অংশ, প্রতিটি 2027 সালের জন্য 100-এর মধ্যে স্কোর করা। পরবর্তী সাতটি পৃষ্ঠায় এগুলো একে একে আলোচনা করা হয়েছে।",
+        "overall": "2027 সালের সামগ্রিক ফল",
         "rest": "সবচেয়ে শান্ত মাস"
       },
       "art": {
@@ -773,7 +774,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "আকাশের বড় পরিবর্তন",
         "planets": "গ্রহ অনুযায়ী",
         "preparedFor": "{{name}}-এর জন্য প্রস্তুত",
-        "preparedForLabel": "প্রস্তুত",
         "relief": "আপনি যা পার করেছেন, আর কী পরিবর্তন আসছে",
         "remedies": "সহজ উপায়",
         "rhythm": "আপনার বছরের লয়",
@@ -921,6 +921,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "सर्वात उत्तम महिने",
         "intro": "जीवनाचे सात भाग, प्रत्येकाला 2027 च्या संपूर्ण वर्षासाठी 100 पैकी गुण. पुढील सात पाने ती एकेक करून घेतात.",
+        "overall": "2027 साठी सारांश",
         "rest": "सर्वात शांत महिना"
       },
       "art": {
@@ -1067,7 +1068,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "आकाशातील मोठे हाल",
         "planets": "ग्रहानुसार ग्रह",
         "preparedFor": "{{name}} साठी तयार",
-        "preparedForLabel": "तयार",
         "relief": "तुम्ही काय अनुभवले, आणि काय बदल",
         "remedies": "सोपे उपाय",
         "rhythm": "तुमच्या वर्षाचा लय",
@@ -1215,6 +1215,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "ఉత్తమ నెలలు",
         "intro": "జీవితానికి ఏడు అంశాలు, ప్రతిదానికీ 2027 మొత్తానికి 100లో స్కోరు. తర్వాత ఏడు పేజీలు వాటిని ఒక్కొక్కటిగా తీసుకుంటాయి.",
+        "overall": "2027 సంవత్సరానికి సమగ్ర ఫలితాలు",
         "rest": "అత్యంత నిశ్శబ్ద నెల"
       },
       "art": {
@@ -1361,7 +1362,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "ఆకాశం యొక్క పెద్ద కదలికలు",
         "planets": "గ్రహం వారీగా",
         "preparedFor": "{{name}} కోసం సిద్ధం",
-        "preparedForLabel": "సిద్ధం చేయబడింది",
         "relief": "మీరు ఎదుర్కొన్నది, మరియు మార్పులు",
         "remedies": "సాధారణ పరిహారాలు",
         "rhythm": "మీ సంవత్సరం యొక్క లయ",
@@ -1509,6 +1509,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "சிறந்த மாதங்கள்",
         "intro": "வாழ்க்கையின் ஏழு பகுதிகள், ஒவ்வொன்றும் 2027 முழுவதற்கும் 100-ல் மதிப்பெண் பெற்றவை. அடுத்த ஏழு பக்கங்கள் அவற்றை ஒவ்வொன்றாக எடுத்துக்கொள்கின்றன.",
+        "overall": "2027-க்கான ஒட்டுமொத்தம்",
         "rest": "அமைதியான மாதம்"
       },
       "art": {
@@ -1655,7 +1656,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "வானத்தின் பெரிய நகர்வுகள்",
         "planets": "கிரகம் வாரியாக",
         "preparedFor": "{{name}}-க்காக தயாரிக்கப்பட்டது",
-        "preparedForLabel": "தயாரிக்கப்பட்டது",
         "relief": "நீங்கள் கடந்து வந்தது, மற்றும் மாறப்போவது",
         "remedies": "எளிய தீர்வுகள்",
         "rhythm": "உங்கள் ஆண்டின் இயல்பு",
@@ -1803,6 +1803,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "સૌથી શુભ મહિના",
         "intro": "જીવનના સાત ભાગ, દરેકનું ૨૦૨૭ના સમગ્ર વર્ષ માટે ૧૦૦માં સ્કોર. આગામી સાત પાના તેને એકેયે લેશે.",
+        "overall": "2027 નું સમગ્ર વર્ષ",
         "rest": "શાંતતમ મહિનો"
       },
       "art": {
@@ -1949,7 +1950,6 @@ export const varshikBundle: RoadmapBundle = {
         "moves": "આકાશના મોટા ફેરફારો",
         "planets": "ગ્રહ મુજબ",
         "preparedFor": "{{name}} માટે તૈયાર",
-        "preparedForLabel": "તૈયાર",
         "relief": "તમે જેમાંથી પસાર થયા છો અને શું બદલાશે",
         "remedies": "સાદા ઉપાય",
         "rhythm": "તમારા વર્ષનો લય",

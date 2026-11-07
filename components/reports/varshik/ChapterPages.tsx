@@ -239,7 +239,6 @@ export function AreaOverviewBody({ ctx }: { ctx: PageCtx }) {
 /** Pages 15-21. One area: banner, score, its twelve months, then the words. */
 export function AreaBody({ ctx, area }: { ctx: PageCtx; area: string }) {
   const { t } = useTranslation();
-  const tierWord = useTierWord();
   const cells = ctx.facts.scores.timingMap[area]!;
   const overall = ctx.facts.scores.areaOverall[area]!;
   const { best, hold } = areaExtremes(cells);
@@ -253,8 +252,8 @@ export function AreaBody({ ctx, area }: { ctx: PageCtx; area: string }) {
         <ScoreRing score={overall.score} tier={overall.tier} size="6.5rem" />
         <div className="flex min-w-0 flex-col gap-1">
           <span className="vk-h3 break-words">{label}</span>
-          <span className="vk-caption">
-            {TIER_GLYPH[overall.tier]} {tierWord(overall.tier)}
+          <span className="vk-caption break-words">
+            {t("varshik.areas.overall", { defaultValue: "Overall for 2027" })}
           </span>
         </div>
       </div>

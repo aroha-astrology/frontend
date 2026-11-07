@@ -45,19 +45,25 @@ export default function ArtSlot({
   const { t } = useTranslation();
   const { w, h } = ART_SIZE[kind];
   const radius = kind === "medallion" ? "9999px" : kind === "divider" ? "0.4rem" : "0.75rem";
+  // A finished medallion (cut out, transparent) and the ornament carry no frame of their own here.
+  const bare = !!src && (kind === "medallion" || kind === "divider");
 
   return (
     <div
-      className={`relative w-full overflow-hidden ${className}`}
-      style={{
-        aspectRatio: RATIO[kind],
-        maxWidth,
-        borderRadius: radius,
-        // The app's own surface tokens, so the frame matches in dark, light and both skins.
-        background: "linear-gradient(160deg, var(--surface), var(--card))",
-        border: "1px solid var(--border)",
-        boxShadow: "inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--border-faint)",
-      }}
+      className={`relative w-full ${bare ? "" : "overflow-hidden"} ${className}`}
+      style={
+        bare
+          ? { aspectRatio: RATIO[kind], maxWidth }
+          : {
+              aspectRatio: RATIO[kind],
+              maxWidth,
+              borderRadius: radius,
+              // The app's own surface tokens, so the frame matches in dark, light and both skins.
+              background: "linear-gradient(160deg, var(--surface), var(--card))",
+              border: "1px solid var(--border)",
+              boxShadow: "inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--border-faint)",
+            }
+      }
       role={src ? undefined : "img"}
       aria-label={src ? undefined : t("varshik.art.missing", { defaultValue: "Artwork {{code}} to be added", code })}
     >

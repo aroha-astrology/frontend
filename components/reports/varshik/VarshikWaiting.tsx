@@ -6,14 +6,27 @@ import ArtSlot from "./ArtSlot";
 import ReportSurface from "./ReportSurface";
 import { art } from "./assets";
 
-/** The five groups the backend writes, in order (lib/llm/reports/varshik-2027.ts). */
+/** The six groups the backend writes, in order (lib/llm/reports/varshik-2027.ts). */
 const STEPS: { key: string; en: string }[] = [
   { key: "shape", en: "Reading your chart and the shape of your year" },
   { key: "areas", en: "Scoring your planets, seven areas and timing" },
   { key: "monthsA", en: "Writing the first months of your year" },
   { key: "monthsB", en: "Writing the last months of your year" },
+  { key: "stars", en: "Reading your birth stars and the stars of 2027" },
   { key: "closing", en: "Writing your remedies and Baba Ji's letter" },
 ];
+
+/**
+ * How many steps to tick, from the API's own progress { done, total }. The count is scaled onto the named
+ * steps, so a backend that writes more or fewer groups than there are labels still ticks in proportion, and it
+ * stops one short of the last step: the last group is saved only with the finished report, so "all done" is
+ * never shown while the report is still being written.
+ */
+export function stepsDone(progress: { done: number; total: number } | undefined, steps: number = STEPS.length): number {
+  if (!progress || !(progress.total > 0)) return 0;
+  const scaled = Math.floor((Math.max(0, progress.done) / progress.total) * steps);
+  return Math.max(0, Math.min(steps - 1, scaled));
+}
 
 /**
  * The waiting screen for Varshik Rashifal 2027: the golden wheel (A46) turning slowly, and the
@@ -23,7 +36,7 @@ const STEPS: { key: string; en: string }[] = [
 export default function VarshikWaiting({ progress }: { progress?: { done: number; total: number } }) {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
-  const done = Math.max(0, Math.min(STEPS.length - 1, progress?.done ?? 0));
+  const done = stepsDone(progress);
   return (
     <ReportSurface>
       <div className="flex min-w-0 flex-col items-center gap-5 text-center">

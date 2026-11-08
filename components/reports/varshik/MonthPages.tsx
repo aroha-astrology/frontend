@@ -68,12 +68,26 @@ export function MonthABody({ ctx, month }: { ctx: PageCtx; month: number }) {
             {dates.map((d, i) => (
               <li key={i} className="flex min-w-0 gap-3 break-words">
                 <span className="vk-caption w-14 shrink-0 tabular-nums">{shortDate(d.date, lang)}</span>
-                <span className="vk-body min-w-0 flex-1" style={d.major || d.sky?.kind.startsWith("eclipse") ? { color: "var(--gold)" } : undefined}>
+                <span className="vk-body min-w-0 flex-1" style={d.major || (d.sky?.kind.startsWith("eclipse") && (d.sky.eclipse ? d.sky.eclipse.class === "grahan" : true)) ? { color: "var(--gold)" } : undefined}>
                   {d.kind === "sky" && d.sky
-                    ? skyLabel(t, d.sky)
+                    ? skyLabel(t, d.sky, lang, facts.reader.eclipsePlace)
                     : d.kind === "saham"
                       ? t("varshik.month.sahamPeak", { defaultValue: "Saham peak: {{name}}", name: d.label })
-                      : `✦ ${d.label}`}
+                      : d.kind === "star" || d.kind === "sensitive"
+                        ? t(d.kind === "sensitive" ? "varshik.month.starSensitive" : "varshik.month.starMove", {
+                            defaultValue: d.kind === "sensitive" ? "{{planet}} enters {{star}}, a sensitive star: {{plain}}" : "{{planet}} enters {{star}}: {{plain}}",
+                            planet: t(`varshik.planet.${(d.planet ?? "").toLowerCase()}`, { defaultValue: d.planet }),
+                            star: d.label,
+                            plain: t(d.plainKey ?? "", { defaultValue: d.plain }),
+                          })
+                        : d.kind === "moorti"
+                          ? t("varshik.month.moorti", {
+                              defaultValue: "{{planet}} enters {{sign}}: {{plain}}",
+                              planet: t(`varshik.planet.${(d.planet ?? "").toLowerCase()}`, { defaultValue: d.planet }),
+                              sign: signName(t, d.label ?? ""),
+                              plain: t(d.plainKey ?? "", { defaultValue: d.plain }),
+                            })
+                          : `✦ ${d.label}`}
                 </span>
               </li>
             ))}
@@ -88,11 +102,13 @@ export function MonthABody({ ctx, month }: { ctx: PageCtx; month: number }) {
 export function MonthBBody({ ctx, month }: { ctx: PageCtx; month: number }) {
   const { t } = useTranslation();
   const id = `month_${String(month + 1).padStart(2, "0")}`;
+  // The text has five paragraphs: the month's facts (also on page A, so no label), what to do and what to hold,
+  // career and money, love, family and health, and the month's one remedy.
   const labels = [
-    t("varshik.month.label.do", { defaultValue: "What to do" }),
-    t("varshik.month.label.hold", { defaultValue: "What to hold" }),
+    undefined,
+    t("varshik.month.label.do", { defaultValue: "What to do and what to hold" }),
     t("varshik.month.label.work", { defaultValue: "Career and money" }),
-    t("varshik.month.label.heart", { defaultValue: "Love and health" }),
+    t("varshik.month.label.heart", { defaultValue: "Love, family and health" }),
     t("varshik.month.label.remedy", { defaultValue: "This month's remedy" }),
   ];
   return (

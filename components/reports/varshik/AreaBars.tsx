@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSettled } from "./motion";
 import { useTranslation } from "react-i18next";
 import { AREAS, type Cell } from "./types";
 import { TIER_COLOR, TIER_GLYPH, TIER_WORD, useChartMode } from "./tiers";
@@ -17,7 +18,7 @@ export default function AreaBars({
 }) {
   const { t } = useTranslation();
   const mode = useChartMode();
-  const reduce = useReducedMotion();
+  const reduce = useSettled();
   const keys = order.filter((k) => areas[k]);
   if (keys.length === 0) return null;
 

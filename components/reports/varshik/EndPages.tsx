@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useY } from "./year-context";
 import ArtSlot from "./ArtSlot";
 import Narrative from "./Narrative";
 import ScoreRing from "./ScoreRing";
@@ -42,13 +43,14 @@ export function RemediesBody({ ctx }: { ctx: PageCtx }) {
 /** Page 54. The year on one card, and twelve small month cards. Carries no birth time, place or personal facts: it gets shared. */
 export function YearCardBody({ ctx }: { ctx: PageCtx }) {
   const { t, i18n } = useTranslation();
+  const y = useY();
   const mode = useChartMode();
   const { facts } = ctx;
   const v = facts.varsha[facts.varsha.length - 1]!;
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <div className="vk-panel flex min-w-0 flex-col items-center gap-3 p-5 text-center">
-        <span className="vk-eyebrow">{t("varshik.card.eyebrow", { defaultValue: "Varshik Rashifal 2027" })}</span>
+        <span className="vk-eyebrow">{y(t("varshik.card.eyebrow", { defaultValue: "Varshik Rashifal 2027" }))}</span>
         <ScoreRing score={facts.scores.overall.score} tier={facts.scores.overall.tier} size="9rem" />
         <span className="vk-body break-words">
           {t("varshik.card.yearLord", { defaultValue: "Year Lord: {{planet}}", planet: t(`varshik.planet.${v.yearLord.toLowerCase()}`, { defaultValue: v.yearLord }) })}

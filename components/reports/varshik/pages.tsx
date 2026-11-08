@@ -6,19 +6,22 @@ import { AreaBody, AreaOverviewBody, BigMovesBody, BirthChartBody, DoshasBody, G
 import { ClosingBody, QuestionBody, ReliefBody, RemediesBody, YearCardBody } from "./EndPages";
 import { ContentsBody, CoverBody, OpenerBody, WelcomeBody } from "./FrontPages";
 import { MonthABody, MonthBBody } from "./MonthPages";
+import { BirthStarsBody, ThreeFlagsBody, YourStarsBody } from "./StarPages";
 import { areasPresent, monthLong } from "./facts-helpers";
 import type { PageDef } from "./page-types";
 import type { VarshikFacts } from "./types";
+import { withYear } from "./year-context";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
- * The report's pages in plan order: 54 core pages, then one page per question the reader is facing
- * (0-5), the relief page and the closing letter, so 56 to 61 in all. Every page is built from the
+ * The report's pages in plan order: 57 core pages (54 and the three star pages added in C3), then one page per
+ * question the reader is facing (0-5), the relief page and the closing letter, so 59 to 64 in all. Every page is built from the
  * frozen facts and the checked text; a page whose words are missing still shows its chart.
  */
 export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSection>, t: TFunction, lang: string): PageDef[] {
-  const head = (id: string, key: string, en: string) => byId[id]?.heading || t(key, { defaultValue: en });
+  const yr = facts.year ?? 2027;
+  const head = (id: string, key: string, en: string) => byId[id]?.heading || withYear(t(key, { defaultValue: en }), yr);
   const pages: PageDef[] = [];
   const add = (p: PageDef) => pages.push(p);
 
@@ -34,8 +37,10 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
   });
   add({ key: "glance", chapter: 1, title: head("year_at_a_glance", "varshik.page.glance", "2027 at a glance"), Body: GlanceBody });
   add({ key: "birth", chapter: 1, title: t("varshik.page.birth", { defaultValue: "Your birth chart" }), Body: BirthChartBody });
+  add({ key: "birthstars", chapter: 1, title: head("birth_stars", "varshik.page.birthStars", "Your birth stars"), Body: BirthStarsBody });
   add({ key: "varsha", chapter: 1, title: head("two_varsha_years", "varshik.page.varsha", "Your two Varsha years"), Body: TwoVarshaBody });
   add({ key: "yearlord", chapter: 1, title: head("year_lord_muntha", "varshik.page.yearLord", "Your Year Lord and Muntha"), Body: YearLordBody });
+  add({ key: "flags", chapter: 1, title: head("three_flags", "varshik.page.flags", "The year's three flags"), Body: ThreeFlagsBody });
   add({ key: "moves", chapter: 1, title: head("big_sky_moves", "varshik.page.moves", "The big moves of the sky"), Body: BigMovesBody });
   add({ key: "planets", chapter: 1, title: head("planet_by_planet", "varshik.page.planets", "Planet by planet"), Body: PlanetsBody });
   add({ key: "doshas", chapter: 1, title: head("doshas", "varshik.page.doshas", "Doshas in your 2027"), Body: DoshasBody });
@@ -66,6 +71,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
   add({ key: "timing", chapter: 3, title: head("timing_map", "varshik.page.timing", "Your Master Timing Map"), Body: TimingMapBody });
   add({ key: "rhythm", chapter: 3, title: head("year_rhythm", "varshik.page.rhythm", "The rhythm of your year"), Body: RhythmBody });
   add({ key: "sky", chapter: 3, title: head("sky_calendar", "varshik.page.sky", "Sky calendar 2027"), Body: SkyBody });
+  add({ key: "yourstars", chapter: 3, title: head("your_stars_2027", "varshik.page.yourStars", "Your stars in 2027"), Body: YourStarsBody });
   add({ key: "act", chapter: 3, title: head("when_to_act", "varshik.page.act", "When to act"), Body: WhenToActBody });
   add({ key: "golden", chapter: 3, title: head("golden_windows", "varshik.page.golden", "Golden windows and key dates"), Body: GoldenBody });
 
@@ -76,7 +82,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     Body: () => <OpenerBody chapter={4} artCode="A5" blurbKey="varshik.opener.4" blurb="Two pages for every month: the month at a glance, and how to live it." />,
   });
   for (let m = 0; m < 12; m++) {
-    const name = `${monthLong(m, lang)} 2027`;
+    const name = `${monthLong(m, lang)} ${yr}`;
     add({
       key: `month_${m}_a`,
       chapter: 4,

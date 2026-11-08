@@ -1,7 +1,8 @@
 "use client";
 
 import { useId } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSettled } from "./motion";
 import { useTranslation } from "react-i18next";
 import type { Cell } from "./types";
 import { TIER_COLOR, TIER_GLYPH, useChartMode } from "./tiers";
@@ -27,7 +28,7 @@ export default function AreaMonthLine({
 }) {
   const { t, i18n } = useTranslation();
   const mode = useChartMode();
-  const reduce = useReducedMotion();
+  const reduce = useSettled();
   const gid = useId().replace(/:/g, "");
   if (cells.length !== 12) return null;
 

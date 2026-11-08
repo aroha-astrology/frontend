@@ -13,6 +13,7 @@ const IDS = [
   "area_love", "area_career", "area_money", "area_health", "area_family", "area_growth", "area_travel",
   "timing_map", "year_rhythm", "sky_calendar", "when_to_act", "golden_windows",
   ...Array.from({ length: 12 }, (_, i) => `month_${String(i + 1).padStart(2, "0")}`),
+  "birth_stars", "three_flags", "your_stars_2027",
   "simple_remedies", "what_changes", "closing_letter",
 ];
 
@@ -37,6 +38,9 @@ const HEADINGS: Record<string, string> = {
   sky_calendar: "Sky calendar 2027",
   when_to_act: "When to act",
   golden_windows: "Golden windows and key dates",
+  birth_stars: "Your birth stars",
+  three_flags: "The year's three flags",
+  your_stars_2027: "Your stars in 2027",
   simple_remedies: "Simple remedies",
   what_changes: "What you have been through, and what changes",
   closing_letter: "A closing letter from Baba Ji",

@@ -87,17 +87,19 @@ Assets are numbered A1–A48 in the "Assets" section below.
 | 2 | Welcome and how to read: the 4 colour tiers, and checking the report on the 1st of each month | Legend swatches, A47 ornament |
 | 3 | Contents | Chapter list with A2–A6 thumbnails |
 
-**Chapter I: The shape of your year (7)**
+**Chapter I: The shape of your year (9)** *(C3 added pages 6a and 8a; the numbers below are the original ones, so the new pages carry an "a")*
 | # | Page | Visual / asset |
 |---|---|---|
 | 4 | Chapter opener | A2 |
 | 5 | 2027 at a glance: overall score, Year Lord, Muntha house, the year's theme, 3 peak months and 1 rest month | `ScoreRing`, badges using A8–A16 |
 | 6 | Birth chart: date, time, place, Lagna, longitudes, dasha balance | North-Indian SVG |
+| 6a | **Your birth stars** *(C3)*. A 10-row table (9 planets and the Lagna): nakshatra, pada, star lord with its house, nature, deity and meaning in one plain line, its Tara from the birth star, and a "sensitive junction point" tag where a planet sits at a Gandanta. Below it, the stars of the lords that run in 2027 (Maha, Antar, Pratyantar, Mudda). Text: `birth_stars`, 4 paragraphs. | `StarPages.tsx` `BirthStarsBody` |
 | 7 | The two Varsha charts: 2026 and 2027 solar-return times and their Lagnas | `VarshaTimeline` |
 | 8 | Year Lord and Muntha | `PanchadhikariTable`, Muntha wheel, Year Lord medallion (A8–A16) |
+| 8a | **The year's three flags** *(C3)*. For each Varsha chart, the Tri-Pataki flags in plain words (who pierces the Lagna and who pierces the Moon, after Mehta; no combined score), then Mudda, Mudda Yogini and Patyayini side by side. Patyayini is shown by the week only ("2nd week of March"), never as an exact day. Text: `three_flags`, 3 paragraphs. | `StarPages.tsx` `ThreeFlagsBody` |
 | 9 | Big sky moves: Saturn, Jupiter, Rahu–Ketu by house and bindus, plus Sade Sati / Dhaiya from the natal Moon | `BigMovesGantt` |
 | 10 | Planet by planet: all 9 planets | `PlanetImpactTable` with A8–A16 |
-| 11 | **Doshas in your 2027.** Every dosha the engine checks: Mangal, Kaal Sarp, Pitra, Guru Chandal, Grahan, Kemadruma, Sade Sati and Dhaiya. Each gets its status (present / cancelled, with the reason / not present), the months of 2027 it is active (by dasha, Mudda dasha and transits), what it touches, and the simple remedy. Calm wording. | `DoshaTable` with month dots |
+| 11 | **Doshas in your 2027.** Every dosha the engine checks: Mangal, Kaal Sarp, Pitra, Guru Chandal, Grahan, Kemadruma, Sade Sati, Dhaiya and, since C3, Gandanta (the 9th, described as "a sensitive junction point"). Each gets its status (present / cancelled, with the reason / not present), the months of 2027 it is active (by dasha, Mudda dasha and transits), what it touches, and the simple remedy. Calm wording. | `DoshaTable` with month dots |
 | 12 | **Yogas on your side.** The natal yogas from `detectAllYogas`, plus the Tajika yogas of each Varsha chart (Ithasala, Kamboola and the rest), and the months they deliver | `YogaList` with month dots |
 
 **Chapter II: Seven areas of life (9)**
@@ -107,13 +109,14 @@ Assets are numbered A1–A48 in the "Assets" section below.
 | 14 | Seven areas overview, each scored out of 100 | `AreaBars` with A17–A23 icons |
 | 15–21 | One page per area (Love, Career, Money, Health, Family, Growth, Travel): score, a 12-month line for the area, its houses and Saham, best and hold months, what it means for the reader's situation | A17–A23 header, `AreaMonthLine` |
 
-**Chapter III: Your timing (6)**
+**Chapter III: Your timing (7)** *(C3 added page 25a)*
 | # | Page | Visual / asset |
 |---|---|---|
 | 22 | Chapter opener | A4 |
 | 23 | Master Timing Map, 7×12 | `TimingMap` |
 | 24 | Year's rhythm: daily wave, Mudda bar, Saham pins | `MomentumWave` |
-| 25 | **Sky calendar 2027.** Every sign change, retrograde and direct station, and combustion of all planets, plus the 2027 solar and lunar eclipses with the house of your chart each falls in. | `SkyCalendar` (12-month strip with event marks) |
+| 25 | **Sky calendar 2027.** Every sign change, retrograde and direct station, and combustion of all planets, plus the 2027 solar and lunar eclipses with the house of your chart each falls in. Since C3 it also lists, by month, each time Saturn, Jupiter, Rahu, Ketu or Mars enters a new star (a sensitive star marked) and the Moorti of each sign change. | `SkyCalendar` (12-month strip with event marks) |
+| 25a | **Your stars in 2027** *(C3)*. A Navatara wheel of the 27 stars counted from the reader's birth star (friendly stars filled, sensitive stars marked), the slow planets' crossings with dates and what each star means for the reader, and the Moorti of each sign change. Text: `your_stars_2027`, 4 paragraphs. | `StarPages.tsx` `YourStarsBody` |
 | 26 | When to act, by persona | `DecisionTable` |
 | 27 | Golden windows and key dates | Calendar strip |
 
@@ -121,7 +124,7 @@ Assets are numbered A1–A48 in the "Assets" section below.
 | # | Page | Visual / asset |
 |---|---|---|
 | 28 | Chapter opener | A5 |
-| 29–52 | Two pages per month (Jan–Dec). **Page A, "The month at a glance":** a month banner, the score ring, 7 mini bars, the Varsha chart in force, the Mudda lord and its dates, a key-dates calendar (ingresses, stations, Saham peaks, and that month's festivals from our festival table). **Page B, "Living the month":** what to do and what to hold; notes on career and money and on love and health, written for the reader's own answers; one dated remedy. | A24–A35 banner on page A, A47 ornament on page B |
+| 29–52 | Two pages per month (Jan–Dec). **Page A, "The month at a glance":** a month banner, the score ring, 7 mini bars, the Varsha chart in force, the Mudda lord and its dates, a key-dates calendar (ingresses, stations, Saham peaks, that month's festivals from our festival table and, since C3, the month's star changes of the slow planets and the Moorti of sign changes). **Page B, "Living the month":** what to do and what to hold; notes on career and money and on love and health, written for the reader's own answers; one dated remedy. | A24–A35 banner on page A, A47 ornament on page B |
 
 **Chapter V: Carrying it with you (2)**
 | # | Page | Visual / asset |
@@ -136,8 +139,8 @@ Assets are numbered A1–A48 in the "Assets" section below.
 | next | **What you've been through, and what changes.** The hard stretch of the recent past (about the last 18 months), read from the chart: dasha changes, Saturn or Rahu–Ketu over key houses, Sade Sati / Dhaiya, the 2026 Varsha year. Then the dated turning points that bring relief. If no real relief arrives in 2027, the page says so gently and names the next turning point (up to 2029) and what makes the wait easier. | A53 banner, a "then → turning point → relief" timeline |
 | last | **Closing letter from Baba Ji**, signed with the seal | A6, A49, A51, signature |
 
-**Page count.** 54 core pages + N question pages + the relief page + the closing letter = **56 to 61 pages**.
-- Without any facts or answers: **N = 0**, and the report is 56 pages. The relief page is read from the chart alone, so it is always there.
+**Page count.** 57 core pages (the original 54 and the three C3 pages) + N question pages + the relief page + the closing letter = **59 to 64 pages**. In short: **59 + N**.
+- Without any facts or answers: **N = 0**, and the report is 59 pages. The relief page is read from the chart alone, so it is always there.
 
 ## Completeness contract (no gaps, no guesses)
 
@@ -148,7 +151,7 @@ Assets are numbered A1–A48 in the "Assets" section below.
 | Birth chart | Lagna and all 9 planets: sign, degree, nakshatra and pada, retrograde, combust, dignity. Houses, D9 and D10. Shadbala. |
 | Dashas | Vimshottari Maha, Antar and Pratyantar for 2026–2029 (Pratyantar for 2027). The natal balance. |
 | Ashtakavarga | BAV for the 7 planets, SAV, and kakshya for each transit. |
-| Doshas, all 8 | Mangal, Kaal Sarp, Pitra, Guru Chandal, Grahan, Kemadruma, Sade Sati, Dhaiya: status, cancellation reasons, active months in 2027 (`doshaActivity`) |
+| Doshas, all 9 | Mangal, Kaal Sarp, Pitra, Guru Chandal, Grahan, Kemadruma, Sade Sati, Dhaiya, Gandanta: status, cancellation reasons, active months in 2027 (`doshaActivity`) |
 | Yogas | Every natal yoga from `detectAllYogas`, with its delivering dasha and months. Every Tajika yoga in both Varsha charts. |
 | Varsha years | Both solar returns (exact time), Varsha Lagnas, Muntha and its lord, Panchadhikari with the Year Lord, Panchavargi for all 7 planets, the 8 Sahams, Saham windows, and the full Mudda dasha for both years with no seam |
 | Sky events 2027 | All ingresses, retro and direct stations, combustion in and out, and the solar and lunar eclipses with their natal and Varsha houses (`year-events.ts`) |
@@ -159,7 +162,8 @@ Assets are numbered A1–A48 in the "Assets" section below.
 **2. Every section is covered.** After the text is written, a coverage check confirms that every page in the plan has its data and its text:
 - 12 months, both pages each
 - 7 areas
-- all 8 doshas
+- all 9 doshas
+- the three C3 pages (the birth star and the dasha lords named, the Tri-Pataki flags and the three dashas, every slow-planet star move dated), and every Saturn, Jupiter, Rahu and Ketu star move dated in its month page
 - all yogas
 - every sky event in the calendar
 
@@ -363,7 +367,7 @@ The owner's rule is that all copy goes through the **humanizer** (the repo-based
 ### S2: Scoring (backend)
 - `reports/varshik-2027.ts`: `computeVarshikScores(ctx, answers)`, `momentumSeries`, `decisionTable`, `planetImpact`.
 - `config/varshik-weights.ts` holds all the constants.
-- **Dosha and yoga timing.** `doshaActivity(ctx, month)` gives, for all 8 doshas, whether each is active that month and why (dasha, Mudda dasha or transit trigger). `yogaDelivery(ctx)` gives the months each natal and Tajika yoga delivers.
+- **Dosha and yoga timing.** `doshaActivity(ctx, month)` gives, for all 9 doshas, whether each is active that month and why (dasha, Mudda dasha or transit trigger). `yogaDelivery(ctx)` gives the months each natal and Tajika yoga delivers.
 - **Two more pure functions, for Chapter VI:**
   - `answerWindow(key)`: the best dated window for an area or decision key, with its tier, and the next window if this year's is weak.
   - `reliefTimeline(ctx)`: the recent hard stretch (about the last 18 months: dasha and antardasha changes, Saturn or Rahu–Ketu over key houses, Sade Sati / Dhaiya phases, the 2026 Varsha) and the dated turning points ahead, looking up to 2029.
@@ -430,13 +434,14 @@ The owner's rule is that all copy goes through the **humanizer** (the repo-based
 - In the generating sheet, for this key only: the A46 wheel turning slowly, with progress steps.
 
 ### S6: PDF and share cards (frontend)
-- **[fix]** The PDF comes from DOM capture (`modern-screenshot`, sliced into A4 by `page-breaks.ts`), not from browser print, so `@media print` is not the tool here. Each of the 51 pages renders in its own fixed-size A4 page box.
-- **File size.** Fifty-one image pages can get heavy. Keep the art as WebP at most ~250 KB each, and tune the JPEG quality so the whole PDF stays under ~15 MB. Check on Android. If a page's text is too long, the font shrinks one step (to a floor). It never spills onto a new page. That is what keeps the count at 28.
+- **[fix]** The PDF comes from DOM capture (`modern-screenshot`, sliced into A4 by `page-breaks.ts`), not from browser print, so `@media print` is not the tool here. Each of the 59 + N pages renders in its own fixed-size A4 page box.
+- **File size.** Fifty-nine or more image pages can get heavy. Keep the art as WebP at most ~250 KB each, and tune the JPEG quality so the whole PDF stays under ~15 MB. Check on Android. If a page's text is too long, the font shrinks one step (to a floor). It never spills onto a new page. That is what keeps the count at 59 + N.
 - File name: `Varshik-Rashifal-2027-<Name>.pdf`.
 - Cards: rendered with `modern-screenshot`, and saved through Android FileSaver or the Web Share API.
 
 ### S7: Copy, languages, tests, release
-- The humanizer pass. No AI or technology names, and no fear wording.
+- The humanizer pass. No AI or technology names, and no fear wording. The three C3 pages and the star lines in the month pages go through it too, and the words "Vadha" and "Vainashika" never appear: they read "a hard, draining star / stretch".
+- Translate the C3 strings (`varshik.stars.*`, `varshik.flags.*`, `varshik.page.birthStars`, `varshik.page.flags`, `varshik.page.yourStars`, `varshik.month.starMove`, `varshik.month.starSensitive`, `varshik.month.moorti`, `varshik.sky.starKey`, `varshik.dosha.gandanta`): they are written in English with `defaultValue` fallbacks only until this step. The engine's plain star lines (tara and Moorti meanings, the nature and meaning of each star) are English facts like the dosha notes; decide in S7 whether to translate them through the same route.
 - Translations through apinex `free/gemini-3.8-flash`, then `i18n:check`.
 - Playwright tests plus the backend guard tests.
 - Deploy the backend first, then the web. The switch stays OFF.
@@ -471,7 +476,7 @@ Follow CLAUDE.md (local-coder for test suites and boilerplate of 80+ lines). Com
 **S2**
 ```
 Sprint 2 of Varshik Rashifal 2027. Read frontend/docs/varshik-rashifal-2027-plan.md and do only "S2: Scoring".
-Build backend/src/lib/astro-engine/reports/varshik-2027.ts (computeVarshikScores, momentumSeries, decisionTable, planetImpact, doshaActivity for all 8 doshas, yogaDelivery, answerWindow, reliefTimeline) and config/varshik-weights.ts, on top of the Sprint 1 engine.
+Build backend/src/lib/astro-engine/reports/varshik-2027.ts (computeVarshikScores, momentumSeries, decisionTable, planetImpact, doshaActivity for all 9 doshas, yogaDelivery, answerWindow, reliefTimeline) and config/varshik-weights.ts, on top of the Sprint 1 engine.
 Lagna-first, with Sade Sati/Dhaiya from the natal Moon as one damper. Combine in log-odds with veto and dominance gates. Tiers are 75/60/45. A birthday month is the day-weighted mean of the smoothed daily series.
 Calibrate on 100 synthetic charts against the population targets (not per profile) and show me the tier mix and spread before locking the weights.
 Branch feat/varshik-2027. Don't push.
@@ -486,7 +491,7 @@ Copy the kp_annual pattern (see frontend/docs/monthly-yearly-kp-reports-end-to-e
 - Fixed Jan–Dec 2027 window in findActiveYearlyReportRow.
 - Birth time + coordinates purchase guard; the 4 pre-purchase questions.
 - Generator with 5 checkpointed LLM calls; humanizer style block in the prompt.
-- Completeness contract: VarshikFacts zod schema + preflight (any gap → stop and refund), coverage check (every page, month, area, all 8 doshas, yogas, sky events), verify-claims against VarshikFacts.
+- Completeness contract: VarshikFacts zod schema + preflight (any gap → stop and refund), coverage check (every page, month, area, all 9 doshas, yogas, sky events, the three star pages), verify-claims against VarshikFacts.
 - Chapter VI: up to 5 questions from getUserFacts (this birth profile) + the answers, each tied to fact ids and an engine key, never death/illness/legal; timing only from answerWindow and reliefTimeline; the relief page is always written; skip the questions when there are no facts.
 - verify-claims gets: polarity, persona, fear/death words, AI-tell counter (on English, before translation), with one regenerate.
 Generate 3 test reports (single student, married professional, retired) with the flag on only for the test user. Show me the English text before finishing.
@@ -518,12 +523,13 @@ Branch feat/varshik-2027. Don't push.
 ```
 Sprint 6 of Varshik Rashifal 2027. Read frontend/docs/varshik-rashifal-2027-plan.md and do only "S6".
 The PDF uses the existing lib/pdf DOM-capture pipeline (not @media print):
-- each page (56 + N, where N is 0–5 question pages) in its own fixed A4 box
+- each page (59 + N, where N is 0–5 question pages; the three C3 pages are "Your birth stars", "The year's three flags" and "Your stars in 2027") in its own fixed A4 box
 - a page whose text is too long shrinks one font step (with a floor) instead of spilling
 - PDF under ~15 MB
 - file name Varshik-Rashifal-2027-<Name>.pdf
 Share cards (year card + 12 month cards, from the A36 background): no birth time, place or coordinates. Save on Android with FileSaver, and on the web with the Web Share API.
-Prove 56 + N pages in English, Hindi and Tamil with a headless test (N = 0 and N = 5 profiles).
+The Navatara wheel and the star tables are SVG and lists, so they capture like the other charts; check the wheel at A4 width in Hindi and Tamil.
+Prove 59 + N pages in English, Hindi and Tamil with a headless test (N = 0 and N = 5 profiles).
 Branch feat/varshik-2027. Don't push.
 ```
 
@@ -551,7 +557,7 @@ Review branch feat/varshik-2027 against frontend/docs/varshik-rashifal-2027-plan
 2. **Seam and spread (S1–S2).** The Mudda seam matches exactly on every chart, and the population spread targets above are met.
 3. **Text checks (S3).** No tier contradictions, no persona leaks, no fear or death words, and no AI-tell hits above the threshold, across the test profiles (single, partnered, student, no children). The S7 humanizer spot review of 3 full reports finds nothing that needs changing.
 4. **No gaps (S3).**
-   - On 20 test profiles, the preflight passes and the coverage check finds every page, month, area, all 8 doshas, every yoga and every sky event filled.
+   - On 20 test profiles, the preflight passes and the coverage check finds every page, month, area, all 9 doshas, every yoga, every sky event and the three star pages filled.
    - A profile with a field deliberately removed fails the preflight, gets refunded, and never produces a partial report.
    - Eclipse and station dates match NASA and drikpanchang.
 5. **Chapter VI (S3).**
@@ -559,4 +565,4 @@ Review branch feat/varshik-2027 against frontend/docs/varshik-rashifal-2027-plan
    - A profile with no facts gets no question pages.
    - No question about death or illness ever appears, even when the facts mention one.
    - Every "when it eases" date matches `answerWindow` and `reliefTimeline`.
-6. **PDF and Indic layout (S4–S7).** A headless test, in English, Hindi and Tamil, finds 56 + N PDF pages (N = number of questions), no page box overflowing, and `scrollWidth <= clientWidth` on every label and card.
+6. **PDF and Indic layout (S4–S7).** A headless test, in English, Hindi and Tamil, finds 59 + N PDF pages (N = number of questions), no page box overflowing, and `scrollWidth <= clientWidth` on every label and card.

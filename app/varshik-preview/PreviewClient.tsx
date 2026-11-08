@@ -19,10 +19,21 @@ import DoshaTable from "@/components/reports/varshik/DoshaTable";
 import YogaList from "@/components/reports/varshik/YogaList";
 import SkyCalendar from "@/components/reports/varshik/SkyCalendar";
 import ArtSlot from "@/components/reports/varshik/ArtSlot";
+import PdfBook, { type PdfBookHandle, type FitReport } from "@/components/reports/varshik/PdfBook";
+import { readVarshik } from "@/components/reports/varshik/data";
+import { buildPages } from "@/components/reports/varshik/pages";
+import { ReportYearContext } from "@/components/reports/varshik/year-context";
+import type { PageCtx } from "@/components/reports/varshik/page-types";
+import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 import ReportSurface, { ReportSection } from "@/components/reports/varshik/ReportSurface";
 import VarshikReportView from "@/components/reports/varshik/VarshikReportView";
+import VarshikCover from "@/components/reports/varshik/VarshikCover";
 import VarshikWaiting from "@/components/reports/varshik/VarshikWaiting";
 import { sampleReport } from "@/components/reports/varshik/fixtures/sample-report";
+import liveReport from "@/components/reports/varshik/fixtures/live-report.json";
+import { inIndic, withQuestions } from "@/components/reports/varshik/fixtures/variants";
+import type { ReportReady } from "@/hooks/useReport";
 
 /** Long Indic sentences for the engine-written text that is not in the bundle (dosha notes), so wrapping is tested at real length. */
 const INDIC = {
@@ -35,6 +46,32 @@ function Block({ id, title, children }: { id: string; title: string; children: R
     <ReportSection id={id} eyebrow="Varshik Rashifal 2027" title={title} beam={id === "ring"}>
       {children}
     </ReportSection>
+  );
+}
+
+/** The A4 pages as the PDF draws them, fitted, visible in the flow (?view=book&q=2&lang=hi). Dev only. */
+function BookPreview({ data }: { data: ReportReady }) {
+  const { t, i18n } = useTranslation();
+  const book = useRef<PdfBookHandle>(null);
+  const read = useMemo(() => readVarshik(data), [data]);
+  const lang = i18n.language;
+  const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang) : []), [read, t, lang]);
+  const ctx: PageCtx | null = useMemo(
+    () => (read ? { ...read, name: read.facts.reader.name, edition: "0A1B2C", lang, pages: pages.map((p) => ({ key: p.key, chapter: p.chapter, title: p.title })), go: () => {}, goChapter: () => {} } : null),
+    [read, lang, pages],
+  );
+  useEffect(() => {
+    if (!ctx) return;
+    void book.current?.fit().then((fits: FitReport[]) => {
+      (window as unknown as { __vkFit?: FitReport[] }).__vkFit = fits;
+      document.body.dataset.fitted = "1";
+    });
+  }, [ctx, pages]);
+  if (!read || !ctx) return null;
+  return (
+    <ReportYearContext.Provider value={read.facts.year ?? 2027}>
+      <PdfBook ref={book} pages={pages} ctx={ctx} preview />
+    </ReportYearContext.Provider>
   );
 }
 
@@ -53,12 +90,66 @@ export default function PreviewClient() {
   );
   const v = f.varsha[f.varsha.length - 1];
   const love = f.scores.timingMap.love;
+  if (view === "cover") {
+    const names = (typeof window === "undefined" ? "" : (new URLSearchParams(window.location.search).get("names") ?? "")).split("|");
+    const a4 = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("a4") === "1";
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto flex max-w-[420px] flex-col gap-4 p-4">
+          {names.map((n) => (
+            <VarshikCover key={n} name={n} a4={a4} />
+          ))}
+        </main>
+      </ReportSurface>
+    );
+  }
   if (view === "wait") {
     const done = typeof window === "undefined" ? 0 : Number(new URLSearchParams(window.location.search).get("done") ?? 0);
     return (
       <ReportSurface page className="min-h-screen">
         <main className="mx-auto max-w-[420px] p-6">
-          <VarshikWaiting progress={{ done, total: 5 }} />
+          <VarshikWaiting progress={{ done, total: 6 }} />
+        </main>
+      </ReportSurface>
+    );
+  }
+  if (view === "book") {
+    const sp = new URLSearchParams(window.location.search);
+    const q = Math.max(0, Math.min(5, Number(sp.get("q") ?? 2)));
+    const base = sp.get("src") === "sample" ? sampleReport : (liveReport as unknown as ReportReady);
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="flex flex-col items-center gap-3 p-4">
+          <button type="button" id="theme-toggle" className="self-start rounded-full border border-[color:var(--border-faint)] px-3 py-1 text-xs" onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
+            Theme: {resolvedTheme}
+          </button>
+          <BookPreview data={inIndic(withQuestions(base, q), lang)} />
+        </main>
+      </ReportSurface>
+    );
+  }
+  if (view === "pdf") {
+    // The PDF test page: ?view=pdf&lang=hi&q=5&src=live|sample&name=Asha%20Rao. Buttons and the real flow, on a phone-sized column.
+    const sp = new URLSearchParams(window.location.search);
+    const q = Math.max(0, Math.min(5, Number(sp.get("q") ?? 2)));
+    const base = (sp.get("src") === "sample" ? sampleReport : (liveReport as unknown as ReportReady));
+    const data = inIndic(withQuestions(base, q), lang);
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
+          <button type="button" id="theme-toggle" className="self-start rounded-full border border-[color:var(--border-faint)] px-3 py-1 text-xs" onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
+            Theme: {resolvedTheme}
+          </button>
+          <VarshikReportView data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
+        </main>
+      </ReportSurface>
+    );
+  }
+  if (view === "real") {
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
+          <VarshikReportView data={liveReport as unknown as ReportReady} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
         </main>
       </ReportSurface>
     );

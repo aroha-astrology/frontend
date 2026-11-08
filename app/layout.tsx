@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif, Kalam, Noto_Serif_Devanagari, Noto_Serif_Bengali, Noto_Serif_Tamil, Noto_Serif_Telugu, Noto_Serif_Kannada, Noto_Serif_Gujarati } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Playfair_Display, Inter, Cormorant_Garamond, Noto_Sans_Devanagari, Instrument_Serif, Kalam, Noto_Serif_Devanagari, Noto_Serif_Bengali, Noto_Serif_Tamil, Noto_Serif_Telugu, Noto_Serif_Kannada, Noto_Serif_Gujarati, Alex_Brush } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
@@ -105,6 +105,8 @@ const reportBengali = Noto_Serif_Bengali({ subsets: ["bengali"], variable: "--fo
 const reportTamil = Noto_Serif_Tamil({ subsets: ["tamil"], variable: "--font-vk-ta", display: "swap", weight: ["400", "600"], preload: false });
 const reportTelugu = Noto_Serif_Telugu({ subsets: ["telugu"], variable: "--font-vk-te", display: "swap", weight: ["400", "600"], preload: false });
 const reportKannada = Noto_Serif_Kannada({ subsets: ["kannada"], variable: "--font-vk-kn", display: "swap", weight: ["400", "600"], preload: false });
+// The reader's name on the cover: the closest Google script face to the picture's own "Prepared for" lettering (compared 2026-11-09 against Great Vibes, Pinyon Script, Parisienne, Petit Formal Script, Italianno, Allura).
+const reportScript = Alex_Brush({ subsets: ["latin"], variable: "--font-vk-script", display: "swap", weight: "400", preload: false });
 const reportGujarati = Noto_Serif_Gujarati({ subsets: ["gujarati"], variable: "--font-vk-gu", display: "swap", weight: ["400", "600"], preload: false });
 
 const APP_DESCRIPTION =
@@ -151,7 +153,7 @@ export default function RootLayout({
         {/* Puts the remembered look on <html> before the first paint, so a Modern Cosmic user never sees a gold flash. */}
         <script dangerouslySetInnerHTML={{ __html: SKIN_BOOT_SCRIPT }} />
       </head>
-      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable} ${reportSerif.variable} ${reportDeva.variable} ${reportBengali.variable} ${reportTamil.variable} ${reportTelugu.variable} ${reportKannada.variable} ${reportGujarati.variable}`}>
+      <body className={`${instrumentSerif.variable} ${cinzel.variable} ${cinzelDecorative.variable} ${playfair.variable} ${cormorant.variable} ${inter.variable} ${notoDevanagari.variable} ${kalam.variable} ${reportSerif.variable} ${reportDeva.variable} ${reportBengali.variable} ${reportTamil.variable} ${reportTelugu.variable} ${reportKannada.variable} ${reportGujarati.variable} ${reportScript.variable}`}>
         <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <LanguageProvider>

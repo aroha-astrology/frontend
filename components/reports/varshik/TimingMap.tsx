@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSettled } from "./motion";
 import { useTranslation } from "react-i18next";
 import { AREAS, type Cell, type Tier } from "./types";
 import { TIER_COLOR, TIER_GLYPH, TIER_WORD, useChartMode } from "./tiers";
@@ -31,7 +32,7 @@ export default function TimingMap({
 }) {
   const { t, i18n } = useTranslation();
   const mode = useChartMode();
-  const reduce = useReducedMotion();
+  const reduce = useSettled();
   const keys = order.filter((k) => map[k]?.length === 12);
   if (keys.length === 0) return null;
   const tierWord = (tier: Tier) => t(TIER_WORD[tier].key, { defaultValue: TIER_WORD[tier].en });

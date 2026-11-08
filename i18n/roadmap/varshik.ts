@@ -141,9 +141,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "The month at a glance",
         "keyDates": "Key dates",
         "label": {
-          "do": "What to do",
-          "heart": "Love and health",
-          "hold": "What to hold",
+          "do": "What to do and what to hold",
+          "heart": "Love, family and health",
           "remedy": "This month's remedy",
           "work": "Career and money"
         },
@@ -436,9 +435,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "एक नज़र में महीना",
         "keyDates": "प्रमुख तिथियां",
         "label": {
-          "do": "क्या करना है",
-          "heart": "प्रेम और स्वास्थ्य",
-          "hold": "किस बात को टालें",
+          "do": "क्या करें और क्या वर्जित है",
+          "heart": "प्रेम, परिवार और स्वास्थ्य",
           "remedy": "इस महीने का उपाय",
           "work": "करियर और धन"
         },
@@ -731,9 +729,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "মাসের সংক্ষিপ্ত রূপ",
         "keyDates": "গুরুত্বপূর্ণ তারিখগুলো",
         "label": {
-          "do": "কী করা উচিত",
-          "heart": "প্রেম ও স্বাস্থ্য",
-          "hold": "কী এড়ানো উচিত",
+          "do": "কী করা উচিত এবং কী এড়িয়ে চলা উচিত",
+          "heart": "প্রেম, পরিবার ও স্বাস্থ্য",
           "remedy": "এই মাসের উপায়",
           "work": "ক্যারিয়ার ও অর্থ"
         },
@@ -1026,9 +1023,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "महिना एक नजरेत",
         "keyDates": "महत्त्वाच्या तारखा",
         "label": {
-          "do": "काय करावे",
-          "heart": "प्रेम आणि आरोग्य",
-          "hold": "काय टाळावे",
+          "do": "काय करावे आणि काय टाळावे",
+          "heart": "प्रेम, कुटुंब आणि आरोग्य",
           "remedy": "या महिन्याचे उपाय",
           "work": "करिअर आणि पैसे"
         },
@@ -1321,9 +1317,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "నెల సారాంశం",
         "keyDates": "ముఖ్య తేదీలు",
         "label": {
-          "do": "ఏం చేయాలి",
-          "heart": "ప్రేమ మరియు ఆరోగ్యం",
-          "hold": "ఏది ఆపాలి",
+          "do": "ఏం చేయాలి, ఏం వర్జించాలి",
+          "heart": "ప్రేమ, కుటుంబం, ఆరోగ్యం",
           "remedy": "ఈ నెల చికిత్స",
           "work": "వృత్తి మరియు డబ్బు"
         },
@@ -1616,9 +1611,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "மாதம் ஒரு நோக்கத்தில்",
         "keyDates": "முக்கிய தேதிகள்",
         "label": {
-          "do": "என்ன செய்ய வேண்டும்",
-          "heart": "அன்பு மற்றும் ஆரோக்கியம்",
-          "hold": "எதைத் தவிர்ப்பது",
+          "do": "செய்ய வேண்டியவை மற்றும் தவிர்க்க வேண்டியவை",
+          "heart": "காதல், குடும்பம் மற்றும் ஆரோக்கியம்",
           "remedy": "இந்த மாதத்திற்கான தீர்வு",
           "work": "வேலை மற்றும் பணம்"
         },
@@ -1911,9 +1905,8 @@ export const varshikBundle: RoadmapBundle = {
         "glance": "મહિનો એક નજરમાં",
         "keyDates": "મહત્વની તારીખો",
         "label": {
-          "do": "શું કરવું",
-          "heart": "પ્રેમ અને સ્વાસ્થ્ય",
-          "hold": "શું ટાળવું",
+          "do": "શું કરવું અને શું ટાળવું",
+          "heart": "પ્રેમ, પરિવાર અને આરોગ્ય",
           "remedy": "આ મહિનાનો ઉપાય",
           "work": "કરિયર અને પૈસા"
         },

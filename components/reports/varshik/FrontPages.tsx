@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useReportYear, useY } from "./year-context";
 import ArtSlot from "./ArtSlot";
+import VarshikCover from "./VarshikCover";
 import Narrative from "./Narrative";
 import { art, CHAPTER_ART } from "./assets";
 import { CHAPTER_EN } from "./PageFrame";
@@ -20,49 +20,15 @@ const TIERS: { tier: Tier; range: string }[] = [
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI"];
 const HAND = "var(--font-hand), var(--vk-serif)";
 
-/** The reader's name, written out a letter at a time (whole letters, so Indic conjuncts never split). Instant for reduced motion. */
-function WritesItself({ text }: { text: string }) {
-  const reduce = useReducedMotion();
-  const letters = (() => {
-    try {
-      return Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text), (s) => s.segment);
-    } catch {
-      return Array.from(text);
-    }
-  })();
-  const [shown, setShown] = useState(reduce ? letters.length : 0);
-  useEffect(() => {
-    if (reduce) {
-      setShown(letters.length);
-      return;
-    }
-    setShown(0);
-    const id = setInterval(() => setShown((n) => (n >= letters.length ? (clearInterval(id), n) : n + 1)), 90);
-    return () => clearInterval(id);
-  }, [text, reduce, letters.length]);
-  return (
-    <span aria-label={text}>
-      <span aria-hidden="true">{letters.slice(0, shown).join("")}</span>
-      <span aria-hidden="true" style={{ opacity: 0 }}>{letters.slice(shown).join("")}</span>
-    </span>
-  );
-}
-
 /** Page 1. Title, year and the reader's name are live text (translatable, reusable for 2028); the art carries no words. */
 export function CoverBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
+  const year = useReportYear();
   return (
     <div className="flex min-w-0 flex-col items-center gap-5 py-2 text-center">
-      {/* The cover art has an empty nameplate near the bottom; the reader's name is written on it. */}
-      <div className="relative w-full" style={{ maxWidth: "15rem" }}>
-        <ArtSlot kind="opener" code="A1" src={art("A1")} maxWidth="100%" />
-        {ctx.name ? (
-          <div className="pointer-events-none absolute inset-x-[16%] flex items-center justify-center overflow-hidden text-center" style={{ top: "84.2%", height: "8.4%" }}>
-            <span className="min-w-0 break-words leading-[1.15]" style={{ fontFamily: HAND, fontSize: "0.98rem", color: "var(--vk-gold-hi)", textShadow: "0 0 10px rgba(226,188,106,0.55)" }}>
-              <WritesItself text={ctx.name} />
-            </span>
-          </div>
-        ) : null}
+      {/* The owner's cover picture; the reader's name is written on its dashed "Prepared for" line (VarshikCover). */}
+      <div className="w-full" style={{ maxWidth: "20rem" }}>
+        <VarshikCover name={ctx.name} writeOn />
       </div>
       <div className="flex min-w-0 flex-col items-center gap-1">
         <span className="vk-eyebrow">{t("varshik.cover.eyebrow", { defaultValue: "Varshik Rashifal" })}</span>
@@ -70,7 +36,7 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
           className="vk-foil leading-none"
           style={{ fontFamily: "var(--vk-serif)", fontSize: "5rem", fontWeight: 400 }}
         >
-          2027
+          {year}
         </span>
         <h1 className="vk-title m-0 break-words">{t("varshik.cover.title", { defaultValue: "Your year ahead" })}</h1>
       </div>
@@ -81,23 +47,36 @@ export function CoverBody({ ctx }: { ctx: PageCtx }) {
 /** Page 2. Baba Ji's welcome letter, how to read the four colours, and the monthly habit. */
 export function WelcomeBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
+  const y = useY();
   const mode = useChartMode();
   const tierWord = (tier: Tier) => t(TIER_WORD[tier].key, { defaultValue: TIER_WORD[tier].en });
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex items-center gap-4">
-        <span
-          className="relative inline-block shrink-0 overflow-hidden rounded-full"
-          style={{
-            width: "5.5rem",
-            height: "5.5rem",
-            border: "2px solid var(--gold)",
-            boxShadow: "0 0 0 4px var(--card), 0 0 0 5px var(--border-faint), 0 0 24px -6px var(--gold)",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/yogi-baba.webp" alt="" className="h-full w-full object-cover" />
-        </span>
+        {art("A51") ? (
+          // Baba Ji's portrait shows through the oval of the gold frame (A51, cut out so the centre is clear).
+          <span className="relative inline-block shrink-0" style={{ width: "6.25rem", aspectRatio: "768 / 1376" }}>
+            <span className="absolute overflow-hidden" style={{ left: "23.8%", top: "27.8%", width: "52.4%", height: "42.9%", borderRadius: "50%" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/yogi-baba.webp" alt="" className="h-full w-full object-cover" />
+            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={art("A51")} alt="" width={768} height={1376} className="absolute inset-0 h-full w-full" />
+          </span>
+        ) : (
+          <span
+            className="relative inline-block shrink-0 overflow-hidden rounded-full"
+            style={{
+              width: "5.5rem",
+              height: "5.5rem",
+              border: "2px solid var(--gold)",
+              boxShadow: "0 0 0 4px var(--card), 0 0 0 5px var(--border-faint), 0 0 24px -6px var(--gold)",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/yogi-baba.webp" alt="" className="h-full w-full object-cover" />
+          </span>
+        )}
         <div className="flex min-w-0 flex-col">
           <span className="vk-eyebrow">{t("varshik.welcome.from", { defaultValue: "A letter from" })}</span>
           <span className="vk-h3 break-words">{t("varshik.welcome.babaJi", { defaultValue: "Baba Ji" })}</span>
@@ -132,8 +111,8 @@ export function WelcomeBody({ ctx }: { ctx: PageCtx }) {
       <hr className="vk-rule m-0" aria-hidden="true" />
       <p className="vk-caption m-0 text-center">
         {ctx.edition
-          ? t("varshik.welcome.editionNo", { defaultValue: "Edition 2027 · No. {{n}}", n: ctx.edition })
-          : t("varshik.welcome.edition", { defaultValue: "Edition 2027" })}
+          ? y(t("varshik.welcome.editionNo", { defaultValue: "Edition 2027 · No. {{n}}", n: ctx.edition }))
+          : y(t("varshik.welcome.edition", { defaultValue: "Edition 2027" }))}
       </p>
     </div>
   );

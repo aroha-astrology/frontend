@@ -16,7 +16,7 @@ export default function Narrative({
   heading?: boolean;
   dropCap?: boolean;
   /** Small labels above each paragraph, by index (used for the month "Living the month" page). */
-  labels?: string[];
+  labels?: (string | undefined)[];
 }) {
   if (!section) return null;
   return (

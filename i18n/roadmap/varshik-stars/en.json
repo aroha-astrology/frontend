@@ -1,0 +1,136 @@
+{
+ "varshik": {
+  "dosha": {
+   "gandanta": "Gandanta"
+  },
+  "flags": {
+   "chart": "Varsha chart of {{year}}",
+   "lagna": "The Lagna flag",
+   "moon": "The Moon flag",
+   "mudda": "Mudda periods",
+   "none": "Nothing touches this flag.",
+   "patyayini": "Patyayini periods, by the week",
+   "supportive": "supportive",
+   "testing": "testing",
+   "yogini": "Mudda Yogini periods"
+  },
+  "month": {
+   "moorti": "{{planet}} enters {{sign}}: {{plain}}",
+   "starMove": "{{planet}} enters {{star}}: {{plain}}",
+   "starSensitive": "{{planet}} enters {{star}}, a sensitive star: {{plain}}"
+  },
+  "page": {
+   "birthStars": "Your birth stars",
+   "flags": "The year's three flags",
+   "yourStars": "Your stars in 2027"
+  },
+  "sky": {
+   "starKey": "a planet entering a new star, ◆ a sensitive star, ◈ how a sign change begins"
+  },
+  "stars": {
+   "birthStar": "Your birth star",
+   "birthStarLine": "Pada {{pada}}, star lord {{lord}}, in {{sign}}",
+   "care": "A star that asks for care",
+   "crossings": "The slow planets through your stars",
+   "dashaLords": "The lords that run in 2027, and their stars",
+   "friendly": "A friendly star for you",
+   "gandanta": "Sensitive junction point",
+   "lordHouse": "lord {{lord}} in house {{house}}",
+   "missing": "The star pages are not part of this older report.",
+   "moorti": "How each sign change begins (Moorti)",
+   "natalStar": "the star of your natal {{planets}}",
+   "pada": "pada {{n}}",
+   "role": {
+    "antar": "Antar dasha",
+    "maha": "Maha dasha",
+    "mudda": "Mudda period",
+    "pratyantar": "Pratyantar dasha"
+   },
+   "rowLine": "Star lord {{lord}}, house {{house}} · {{nature}} · {{gana}}",
+   "startsYear": "from 1 Jan",
+   "wheelCentre": "your birth star",
+   "wheelKeyCare": "Open: a star that asks for care.",
+   "wheelKeyGood": "Filled: a friendly star for you.",
+   "wheelKeySens": "A sensitive star: work, home, mind or recognition.",
+   "wheelLabel": "The 27 stars counted from your birth star"
+  },
+  "waiting": {
+   "step": {
+    "stars": "Reading your birth stars and the stars of 2027"
+   }
+  },
+  "starText": {
+   "tara": {
+    "1": "your own star, a day to go gently",
+    "2": "a star of wealth and gain",
+    "3": "a star of setbacks, so go carefully",
+    "4": "a star of well-being and comfort",
+    "5": "a star of obstacles and push-back",
+    "6": "a star of achievement",
+    "7": "a hard, draining star",
+    "8": "a star of friends and support",
+    "9": "a star of close friends and good company"
+   },
+   "special": {
+    "1": "your birth star, the reference point of the chart",
+    "4": "your community and social circle",
+    "10": "your work and profession",
+    "12": "your country, place and culture",
+    "16": "your close group and inner circle",
+    "18": "crowds, the wider group",
+    "22": "a hard, draining stretch",
+    "25": "your mind and what it dwells on",
+    "28": "recognition, a coronation of effort"
+   },
+   "moorti": {
+    "swarna": "a golden entry: very good for what this planet touches",
+    "rajata": "a silver entry: good",
+    "tamra": "a copper entry: middling, so give it time",
+    "loha": "an iron entry: harder, so go gently"
+   },
+   "nature": {
+    "kshipra": "swift",
+    "ugra": "fierce",
+    "mishra": "mixed",
+    "sthira": "fixed",
+    "mridu": "soft",
+    "tikshna": "sharp",
+    "chara": "moving"
+   },
+   "gana": {
+    "Deva": "Deva (gentle)",
+    "Manushya": "Manushya (human)",
+    "Rakshasa": "Rakshasa (intense)"
+   },
+   "shakti": {
+    "Ashwini": "the power to reach things quickly",
+    "Bharani": "the power to carry things away",
+    "Krittika": "the power to burn and purify",
+    "Rohini": "the power of growth",
+    "Mrigashira": "the power to give fulfilment",
+    "Ardra": "the power of effort",
+    "Punarvasu": "the power to gain wealth or substance",
+    "Pushya": "the power to create spiritual energy",
+    "Ashlesha": "the power to cling and entangle",
+    "Magha": "the power to let go and cast off",
+    "PurvaPhalguni": "the power of creation",
+    "UttaraPhalguni": "the power to give prosperity through union",
+    "Hasta": "the power to place what we seek in our own hands",
+    "Chitra": "the power to gather merit",
+    "Swati": "the power to scatter like the wind",
+    "Vishakha": "the power to reach many fruits",
+    "Anuradha": "the power of worship and devotion",
+    "Jyeshtha": "the power to rise and conquer",
+    "Moola": "the power to break things apart to the root",
+    "PurvaAshadha": "the power of invigoration",
+    "UttaraAshadha": "the power of unchallenged victory",
+    "Shravana": "the power of connection",
+    "Dhanishta": "the power to give abundance and fame",
+    "Shatabhisha": "the power of healing",
+    "PurvaBhadrapada": "the power to lift a person up spiritually",
+    "UttaraBhadrapada": "the power to bring rain",
+    "Revati": "the power of nourishment"
+   }
+  }
+ }
+}

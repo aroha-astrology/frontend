@@ -203,3 +203,111 @@
   border-radius: calc(1rem - 4px);
   pointer-events: none;
 }
+
+/* The PDF's A4 sheet: 794 x 1123 CSS px (210 x 297 mm at 96 dpi), one report page each. Square corners, no shadow. */
+.vk-panel.vk-a4 {
+  position: relative;
+  box-sizing: border-box;
+  width: 794px;
+  height: 1123px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 42px 50px 30px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background-color: var(--card);
+}
+.vk-a4::before {
+  inset: 18px;
+  border-radius: 6px;
+}
+.vk-a4-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 14px;
+  flex: none;
+}
+/* The fitted region. PdfBook sets --vk-fit (1 down to the floor) on the inner box, so text re-wraps at its smaller size and never spills. */
+.vk-a4-body {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.vk-a4-inner {
+  /* zoom, not transform: Chrome draws SVG text out of place inside a scaled box. */
+  zoom: var(--vk-fit, 1);
+}
+.vk-a4-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  flex: none;
+}
+
+/* A4 type scale and density (print-size text: body about 10 pt, captions 8 pt). */
+.vk-a4 .vk-body { font-size: 0.8125rem; line-height: 1.5; }
+.vk-a4 .vk-caption { font-size: 0.6875rem; }
+.vk-a4 .vk-title { font-size: 1.5rem; }
+.vk-a4 .vk-quote { font-size: 1.05rem; }
+.vk-a4 .gap-5 { gap: 0.875rem; }
+.vk-a4 .gap-6 { gap: 1rem; }
+/* The phone layouts switch on the screen width, which says nothing about an A4 box: here the wide ones always apply. */
+.vk-a4 .min-\[420px\]\:grid-cols-12,
+.vk-a4 .min-\[560px\]\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.vk-a4 .min-\[640px\]\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Banners are cropped to a slim strip on the page (the picture keeps its aspect, centred). */
+.vk-a4 [data-art="banner"] { aspect-ratio: 16 / 5 !important; }
+.vk-a4 [data-art="banner"] img { object-fit: cover; }
+
+/* Dense lists: the sky calendar's event lines, the yogas' month dots. */
+.vk-a4 .vk-dense { gap: 0.08rem; }
+.vk-a4 .vk-dense li { font-size: 0.6875rem; line-height: 1.3; }
+.vk-a4 .vk-yoga-card { padding: 0.4rem 0.55rem; gap: 0.2rem; border-radius: 0.6rem; }
+.vk-a4 .vk-yoga-dots { gap: 0.1rem; }
+.vk-a4 .vk-yoga-dots > div > span:last-child { font-size: 0.5625rem; }
+.vk-a4 .vk-yoga-delivers { display: none; }
+
+.vk-a4 .vk-dense .vk-body, .vk-a4 .vk-dense .vk-caption { font-size: 0.6875rem; line-height: 1.3; }
+.vk-a4-only { display: none; }
+.vk-a4 .vk-a4-only { display: block; }
+/* Yogas on the page: one slim row each (name left, twelve month dots right), no card chrome, so 38 of them fit. */
+.vk-a4 .vk-yoga-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 0.5rem; row-gap: 0.05rem;
+  padding: 0.2rem 0; border: 0; border-bottom: 1px solid var(--border-faint); border-radius: 0;
+  background: none; box-shadow: none;
+}
+.vk-a4 .vk-yoga-card > div:first-child { min-width: 0; flex-direction: column; align-items: flex-start; }
+.vk-a4 .vk-yoga-card > p { grid-column: 1 / -1; font-size: 0.5625rem; line-height: 1.25; color: var(--text-muted); }
+.vk-a4 .vk-yoga-card .vk-h3 { font-size: 0.75rem; line-height: 1.25; }
+.vk-a4 .vk-yoga-dots { display: grid; grid-template-columns: repeat(12, 7px); gap: 2px; flex: none; }
+.vk-a4 .vk-yoga-dots span:last-child { display: none; }
+.vk-a4 .vk-yoga-dots span:first-child { width: 7px; height: 7px; }
+.vk-a4 .vk-yoga-card::after, .vk-a4 .vk-yoga-card::before { display: none; }
+
+/* Sky event lines: narrower date and glyph columns leave the words more room. */
+.vk-a4 .vk-dense li { gap: 0.3rem; }
+.vk-a4 .vk-dense li > span.w-14 { width: 2.3rem; }
+.vk-a4 .vk-dense li > span.w-4 { width: 0.7rem; }
+
+/* Tighter cards on the sheet. */
+.vk-a4 .vk-panel.p-3 { padding: 0.5rem 0.65rem; }
+.vk-a4 .vk-panel.p-4 { padding: 0.65rem 0.8rem; }
+.vk-a4 .vk-panel.p-5 { padding: 0.8rem 0.9rem; }
+.vk-a4 .gap-3 { gap: 0.55rem; }
+.vk-a4 .gap-2\.5 { gap: 0.4rem; }
+
+/* Your stars: the wheel with its number key beside it. */
+.vk-a4 .vk-wheel-row { flex-direction: row; align-items: center; gap: 1.25rem; }
+.vk-a4 .vk-wheel-box { width: 19rem; flex: none; margin: 0; }
+
+/* A little more air saved on the sheet. */
+.vk-a4-head { padding-bottom: 8px; }
+.vk-a4-foot { padding-top: 8px; }
+.vk-a4 .gap-5 { gap: 0.7rem; }
+.vk-a4 .gap-4 { gap: 0.6rem; }

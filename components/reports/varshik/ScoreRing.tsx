@@ -1,11 +1,11 @@
 "use client";
 
 import { useId } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import type { Tier } from "./types";
 import { TIER_COLOR, TIER_GLYPH, TIER_WORD, tierOf, useChartMode } from "./tiers";
-import { useCountUp } from "./motion";
+import { useCountUp, useSettled } from "./motion";
 
 interface ScoreRingProps {
   score: number;
@@ -24,7 +24,7 @@ const C = 2 * Math.PI * R;
 export default function ScoreRing({ score, tier, caption, size = "11rem" }: ScoreRingProps) {
   const { t } = useTranslation();
   const mode = useChartMode();
-  const reduce = useReducedMotion();
+  const reduce = useSettled();
   const gid = useId().replace(/:/g, "");
   const safe = Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
   const tr = tier ?? tierOf(safe);

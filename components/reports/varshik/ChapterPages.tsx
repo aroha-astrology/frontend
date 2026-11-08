@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useY } from "./year-context";
 import NorthIndianChart from "@/components/ui/NorthIndianChart";
 import ArtSlot from "./ArtSlot";
 import AreaBars from "./AreaBars";
@@ -58,13 +59,14 @@ function MonthChip({ month, score, tier, lang, onClick }: { month: number; score
 /** Page 5. 2027 at a glance. */
 export function GlanceBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
+  const y = useY();
   const { facts } = ctx;
   const v = facts.varsha[facts.varsha.length - 1]!;
   const planetWord = (p: string) => t(`varshik.planet.${p.toLowerCase()}`, { defaultValue: p });
   const lord = PLANET_ART[v.yearLord];
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <ScoreRing score={facts.scores.overall.score} tier={facts.scores.overall.tier} caption={t("varshik.glance.caption", { defaultValue: "Your 2027" })} />
+      <ScoreRing score={facts.scores.overall.score} tier={facts.scores.overall.tier} caption={y(t("varshik.glance.caption", { defaultValue: "Your 2027" }))} />
       <div className="grid grid-cols-2 gap-3">
         <div className="vk-panel flex min-w-0 items-center gap-3 p-3">
           {lord ? <ArtSlot kind="medallion" code={lord} src={art(lord)} maxWidth="3.25rem" /> : null}
@@ -226,10 +228,11 @@ export function YogasBody({ ctx }: { ctx: PageCtx }) {
 /** Page 14. The seven areas, each out of 100. */
 export function AreaOverviewBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
+  const y = useY();
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <p className="vk-body m-0 break-words">
-        {t("varshik.areas.intro", { defaultValue: "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time." })}
+        {y(t("varshik.areas.intro", { defaultValue: "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time." }))}
       </p>
       <AreaBars areas={ctx.facts.scores.areaOverall} />
     </div>
@@ -239,6 +242,7 @@ export function AreaOverviewBody({ ctx }: { ctx: PageCtx }) {
 /** Pages 15-21. One area: banner, score, its twelve months, then the words. */
 export function AreaBody({ ctx, area }: { ctx: PageCtx; area: string }) {
   const { t } = useTranslation();
+  const y = useY();
   const cells = ctx.facts.scores.timingMap[area]!;
   const overall = ctx.facts.scores.areaOverall[area]!;
   const { best, hold } = areaExtremes(cells);
@@ -253,7 +257,7 @@ export function AreaBody({ ctx, area }: { ctx: PageCtx; area: string }) {
         <div className="flex min-w-0 flex-col gap-1">
           <span className="vk-h3 break-words">{label}</span>
           <span className="vk-caption break-words">
-            {t("varshik.areas.overall", { defaultValue: "Overall for 2027" })}
+            {y(t("varshik.areas.overall", { defaultValue: "Overall for 2027" }))}
           </span>
         </div>
       </div>
@@ -296,7 +300,7 @@ export function SkyBody({ ctx }: { ctx: PageCtx }) {
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <Narrative section={ctx.byId.sky_calendar} />
-      <SkyCalendar events={ctx.facts.skyEvents} />
+      <SkyCalendar events={ctx.facts.skyEvents} stars={ctx.facts.stars} place={ctx.facts.reader.eclipsePlace} />
     </div>
   );
 }

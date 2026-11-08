@@ -1,0 +1,81 @@
+{
+ "varshik": {
+  "skyRef": {
+   "ingress": "{{planet}} enters {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon",
+   "station-retrograde": "{{planet}} turns retrograde in {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon",
+   "station-direct": "{{planet}} turns direct in {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon",
+   "combust-in": "{{planet}} goes combust in {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon",
+   "combust-out": "{{planet}} leaves combustion in {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon"
+  },
+  "eclipse": {
+   "solar": {
+    "grahan": "Solar eclipse in {{sign}}, seen as a Grahan · {{lagna}} from your Lagna · {{moon}} from your Moon",
+    "not_visible": {
+     "india": "Solar eclipse in {{sign}}, not visible in India: no Sutak",
+     "reader": "Solar eclipse in {{sign}}, not visible where you live: no Sutak"
+    }
+   },
+   "lunar": {
+    "grahan": "Lunar eclipse in {{sign}}, seen as a Grahan · {{lagna}} from your Lagna · {{moon}} from your Moon",
+    "upachchaya": "Penumbral lunar eclipse (Upachchaya) in {{sign}}: a faint shading only, no Sutak",
+    "not_visible": {
+     "india": "Lunar eclipse in {{sign}}, not visible in India: no Sutak",
+     "reader": "Lunar eclipse in {{sign}}, not visible where you live: no Sutak"
+    }
+   },
+   "type": {
+    "total": "Total",
+    "annular": "Annular",
+    "hybrid": "Hybrid",
+    "partial": "Partial",
+    "penumbral": "Penumbral"
+   },
+   "scopeReader": "Times where you live ({{place}}):",
+   "scopeIndia": "Times across India, in IST:",
+   "placeFaint": "{{place}}: {{from}} to {{to}}",
+   "placeAll": "{{from}} to {{to}}, the same in every city",
+   "placeSolar": "{{place}}: {{from}} to {{to}}, {{pct}}% of the Sun covered · Sutak from {{sutak}}",
+   "placeLunar": "{{place}}: {{from}} to {{to}} · Sutak from {{sutak}}",
+   "sutakSolar": "Sutak starts 12 hours (4 prahar) before the eclipse begins where you are.",
+   "sutakLunar": "Sutak starts 9 hours (3 prahar) before the eclipse begins where you are."
+  },
+  "moves": {
+   "segmentRef": "{{from}} to {{to}} · {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon · {{bindus}} bindus",
+   "segmentRefOne": "{{from}} · {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon · {{bindus}} bindus",
+   "refKey": "In the bars, L is the house from your Lagna and M the house from your Moon."
+  },
+  "decision": {
+   "closedMonth": "no muhurat this month",
+   "openDays": "Open days in this window: {{spans}}",
+   "keptClear": "This report keeps these dates clear:",
+   "closedKey": "Striped: no muhurat for that event",
+   "noMuhurat": {
+    "marriage": "Traditionally no wedding muhurat:",
+    "move_home": "Traditionally no griha pravesh muhurat:"
+   }
+  },
+  "closure": {
+   "shukra_asta": "Venus combust (Shukra Asta): {{from}} to {{to}}",
+   "guru_asta": "Jupiter combust (Guru Asta): {{from}} to {{to}}",
+   "kharmas": "Kharmas, the Sun in Sagittarius or Pisces: {{from}} to {{to}}",
+   "chaturmas": "Chaturmas: {{from}} to {{to}}"
+  },
+  "share": {
+   "peaks": "Peak months: {{months}}",
+   "signs": "Moon sign {{moon}} · Lagna {{lagna}}",
+   "hintSigns": "Pick a card to share. The year card shows your peak months, Moon sign and Lagna; no card shows your name, birth date, time or place."
+  },
+  "sky": {
+   "legend": {
+    "grahan": "Eclipse seen as a Grahan",
+    "marker": "Eclipse, penumbral or not visible: a marker only",
+    "eclipse": "Eclipse",
+    "ingress": "A planet changes sign",
+    "station-retrograde": "Turns retrograde",
+    "station-direct": "Turns direct",
+    "combust-in": "Goes combust (too close to the Sun)",
+    "combust-out": "Leaves combustion"
+   }
+  }
+ }
+}

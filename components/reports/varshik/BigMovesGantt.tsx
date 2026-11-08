@@ -1,14 +1,18 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useY } from "./year-context";
 import { signName } from "./sign-name";
 import type { TransitRow } from "./types";
 import { monthShort } from "./format";
+import { ordinal } from "./sky-text";
 
 interface Segment {
   from: number;
   to: number;
   house: number;
+  /** C5: the same sign counted from the natal Moon (absent in older reports). */
+  moon?: number;
   sign: string;
   avg: number;
 }
@@ -23,10 +27,10 @@ function segmentsOf(rows: TransitRow[]): Segment[] {
       last.sum += r.bindus;
       last.n += 1;
     } else {
-      out.push({ from: r.month, to: r.month, house: r.natalHouse, sign: r.sign, avg: 0, sum: r.bindus, n: 1 });
+      out.push({ from: r.month, to: r.month, house: r.natalHouse, moon: r.moonHouse, sign: r.sign, avg: 0, sum: r.bindus, n: 1 });
     }
   }
-  return out.map((s) => ({ from: s.from, to: s.to, house: s.house, sign: s.sign, avg: s.sum / s.n }));
+  return out.map((s) => ({ from: s.from, to: s.to, house: s.house, moon: s.moon, sign: s.sign, avg: s.sum / s.n }));
 }
 
 /** Big sky moves: for each slow planet a 12-month strip of the house it stands in, shaded by bindus. */
@@ -38,6 +42,7 @@ export default function BigMovesGantt({
   planetOrder?: string[];
 }) {
   const { t, i18n } = useTranslation();
+  const y = useY();
   const lang = i18n.language;
   const blocks = planetOrder
     .map((planet) => ({ planet, rows: transits.filter((r) => r.planet === planet) }))
@@ -73,10 +78,10 @@ export default function BigMovesGantt({
               viewBox="0 0 360 40"
               className="h-auto w-full"
               role="img"
-              aria-label={t("varshik.moves.label", {
+              aria-label={y(t("varshik.moves.label", {
                 defaultValue: "{{planet}} through the twelve months of 2027",
                 planet: word,
-              })}
+              }))}
             >
               {segs.map((s) => {
                 const w = (s.to - s.from + 1) * 30 - 2;
@@ -92,7 +97,7 @@ export default function BigMovesGantt({
                       textAnchor="middle"
                       fill="var(--foreground)"
                     >
-                      {w < 40 ? s.house : `H${s.house}`}
+                      {s.moon === undefined ? (w < 40 ? s.house : `H${s.house}`) : w < 58 ? `${s.house}·${s.moon}` : `L${s.house} · M${s.moon}`}
                     </text>
                   </g>
                 );
@@ -111,17 +116,30 @@ export default function BigMovesGantt({
             <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs" style={{ color: "var(--foreground)" }}>
               {segs.map((s) => (
                 <li key={s.from} className="min-w-0 break-words">
-                  {t(s.from === s.to ? "varshik.moves.segmentOne" : "varshik.moves.segment", {
-                    defaultValue:
-                      s.from === s.to
-                        ? "{{from}} · house {{house}} · {{sign}} · {{bindus}} bindus"
-                        : "{{from}} to {{to}} · house {{house}} · {{sign}} · {{bindus}} bindus",
-                    from: monthShort(s.from, lang),
-                    to: monthShort(s.to, lang),
-                    house: s.house,
-                    sign: signName(t, s.sign),
-                    bindus: Math.round(s.avg),
-                  })}
+                  {s.moon === undefined
+                    ? t(s.from === s.to ? "varshik.moves.segmentOne" : "varshik.moves.segment", {
+                        defaultValue:
+                          s.from === s.to
+                            ? "{{from}} · house {{house}} · {{sign}} · {{bindus}} bindus"
+                            : "{{from}} to {{to}} · house {{house}} · {{sign}} · {{bindus}} bindus",
+                        from: monthShort(s.from, lang),
+                        to: monthShort(s.to, lang),
+                        house: s.house,
+                        sign: signName(t, s.sign),
+                        bindus: Math.round(s.avg),
+                      })
+                    : t(s.from === s.to ? "varshik.moves.segmentRefOne" : "varshik.moves.segmentRef", {
+                        defaultValue:
+                          s.from === s.to
+                            ? "{{from}} · {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon · {{bindus}} bindus"
+                            : "{{from}} to {{to}} · {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon · {{bindus}} bindus",
+                        from: monthShort(s.from, lang),
+                        to: monthShort(s.to, lang),
+                        sign: signName(t, s.sign),
+                        lagna: ordinal(s.house, lang),
+                        moon: ordinal(s.moon, lang),
+                        bindus: Math.round(s.avg),
+                      })}
                 </li>
               ))}
             </ul>
@@ -132,6 +150,9 @@ export default function BigMovesGantt({
         {t("varshik.moves.note", {
           defaultValue: "Bindus show how supportive a house is for that planet; more is easier.",
         })}
+        {transits.some((r) => r.moonHouse !== undefined)
+          ? ` ${t("varshik.moves.refKey", { defaultValue: "In the bars, L is the house from your Lagna and M the house from your Moon." })}`
+          : null}
       </p>
     </div>
   );

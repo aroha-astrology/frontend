@@ -12,6 +12,10 @@ import PageFrame, { CHAPTER_EN } from "./PageFrame";
 import ReportSurface from "./ReportSurface";
 import { buildPages } from "./pages";
 import { editionNumber } from "./facts-helpers";
+import { ReportYearContext } from "./year-context";
+import { PdfDownloadButton, PdfStatusLayer } from "@/components/pdf/PdfDownload";
+import { ShareCardsButton, ShareCardsSheet } from "./ShareCards";
+import { useVarshikPdf } from "./useVarshikPdf";
 import type { PageCtx } from "./page-types";
 
 const SWIPE_PX = 70;
@@ -31,6 +35,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [jump, setJump] = useState(false);
+  const [share, setShare] = useState(false);
 
   // The moment the report is ready: one light tap (Android; a short vibrate in browsers that have it).
   useEffect(() => {
@@ -66,6 +71,13 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
     };
   }, [read, lang, pages, goIndex, reportId]);
 
+  const pdf = useVarshikPdf({
+    pages,
+    ctx,
+    year: read?.facts.year ?? 2027,
+    title: t("varshik.cover.title", { defaultValue: "Your year ahead" }),
+  });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
@@ -88,6 +100,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
   const Body = page.Body;
 
   return (
+    <ReportYearContext.Provider value={read.facts.year ?? 2027}>
     <ReportSurface>
       <motion.div
         ref={top}
@@ -170,7 +183,26 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
             <ChevronRight size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
           </button>
         </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+          <PdfDownloadButton onClick={pdf.download} />
+          <ShareCardsButton onClick={() => setShare(true)} />
+        </div>
       </motion.div>
+      {pdf.book}
+      <PdfStatusLayer status={pdf.status} onDismiss={pdf.dismiss} />
+
+      {share ? (
+        <ShareCardsSheet
+          year={read.facts.year ?? 2027}
+          lang={lang}
+          months={read.facts.scores.months.map((m) => ({ tier: m.tier }))}
+          peaks={read.facts.scores.peakMonths}
+          moonSign={read.facts.birth.planets.find((p) => p.planet === "Moon")?.sign}
+          lagna={read.facts.birth.lagna.sign}
+          onClose={() => setShare(false)}
+        />
+      ) : null}
 
       {jump ? (
         <BottomSheetModal onClose={() => setJump(false)} closeLabel={t("common.close")} header={<div />}>
@@ -206,5 +238,6 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
         </BottomSheetModal>
       ) : null}
     </ReportSurface>
+    </ReportYearContext.Provider>
   );
 }

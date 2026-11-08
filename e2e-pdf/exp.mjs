@@ -1,0 +1,15 @@
+import { chromium, devices } from "@playwright/test";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ ...devices["Pixel 7"], viewport: { width: 900, height: 1200 } });
+const page = await ctx.newPage();
+await page.goto(`http://127.0.0.1:3120/varshik-preview?view=book&lang=en&q=2`);
+await page.waitForSelector("body[data-fitted='1']");
+await page.addStyleTag({ content: "[class*=fixed]{display:none!important}" });
+const svg = page.locator('[data-pdf-page="yourstars"] svg').first();
+await svg.scrollIntoViewIfNeeded();
+const out = process.argv[2];
+await svg.screenshot({ path: `${out}/w0.png` });
+await page.evaluate(() => document.querySelector('[data-pdf-page="yourstars"] [data-a4-inner]').style.transform = "none");
+await svg.screenshot({ path: `${out}/w1.png` });
+console.log(await svg.evaluate((e) => { const t = e.querySelector("text"); const cs = getComputedStyle(t); return [cs.fontSize, cs.fontFamily.slice(0,40), cs.letterSpacing, cs.textAnchor, cs.transform, cs.wordSpacing, cs.fontStretch, cs.zoom].join(" | "); }));
+await browser.close();

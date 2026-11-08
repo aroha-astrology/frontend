@@ -9,19 +9,21 @@ import { useTranslation } from "react-i18next";
  *   opener    9:16  (768x1376)  chapter openers, framed inside the A4 page and never stretched
  *   medallion 1:1   (1024x1024) planet medallions and remedy icons
  *   divider   20:3  (2000x300)  the gold ornament rule (A47)
+ *   cover     3:4   (896x1200)  the cover (A1): the full gold frame survives on A4
  *
  * Without `src` it draws the app's card surface with a fine gold frame and the slot code (e.g. "A24"), so a
  * missing image is obvious in review. It must never reach a reader: the art is added before release.
  */
-export type ArtKind = "banner" | "opener" | "medallion" | "divider";
+export type ArtKind = "banner" | "opener" | "medallion" | "divider" | "cover";
 
-const RATIO: Record<ArtKind, string> = { banner: "16 / 9", opener: "9 / 16", medallion: "1 / 1", divider: "20 / 3" };
+const RATIO: Record<ArtKind, string> = { banner: "16 / 9", opener: "9 / 16", medallion: "1 / 1", divider: "20 / 3", cover: "3 / 4" };
 
 export const ART_SIZE: Record<ArtKind, { w: number; h: number }> = {
   banner: { w: 1376, h: 768 },
   opener: { w: 768, h: 1376 },
   medallion: { w: 1024, h: 1024 },
   divider: { w: 2000, h: 300 },
+  cover: { w: 896, h: 1200 },
 };
 
 export default function ArtSlot({
@@ -64,6 +66,7 @@ export default function ArtSlot({
               boxShadow: "inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--border-faint)",
             }
       }
+      data-art={kind}
       role={src ? undefined : "img"}
       aria-label={src ? undefined : t("varshik.art.missing", { defaultValue: "Artwork {{code}} to be added", code })}
     >

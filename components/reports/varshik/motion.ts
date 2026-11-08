@@ -2,12 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { animate, useInView, useReducedMotion } from "framer-motion";
+import { usePdfCapturing } from "@/components/pdf/PdfCapturingContext";
+
+/** True when charts should show their final state at once: reduced motion, or the page is being captured for the PDF. */
+export function useSettled(): boolean {
+  const reduce = useReducedMotion();
+  const capturing = usePdfCapturing();
+  return !!reduce || capturing;
+}
 
 /** Counts a number up from 0 once, when it scrolls into view. Reduced motion shows the final value. */
 export function useCountUp(target: number, duration = 1) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
-  const reduce = useReducedMotion();
+  const reduce = useSettled();
   const [value, setValue] = useState(reduce ? target : 0);
 
   useEffect(() => {

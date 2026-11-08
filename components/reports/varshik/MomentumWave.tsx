@@ -1,8 +1,10 @@
 "use client";
 
 import { useId } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSettled } from "./motion";
 import { useTranslation } from "react-i18next";
+import { useReportYear, useY } from "./year-context";
 import { dayOfYear, monthShort } from "./format";
 import { monotoneAreaPath, monotonePath, type Pt } from "./curve";
 
@@ -40,7 +42,9 @@ export default function MomentumWave({
   sahams?: SahamPin[];
 }) {
   const { t, i18n } = useTranslation();
-  const reduce = useReducedMotion();
+  const year = useReportYear();
+  const y = useY();
+  const reduce = useSettled();
   const gid = useId().replace(/:/g, "");
   if (daily.length === 0) return null;
 
@@ -60,7 +64,7 @@ export default function MomentumWave({
   });
 
   const bars = mudda
-    .map((m, i) => ({ ...m, a: dayOfYear(m.from), b: dayOfYear(m.to), i }))
+    .map((m, i) => ({ ...m, a: dayOfYear(m.from, year), b: dayOfYear(m.to, year), i }))
     .filter((m) => m.b > m.a);
 
   // The strongest windows first, kept only when 14+ units clear of every pin already kept, then
@@ -70,7 +74,7 @@ export default function MomentumWave({
   for (const s of byStrength) {
     const date = s.exact[0];
     if (!date || kept.length >= 8) continue;
-    const x = xOf(dayOfYear(date));
+    const x = xOf(dayOfYear(date, year));
     if (kept.some((k) => Math.abs(k.x - x) < 14)) continue;
     kept.push({ saham: s.saham, date, x });
   }
@@ -84,7 +88,7 @@ export default function MomentumWave({
         viewBox="0 0 360 190"
         className="h-auto w-full"
         role="img"
-        aria-label={t("varshik.wave.label", { defaultValue: "Daily rhythm of the year 2027" })}
+        aria-label={y(t("varshik.wave.label", { defaultValue: "Daily rhythm of the year 2027" }))}
       >
         {[45, 60, 75].map((edge) => (
           <line

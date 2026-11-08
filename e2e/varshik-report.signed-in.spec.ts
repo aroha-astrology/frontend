@@ -13,7 +13,7 @@ const WIDTH = 360;
 const REPORT_ID = "66666666-6666-4666-8666-666666666666";
 test.use({ viewport: { width: WIDTH, height: 780 } });
 
-const TOTAL = 58; // 54 core pages + 2 questions + the relief page + the closing letter
+const TOTAL = 61; // 57 core pages (54 + the three C3 star pages) + 2 questions + the relief page + the closing letter
 
 async function openVarshik(page: Page) {
   await skipLaunchOverlays(page);
@@ -25,7 +25,7 @@ async function openVarshik(page: Page) {
 
 const counter = (page: Page) => page.getByTestId("varshik-report").locator("span[aria-live]");
 
-test("the report opens on the cover and has 58 pages for a reader with two questions", async ({ page }) => {
+test("the report opens on the cover and has 61 pages for a reader with two questions", async ({ page }) => {
   await openVarshik(page);
   await expect(counter(page)).toHaveText(`Page 1 of ${TOTAL}`);
   await expect(page.getByTestId("varshik-report").getByText("2027", { exact: true })).toBeVisible();
@@ -79,4 +79,27 @@ test("every page fits the screen: nothing is wider than the phone", async ({ pag
     if (i < TOTAL - 1) await report.getByRole("button", { name: "Next", exact: true }).first().click();
   }
   await expect(counter(page)).toHaveText(`Page ${TOTAL} of ${TOTAL}`);
+});
+
+test("the three star pages (C3) open from the contents and draw their charts", async ({ page }) => {
+  await openVarshik(page);
+  const report = page.getByTestId("varshik-report");
+
+  await report.getByRole("button", { name: "Contents" }).click();
+  await page.getByRole("button", { name: /^Your birth stars/ }).click();
+  await expect(report.getByRole("heading", { name: "Your birth stars" })).toBeVisible();
+  await expect(report.getByText("Your birth star", { exact: true })).toBeVisible();
+  // ten rows: nine planets and the Lagna
+  await expect(report.getByText(/^Star lord /)).toHaveCount(10);
+
+  await report.getByRole("button", { name: "Contents" }).click();
+  await page.getByRole("button", { name: /^The year's three flags/ }).click();
+  await expect(report.getByRole("heading", { name: "The year's three flags" })).toBeVisible();
+  await expect(report.getByText("The Lagna flag").first()).toBeVisible();
+  await expect(report.getByText("Patyayini periods, by the week").first()).toBeVisible();
+
+  await report.getByRole("button", { name: "Contents" }).click();
+  await page.getByRole("button", { name: /^Your stars in 2027/ }).click();
+  await expect(report.getByRole("heading", { name: "Your stars in 2027" })).toBeVisible();
+  await expect(report.getByRole("img", { name: "The 27 stars counted from your birth star" })).toBeVisible();
 });

@@ -1,15 +1,17 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useY } from "./year-context";
 import type { DoshaFact } from "./types";
 import { TIER_COLOR, useChartMode } from "./tiers";
 import { monthShort } from "./format";
 
 const STATUS_EN = { present: "Present", cancelled: "Cancelled", not_present: "Not present" } as const;
 
-/** The eight doshas: status, the months of the year each is active, what it touches and the simple remedy. */
+/** The nine doshas (Gandanta is the ninth): status, the months of the year each is active, what it touches and the simple remedy. */
 export default function DoshaTable({ doshas }: { doshas: DoshaFact[] }) {
   const { t, i18n } = useTranslation();
+  const y = useY();
   const mode = useChartMode();
   if (doshas.length === 0) return null;
   const lang = i18n.language;
@@ -68,7 +70,7 @@ export default function DoshaTable({ doshas }: { doshas: DoshaFact[] }) {
                         defaultValue: "Active in: {{months}}",
                         months: [...active].sort((a, b) => a - b).map((m) => monthShort(m, lang)).join(", "),
                       })
-                    : t("varshik.dosha.quiet", { defaultValue: "Quiet through 2027" })}
+                    : y(t("varshik.dosha.quiet", { defaultValue: "Quiet through 2027" }))}
                 </p>
                 {reasons.length > 0 ? (
                   <p className="m-0 break-words text-xs" style={{ color: "var(--text-muted)" }}>

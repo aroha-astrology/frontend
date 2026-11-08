@@ -282,7 +282,16 @@ The marriage, commitment and move-home rows only take months with at least 7 ope
 
 **Translations.** 50 strings went through apinex, in `i18n/roadmap/varshik-c5`. Apinex mistranslated the Jyotish terms in the Indian languages (Telugu 'repentance' for retrograde, 'burning' for combust, transliterated 'retrograde'), so those strings are written by hand with the standard terms: Hindi/Marathi वक्री/मार्गी/अस्त/उदय/उपच्छाया, Telugu and Kannada మౌఢ్యమి/ಮೌಢ್ಯ for combust, Tamil வக்கிரம்/அஸ்தங்கம், Gujarati કમુરતાં for Kharmas. A native review is still advisable.
 
-**Open:** owner's calls on the four rule questions (asta method, move-in Kharmas/Chaturmas, property, engagement); whether Decide should skip penumbral eclipse days; reports-service spec still expects 5 progress groups (C3 made it 6).
+**Owner decisions (2026-11-09), built:**
+1. **Asta** for muhurat blocking comes from drikpanchang's published dates (visibility based), stored in `backend config/asta-dates.ts` with source URLs. 2026 and 2027 are in; drikpanchang did not yet serve 2028 or 2029 (every URL returned the 2027 page). Preflight refuses a year without Asta rows. 2027: Venus 21 Jul to 9 Sep, Jupiter 17 Aug to 13 Sep. The fixed Surya Siddhanta orbs stay for strength and combustion in the scoring. Weddings on 7 to 13 Jul are open; Chaturmas closes them from 14 Jul.
+2. **Moving home** is closed by Asta only, with a soft line about Kharmas and Chaturmas.
+3. **Property purchase** is its own row (`buy_property`), with no block.
+4. **Engagement** has no block, only a soft line about the sagai date.
+5. **Decide** avoids only a Grahan seen at the user's place. The test showed the old behaviour failing first. It is on the release list in the plan's S7.
+
+**Also fixed:** below-horizon contacts in `classifyEclipse` (Swiss returns 0; the rise or set time is now the edge). The waiting screen follows `progress.total`, and `VARSHIK_TEXT_GROUPS` is shared by the generator, the API and its test.
+
+**Pre-existing test failures** (they also fail on origin/main e293ea57): `test/users.spec.ts` (5) and `test/insights-birth-time.spec.ts` (4 or 5, timeouts).
 
 ## PDF cover (owner, 2026-11-09). Built in S6, the art is fixed in the asset pass
 

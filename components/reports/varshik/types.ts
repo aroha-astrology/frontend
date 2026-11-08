@@ -41,6 +41,8 @@ export interface DecisionRow {
   /** C5: per closure, 'panchang' when a panchang states the rule for this event, 'report' when it is the report's own rule. */
   ruleSource?: ("panchang" | "report")[];
   noOpenWindow?: boolean;
+  /** A soft custom line: move-in (many families also avoid Kharmas and Chaturmas), engagement (the wedding rules). */
+  note?: "move_custom" | "sagai_custom" | null;
 }
 
 export type ClosureReason = "shukra_asta" | "guru_asta" | "kharmas" | "chaturmas";

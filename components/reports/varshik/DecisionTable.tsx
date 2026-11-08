@@ -31,6 +31,12 @@ function closedMonths(closures: Closure[], year: number): boolean[] {
   });
 }
 
+/** Soft custom lines (owner, 2026-11-09): a family custom, never a rule. */
+const NOTE_EN: Record<"move_custom" | "sagai_custom", string> = {
+  move_custom: "Many families also avoid Kharmas and Chaturmas for moving in. Check your family's custom.",
+  sagai_custom: "Families often choose a sagai date by the same rules as the wedding.",
+};
+
 const STRIPES = "repeating-linear-gradient(135deg, rgba(0,0,0,0.38) 0 3px, transparent 3px 7px)";
 
 const TIERS: Tier[] = ["dark_green", "light_green", "amber", "rust"];
@@ -169,6 +175,11 @@ export default function DecisionTable({ rows, filterable = false }: { rows: Deci
                 </div>
               ) : null,
             )}
+            {r.note ? (
+              <p className="m-0 break-words text-xs italic" style={{ color: "var(--text-muted)" }}>
+                {t(`varshik.decision.note.${r.note}`, { defaultValue: NOTE_EN[r.note] })}
+              </p>
+            ) : null}
           </li>
           );
         })}

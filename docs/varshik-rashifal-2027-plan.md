@@ -446,6 +446,18 @@ The owner's rule is that all copy goes through the **humanizer** (the repo-based
 - Playwright tests plus the backend guard tests.
 - Deploy the backend first, then the web. The switch stays OFF.
 
+#### Release list (deploy the backend first, then the web)
+
+These parts of the Varshik branch change **live** behaviour outside the report, so they ship with care:
+
+1. **Decide screen: only a Grahan seen where the user lives is an avoid day** (owner, 2026-11-09). Before, every eclipse anywhere on Earth, penumbral ones included, marked the day as one to avoid. Now `daySkies` keeps an eclipse only when `classifyEclipse` calls it a Grahan at the Decide place. That is the user's current location, falling back to the profile's birth place exactly as Decide already did for its panchang. `test/decide-eclipse.spec.ts` failed on the old code: 4 of 5 cases (21 Feb, 6 Feb and 17 Aug 2027 from Delhi; 2 Aug from Sydney) were marked as avoid days. All pass after the change. Users will see fewer red eclipse days in Decide and Find My Date.
+2. **Chat: eclipse facts** carry the type (total, annular, penumbral) and the Grahan, Upachchaya or not-visible class. Visibility is judged at the account's current location, or a labelled India summary; never the birth place.
+3. **Eclipse local times:** a contact below the horizon used to read as "not visible" (Madrid, 28 Aug 2026). Now the moonset or sunset time is used as the visible edge. This affects chat, Decide and every report that reads `classifyEclipse`.
+4. **Festival table:** Devuthani Ekadashi added for 2025 to 2029 (backend and web copies). The festival-alert cron will announce it.
+5. **Waiting screen:** the step count follows the API's `progress.total` (`VARSHIK_TEXT_GROUPS`, 6).
+
+The backend goes first because the web reads the new `progress.total`, eclipse and decision fields. An older backend leaves those fields absent, and the web falls back to the earlier labels.
+
 ## Sprint start prompts and models
 
 Each sprint runs in a new chat started from `frontend/`. Sprint 1 first copies this plan to `frontend/docs/varshik-rashifal-2027-plan.md` so later chats can read it.

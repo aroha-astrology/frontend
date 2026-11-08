@@ -52,6 +52,11 @@
    "noMuhurat": {
     "marriage": "Traditionally no wedding muhurat:",
     "move_home": "Traditionally no griha pravesh muhurat:"
+   },
+   "buy_property": "Buy property",
+   "note": {
+    "move_custom": "Many families also avoid Kharmas and Chaturmas for moving in. Check your family's custom.",
+    "sagai_custom": "Families often choose a sagai date by the same rules as the wedding."
    }
   },
   "closure": {

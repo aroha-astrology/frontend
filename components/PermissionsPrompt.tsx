@@ -48,7 +48,7 @@ export default function PermissionsPrompt() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { markResolved, resolved } = usePermissionsPrompt();
-  const { claim, settle } = usePopupSlot("permissions");
+  const { canOpen, claim, settle } = usePopupSlot("permissions");
   const geo = useGeolocation();
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -102,8 +102,9 @@ export default function PermissionsPrompt() {
           }
           setPlatform("web");
           setDeniedState(false);
-          if (claim()) setVisible(true);
-          else markResolved();
+          // Wait for a higher pop-up (the update notice) that is still deciding; this runs again when it has.
+          if (!claim()) return;
+          setVisible(true);
           return;
         }
         if (!user?.profileCompletedAt) return;
@@ -128,8 +129,8 @@ export default function PermissionsPrompt() {
 
         setDeniedState(window.localStorage.getItem(DENIED_KEY) === "1");
         setAndroidSettings(await canOpenNotificationSettings());
-        if (claim()) setVisible(true);
-        else markResolved();
+        if (!claim()) return;
+        setVisible(true);
       } catch {
         // @capacitor/core not resolvable (e.g. plain web build) — never show.
         if (!cancelled) markResolved();
@@ -138,7 +139,7 @@ export default function PermissionsPrompt() {
     return () => {
       cancelled = true;
     };
-  }, [user?.profileCompletedAt, markResolved, claim]);
+  }, [user?.profileCompletedAt, markResolved, claim, canOpen]);
 
   // Decided (shown and answered, or not applicable): the pop-ups below no longer wait for it.
   useEffect(() => {

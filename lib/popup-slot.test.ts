@@ -22,19 +22,25 @@ describe("one pop-up per app open", () => {
     expect(canOpenPopup("festival-gift", { holder: "varshik-launch", pending: none })).toBe(false);
     expect(canOpenPopup("varshik-launch", { holder: "varshik-launch", pending: none })).toBe(true);
   });
-  it("a promo does not open after a first-run pop-up has shown", () => {
+  it("nothing opens after another pop-up has shown this open, the first-run ones included (strict)", () => {
     expect(canOpenPopup("varshik-launch", { holder: "welcome", pending: none })).toBe(false);
     expect(canOpenPopup("rate-us", { holder: "permissions", pending: none })).toBe(false);
+    expect(canOpenPopup("welcome", { holder: "permissions", pending: none })).toBe(false);
+    expect(canOpenPopup("permissions", { holder: "update", pending: none })).toBe(false);
   });
-  it("the first-run pop-ups keep their own sequence (permissions, then welcome)", () => {
-    expect(canOpenPopup("welcome", { holder: "permissions", pending: none })).toBe(true);
-    expect(canOpenPopup("permissions", { holder: "update", pending: none })).toBe(true);
+  it("the holder itself may keep the slot", () => {
+    expect(canOpenPopup("welcome", { holder: "welcome", pending: none })).toBe(true);
   });
-  it("a first-run pop-up never waits on another first-run one still deciding (they sequence themselves)", () => {
-    expect(canOpenPopup("welcome", { holder: null, pending: new Set<PopupId>(["update", "permissions"]) })).toBe(true);
-    expect(canOpenPopup("permissions", { holder: null, pending: new Set<PopupId>(["update"]) })).toBe(true);
+  it("a first-run pop-up waits for a higher one that is still deciding", () => {
+    expect(canOpenPopup("permissions", { holder: null, pending: new Set<PopupId>(["update"]) })).toBe(false);
+    expect(canOpenPopup("welcome", { holder: null, pending: new Set<PopupId>(["update", "permissions"]) })).toBe(false);
+    expect(canOpenPopup("welcome", { holder: null, pending: new Set<PopupId>(["permissions"]) })).toBe(false);
   });
-  it("a promo still waits for every first-run pop-up that is deciding", () => {
+  it("and opens once those have decided", () => {
+    expect(canOpenPopup("permissions", { holder: null, pending: none })).toBe(true);
+    expect(canOpenPopup("welcome", { holder: null, pending: none })).toBe(true);
+  });
+  it("a promo waits for every first-run pop-up that is deciding", () => {
     expect(canOpenPopup("varshik-launch", { holder: null, pending: new Set<PopupId>(["welcome"]) })).toBe(false);
     expect(canOpenPopup("rate-us", { holder: null, pending: new Set<PopupId>(["update"]) })).toBe(false);
   });

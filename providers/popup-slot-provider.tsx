@@ -86,6 +86,12 @@ export function PopupSlotProvider({ children }: { children: ReactNode }) {
   return <PopupSlotContext.Provider value={value}>{children}</PopupSlotContext.Provider>;
 }
 
+/** Whether `id` could open right now, without taking part in the slot (the tour asks this before it starts). */
+export function useCanOpenPopup(id: PopupId): boolean {
+  const { holder, pending } = useContext(PopupSlotContext);
+  return canOpenPopup(id, { holder, pending });
+}
+
 /**
  * What a pop-up uses to take part in the one-per-open rule. It counts as "still deciding" from mount until it calls
  * `settle()` (it decided not to show, or is done) or unmounts. Check `canOpen`, then call `claim()` at the moment of

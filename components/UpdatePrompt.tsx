@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, Sparkles } from "lucide-react";
-import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
 import { usePopupSlot } from "@/providers/popup-slot-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
@@ -20,7 +19,6 @@ import { isUpdateAvailable, snoozeUpdatePrompt } from "@/lib/app-update";
  */
 export default function UpdatePrompt() {
   const { t } = useTranslation();
-  const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { tourActive, tourPending } = useTour();
   const { claim, settle } = usePopupSlot("update");
   const [visible, setVisible] = useState(false);
@@ -28,7 +26,7 @@ export default function UpdatePrompt() {
   const onPalm = (usePathname() ?? "").startsWith("/palm");
 
   useEffect(() => {
-    if (!permissionsResolved) return;
+    // Update is first in the one-pop-up-per-open order, so it checks straight away: the permissions prompt waits for it.
     let cancelled = false;
     isUpdateAvailable().then((outdated) => {
       if (cancelled) return;
@@ -38,7 +36,7 @@ export default function UpdatePrompt() {
     return () => {
       cancelled = true;
     };
-  }, [permissionsResolved, claim, settle]);
+  }, [claim, settle]);
 
   const dismiss = () => {
     snoozeUpdatePrompt();

@@ -7,6 +7,7 @@ import { PartyPopper } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { usePopupSlot } from "@/providers/popup-slot-provider";
+import { NEW_USER_MS } from "@/lib/launch-popup";
 import { useFeature } from "@/hooks/useFeature";
 import { api } from "@/lib/api";
 import { track } from "@/lib/analytics";
@@ -25,7 +26,7 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
   // With them on, the button claims Day 1 right here (the daily reward
   // is then already claimed for today); with them off, the copy drops the promise.
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
-  const { claim: claimSlot, settle: settleSlot } = usePopupSlot("welcome");
+  const { canOpen, claim: claimSlot, settle: settleSlot } = usePopupSlot("welcome");
   const [claiming, setClaiming] = useState(false);
 
   const [visible, setVisible] = useState(false);
@@ -61,9 +62,10 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
       // localStorage unavailable (private mode) — fall through and treat as not-yet-shown.
     }
 
-    // Only show to users who completed their profile in the last 5 minutes (brand new).
+    // Only show to users who completed their profile in the last day (brand new). It was 5 minutes until sprint L1;
+    // with one pop-up per app open a new user can meet the permissions prompt first, and the welcome then waits a visit.
     const profileAgeMs = Date.now() - new Date(user.profileCompletedAt).getTime();
-    if (profileAgeMs >= 5 * 60 * 1000) {
+    if (profileAgeMs >= NEW_USER_MS) {
       // Old user who never saw it (e.g. from before this feature) shouldn't see it now.
       try {
         window.localStorage.setItem(WELCOME_SHOWN_KEY, "1");
@@ -73,10 +75,11 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
       return settle();
     }
 
-    if (!claimSlot()) return settle();
+    // Another pop-up has this open (or is still deciding): wait. This runs again when the slot frees up, or on the next visit.
+    if (!claimSlot()) return;
     setDecided(true);
     setVisible(true);
-  }, [permissionsResolved, loading, user, decided, claimSlot, settleSlot]);
+  }, [permissionsResolved, loading, user, decided, claimSlot, settleSlot, canOpen]);
 
   const dismiss = () => {
     try {

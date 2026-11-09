@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
+import { useCanOpenPopup } from "@/providers/popup-slot-provider";
 import AppTour from "./AppTour";
 import { useNewFeature } from "@/hooks/useFeature";
 import { tourFor } from "./tour-registry";
@@ -27,6 +28,7 @@ export default function TourHost() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
+  const tourSlotOpen = useCanOpenPopup("welcome");
   const { isDone, markDone, setTourActive, setTourPending, readyTourId, resetNonce } = useTour();
 
   const { enabled: coachMarks } = useNewFeature("nav.coachMarks");
@@ -69,6 +71,12 @@ export default function TourHost() {
     // and welcome modal on home, ReportGeneratingSheet on a report) opt in
     // explicitly via useTourReady rather than being raced.
     if (tour.readyGate && readyTourId !== tour.id) {
+      setTourPending(false);
+      return;
+    }
+
+    // One pop-up per app open: the tour is the Welcome/Tour slot, so it waits while another pop-up has this open.
+    if (!tourSlotOpen) {
       setTourPending(false);
       return;
     }
@@ -121,6 +129,7 @@ export default function TourHost() {
     openTourId,
     loading,
     permissionsResolved,
+    tourSlotOpen,
     user?.profileCompletedAt,
     readyTourId,
     resetNonce,

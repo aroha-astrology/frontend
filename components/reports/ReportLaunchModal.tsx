@@ -51,12 +51,9 @@ export default function ReportLaunchModal({ ready }: { ready: boolean }) {
   // Take the slot when it is free; otherwise wait (a higher pop-up is still deciding) or give up for this visit.
   useEffect(() => {
     if (!wants || open || done || !canOpen) return;
-    if (claim()) {
-      setOpen(true);
-      track("varshik_launch_popup_shown");
-    } else {
-      setDone(true);
-    }
+    if (!claim()) return;
+    setOpen(true);
+    track("varshik_launch_popup_shown");
   }, [wants, open, done, canOpen, claim]);
 
   const close = () => {

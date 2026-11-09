@@ -33,25 +33,27 @@ const voiceHandlers = () => ({
 const startCalls = (api: MockState) => api.calls.filter((c) => c.method === "POST" && c.path.endsWith("/v1/voice/sessions"));
 
 /** Microphone refuses until `window.__mic` is set to "allow"; `__micState` is what permissions.query reports. */
-async function stubMicrophone(page: Page, state: "prompt" | "denied") {
-  await page.addInitScript((initial) => {
+async function stubMicrophone(page: Page, state: "prompt" | "denied", dialogMs = 700) {
+  await page.addInitScript(([initial, delay]) => {
     const w = window as unknown as { __mic: string; __micState: string };
     w.__mic = "deny";
-    w.__micState = initial;
+    w.__micState = initial as string;
     const real = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = async (c) => {
+      // A real refusal comes after someone read the system dialog; an instant one means no dialog was shown.
+      await new Promise((r) => setTimeout(r, delay as number));
       if (w.__mic !== "allow") throw new DOMException("denied", "NotAllowedError");
       return real(c);
     };
     const realQuery = navigator.permissions.query.bind(navigator.permissions);
     navigator.permissions.query = async (d) =>
       (d as { name: string }).name === "microphone" ? ({ state: w.__micState } as PermissionStatus) : realQuery(d);
-  }, state);
+  }, [state, dialogMs] as const);
 }
 
-async function setup(page: Page, state: "prompt" | "denied") {
+async function setup(page: Page, state: "prompt" | "denied", dialogMs = 700) {
   await skipLaunchOverlays(page);
-  await stubMicrophone(page, state);
+  await stubMicrophone(page, state, dialogMs);
   const api = await mockApi(page, { user: { features: FEATURES }, overrides: voiceHandlers() });
   await signIn(page, "/ai-chat");
   return api;
@@ -93,6 +95,28 @@ test("microphone blocked for good: shows the settings path, and coming back afte
   });
   await expect(page.getByRole("dialog", { name: "Voice Chat" })).toBeVisible();
   await expect.poll(() => startCalls(api).length).toBe(1);
+});
+
+test("phone shows no dialog (instant refusal, cannot tell it is blocked): goes straight to the settings screen", async ({ page }) => {
+  const api = await setup(page, "prompt", 0);
+  await page.getByRole("button", { name: "Start voice chat" }).click();
+  const sheet = page.getByTestId("permission-sheet");
+  await sheet.getByRole("button", { name: "Allow" }).click();
+  await expect(sheet).toContainText("Settings → Apps → Aroha → Permissions → Microphone");
+  await expect(sheet.getByRole("button", { name: "Try again" })).toHaveCount(0);
+  expect(startCalls(api)).toHaveLength(0);
+});
+
+test("refused again on Try again: the second refusal moves to the settings screen", async ({ page }) => {
+  const api = await setup(page, "prompt");
+  await page.getByRole("button", { name: "Start voice chat" }).click();
+  const sheet = page.getByTestId("permission-sheet");
+  await sheet.getByRole("button", { name: "Allow" }).click();
+  await expect(sheet).toContainText("It is still off");
+  await sheet.getByRole("button", { name: "Try again" }).click();
+  await expect(sheet).toContainText("Settings → Apps → Aroha → Permissions → Microphone");
+  await expect(sheet.getByRole("button", { name: "Try again" })).toHaveCount(0);
+  expect(startCalls(api)).toHaveLength(0);
 });
 
 test("closing the sheet leaves the chat as it was and takes nothing", async ({ page }) => {

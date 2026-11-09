@@ -21,6 +21,9 @@ const PermissionContext = createContext<PermissionContextValue>({ ensurePermissi
 
 export const usePermission = () => useContext(PermissionContext);
 
+/** A refusal sooner than this came from the system without a dialog: nobody can read and tap that fast. */
+const DIALOG_MIN_MS = 400;
+
 interface Open {
   kind: PermissionKind;
   view: SheetView;
@@ -62,8 +65,17 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
   const allow = useCallback(async () => {
     const current = openRef.current;
     if (!current) return;
-    const outcome = await requestPermission(current.kind);
+    const startedAt = Date.now();
+    let outcome = await requestPermission(current.kind);
     if (outcome === "granted" || outcome === "unsupported") return finish(true);
+    // The phone's web view often cannot say "denied for good", so a refusal can look
+    // retryable forever while Try again shows nothing. Treat it as blocked (which offers
+    // Open settings) when the answer came back too fast for anyone to have tapped a
+    // system dialog, or when the reader was already on the retry screen and it failed again.
+    if (outcome === "denied") {
+      const tooFast = Date.now() - startedAt < DIALOG_MIN_MS;
+      if (tooFast || current.view === "denied") outcome = "blocked";
+    }
     setOpen({ kind: current.kind, view: outcome });
   }, [finish]);
 

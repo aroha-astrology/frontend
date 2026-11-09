@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import type { VarshikData } from "./data";
+import type { VarshikTierSlug } from "./tier-pages";
 
 export interface PageCtx extends VarshikData {
   name: string | null;
   /** The edition number printed on page 2, from the report id; null when the id is not known (previews). */
   edition: string | null;
   lang: string;
+  /** Which tier's pages are shown. */
+  tier: VarshikTierSlug;
   /** Jump to a page by its key (e.g. "month_03_a"). */
   go: (key: string) => void;
   /** Jump to the first page of a chapter. */

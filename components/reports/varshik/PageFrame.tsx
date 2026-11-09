@@ -11,6 +11,8 @@ export const CHAPTER_EN = [
   "Month by month",
   "Carrying it with you",
   "Your questions, answered",
+  // 7: the closing letter alone, in a tier that has no question pages (the chapter is then "Closing note", not "Your questions").
+  "Closing note",
 ];
 
 /** One page of the report: running header, the content, a gold page number in the footer. */

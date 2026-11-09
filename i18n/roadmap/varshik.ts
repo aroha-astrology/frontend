@@ -39,6 +39,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "Best months",
         "intro": "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time.",
+        "introShort": "Seven parts of life, each scored out of 100 for the whole of 2027.",
         "overall": "Overall for 2027",
         "rest": "Quietest month"
       },
@@ -65,7 +66,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "Your timing",
         "4": "Month by month",
         "5": "Carrying it with you",
-        "6": "Your questions, answered"
+        "6": "Your questions, answered",
+        "7": "Closing note"
       },
       "contents": {
         "chapter": "Chapter {{n}}"
@@ -257,6 +259,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "Starts",
         "yearLord": "Year Lord"
       },
+      "tiers": {
+        "change": "Change plan",
+        "continue": "Continue with {{name}} • {{price}} ({{pages}})",
+        "pages": "{{n}} pages",
+        "pagesPlus": "{{n}}+ pages",
+        "sub": "Same year, same chart. Pick how much of it you want.",
+        "title": "Choose your Varshik Rashifal",
+        "upgradeBody": "Your report is already written. Pay only the difference and the remaining pages open at once.",
+        "upgradeError": "The upgrade did not go through. Nothing was charged. Please try again.",
+        "upgradeFor": "Upgrade for {{price}}",
+        "upgradeNoCredits": "Not enough credits in your wallet for this upgrade.",
+        "upgradeTitle": "See the rest of your year"
+      },
       "timing": {
         "tap": "Tap any tile to open that month."
       },
@@ -282,7 +297,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "Edition 2027 · No. {{n}}",
         "from": "A letter from",
         "howToRead": "How to read your colours",
-        "monthly": "Open this report on the 1st of each month and read that month's two pages. The year is a map; the month is where you walk."
+        "monthly": "Open this report on the 1st of each month and read that month's two pages. The year is a map; the month is where you walk.",
+        "monthlyShort": "Revisit this report at the start of each month to check your monthly scores and align your steps with the year's rhythm."
       },
       "yearLord": {
         "muntha": "Muntha in {{sign}}, house {{house}}"
@@ -333,6 +349,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "सबसे अच्छे महीने",
         "intro": "जीवन के सात पहलू, जिनमें से प्रत्येक को 2027 के पूरे वर्ष के लिए 100 में से अंकित किया गया है। अगले सात पृष्ठ उन्हें एक-एक करके ले जाएंगे।",
+        "introShort": "ज़िंदगी के सात पहलू, हर एक को 2027 के लिए 100 में से स्कोर दिया गया है।",
         "overall": "2027 का समग्र फल",
         "rest": "सबसे शांत महीना"
       },
@@ -359,7 +376,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "आपका समय",
         "4": "महीनेवार",
         "5": "इसे अपने साथ ले जाना",
-        "6": "आपके प्रश्न, उत्तरित"
+        "6": "आपके प्रश्न, उत्तरित",
+        "7": "समापन पत्र"
       },
       "contents": {
         "chapter": "अध्याय {{n}}"
@@ -551,6 +569,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "प्रारंभ",
         "yearLord": "वर्ष का स्वामी"
       },
+      "tiers": {
+        "change": "प्लान बदलें",
+        "continue": "{{name}} • {{price}} ({{pages}}) के साथ जारी रखें",
+        "pages": "{{n}} पेज",
+        "pagesPlus": "{{n}}+ पेज",
+        "sub": "वही साल, वही चार्ट। चुनें कि आप इसका कितना हिस्सा चाहते हैं।",
+        "title": "अपना वार्षिक राशिफल चुनें",
+        "upgradeBody": "आपकी रिपोर्ट पहले से तैयार है। बस अंतर का भुगतान करें और बाकी पेज तुरंत खुल जाएंगे।",
+        "upgradeError": "अपग्रेड पूरा नहीं हो सका। कोई शुल्क नहीं लिया गया है। कृपया फिर से प्रयास करें।",
+        "upgradeFor": "{{price}} के लिए अपग्रेड करें",
+        "upgradeNoCredits": "इस अपग्रेड के लिए आपके वॉलेट में पर्याप्त क्रेडिट नहीं हैं।",
+        "upgradeTitle": "अपने साल का बाकी हिस्सा देखें"
+      },
       "timing": {
         "tap": "उस महीने को खोलने के लिए किसी भी खाने पर टैप करें।"
       },
@@ -576,7 +607,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "संस्करण 2027 · क्र. {{n}}",
         "from": "यह पत्र लिखा है",
         "howToRead": "अपने रंग कैसे पढ़ें",
-        "monthly": "हर महीने की 1 तारीख़ को यह रिपोर्ट खोलें और उस महीने के दो पन्ने पढ़ें। वर्ष एक नक्शा है; महीना वह जगह है जहाँ आप चलते हैं।"
+        "monthly": "हर महीने की 1 तारीख़ को यह रिपोर्ट खोलें और उस महीने के दो पन्ने पढ़ें। वर्ष एक नक्शा है; महीना वह जगह है जहाँ आप चलते हैं।",
+        "monthlyShort": "हर महीने की शुरुआत में इस रिपोर्ट को दोबारा देखें, अपने मासिक स्कोर जांचें और साल की लय के अनुसार अपने कदम मिलाएं।"
       },
       "yearLord": {
         "muntha": "मुंथा {{sign}} में, भाव {{house}}"
@@ -627,6 +659,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "সেরা মাসগুলো",
         "intro": "জীবনের সাতটি অংশ, প্রতিটি 2027 সালের জন্য 100-এর মধ্যে স্কোর করা। পরবর্তী সাতটি পৃষ্ঠায় এগুলো একে একে আলোচনা করা হয়েছে।",
+        "introShort": "জীবনের সাতটি অংশ, প্রতিটি ২০২৭ সালের জন্য ১০০-এর মধ্যে স্কোর করা।",
         "overall": "2027 সালের সামগ্রিক ফল",
         "rest": "সবচেয়ে শান্ত মাস"
       },
@@ -653,7 +686,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "আপনার সময়সূচী",
         "4": "মাস অনুযায়ী",
         "5": "এটি সাথে নিয়ে চলুন",
-        "6": "আপনার প্রশ্নের উত্তর"
+        "6": "আপনার প্রশ্নের উত্তর",
+        "7": "সমাপনী চিঠি"
       },
       "contents": {
         "chapter": "অধ্যায় {{n}}"
@@ -845,6 +879,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "শুরু",
         "yearLord": "বর্ষপতি"
       },
+      "tiers": {
+        "change": "প্ল্যান পরিবর্তন করুন",
+        "continue": "{{name}}-এর সাথে চালিয়ে যান • {{price}} ({{pages}})",
+        "pages": "{{n}} পৃষ্ঠা",
+        "pagesPlus": "{{n}}+ পৃষ্ঠা",
+        "sub": "একই বছর, একই চার্ট। আপনার পছন্দমতো কতটুকু চান বেছে নিন।",
+        "title": "আপনার Varshik Rashifal বেছে নিন",
+        "upgradeBody": "আপনার রিপোর্ট ইতিমধ্যেই লেখা। শুধু পার্থক্যটি পরিশোধ করুন, বাকি পৃষ্ঠাগুলো একসাথে খুলে যাবে।",
+        "upgradeError": "আপগ্রেড সম্পন্ন হয়নি। কোনো টাকা কাটা হয়নি। আবার চেষ্টা করুন।",
+        "upgradeFor": "{{price}}-এ আপগ্রেড করুন",
+        "upgradeNoCredits": "এই আপগ্রেডের জন্য আপনার ওয়ালেটে পর্যাপ্ত ক্রেডিট নেই।",
+        "upgradeTitle": "আপনার বছরের বাকি অংশ দেখুন"
+      },
       "timing": {
         "tap": "সেই মাসটি খুলতে যেকোনো টাইলে ট্যাপ করুন।"
       },
@@ -870,7 +917,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "2027 সংস্করণ · নং {{n}}",
         "from": "একটি চিঠি",
         "howToRead": "আপনার রঙ কীভাবে পড়বেন",
-        "monthly": "প্রতি মাসের প্রথম তারিখে এই রিপোর্ট খুলুন এবং ওই মাসের দুই পৃষ্ঠা পড়ুন। বছর হলো একটি মানচিত্র; মাস হলো যেখানে আপনি হাঁটবেন।"
+        "monthly": "প্রতি মাসের প্রথম তারিখে এই রিপোর্ট খুলুন এবং ওই মাসের দুই পৃষ্ঠা পড়ুন। বছর হলো একটি মানচিত্র; মাস হলো যেখানে আপনি হাঁটবেন।",
+        "monthlyShort": "প্রতি মাসের শুরুতে এই রিপোর্টটি আবার দেখুন আপনার মাসিক স্কোর যাচাই করতে এবং বছরের ছন্দ অনুযায়ী আপনার পদক্ষেপ সাজাতে।"
       },
       "yearLord": {
         "muntha": "মুন্ঠা {{sign}}-এ, হাউস {{house}}"
@@ -921,6 +969,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "सर्वात उत्तम महिने",
         "intro": "जीवनाचे सात भाग, प्रत्येकाला 2027 च्या संपूर्ण वर्षासाठी 100 पैकी गुण. पुढील सात पाने ती एकेक करून घेतात.",
+        "introShort": "आयुष्याचे सात भाग, प्रत्येकाला २०२७ च्या संपूर्ण वर्षासाठी १०० पैकी गुण दिले आहेत.",
         "overall": "2027 साठी सारांश",
         "rest": "सर्वात शांत महिना"
       },
@@ -947,7 +996,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "तुमची वेळ",
         "4": "महिन्यानुसार",
         "5": "तुमच्यासोबत नेणे",
-        "6": "तुमचे प्रश्न, उत्तरे"
+        "6": "तुमचे प्रश्न, उत्तरे",
+        "7": "समारोपाचे पत्र"
       },
       "contents": {
         "chapter": "अध्याय {{n}}"
@@ -1139,6 +1189,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "सुरू होते",
         "yearLord": "वर्षाधिपती"
       },
+      "tiers": {
+        "change": "योजना बदला",
+        "continue": "{{name}} • {{price}} ({{pages}}) चालू ठेवा",
+        "pages": "{{n}} पाने",
+        "pagesPlus": "{{n}}+ पाने",
+        "sub": "त्याच वर्षाची, त्याच कुंडली. तुम्हाला किती हवे ते निवडा.",
+        "title": "तुमचा Varshik Rashifal निवडा",
+        "upgradeBody": "तुमचा अहवाल आधीच लिहिलेला आहे. फक्त फरक भरा आणि उरलेली पाने एकाच वेळी उघडतील.",
+        "upgradeError": "अपग्रेड पूर्ण झाला नाही. काहीही रक्कम कापली नाही. कृपया पुन्हा प्रयत्न करा.",
+        "upgradeFor": "{{price}} मध्ये अपग्रेड करा",
+        "upgradeNoCredits": "या अपग्रेडसाठी तुमच्या वॉलेटमध्ये पुरेसे क्रेडिट्स नाहीत.",
+        "upgradeTitle": "तुमच्या वर्षाची उरलेली भाग पाहा"
+      },
       "timing": {
         "tap": "कोणतेही टाईल उघडण्यासाठी टॅप करा."
       },
@@ -1164,7 +1227,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "संस्करण 2027 · क्र. {{n}}",
         "from": "पत्र",
         "howToRead": "तुमचे रंग कसे वाचावे",
-        "monthly": "प्रत्येक महिन्याच्या पहिल्या तारखेला हे रिपोर्ट उघडा आणि त्या महिन्याची दोन पाने वाचा. वर्ष एक नकाशा आहे; महिना म्हणजे तुमचा प्रवास."
+        "monthly": "प्रत्येक महिन्याच्या पहिल्या तारखेला हे रिपोर्ट उघडा आणि त्या महिन्याची दोन पाने वाचा. वर्ष एक नकाशा आहे; महिना म्हणजे तुमचा प्रवास.",
+        "monthlyShort": "दर महिन्याच्या सुरुवातीला या अहवालात परत या, तुमचे मासिक गुण तपासा आणि वर्षाच्या लयीशी तुमचे पाऊल जुळवा."
       },
       "yearLord": {
         "muntha": "मुंठा {{sign}} मध्ये, घर {{house}}"
@@ -1215,6 +1279,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "ఉత్తమ నెలలు",
         "intro": "జీవితానికి ఏడు అంశాలు, ప్రతిదానికీ 2027 మొత్తానికి 100లో స్కోరు. తర్వాత ఏడు పేజీలు వాటిని ఒక్కొక్కటిగా తీసుకుంటాయి.",
+        "introShort": "జీవితంలోని ఏడు రంగాలు, ప్రతి ఒక్కటి 2027 సంవత్సరం కోసం 100 లోపు స్కోరుతో అంచనా వేయబడ్డాయి.",
         "overall": "2027 సంవత్సరానికి సమగ్ర ఫలితాలు",
         "rest": "అత్యంత నిశ్శబ్ద నెల"
       },
@@ -1241,7 +1306,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "మీ సమయం",
         "4": "నెలవారీగా",
         "5": "మీతో పాటు తీసుకువెళ్లండి",
-        "6": "మీ ప్రశ్నలు, సమాధానాలు"
+        "6": "మీ ప్రశ్నలు, సమాధానాలు",
+        "7": "ముగింపు లేఖ"
       },
       "contents": {
         "chapter": "అధ్యాయం {{n}}"
@@ -1433,6 +1499,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "ప్రారంభమవుతుంది",
         "yearLord": "సంవత్సరాధిపతి"
       },
+      "tiers": {
+        "change": "ప్లాన్‌ను మార్చండి",
+        "continue": "{{name}} • {{price}} ({{pages}}) తో కొనసాగించండి",
+        "pages": "{{n}} పేజీలు",
+        "pagesPlus": "{{n}}+ పేజీలు",
+        "sub": "అదే సంవత్సరం, అదే చార్ట్. మీకు ఎంత వివరాలు కావాలో ఎంచుకోండి.",
+        "title": "మీ వార్షిక రాశిఫలం ఎంచుకోండి",
+        "upgradeBody": "మీ నివేదిక ఇప్పటికే సిద్ధంగా ఉంది. కేవలం తేడా మొత్తాన్ని చెల్లించండి, మిగిలిన పేజీలు వెంటనే తెరుచుకుంటాయి.",
+        "upgradeError": "అప్‌గ్రేడ్ విజయవంతం కాలేదు. ఏమీ ఛార్జ్ చేయలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+        "upgradeFor": "{{price}} కోసం అప్‌గ్రేడ్ చేయండి",
+        "upgradeNoCredits": "ఈ అప్‌గ్రేడ్ కోసం మీ వాలెట్‌లో సరిపడా క్రెడిట్స్ లేవు.",
+        "upgradeTitle": "మీ సంవత్సరంలో మిగిలిన భాగాన్ని చూడండి"
+      },
       "timing": {
         "tap": "ఆ నెలను తెరవడానికి ఏదైనా టైల్‌ను తాకండి."
       },
@@ -1458,7 +1537,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "2027 సంచిక · సంఖ్య {{n}}",
         "from": "వారి నుండి లేఖ",
         "howToRead": "మీ రంగులను ఎలా చదవాలి",
-        "monthly": "ప్రతి నెల 1వ తేదీన ఈ నివేదికను తెరవండి మరియు ఆ నెల రెండు పేజీలను చదవండి. సంవత్సరం ఒక మ్యాప్; నెల మీరు నడిచే ప్రదేశం."
+        "monthly": "ప్రతి నెల 1వ తేదీన ఈ నివేదికను తెరవండి మరియు ఆ నెల రెండు పేజీలను చదవండి. సంవత్సరం ఒక మ్యాప్; నెల మీరు నడిచే ప్రదేశం.",
+        "monthlyShort": "ప్రతి నెలా మొదట్లో ఈ నివేదికను తిరిగి చూడండి, మీ మాసिक స్కోర్లను పరిశీలించండి మరియు ఆ సంవత్సరం యొక్క లయకు అనుగుణంగా మీ అడుగులు వేయండి."
       },
       "yearLord": {
         "muntha": "{{sign}}లో ముంథ, {{house}}వ భవనం"
@@ -1509,6 +1589,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "சிறந்த மாதங்கள்",
         "intro": "வாழ்க்கையின் ஏழு பகுதிகள், ஒவ்வொன்றும் 2027 முழுவதற்கும் 100-ல் மதிப்பெண் பெற்றவை. அடுத்த ஏழு பக்கங்கள் அவற்றை ஒவ்வொன்றாக எடுத்துக்கொள்கின்றன.",
+        "introShort": "வாழ்க்கையின் ஏழு பகுதிகள், ஒவ்வொன்றும் 2027 முழுவதற்கும் 100-ல் மதிப்பிடப்பட்டவை.",
         "overall": "2027-க்கான ஒட்டுமொத்தம்",
         "rest": "அமைதியான மாதம்"
       },
@@ -1535,7 +1616,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "உங்கள் காலம்",
         "4": "மாதம் வாரியாக",
         "5": "உங்களுடன் கொண்டு செல்ல",
-        "6": "உங்கள் கேள்விகள், விடை"
+        "6": "உங்கள் கேள்விகள், விடை",
+        "7": "நிறைவுக் கடிதம்"
       },
       "contents": {
         "chapter": "அத்தியாயம் {{n}}"
@@ -1727,6 +1809,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "தொடக்கம்",
         "yearLord": "Year Lord"
       },
+      "tiers": {
+        "change": "திட்டத்தை மாற்று",
+        "continue": "{{name}}-உடன் தொடர் • {{price}} ({{pages}})",
+        "pages": "{{n}} பக்கங்கள்",
+        "pagesPlus": "{{n}}+ பக்கங்கள்",
+        "sub": "அதே ஆண்டு, அதே ஜாதகம். உங்களுக்குத் தேவையான அளவைத் தேர்ந்தெடுக்கவும்.",
+        "title": "உங்கள் Varshik Rashifal-ஐத் தேர்ந்தெடுக்கவும்",
+        "upgradeBody": "உங்கள் அறிக்கை ஏற்கனவே எழுதப்பட்டுள்ளது. வேறுபாட்டிற்கு மட்டுமே கட்டணம் செலுத்தவும்; மீதமுள்ள பக்கங்கள் ஒரே நேரத்தில் திறக்கும்.",
+        "upgradeError": "மேலேற்றம் நிறைவேறவில்லை. எந்தக் கட்டணமும் வசூலிக்கப்படவில்லை. மீண்டும் முயற்சிக்கவும்.",
+        "upgradeFor": "{{price}}-க்கு மேலேற்றவும்",
+        "upgradeNoCredits": "இந்த மேலேற்றத்திற்கு உங்கள் பணப்பை போதுமான நம்பிக்கைகளைக் கொண்டிருக்கவில்லை.",
+        "upgradeTitle": "உங்கள் ஆண்டின் மீதமுள்ளதைப் பார்க்கவும்"
+      },
       "timing": {
         "tap": "அந்த மாதத்தைத் திறக்க எந்த கட்டத்தையும் தொடுக."
       },
@@ -1752,7 +1847,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "2027 பதிப்பு · எண் {{n}}",
         "from": "இதோ ஒரு கடிதம்",
         "howToRead": "உங்கள் நிறங்களை எப்படிப் படிப்பது",
-        "monthly": "ஒவ்வொரு மாதத்தின் முதல் தேதியிலும் இந்த அறிக்கையைத் திறந்து, அந்த மாதத்தின் இரண்டு பக்கங்களைப் படியுங்கள். ஆண்டு ஒரு வரைபடம்; மாதம் நீங்கள் நடக்கும் பாதை."
+        "monthly": "ஒவ்வொரு மாதத்தின் முதல் தேதியிலும் இந்த அறிக்கையைத் திறந்து, அந்த மாதத்தின் இரண்டு பக்கங்களைப் படியுங்கள். ஆண்டு ஒரு வரைபடம்; மாதம் நீங்கள் நடக்கும் பாதை.",
+        "monthlyShort": "நீங்கள் மாதத்தின் தொடக்கத்தில் இந்த அறிக்கையை மீண்டும் பார்வையிட்டு, உங்கள் மாதாந்திர மதிப்பெண்களைச் சரிபார்க்கவும், ஆண்டின் இயல்புக்கு ஏற்ப உங்கள் நடவடிக்கைகளை அமைக்கவும்."
       },
       "yearLord": {
         "muntha": "முந்தா {{sign}}, வீடு {{house}}"
@@ -1803,6 +1899,7 @@ export const varshikBundle: RoadmapBundle = {
       "areas": {
         "best": "સૌથી શુભ મહિના",
         "intro": "જીવનના સાત ભાગ, દરેકનું ૨૦૨૭ના સમગ્ર વર્ષ માટે ૧૦૦માં સ્કોર. આગામી સાત પાના તેને એકેયે લેશે.",
+        "introShort": "જીવનના સાત ભાગ, જેમાં દરેકનો 2027ના સમગ્ર વર્ષ માટે 100માંથી અંક મળે છે.",
         "overall": "2027 નું સમગ્ર વર્ષ",
         "rest": "શાંતતમ મહિનો"
       },
@@ -1829,7 +1926,8 @@ export const varshikBundle: RoadmapBundle = {
         "3": "તમારો સમય",
         "4": "મહિનાવાર",
         "5": "તમારી સાથે લઈ જાઓ",
-        "6": "તમારા પ્રશ્નો, જવાબ સાથે"
+        "6": "તમારા પ્રશ્નો, જવાબ સાથે",
+        "7": "સમાપન પત્ર"
       },
       "contents": {
         "chapter": "અધ્યાય {{n}}"
@@ -2021,6 +2119,19 @@ export const varshikBundle: RoadmapBundle = {
         "starts": "શરૂ",
         "yearLord": "વર્ષના અધિપતિ"
       },
+      "tiers": {
+        "change": "પ્લાન બદલો",
+        "continue": "{{name}} સાથે ચાલુ રાખો • {{price}} ({{pages}})",
+        "pages": "{{n}} પાનાં",
+        "pagesPlus": "{{n}}+ પાનાં",
+        "sub": "એક જ વર્ષ, એક જ ચાર્ટ. પસંદ કરો કે તમે કેટલું જોઈ શકો છો.",
+        "title": "તમારો Varshik Rashifal પસંદ કરો",
+        "upgradeBody": "તમારો રિપોર્ટ પહેલેથી જ લખાયેલો છે. ફક્ત તફાવત ચૂકવો અને બાકીના પાનાં એક સાથે ખુલશે.",
+        "upgradeError": "અપગ્રેડ પૂર્ણ થયો નથી. કોઈ ચાર્જ થયો નથી. કૃપા કરીને ફરી પ્રયાસ કરો.",
+        "upgradeFor": "{{price}} માટે અપગ્રેડ કરો",
+        "upgradeNoCredits": "ક્રેડિટ પૂરતા નથી આ અપગ્રેડ માટે.",
+        "upgradeTitle": "તમારા વર્ષનો બાકીનો ભાગ જુઓ"
+      },
       "timing": {
         "tap": "કોઈપણ ટાઈલ પર ક્લિક કરો તે મહિનો ખોલવા માટે."
       },
@@ -2046,7 +2157,8 @@ export const varshikBundle: RoadmapBundle = {
         "editionNo": "સંસ્કરણ 2027 · નં. {{n}}",
         "from": "પત્ર",
         "howToRead": "તમારા રંગો કેવી રીતે વાંચવા",
-        "monthly": "દર મહિનાની 1 તારીખે આ રિપોર્ટ ખોલો અને તે મહિનાના બે પાના વાંચો. વર્ષ એ નકશો છે; મહિનો એ જગ્યા છે જ્યાં તમે ચાલો છો."
+        "monthly": "દર મહિનાની 1 તારીખે આ રિપોર્ટ ખોલો અને તે મહિનાના બે પાના વાંચો. વર્ષ એ નકશો છે; મહિનો એ જગ્યા છે જ્યાં તમે ચાલો છો.",
+        "monthlyShort": "તમારા મહિનાના અંકો તપાસવા અને વર્ષના ધોરણ મુજબ પગલાં સુસંગત કરવા દરેક મહિનાની શરૂઆતમાં આ રિપોર્ટ ફરી જુઓ."
       },
       "yearLord": {
         "muntha": "Muntha {{sign}} માં, હાઉસ {{house}}"

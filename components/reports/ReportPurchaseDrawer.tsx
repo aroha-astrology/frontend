@@ -18,7 +18,9 @@ import {
   type ReportCatalogueEntry,
   type PurchaseReportBody,
   type PurchaseReportResultRow,
+  type VarshikTierSlug,
 } from "@/lib/reports-api";
+import VarshikTierSheet from "./varshik/VarshikTierSheet";
 import { questionsFor, answeredNone, missingRequired } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
 import GeneralReportWarning from "./GeneralReportWarning";
@@ -53,6 +55,9 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const { user, activeProfile, refresh } = useAuth();
 
   const label = t(`reports.labels.${entry.key}`, entry.label);
+  // Varshik Rashifal is sold in tiers: the reader picks one first, then goes through the usual questions and confirm.
+  const [tier, setTier] = useState<VarshikTierSlug | null>(null);
+  const chosenTier = entry.tiers?.find((x) => x.tierSlug === tier) ?? null;
   const balancePaise = user?.walletBalancePaise ?? 0;
 
   // The spouse section is optional and never blocks purchase, so EVERY marriage buyer is asked.
@@ -157,7 +162,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const currentMonthAlreadyPurchased = !!currentMonthPurchase && currentMonthPurchase.status !== "failed";
 
   // ── Price + confirm ────────────────────────────────────────────────────
-  const costPaise = entry.pricePaise;
+  const costPaise = chosenTier?.payPaise ?? entry.pricePaise;
 
   // For marriage_spouse we always show the Buy button — validation runs imperatively on click.
   const canSubmit =
@@ -197,6 +202,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
     setPurchasing(true);
     try {
       const body: PurchaseReportBody = { reportKey: entry.key };
+      if (chosenTier) body.tier = chosenTier.tierSlug;
       if (activeProfile && activeProfile.id !== "primary") body.birthProfileId = activeProfile.id;
       if (mode === "monthly") body.months = [currentMonthKey()];
       if (mode === "kundli_milan" && resolvedPartnerPlace) {
@@ -260,21 +266,35 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
   const covers = t(`reports.covers.${entry.key}`, { returnObjects: true }) as string[];
   const hasGeneratedCount = typeof generatedCount === "number" && Number.isFinite(generatedCount) && generatedCount > 0;
 
+  if (entry.tiers && entry.tiers.length > 0 && !chosenTier) {
+    return <VarshikTierSheet tiers={entry.tiers} onClose={onClose} onContinue={setTier} />;
+  }
+
   return (
     <BottomSheetModal
       onClose={onClose}
       closeLabel={t("common.close")}
       header={
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+          <p className="text-sm font-semibold text-foreground truncate">
+            {label}
+            {chosenTier ? " · " + chosenTier.displayName : ""}
+          </p>
           {/* No price until every required question is answered. */}
-          {unanswered.length === 0 && (
-            <DiscountPrice
-              pricePaise={entry.pricePaise}
-              originalPricePaise={entry.originalPricePaise}
-              priceLabel={formatRupees(entry.pricePaise)}
-            />
-          )}
+          <div className="flex items-center gap-3">
+            {unanswered.length === 0 && (
+              <DiscountPrice
+                pricePaise={costPaise}
+                originalPricePaise={chosenTier ? chosenTier.originalPricePaise : entry.originalPricePaise}
+                priceLabel={formatRupees(costPaise)}
+              />
+            )}
+            {chosenTier ? (
+              <button type="button" onClick={() => setTier(null)} className="text-[11px] text-gold underline underline-offset-2">
+                {t("varshik.tiers.change", { defaultValue: "Change plan" })}
+              </button>
+            ) : null}
+          </div>
         </div>
       }
     >

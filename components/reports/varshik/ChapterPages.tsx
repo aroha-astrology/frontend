@@ -232,7 +232,9 @@ export function AreaOverviewBody({ ctx }: { ctx: PageCtx }) {
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <p className="vk-body m-0 break-words">
-        {y(t("varshik.areas.intro", { defaultValue: "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time." }))}
+        {ctx.tier === "basic"
+          ? y(t("varshik.areas.introShort", { defaultValue: "Seven parts of life, each scored out of 100 for the whole of 2027." }))
+          : y(t("varshik.areas.intro", { defaultValue: "Seven parts of life, each scored out of 100 for the whole of 2027. The next seven pages take them one at a time." }))}
       </p>
       <AreaBars areas={ctx.facts.scores.areaOverall} />
     </div>
@@ -280,7 +282,7 @@ export function TimingMapBody({ ctx }: { ctx: PageCtx }) {
     <div className="flex min-w-0 flex-col gap-5">
       <Narrative section={ctx.byId.timing_map} />
       <TimingMap map={ctx.facts.scores.timingMap} peakMonths={ctx.facts.scores.peakMonths} restMonth={ctx.facts.scores.restMonth} onMonth={(m) => ctx.go(`month_${m}_a`)} />
-      <p className="vk-caption m-0">{t("varshik.timing.tap", { defaultValue: "Tap any tile to open that month." })}</p>
+      {ctx.tier === "complete" ? <p className="vk-caption m-0">{t("varshik.timing.tap", { defaultValue: "Tap any tile to open that month." })}</p> : null}
     </div>
   );
 }

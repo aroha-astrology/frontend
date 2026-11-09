@@ -22,6 +22,29 @@ export interface ReportPurchaseSummary {
   /** 'YYYY-MM' for a monthly report's purchase, null for a one-time report. */
   periodMonth: string | null;
   status: ReportPurchaseStatus;
+  /** Varshik Rashifal only: the tier this purchase was bought at. */
+  tier?: VarshikTierSlug | null;
+}
+
+export type VarshikTierSlug = "basic" | "gold" | "complete";
+
+/** One Varshik Rashifal tier on sale, as the catalogue lists it. Prices in paise. */
+export interface VarshikCatalogueTier {
+  tierSlug: VarshikTierSlug;
+  displayName: string;
+  subtitle: string;
+  badgeText: string | null;
+  pricePaise: number;
+  originalPricePaise: number | null;
+  pageCount: number;
+  shortDescription: string;
+  features: string[];
+  excludes: string[];
+  isPopular: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  /** What this reader pays after the Aroha Pass discount. */
+  payPaise: number;
 }
 
 /** One row of GET /v1/reports — a report type plus this profile's purchase history for it. */
@@ -51,6 +74,8 @@ export interface ReportCatalogueEntry {
   listPricePaise?: number;
   /** Percent the user's Aroha Pass takes off `listPricePaise`; 0 without a Pass. */
   passDiscountPct?: number;
+  /** Varshik Rashifal only: the tiers on sale, priced for this reader. */
+  tiers?: VarshikCatalogueTier[];
   purchases: ReportPurchaseSummary[];
   /** marriage only — the most recently purchased marriage report's own stored spouse birth
    * details, for pre-filling the optional spouse-details section on a later purchase. Null for
@@ -94,6 +119,8 @@ export interface PurchaseReportBody {
   /** Optional answers to a small, skippable pre-purchase questionnaire — see
    * lib/report-questions.ts for which report keys have one configured. */
   answers?: Record<string, string>;
+  /** Varshik Rashifal only (required for it): which tier to buy. The server charges the tier's own price. */
+  tier?: VarshikTierSlug;
 }
 
 export interface PurchaseReportResultRow {
@@ -207,6 +234,8 @@ export type ReportDetailResult =
       status: "ready";
       reportKey: string;
       periodMonth: string | null;
+      /** Varshik Rashifal only: the tier bought, which decides the pages shown. */
+      tier?: "basic" | "gold" | "complete";
       /** Shape differs per reportKey — see components/reports/ReportScoreFacts.tsx for the generic renderer. */
       scores: Record<string, unknown>;
       sections: ReportSection[];
@@ -258,6 +287,10 @@ export const reportsApi = {
       `/v1/reports/${id}${language ? `?language=${encodeURIComponent(language)}` : ""}`,
       { auth: true },
     ),
+
+  /** Varshik Rashifal: pay the difference to move a bought report up a tier. 409 = not enough credits / already moved. */
+  upgradeTier: (id: string, tier: VarshikTierSlug) =>
+    request<{ tier: VarshikTierSlug; chargedPaise: number }>(`/v1/reports/${id}/upgrade`, { method: "POST", body: { tier }, auth: true }),
 
   /** Real generated-report counts per key, across all users — never hardcode this client-side. */
   stats: () => request<ReportStatsResponse>("/v1/reports/stats", { auth: true }),

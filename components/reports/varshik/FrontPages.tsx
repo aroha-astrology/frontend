@@ -97,9 +97,13 @@ export function WelcomeBody({ ctx }: { ctx: PageCtx }) {
           ))}
         </ul>
         <p className="vk-body m-0 break-words">
-          {t("varshik.welcome.monthly", {
-            defaultValue: "Open this report on the 1st of each month and read that month's two pages. The year is a map; the month is where you walk.",
-          })}
+          {ctx.tier === "complete"
+            ? t("varshik.welcome.monthly", {
+                defaultValue: "Open this report on the 1st of each month and read that month's two pages. The year is a map; the month is where you walk.",
+              })
+            : t("varshik.welcome.monthlyShort", {
+                defaultValue: "Revisit this report at the start of each month to check your monthly scores and align your steps with the year's rhythm.",
+              })}
         </p>
       </div>
       <div className="flex items-center justify-between gap-3">
@@ -121,7 +125,7 @@ export function WelcomeBody({ ctx }: { ctx: PageCtx }) {
 /** Page 3. The chapters, each with its thumbnail and page range; tapping one jumps there. */
 export function ContentsBody({ ctx }: { ctx: PageCtx }) {
   const { t } = useTranslation();
-  const rows = [1, 2, 3, 4, 5, 6]
+  const rows = [1, 2, 3, 4, 5, 6, 7]
     .map((chapter) => {
       const own = ctx.pages.map((p, i) => ({ ...p, i })).filter((p) => p.chapter === chapter);
       return own.length ? { chapter, from: own[0]!.i + 1, to: own[own.length - 1]!.i + 1 } : null;
@@ -129,14 +133,14 @@ export function ContentsBody({ ctx }: { ctx: PageCtx }) {
     .filter((r): r is { chapter: number; from: number; to: number } => r !== null);
   return (
     <ul className="m-0 flex list-none flex-col gap-3 p-0">
-      {rows.map((r) => {
-        const code = CHAPTER_ART[r.chapter - 1] ?? "A2";
+      {rows.map((r, idx) => {
+        const code = CHAPTER_ART[Math.min(r.chapter, 6) - 1] ?? "A2";
         return (
           <li key={r.chapter}>
             <button type="button" onClick={() => ctx.goChapter(r.chapter)} className="vk-panel flex w-full min-w-0 items-center gap-3 p-3 text-left">
               <ArtSlot kind="medallion" code={code} src={art(code)} maxWidth="3.25rem" />
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="vk-eyebrow">{t("varshik.contents.chapter", { defaultValue: "Chapter {{n}}", n: ROMAN[r.chapter] })}</span>
+                <span className="vk-eyebrow">{t("varshik.contents.chapter", { defaultValue: "Chapter {{n}}", n: ROMAN[idx + 1] })}</span>
                 <span className="vk-h3 break-words">{t(`varshik.chapter.${r.chapter}`, { defaultValue: CHAPTER_EN[r.chapter] })}</span>
               </span>
               <span className="tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--vk-serif)" }}>
@@ -152,13 +156,13 @@ export function ContentsBody({ ctx }: { ctx: PageCtx }) {
 }
 
 /** A chapter opener: the art framed inside the page (never stretched), the chapter number and its name. */
-export function OpenerBody({ chapter, artCode, blurbKey, blurb }: { chapter: number; artCode: string; blurbKey: string; blurb: string }) {
+export function OpenerBody({ chapter, no, artCode, blurbKey, blurb }: { chapter: number; no?: number; artCode: string; blurbKey: string; blurb: string }) {
   const { t } = useTranslation();
   const wide = artCode === "A6" || artCode === "A52";
   return (
     <div className="flex min-w-0 flex-col items-center gap-4 py-2 text-center">
       <ArtSlot kind={wide ? "banner" : "opener"} code={artCode} src={art(artCode)} maxWidth={wide ? "100%" : "15rem"} />
-      <span className="vk-eyebrow">{t("varshik.contents.chapter", { defaultValue: "Chapter {{n}}", n: ROMAN[chapter] })}</span>
+      <span className="vk-eyebrow">{t("varshik.contents.chapter", { defaultValue: "Chapter {{n}}", n: ROMAN[no ?? chapter] })}</span>
       <h2 className="vk-title m-0 break-words">{t(`varshik.chapter.${chapter}`, { defaultValue: CHAPTER_EN[chapter] })}</h2>
       <hr className="vk-rule m-0 w-32" aria-hidden="true" />
       <p className="vk-body m-0 max-w-xs break-words" style={{ color: "var(--text-muted)" }}>

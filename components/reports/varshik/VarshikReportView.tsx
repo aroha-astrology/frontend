@@ -16,19 +16,24 @@ import { ReportYearContext } from "./year-context";
 import { PdfDownloadButton, PdfStatusLayer } from "@/components/pdf/PdfDownload";
 import { ShareCardsButton, ShareCardsSheet } from "./ShareCards";
 import { useVarshikPdf } from "./useVarshikPdf";
+import VarshikUpgradeCard from "./VarshikUpgradeCard";
 import type { PageCtx } from "./page-types";
+import { asTierSlug, type VarshikTierSlug } from "./tier-pages";
 
 /**
  * The Varshik Rashifal 2027 report: 56 to 61 pages in plan order, one long scroll like every other report.
  * The contents list and the Timing Map scroll to any page.
  * Everything on the pages is read from the frozen facts (`scores.varshik`) and the checked text.
  */
-export default function VarshikReportView({ data, reportId }: { data: ReportReady; reportId?: string }) {
+export default function VarshikReportView({ data, reportId, tier: tierOverride }: { data: ReportReady; reportId?: string; tier?: VarshikTierSlug }) {
   const { t, i18n } = useTranslation();
   const reduce = useReducedMotion();
   const read = useMemo(() => readVarshik(data), [data]);
   const lang = i18n.language;
-  const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang) : []), [read, t, lang]);
+  // After an upgrade the new tier shows at once; the saved report catches up on the next open.
+  const [upgraded, setUpgraded] = useState<VarshikTierSlug | null>(null);
+  const tier = tierOverride ?? upgraded ?? asTierSlug(data.tier);
+  const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang, tier) : []), [read, t, lang, tier]);
   const [jump, setJump] = useState(false);
   const [share, setShare] = useState(false);
 
@@ -53,6 +58,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
       name: read.facts.reader.name,
       edition: reportId ? editionNumber(reportId) : null,
       lang,
+      tier,
       pages: pages.map((p) => ({ key: p.key, chapter: p.chapter, title: p.title })),
       go: (key) => {
         const i = pages.findIndex((p) => p.key === key);
@@ -63,7 +69,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
         if (i >= 0) goIndex(i);
       },
     };
-  }, [read, lang, pages, goIndex, reportId]);
+  }, [read, lang, tier, pages, goIndex, reportId]);
 
   const pdf = useVarshikPdf({
     pages,
@@ -113,6 +119,8 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
           );
         })}
 
+        {reportId && tier !== "complete" ? <VarshikUpgradeCard reportId={reportId} current={tier} onUpgraded={setUpgraded} /> : null}
+
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
           <PdfDownloadButton onClick={pdf.download} />
           <ShareCardsButton onClick={() => setShare(true)} />
@@ -136,7 +144,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
       {jump ? (
         <BottomSheetModal onClose={() => setJump(false)} closeLabel={t("common.close")} header={<div />}>
           <div className="vk-surface flex max-h-[70vh] min-w-0 flex-col gap-4 overflow-y-auto py-1">
-            {[0, 1, 2, 3, 4, 5, 6].map((chapter) => {
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((chapter) => {
               const own = pages.map((p, i) => ({ p, i })).filter(({ p }) => p.chapter === chapter && p.title);
               if (own.length === 0) return null;
               return (

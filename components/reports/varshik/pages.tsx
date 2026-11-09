@@ -11,6 +11,7 @@ import { areasPresent, monthLong } from "./facts-helpers";
 import type { PageDef } from "./page-types";
 import type { VarshikFacts } from "./types";
 import { withYear } from "./year-context";
+import { filterPagesForTier, shownChapterNumbers, type VarshikTierSlug } from "./tier-pages";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -19,7 +20,9 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
  * question the reader is facing (0-5), the relief page and the closing letter, so 59 to 64 in all. Every page is built from the
  * frozen facts and the checked text; a page whose words are missing still shows its chart.
  */
-export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSection>, t: TFunction, lang: string): PageDef[] {
+export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSection>, t: TFunction, lang: string, tier: VarshikTierSlug = "complete"): PageDef[] {
+  // Chapter numbers as shown (a tier without Chapter IV is numbered I, II, III, IV, V); filled in below, read when a page renders.
+  const nos: Record<number, number> = {};
   const yr = facts.year ?? 2027;
   const head = (id: string, key: string, en: string) => byId[id]?.heading || withYear(t(key, { defaultValue: en }), yr);
   const pages: PageDef[] = [];
@@ -33,7 +36,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     key: "ch1",
     chapter: 1,
     title: "",
-    Body: () => <OpenerBody chapter={1} artCode="A2" blurbKey="varshik.opener.1" blurb="Where the year begins: the score, the Year Lord, and the sky that frames it." />,
+    Body: () => <OpenerBody chapter={1} no={nos[1]} artCode="A2" blurbKey="varshik.opener.1" blurb="Where the year begins: the score, the Year Lord, and the sky that frames it." />,
   });
   add({ key: "glance", chapter: 1, title: head("year_at_a_glance", "varshik.page.glance", "2027 at a glance"), Body: GlanceBody });
   add({ key: "birth", chapter: 1, title: t("varshik.page.birth", { defaultValue: "Your birth chart" }), Body: BirthChartBody });
@@ -50,7 +53,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     key: "ch2",
     chapter: 2,
     title: "",
-    Body: () => <OpenerBody chapter={2} artCode="A3" blurbKey="varshik.opener.2" blurb="Love, career, money, health, family, growth and travel, one at a time." />,
+    Body: () => <OpenerBody chapter={2} no={nos[2]} artCode="A3" blurbKey="varshik.opener.2" blurb="Love, career, money, health, family, growth and travel, one at a time." />,
   });
   add({ key: "areas", chapter: 2, title: t("varshik.page.areas", { defaultValue: "Seven areas of life" }), Body: AreaOverviewBody });
   for (const a of areasPresent(facts)) {
@@ -66,7 +69,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     key: "ch3",
     chapter: 3,
     title: "",
-    Body: () => <OpenerBody chapter={3} artCode="A4" blurbKey="varshik.opener.3" blurb="When to move and when to wait: your twelve months, your rhythm, your dates." />,
+    Body: () => <OpenerBody chapter={3} no={nos[3]} artCode="A4" blurbKey="varshik.opener.3" blurb="When to move and when to wait: your twelve months, your rhythm, your dates." />,
   });
   add({ key: "timing", chapter: 3, title: head("timing_map", "varshik.page.timing", "Your Master Timing Map"), Body: TimingMapBody });
   add({ key: "rhythm", chapter: 3, title: head("year_rhythm", "varshik.page.rhythm", "The rhythm of your year"), Body: RhythmBody });
@@ -79,7 +82,7 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     key: "ch4",
     chapter: 4,
     title: "",
-    Body: () => <OpenerBody chapter={4} artCode="A5" blurbKey="varshik.opener.4" blurb="Two pages for every month: the month at a glance, and how to live it." />,
+    Body: () => <OpenerBody chapter={4} no={nos[4]} artCode="A5" blurbKey="varshik.opener.4" blurb="Two pages for every month: the month at a glance, and how to live it." />,
   });
   for (let m = 0; m < 12; m++) {
     const name = `${monthLong(m, lang)} ${yr}`;
@@ -108,6 +111,8 @@ export function buildPages(facts: VarshikFacts, byId: Record<string, ReportSecti
     add({ key: `question_${n}`, chapter: 6, title: section.heading, Body: () => <QuestionBody section={section} /> });
   }
   add({ key: "relief", chapter: 6, title: head("what_changes", "varshik.page.relief", "What you have been through, and what changes"), Body: ReliefBody });
-  add({ key: "closing", chapter: 6, title: head("closing_letter", "varshik.page.closing", "A closing letter from Baba Ji"), Body: ClosingBody });
-  return pages;
+  add({ key: "closing", chapter: tier === "basic" ? 7 : 6, title: head("closing_letter", "varshik.page.closing", "A closing letter from Baba Ji"), Body: ClosingBody });
+  const shown = filterPagesForTier(pages, tier);
+  Object.assign(nos, shownChapterNumbers(shown));
+  return shown;
 }

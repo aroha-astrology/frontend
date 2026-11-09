@@ -22,6 +22,9 @@ import ArtSlot from "@/components/reports/varshik/ArtSlot";
 import PdfBook, { type PdfBookHandle, type FitReport } from "@/components/reports/varshik/PdfBook";
 import { readVarshik } from "@/components/reports/varshik/data";
 import { buildPages } from "@/components/reports/varshik/pages";
+import { asTierSlug } from "@/components/reports/varshik/tier-pages";
+import VarshikTierSheet from "@/components/reports/varshik/VarshikTierSheet";
+import VarshikUpgradeCard from "@/components/reports/varshik/VarshikUpgradeCard";
 import { ReportYearContext } from "@/components/reports/varshik/year-context";
 import type { PageCtx } from "@/components/reports/varshik/page-types";
 import { useTranslation } from "react-i18next";
@@ -50,15 +53,18 @@ function Block({ id, title, children }: { id: string; title: string; children: R
 }
 
 /** The A4 pages as the PDF draws them, fitted, visible in the flow (?view=book&q=2&lang=hi). Dev only. */
+const previewTier = () => asTierSlug(typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tier"));
+
 function BookPreview({ data }: { data: ReportReady }) {
   const { t, i18n } = useTranslation();
   const book = useRef<PdfBookHandle>(null);
   const read = useMemo(() => readVarshik(data), [data]);
   const lang = i18n.language;
-  const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang) : []), [read, t, lang]);
+  const tier = previewTier();
+  const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang, tier) : []), [read, t, lang, tier]);
   const ctx: PageCtx | null = useMemo(
-    () => (read ? { ...read, name: read.facts.reader.name, edition: "0A1B2C", lang, pages: pages.map((p) => ({ key: p.key, chapter: p.chapter, title: p.title })), go: () => {}, goChapter: () => {} } : null),
-    [read, lang, pages],
+    () => (read ? { ...read, name: read.facts.reader.name, edition: "0A1B2C", lang, tier, pages: pages.map((p) => ({ key: p.key, chapter: p.chapter, title: p.title })), go: () => {}, goChapter: () => {} } : null),
+    [read, lang, tier, pages],
   );
   useEffect(() => {
     if (!ctx) return;
@@ -88,7 +94,7 @@ function OwnerView() {
   if (missing) return <main className="p-6">No owner report in frontend/.claude/varshik-owner-report.json.</main>;
   if (!data) return <main className="p-6">Loading…</main>;
   const book = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("book") === "1";
-  return book ? <BookPreview data={data} /> : <VarshikReportView data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />;
+  return book ? <BookPreview data={data} /> : <VarshikReportView tier={previewTier()} data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />;
 }
 
 export default function PreviewClient() {
@@ -106,6 +112,26 @@ export default function PreviewClient() {
   );
   const v = f.varsha[f.varsha.length - 1];
   const love = f.scores.timingMap.love;
+  if (view === "tiers") {
+    // The tier picker as the buy flow shows it (?view=tiers). Sample copy; the real text comes from Admin → Varshik Pricing.
+    const mk = (tierSlug: "basic" | "gold" | "complete", displayName: string, subtitle: string, badgeText: string | null, pricePaise: number, originalPricePaise: number, pageCount: number, sortOrder: number, features: string[], excludes: string[]) => ({
+      tierSlug, displayName, subtitle, badgeText, pricePaise, originalPricePaise, pageCount, shortDescription: "Deep readings for all seven life areas and your exact timing: golden windows, the sky calendar, when to act, plus the answers to the questions you told us about.",
+      features, excludes, isPopular: tierSlug === "gold", isActive: true, sortOrder, payPaise: pricePaise,
+    });
+    const tiers = [
+      mk("basic", "Varshik Snapshot", "Essential scores and core charts", null, 29900, 49900, 20, 1, ["20-page personalised report", "Birth chart, birth stars and two Varsha charts", "Seven life-area scores and the 12-month timing map"], ["Detailed life-area readings", "Month-by-month guide"]),
+      mk("gold", "Varshik Gold", "Life areas, timing and your questions", "MOST POPULAR", 59900, 99900, 34, 2, ["Everything in Varshik Snapshot", "A full reading for each of the seven life areas", "Golden windows, sky calendar and when to act"], ["Month-by-month guide"]),
+      mk("complete", "Varshik Sampoorna", "The complete twelve-month almanac", "BEST VALUE", 99900, 199900, 59, 3, ["Everything in Varshik Gold", "Two pages for every month, January to December"], []),
+    ];
+    return (
+      <ReportSurface page className="min-h-screen">
+        <VarshikTierSheet tiers={tiers} onClose={() => {}} onContinue={() => {}} />
+        <main className="mx-auto flex max-w-[420px] flex-col gap-4 p-4">
+          <VarshikUpgradeCard reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" current="basic" onUpgraded={() => {}} />
+        </main>
+      </ReportSurface>
+    );
+  }
   if (view === "cover") {
     const names = (typeof window === "undefined" ? "" : (new URLSearchParams(window.location.search).get("names") ?? "")).split("|");
     const a4 = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("a4") === "1";
@@ -156,7 +182,7 @@ export default function PreviewClient() {
           <button type="button" id="theme-toggle" className="self-start rounded-full border border-[color:var(--border-faint)] px-3 py-1 text-xs" onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
             Theme: {resolvedTheme}
           </button>
-          <VarshikReportView data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
+          <VarshikReportView tier={previewTier()} data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
         </main>
       </ReportSurface>
     );
@@ -177,7 +203,7 @@ export default function PreviewClient() {
     return (
       <ReportSurface page className="min-h-screen">
         <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
-          <VarshikReportView data={liveReport as unknown as ReportReady} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
+          <VarshikReportView tier={previewTier()} data={liveReport as unknown as ReportReady} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
         </main>
       </ReportSurface>
     );
@@ -186,7 +212,7 @@ export default function PreviewClient() {
     return (
       <ReportSurface page className="min-h-screen">
         <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
-          <VarshikReportView data={sampleReport} />
+          <VarshikReportView tier={previewTier()} data={sampleReport} />
         </main>
       </ReportSurface>
     );

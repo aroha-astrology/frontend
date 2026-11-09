@@ -511,6 +511,26 @@ export interface AdminPlayRefundCheck {
 
 // ─── Old-report rebuilds ───────────────────────────────────────────────────
 
+/** One Varshik Rashifal tier as GET /v1/admin/varshik-tiers returns it (backend admin-varshik-tiers.routes.ts). Prices in paise. */
+export interface AdminVarshikTier {
+  tierSlug: "basic" | "gold" | "complete";
+  displayName: string;
+  subtitle: string;
+  badgeText: string | null;
+  pricePaise: number;
+  originalPricePaise: number | null;
+  pageCount: number;
+  shortDescription: string;
+  features: string[];
+  excludes: string[];
+  isPopular: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  updatedAt: string;
+}
+
+export type AdminVarshikTierPatch = Partial<Omit<AdminVarshikTier, "tierSlug" | "sortOrder" | "updatedAt">>;
+
 /** as GET /v1/admin/report-refresh returns it, backend admin-report-refresh.routes.ts */
 export interface AdminReportRefresh {
   switchOn: boolean;
@@ -867,6 +887,13 @@ export const adminApi = {
   /** Ask Google for refunds now instead of waiting for the hourly check. */
   checkPlayRefunds: () =>
     request<AdminPlayRefundCheck>("/v1/admin/play-refunds/check", { method: "POST", auth: true }),
+
+  /** The three Varshik Rashifal tiers, switched-off ones included. */
+  varshikTiers: () => request<{ tiers: AdminVarshikTier[] }>("/v1/admin/varshik-tiers", { auth: true }),
+
+  /** Change one Varshik tier (price, names, text, on/off). The server charges the stored price. */
+  updateVarshikTier: (slug: AdminVarshikTier["tierSlug"], patch: AdminVarshikTierPatch) =>
+    request<AdminVarshikTier>(`/v1/admin/varshik-tiers/${slug}`, { method: "PUT", body: patch, auth: true }),
 
   /** Current old-report rebuild status. */
   reportRefreshStatus: () => request<AdminReportRefresh>("/v1/admin/report-refresh", { auth: true }),

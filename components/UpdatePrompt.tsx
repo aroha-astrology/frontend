@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -25,12 +25,16 @@ export default function UpdatePrompt() {
   // Palmistry asks an old build to update on its own screen (PalmUpdateGate); two prompts would stack.
   const onPalm = (usePathname() ?? "").startsWith("/palm");
 
+  // Read at decision time only: a tour or the palm screen hides this prompt, so it must not take the slot then.
+  const blockedRef = useRef(false);
+  blockedRef.current = onPalm || tourActive || tourPending;
+
   useEffect(() => {
     // Update is first in the one-pop-up-per-open order, so it checks straight away: the permissions prompt waits for it.
     let cancelled = false;
     isUpdateAvailable().then((outdated) => {
       if (cancelled) return;
-      if (outdated && claim()) setVisible(true);
+      if (outdated && !blockedRef.current && claim()) setVisible(true);
       else settle();
     });
     return () => {

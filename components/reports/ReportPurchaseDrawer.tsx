@@ -267,11 +267,14 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       header={
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-          <DiscountPrice
-            pricePaise={entry.pricePaise}
-            originalPricePaise={entry.originalPricePaise}
-            priceLabel={formatRupees(entry.pricePaise)}
-          />
+          {/* No price until every required question is answered. */}
+          {unanswered.length === 0 && (
+            <DiscountPrice
+              pricePaise={entry.pricePaise}
+              originalPricePaise={entry.originalPricePaise}
+              priceLabel={formatRupees(entry.pricePaise)}
+            />
+          )}
         </div>
       }
     >
@@ -544,6 +547,9 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
           </p>
         )}
 
+        {/* ── Price: at the very bottom of the content, seen only after scrolling down ── */}
+        {canSubmit && <PriceBreakdown entry={entry} />}
+
       </div>
 
       {/* Sticky footer — balance / confirm, only once the mode-specific inputs are
@@ -554,7 +560,6 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
         <div className="sticky bottom-0 z-10 -mx-5 mt-4 border-t border-gold/10 bg-card/95 px-5 pt-4 backdrop-blur-xl">
           {canSubmit && (
             <div>
-              <PriceBreakdown entry={entry} />
               {insufficient ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs text-amber-400 text-center">

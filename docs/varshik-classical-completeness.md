@@ -270,7 +270,7 @@ Built and tested, not pushed. Commits: backend-varshik (switches, `isFeatured`, 
 5. Frontend: Festival gift and Rate us now yield to a Varshik pop-up and to each other (one per open).
 6. Not live until the owner turns it on: the Varshik launch pop-up (`home.varshikLaunchPopup`) and every Featured switch.
 
-**Translations.** The pop-up copy is in all 14 languages, written by hand, not run through apinex. Re-run through apinex if the owner wants the rule applied.
+**Translations.** The pop-up copy is in all 14 languages, translated through apinex (free/gemini-3.8-flash) and checked: report name kept in English, 0-9 digits (Marathi fixed), no dashes (Russian fixed), Kannada "later" replaced by hand because apinex gave "not soon". A native reader has not checked them.
 
 ## C5: Indian calendar correctness (from the owner's Gemini review, checked 2026-11-09). Opus 5.5, after the asset pass, before the final review
 

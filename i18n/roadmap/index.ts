@@ -41,9 +41,10 @@ import { refundsBundle } from "./refunds";
 import { varshikBundle } from "./varshik";
 import { varshikStarsBundle } from "./varshik-stars";
 import { varshikC5Bundle } from "./varshik-c5";
+import { varshikLaunchBundle } from "./varshik-launch";
 
 /** Every roadmap feature's strings. Add a feature's bundle here once. */
-export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, palmPassBundle, palmGuideBundle, experienceBundle, travelBundle, cosmicChartBundle, diasporaBundle, navLeanBundle, prashnaBundle, nowRitualCirclesBundle, tithiNamesBundle, sprint4Bundle, storePassBundle, refundsBundle, varshikBundle, varshikStarsBundle, varshikC5Bundle];
+export const ROADMAP_BUNDLES: RoadmapBundle[] = [whyBundle, astroNamesBundle, weatherBundle, calendarBundle, timelineBundle, askBundle, decideBundle, bondsBundle, bondsV2Bundle, journalBundle, practiceBundle, passBundle, passGoLiveBundle, birthTimeBundle, yantraBundle, relocationBundle, vastuStudioBundle, pdfBundle, storiesBundle, callHistoryBundle, voiceTrialBundle, callFeedbackBundle, chatGiftBundle, panchangMoonBundle, noAssumptionsBundle, palmPassBundle, palmGuideBundle, experienceBundle, travelBundle, cosmicChartBundle, diasporaBundle, navLeanBundle, prashnaBundle, nowRitualCirclesBundle, tithiNamesBundle, sprint4Bundle, storePassBundle, refundsBundle, varshikBundle, varshikStarsBundle, varshikC5Bundle, varshikLaunchBundle];
 
 /** Deep-merges every roadmap bundle into the running i18next instance. */
 export function registerRoadmapBundles(i18n: I18n): void {

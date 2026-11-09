@@ -274,6 +274,16 @@ export function sortNewFirst<T extends NewnessReport>(reports: readonly T[]): T[
 }
 
 /**
+ * Reorders a catalogue list so reports the owner has marked Featured (Admin -> Features) sort before everything,
+ * "New" ones included. Stable, so several featured reports keep catalogue order. A server that does not send the
+ * flag yet counts as not featured. Applied after sortNewFirst so it is the primary key.
+ */
+export function sortFeaturedFirst<T extends object>(reports: readonly T[]): T[] {
+  const featured = (r: T) => Boolean((r as { isFeatured?: boolean }).isFeatured);
+  return [...reports].sort((a, b) => Number(!featured(a)) - Number(!featured(b)));
+}
+
+/**
  * Reorders a catalogue list so coming-soon entries (feature not yet enabled) always sort last —
  * below both New and unlocked/purchasable reports. This is the outermost/primary sort key (see
  * app/reports/page.tsx), applied AFTER sortNewFirst and sortUnlockedFirst so their ordering

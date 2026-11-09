@@ -7,6 +7,8 @@ import Link from "next/link";
 import { MapPin, Bell, Gift } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { usePopupSlot } from "@/providers/popup-slot-provider";
+import { permissionsReaskDue } from "@/lib/permissions-reask";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useLocationRewardClaim } from "@/hooks/useLocationRewardClaim";
@@ -33,20 +35,20 @@ import {
 // gates anything.
 const ASKED_AT_KEY = "aroha:permissionsAskedAt:v3";
 const DENIED_KEY = "aroha:permissionsDenied:v3";
-// In a browser tab there is no "every login" campaign: after "Not now" the
-// prompt stays quiet for a week.
-const WEB_REASK_MS = 7 * 24 * 60 * 60 * 1000;
+// Sprint L1 (owner, 2026-11-09): the Android app now waits a week after "Not now" too, as the browser always did
+// (lib/permissions-reask.ts). v4's ask-on-every-login campaign is over.
 
 /**
- * "Enable location + notifications" prompt, shown on every signed-in,
- * onboarded user's app launch while the OS still reports the permission as
- * not granted. In a plain browser tab it shows once, only if the browser has
- * never been asked about notifications on this site.
+ * "Enable location + notifications" prompt, shown on a signed-in, onboarded
+ * user's app launch while the OS still reports the permission as not granted,
+ * and again only a week after "Not now". In a plain browser tab it shows only
+ * if the browser has never been asked about notifications on this site.
  */
 export default function PermissionsPrompt() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { markResolved } = usePermissionsPrompt();
+  const { markResolved, resolved } = usePermissionsPrompt();
+  const { claim, settle } = usePopupSlot("permissions");
   const geo = useGeolocation();
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -94,13 +96,14 @@ export default function PermissionsPrompt() {
           const state = await getWebPushState();
           if (cancelled) return;
           const askedAt = Number(window.localStorage.getItem(ASKED_AT_KEY) ?? 0);
-          if (state !== "default" || Date.now() - askedAt < WEB_REASK_MS) {
+          if (state !== "default" || !permissionsReaskDue(askedAt, Date.now())) {
             markResolved();
             return;
           }
           setPlatform("web");
           setDeniedState(false);
-          setVisible(true);
+          if (claim()) setVisible(true);
+          else markResolved();
           return;
         }
         if (!user?.profileCompletedAt) return;
@@ -117,9 +120,16 @@ export default function PermissionsPrompt() {
           return;
         }
 
+        // Not now means not for a week.
+        if (!permissionsReaskDue(Number(window.localStorage.getItem(ASKED_AT_KEY) ?? 0), Date.now())) {
+          markResolved();
+          return;
+        }
+
         setDeniedState(window.localStorage.getItem(DENIED_KEY) === "1");
         setAndroidSettings(await canOpenNotificationSettings());
-        setVisible(true);
+        if (claim()) setVisible(true);
+        else markResolved();
       } catch {
         // @capacitor/core not resolvable (e.g. plain web build) — never show.
         if (!cancelled) markResolved();
@@ -128,7 +138,12 @@ export default function PermissionsPrompt() {
     return () => {
       cancelled = true;
     };
-  }, [user?.profileCompletedAt, markResolved]);
+  }, [user?.profileCompletedAt, markResolved, claim]);
+
+  // Decided (shown and answered, or not applicable): the pop-ups below no longer wait for it.
+  useEffect(() => {
+    if (resolved) settle();
+  }, [resolved, settle]);
 
   /** Records a real decision (asked, and whether the OS denial is now known) — the DENIED_KEY flag picks which UI variant shows on the next login; the prompt itself always re-shows while the OS still reports not-granted. */
   const stampAsked = (denied: boolean) => {

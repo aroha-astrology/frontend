@@ -158,6 +158,11 @@ export interface User {
    */
   toursCompleted: string[];
   /**
+   * Ids of the one-time launch pop-ups this user has already been shown (e.g. "varshik-2027"). Server truth, so a
+   * reinstall or a second phone does not repeat one. Absent from an older server. Not cleared by "Show me around again".
+   */
+  popupsSeen?: string[];
+  /**
    * Whichever self-claim gift campaign (festival or custom) is currently
    * live and eligible for this user, or null. Server-computed — see
    * resolveActiveClaimableCampaign in the backend's users.service.ts.
@@ -274,6 +279,8 @@ export interface UpdateMeBody {
   referralSource?: string;
   /** Id of a tour just finished — the server APPENDS it to `toursCompleted`, never replaces. */
   tourCompleted?: string;
+  /** Id of a one-time launch pop-up just shown — the server APPENDS it to `popupsSeen`. */
+  popupSeen?: string;
   /** Clears `toursCompleted` so every tour runs again (Settings -> "Show me around again"). */
   resetTours?: boolean;
   /** Replaces the whole prefs object — send the merged value, not a partial one. */

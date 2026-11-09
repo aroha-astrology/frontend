@@ -11,6 +11,7 @@ import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TourProvider } from "@/providers/tour-provider";
+import { PopupSlotProvider } from "@/providers/popup-slot-provider";
 import { TopBarProvider } from "@/providers/topbar-provider";
 import AuthGuard from "@/components/AuthGuard";
 import TopBar from "@/components/TopBar";
@@ -18,11 +19,9 @@ import BottomNavigationGate from "@/components/BottomNavigationGate";
 import TourHost from "@/components/tour/TourHost";
 import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
-import ShareAppPrompt from "@/components/ShareAppPrompt";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import FestivalGiftModal from "@/components/FestivalGiftModal";
-import DailyRewardModal from "@/components/DailyRewardModal";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
 import PushForegroundBanner from "@/components/PushForegroundBanner";
@@ -167,16 +166,17 @@ export default function RootLayout({
                               every prompt below defers to `tourActive` so nothing
                               renders underneath a running tour's scrim. */}
                           <TourProvider>
-                            <TopBar />
-                            <PageTransition>{children}</PageTransition>
-                            <BottomNavigationGate />
-                            <PermissionsPrompt />
-                            <TourHost />
-                            <UpdatePrompt />
-                            <ShareAppPrompt />
-                            <FeedbackPrompt />
-                            <FestivalGiftModal />
-                            <DailyRewardModal />
+                            {/* One pop-up per app open (lib/popup-slot.ts). */}
+                            <PopupSlotProvider>
+                              <TopBar />
+                              <PageTransition>{children}</PageTransition>
+                              <BottomNavigationGate />
+                              <PermissionsPrompt />
+                              <TourHost />
+                              <UpdatePrompt />
+                              <FeedbackPrompt />
+                              <FestivalGiftModal />
+                            </PopupSlotProvider>
                           </TourProvider>
                         </AuthGuard>
                       </TopBarProvider>

@@ -15,7 +15,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { splitReportsByType, sortUnlockedFirst, sortNewFirst, sortComingSoonLast } from "@/lib/reports-logic";
+import { splitReportsByType, sortUnlockedFirst, sortNewFirst, sortFeaturedFirst, sortComingSoonLast } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 
 type Tab = "oneTime" | "monthly";
@@ -45,13 +45,13 @@ function ReportsCatalogue() {
   // The full catalogue is shown here (unlike the Home teaser slider, which
   // still uses filterVisibleReports to hide anything not yet turned on) —
   // a disabled report renders as a non-tappable "Coming Soon" card instead
-  // of being hidden, so users can see the full report lineup. Order: New,
-  // then unlocked/purchasable, then Coming Soon always last.
+  // of being hidden, so users can see the full report lineup. Order: Featured
+  // (the owner's switch), New, then unlocked/purchasable, then Coming Soon always last.
   const { oneTime, monthly } = useMemo(() => {
     if (!reports) return { oneTime: [] as ReportCatalogueEntry[], monthly: [] as ReportCatalogueEntry[] };
     const { oneTime, monthly } = splitReportsByType(reports);
     const sort = (list: ReportCatalogueEntry[]) =>
-      sortComingSoonLast(sortNewFirst(sortUnlockedFirst(list)), (entry) => !isAvailable(entry));
+      sortComingSoonLast(sortFeaturedFirst(sortNewFirst(sortUnlockedFirst(list))), (entry) => !isAvailable(entry));
     return { oneTime: sort(oneTime), monthly: sort(monthly) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports, user?.features]);

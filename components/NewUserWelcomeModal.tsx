@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { PartyPopper } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { usePopupSlot } from "@/providers/popup-slot-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { api } from "@/lib/api";
 import { track } from "@/lib/analytics";
@@ -21,9 +22,10 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
   const { user, loading, refresh } = useAuth();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   // The body promises a first daily reward — only true while rewards are on.
-  // With them on, the button claims Day 1 right here (DailyRewardModal then
-  // sees claimedToday and stays away); with them off, the copy drops the promise.
+  // With them on, the button claims Day 1 right here (the daily reward
+  // is then already claimed for today); with them off, the copy drops the promise.
   const { enabled: rewardsEnabled } = useFeature("nav.rewards");
+  const { claim: claimSlot, settle: settleSlot } = usePopupSlot("welcome");
   const [claiming, setClaiming] = useState(false);
 
   const [visible, setVisible] = useState(false);
@@ -47,6 +49,7 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
     // leaves the tour permanently unreachable for everyone this modal never shows to.
     const settle = () => {
       setDecided(true);
+      settleSlot();
       onDismissRef.current?.();
     };
 
@@ -70,9 +73,10 @@ export default function NewUserWelcomeModal({ onDismiss }: { onDismiss?: () => v
       return settle();
     }
 
+    if (!claimSlot()) return settle();
     setDecided(true);
     setVisible(true);
-  }, [permissionsResolved, loading, user, decided]);
+  }, [permissionsResolved, loading, user, decided, claimSlot, settleSlot]);
 
   const dismiss = () => {
     try {

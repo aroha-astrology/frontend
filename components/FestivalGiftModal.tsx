@@ -9,6 +9,7 @@ import { Gift, Sparkles } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
+import { usePopupSlot } from "@/providers/popup-slot-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { useFeature } from "@/hooks/useFeature";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
@@ -36,7 +37,10 @@ export default function FestivalGiftModal() {
   const chatFeature = useFeature("nav.askAI");
   const referralAmounts = useReferralAmounts();
 
+  const { canOpen, claim: claimSlot, settle } = usePopupSlot("festival-gift");
   const [dismissed, setDismissed] = useState(false);
+  // Latched once this open has given the gift the pop-up slot.
+  const [shown, setShown] = useState(false);
   const [status, setStatus] = useState<Status>("offer");
   const [newBalancePaise, setNewBalancePaise] = useState<number | null>(null);
   const [creditExpiresAt, setCreditExpiresAt] = useState<string | null>(null);
@@ -57,13 +61,21 @@ export default function FestivalGiftModal() {
   // can poll up to 4s for the tour's target before opening it) — without it a
   // brand-new user sees this modal flash on first paint, then get yanked away
   // the instant the tour actually opens.
-  const visible =
-    !!campaign &&
-    permissionsResolved &&
-    !!user?.profileCompletedAt &&
-    !dismissed &&
-    !tourActive &&
-    !tourPending;
+  const wanted = !!campaign && !!user?.profileCompletedAt && !dismissed;
+  const ready = wanted && permissionsResolved && !tourActive && !tourPending;
+
+  // One pop-up per app open (lib/popup-slot.ts): the gift takes the slot when it is free, otherwise it waits for a
+  // later visit. Once the signed-in user is known to have no gift to offer, it stops holding up the ones below it.
+  useEffect(() => {
+    if (shown) return;
+    if (ready) {
+      if (canOpen && claimSlot()) setShown(true);
+    } else if (user && !wanted) {
+      settle();
+    }
+  }, [shown, ready, canOpen, claimSlot, settle, user, wanted]);
+
+  const visible = shown && ready;
 
   const dismiss = () => {
     if (dismissKey) {

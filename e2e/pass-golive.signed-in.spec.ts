@@ -170,73 +170,18 @@ test("the menu marks each Pass-only entry with the Pass it needs, and drops the 
   await expect(page.getByTestId("menu-pass-tag-relocation")).toHaveText("Platinum");
 });
 
-test.describe('the "Aroha Pass is here" popup', () => {
-  const POPUP_ON = { ...PASS_ON, "home.passLaunchPopup": ON };
-  const pass: Handlers = { "GET /v1/pass": () => ({ json: passStatus() }) };
-
-  test("someone already using Aroha sees it once, and its button opens the Pass page", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    await mockApi(page, { user: { features: POPUP_ON }, overrides: pass });
-    await signIn(page, "/");
-
-    const popup = page.getByTestId("pass-launch-modal");
-    await expect(popup.getByRole("heading", { name: "Aroha Pass is here" })).toBeVisible();
-    await expect(popup.getByText("From ₹199 / 30 days")).toBeVisible();
-    await popup.getByTestId("pass-launch-cta").click();
-    await page.waitForURL("**/pass");
-    await expect(page.getByTestId("pass-tiers")).toBeVisible();
-
-    await page.goto("/");
-    await expect(page.getByTestId("pass-chip")).toBeVisible();
-    await expect(popup).toHaveCount(0);
+test('the "Aroha Pass is here" popup was removed in sprint L1: it never opens, whatever the old switch says', async ({ page }) => {
+  await skipLaunchOverlays(page);
+  await mockApi(page, {
+    user: { features: { ...PASS_ON, "home.passLaunchPopup": ON } },
+    overrides: { "GET /v1/pass": () => ({ json: passStatus() }) },
   });
-
-  test("a new user does not see it on their first visit, and does on the second", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    await mockApi(page, {
-      user: { features: POPUP_ON, profileCompletedAt: new Date(Date.now() - 60_000).toISOString() },
-      overrides: pass,
-    });
-    await signIn(page, "/");
-
-    const popup = page.getByTestId("pass-launch-modal");
-    await expect(page.getByTestId("pass-chip")).toBeVisible();
-    await expect(popup).toHaveCount(0);
-    // Coming back to Home in the same visit changes nothing.
-    await page.goto("/pass");
-    await page.goto("/");
-    await expect(page.getByTestId("pass-chip")).toBeVisible();
-    await expect(popup).toHaveCount(0);
-
-    // The app is closed and opened again: a new visit.
-    await page.evaluate(() => window.sessionStorage.removeItem("aroha:visitId"));
-    await page.reload();
-    await expect(popup.getByRole("heading", { name: "Aroha Pass is here" })).toBeVisible();
-    await popup.getByRole("button", { name: "Maybe later" }).click();
-    await expect(popup).toHaveCount(0);
-    await page.reload();
-    await expect(page.getByTestId("pass-chip")).toBeVisible();
-    await expect(popup).toHaveCount(0);
-  });
-
-  test("it stays away from a member, and while its own switch is off", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    await mockApi(page, {
-      user: { features: POPUP_ON },
-      overrides: { "GET /v1/pass": () => ({ json: passStatus({ pass: member("silver") }) }) },
-    });
-    await signIn(page, "/");
-    await expect(page.getByTestId("pass-chip")).toHaveText("Silver");
-    await expect(page.getByTestId("pass-launch-modal")).toHaveCount(0);
-  });
-
-  test("off by default: the Pass can be on sale without the popup", async ({ page }) => {
-    await skipLaunchOverlays(page);
-    await mockApi(page, { user: { features: PASS_ON }, overrides: pass });
-    await signIn(page, "/");
-    await expect(page.getByTestId("pass-chip")).toHaveText("Get Pass");
-    await expect(page.getByTestId("pass-launch-modal")).toHaveCount(0);
-  });
+  await signIn(page, "/");
+  await expect(page.getByTestId("pass-chip")).toHaveText("Get Pass");
+  await page.reload();
+  await expect(page.getByTestId("pass-chip")).toHaveText("Get Pass");
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId("pass-launch-modal")).toHaveCount(0);
 });
 
 test.describe("report price steps", () => {
@@ -363,7 +308,6 @@ test.describe("Admin: Aroha Pass go-live", () => {
       sw("nav.arohaPass", true),
       sw("paid.arohaPassB", true, "optional"),
       sw("nav.relocation", ready),
-      sw("home.passLaunchPopup", false, "optional"),
     ],
     audience: { users: 120, withPush: 80, alreadySent },
   });
@@ -383,7 +327,6 @@ test.describe("Admin: Aroha Pass go-live", () => {
     const card = page.getByTestId("admin-pass-launch");
     await expect(card.getByTestId("pass-launch-ready")).toContainText("Not ready");
     await expect(card.getByTestId("pass-launch-switch-nav.relocation")).toContainText("off, needed");
-    await expect(card.getByTestId("pass-launch-switch-home.passLaunchPopup")).toContainText("off, optional");
     await expect(card.getByTestId("pass-launch-send")).toBeDisabled();
 
     // The try-out to the admin alone works before go-live.

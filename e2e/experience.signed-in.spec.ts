@@ -98,17 +98,15 @@ test.describe("Experience picker", () => {
     expect(callsTo(api, "GET /v1/me/experience")).toHaveLength(0);
   });
 
-  test("an existing user who has not picked is asked once on Home", async ({ page }) => {
+  test("an existing user who has not picked is no longer asked on Home (the pop-up was removed in sprint L1)", async ({ page }) => {
     await skipLaunchOverlays(page);
     const server = experienceServer(info());
-    const api = await mockApi(page, { user: { features: { "experience.picker": ON } }, overrides: server.handlers });
+    await mockApi(page, { user: { features: { "experience.picker": ON } }, overrides: server.handlers });
     await signIn(page, "/");
-
-    const gate = page.getByTestId("experience-gate");
-    await expect(gate).toBeVisible();
-    await page.getByTestId("experience-card-CLASSIC_VEDIC").click();
-    await expect(gate).toHaveCount(0);
-    expect(callsTo(api, "PUT /v1/me/experience")[0]!.body).toEqual({ skin: "CLASSIC_VEDIC" });
+    await expect(page.locator("main")).toBeVisible();
+    await page.waitForTimeout(1500);
+    await expect(page.getByTestId("experience-gate")).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("someone who has picked is never asked again", async ({ page }) => {

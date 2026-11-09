@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, Sparkles } from "lucide-react";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
 import { useTour } from "@/providers/tour-provider";
+import { usePopupSlot } from "@/providers/popup-slot-provider";
 import { useDismissOnBackPress } from "@/providers/back-handler-provider";
 import { PLAY_STORE_URL } from "@/lib/app-review";
 import { isUpdateAvailable, snoozeUpdatePrompt } from "@/lib/app-update";
@@ -21,6 +22,7 @@ export default function UpdatePrompt() {
   const { t } = useTranslation();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { tourActive, tourPending } = useTour();
+  const { claim, settle } = usePopupSlot("update");
   const [visible, setVisible] = useState(false);
   // Palmistry asks an old build to update on its own screen (PalmUpdateGate); two prompts would stack.
   const onPalm = (usePathname() ?? "").startsWith("/palm");
@@ -29,12 +31,14 @@ export default function UpdatePrompt() {
     if (!permissionsResolved) return;
     let cancelled = false;
     isUpdateAvailable().then((outdated) => {
-      if (outdated && !cancelled) setVisible(true);
+      if (cancelled) return;
+      if (outdated && claim()) setVisible(true);
+      else settle();
     });
     return () => {
       cancelled = true;
     };
-  }, [permissionsResolved]);
+  }, [permissionsResolved, claim, settle]);
 
   const dismiss = () => {
     snoozeUpdatePrompt();
@@ -53,9 +57,9 @@ export default function UpdatePrompt() {
 
   return (
     <AnimatePresence>
-  // Never render underneath a running tour's scrim — the tour is the one
-  // overlay that must finish before any launch-time prompt gets the screen.
-  // tourPending covers the gap before tourActive itself flips true.
+      {/* Never render underneath a running tour's scrim — the tour is the one
+          overlay that must finish before any launch-time prompt gets the screen.
+          tourPending covers the gap before tourActive itself flips true. */}
       {visible && !onPalm && !tourActive && !tourPending && (
         <motion.div
           initial={{ opacity: 0 }}

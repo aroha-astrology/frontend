@@ -4,53 +4,57 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { usePermissionsPrompt } from "@/providers/permissions-prompt-provider";
+import { usePopupSlot } from "@/providers/popup-slot-provider";
 import { useTour } from "@/providers/tour-provider";
 import FeedbackSheet, { FEEDBACK_SEEN_KEY as SEEN_KEY } from "@/components/FeedbackSheet";
-import { feedbackAskDue } from "@/lib/app-review";
+import { appOpensThisLaunch, rateUsDue } from "@/lib/app-opens";
 
 /**
- * Opens the rating sheet exactly once, after the user has actually got value out
- * of the app: 3 real AI chat answers, or a generated report plus enough time to
- * read it (see feedbackAskDue). Re-checked on navigation, not on a timer, so the
- * ask lands when the user leaves what they were doing rather than on top of it.
- * Gated on the permissions prompt resolving for the same reason ShareAppPrompt is.
+ * Opens the rating sheet exactly once, ever: from the user's 3rd app open (owner, 2026-11-09; before this it fired
+ * after 3 chat answers or a few minutes after a report). It takes the lowest slot in lib/popup-slot.ts, so if
+ * anything else opened during this app open it simply waits for the next visit. Never on a report page, never
+ * while a tour is running.
  *
- * Never fires for someone who already rated: FeedbackSheet stamps SEEN_KEY on a
- * successful submit, including the Settings entry point.
+ * Never fires for someone who already rated: FeedbackSheet stamps SEEN_KEY on a successful submit, including the
+ * Settings entry point.
  */
 export default function FeedbackPrompt() {
   const { user } = useAuth();
   const pathname = usePathname();
   const { resolved: permissionsResolved } = usePermissionsPrompt();
   const { tourActive, tourPending } = useTour();
+  const { canOpen, claim } = usePopupSlot("rate-us");
   const [open, setOpen] = useState(false);
 
+  // Count this open at once, ahead of every gate below: someone who is not eligible yet must still be
+  // accumulating opens (this counter used to be kept by the Share prompt).
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    appOpensThisLaunch();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || open) return;
     if (!permissionsResolved || !user?.profileCompletedAt) return;
-    // Bail BEFORE the SEEN_KEY write below, not just before the render: this
-    // effect marks the ask as seen on show, so deciding during a tour — or in
-    // the gap before tourActive itself flips true while TourHost is still
-    // waiting on the tour's target — would burn the one rating prompt behind
-    // the tour's scrim.
+    // Bail BEFORE the SEEN_KEY write below, not just before the render: this effect marks the ask as seen on
+    // show, so deciding during a tour would burn the one rating prompt behind the tour's scrim.
     if (tourActive || tourPending) return;
-    // Server-side truth first: localStorage forgets on reinstall or a new phone,
-    // this doesn't.
-    if (user.feedbackGiven) return;
-    // Never interrupt a report they're reading — that's the whole point of the
-    // delay. They'll get asked on the way out.
-    if (pathname?.startsWith("/reports/")) return;
     try {
-      if (window.localStorage.getItem(SEEN_KEY)) return;
-      if (!feedbackAskDue()) return;
-      // Marked as seen on show, not on submit: a dismissed sheet must not come
-      // back on every subsequent navigation.
+      const due = rateUsDue({
+        opens: appOpensThisLaunch(),
+        // Server-side truth first (feedbackGiven): localStorage forgets on reinstall or a new phone, this does not.
+        seen: window.localStorage.getItem(SEEN_KEY) !== null,
+        feedbackGiven: !!user.feedbackGiven,
+        // Never interrupt a report they are reading.
+        onReport: !!pathname?.startsWith("/reports/"),
+      });
+      if (!due || !canOpen || !claim()) return;
+      // Marked as seen on show, not on submit: a dismissed sheet must not come back.
       window.localStorage.setItem(SEEN_KEY, "1");
       setOpen(true);
     } catch {
       // localStorage unavailable — skip rather than nag every open.
     }
-  }, [pathname, permissionsResolved, tourActive, tourPending, user?.profileCompletedAt, user?.feedbackGiven]);
+  }, [open, pathname, permissionsResolved, tourActive, tourPending, user?.profileCompletedAt, user?.feedbackGiven, canOpen, claim]);
 
   if (!open) return null;
   return <FeedbackSheet onClose={() => setOpen(false)} />;

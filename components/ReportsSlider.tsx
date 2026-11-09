@@ -9,7 +9,7 @@ import { useReportCatalogue } from "@/hooks/useReportCatalogue";
 import { useReportStats } from "@/hooks/useReportStats";
 import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
-import { filterVisibleReports, sortNewFirst } from "@/lib/reports-logic";
+import { filterVisibleReports, sortFeaturedFirst, sortNewFirst } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
 import { SLIDER_ROW } from "@/components/ui/slider-row";
 
@@ -48,7 +48,7 @@ export default function ReportsSlider() {
   const [purchasingEntry, setPurchasingEntry] = useState<ReportCatalogueEntry | null>(null);
 
   const visible = reports
-    ? sortNewFirst(filterVisibleReports(reports, (key) => resolveFeature(user?.features, key).enabled))
+    ? sortFeaturedFirst(sortNewFirst(filterVisibleReports(reports, (key) => resolveFeature(user?.features, key).enabled)))
     : null;
 
   const handlePurchased = (rows: PurchaseReportResultRow[]) => {

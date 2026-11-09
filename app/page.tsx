@@ -34,8 +34,7 @@ import MoonBackground from "@/components/MoonBackground";
 import ParticleBackground from "@/components/ParticleBackground";
 import SplashScreen from "@/components/SplashScreen";
 import NewUserWelcomeModal from "@/components/NewUserWelcomeModal";
-import PassLaunchModal from "@/components/pass/PassLaunchModal";
-import ExperienceGate from "@/components/experience/ExperienceGate";
+import ReportLaunchModal from "@/components/reports/ReportLaunchModal";
 import TravelPill from "@/components/experience/TravelPill";
 import { useAuth } from "@/providers/auth-provider";
 import { useTourReady } from "@/providers/tour-provider";
@@ -324,8 +323,7 @@ export default function HomePage() {
       <MoonBackground planet="mercury" />
       <SplashScreen onDone={() => setSplashDone(true)} />
       <NewUserWelcomeModal onDismiss={() => setWelcomeDone(true)} />
-      <PassLaunchModal ready={splashDone && welcomeDone} />
-      <ExperienceGate ready={splashDone && welcomeDone} />
+      <ReportLaunchModal ready={splashDone && welcomeDone} />
       <PendingCircleInvite />
 
       <div className="relative z-10 page-container">

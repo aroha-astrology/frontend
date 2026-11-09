@@ -14,6 +14,7 @@ import {
   computeDiscount,
   sortUnlockedFirst,
   sortNewFirst,
+  sortFeaturedFirst,
   isReportLocked,
   type ReportPurchase,
 } from "./reports-logic";
@@ -393,3 +394,19 @@ describe("computeDiscount", () => {
   });
 });
 
+
+describe("sortFeaturedFirst", () => {
+  const e = (key: string, isNew: boolean, isFeatured: boolean) => ({ key, isNew, isFeatured });
+  it("puts featured reports above New ones and everything else", () => {
+    const list = [e("a", false, false), e("b", true, false), e("c", false, true)];
+    expect(sortFeaturedFirst(sortNewFirst(list)).map((r) => r.key)).toEqual(["c", "b", "a"]);
+  });
+  it("keeps catalogue order among several featured", () => {
+    const list = [e("a", false, true), e("b", false, false), e("c", false, true)];
+    expect(sortFeaturedFirst(list).map((r) => r.key)).toEqual(["a", "c", "b"]);
+  });
+  it("treats a missing flag (older server) as not featured", () => {
+    const list = [{ key: "a", isNew: false }, e("b", false, true)];
+    expect(sortFeaturedFirst(list).map((r) => r.key)).toEqual(["b", "a"]);
+  });
+});

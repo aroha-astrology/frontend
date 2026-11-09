@@ -197,6 +197,81 @@ Every constant lives in `config/varshik-weights.ts`. Every rule cites a checked 
 
 Built and tested, not pushed. See the C3 section of the memory `varshik-c3-status` for what is open. The scoring weights stay **provisional** until the owner agrees to the before/after tier mix.
 
+## L1: Launch placement and pop-up clean-up (owner, 2026-11-09). Sonnet 5.5, before S7
+
+Of the 12 auto-opening pop-ups (mounted in `app/layout.tsx` and `app/page.tsx`), the owner decided:
+
+**Remove:**
+- `ShareAppPrompt` ("Share the app & earn ₹100")
+- `DailyRewardModal`
+- `pass/PassLaunchModal`
+- `experience/ExperienceGate`
+
+Remove the auto-open and the mount. Keep any user-tapped entry points and backend pieces they share; delete only what nothing else uses.
+
+**Change:**
+- **`FeedbackPrompt` (Rate us):** once ever, after the user's **3rd app open** (the existing `aroha:appOpens` counter). Today it fires after 3 chat replies or 3 minutes after a report. Never on `/reports/*`, never while another pop-up is open.
+- **`PermissionsPrompt`:** on native Android, ask **once a week** after "Not now", as the web already does, instead of on every launch.
+
+**Keep:**
+- Splash, the welcome for new users, the tour.
+- `UpdatePrompt`: dormant today; check that `LATEST_PLAY_BUILD` is current when an important build ships.
+- `FestivalGiftModal`: only shows while the owner runs a campaign.
+- The circle-invite redirect.
+
+**Bug fix.** `UpdatePrompt.tsx` (about lines 56–58) and `ShareAppPrompt.tsx` (76–78) have `// Never render underneath…` written inside JSX children, which renders as visible text. Turn them into `{/* */}` comments (moot for ShareAppPrompt once it's removed).
+
+**New: Varshik launch pop-up (`ReportLaunchModal`).**
+- **Model:** copy the `PassLaunchModal` pattern.
+- **Once per user, ever:** stored per user on the server, so a reinstall or a new device doesn't repeat it, plus a local key.
+- **Skips a brand-new user's first visit.**
+- **Waits** for the splash, welcome, tour, permissions and any gift campaign.
+- **Shows only when BOTH are on:** its own switch `home.varshikLaunchPopup` (OFF by default, tag `new`) and the report's switch `reports.varshik_rashifal_2027`. Never for a hidden report.
+- **Content:** the cover art, short humanized copy in all 14 languages, a "See your 2027" button to the report's catalogue card or buy sheet, and a close button.
+- **Analytics:** shown / clicked / closed, as for the Pass launch.
+- **No push notification** (owner).
+
+**At most one pop-up per app open.** Priority order: Update → Permissions → Welcome/Tour → Varshik launch → Festival gift → Rate us. A lower one waits for a later visit. Today several can stack.
+
+**New: "Featured" report, set from Admin.**
+- Add a per-report **Featured** switch in Admin → Features. Featured reports sort above everything, including `isNew`, on `/reports` (both tabs, where the report applies) and in the home slider.
+- With several featured, keep catalogue order.
+- Varshik starts featured = **off**. The owner turns it on with the launch.
+- Today the only way to reach the top is the 14-day `isNew` window after a switch is turned on.
+
+**Tests** (each shown failing first):
+- the removed pop-ups never open;
+- Rate us appears only on the 3rd open, once;
+- Permissions asks again only after 7 days on native;
+- the launch pop-up shows once per user and never with either switch off, nor on a first visit;
+- only one pop-up per open;
+- featured sorts first.
+
+**Live changes.** Everything in this sprint except the Varshik pop-up and the Featured switch's starting state affects all current users, so it goes on the release list (frontend; backend first if a server-side "seen" field is added).
+
+## L1 status (2026-11-09)
+
+Built and tested, not pushed. Commits: backend-varshik (switches, `isFeatured`, `popupsSeen`, migration 0108) and frontend.
+
+**What was built**
+- Removed `ShareAppPrompt`, `DailyRewardModal`, `PassLaunchModal` and `ExperienceGate` (mounts and files). Kept what other features use: `ShareOptionsSheet`, `DailyRewardLadder` and the daily claim, `ExperienceCards`, the Pass page. The `home.passLaunchPopup` switch is gone from the registry and from the Pass go-live card; old rows for it are ignored.
+- One pop-up per app open: `lib/popup-slot.ts` (the rule, unit tested) and `providers/popup-slot-provider.tsx`. Update, Permissions and Welcome/Tour keep their existing first-run sequence; Varshik launch, Festival gift and Rate us never open after any of them, and a lower one waits for a later visit. This is the one reading of the spec worth checking: a strict "one" would make a brand-new user wait a visit for the tour.
+- Rate us: once, from the 3rd app open (`lib/app-opens.ts`, the old `aroha:appOpens` counter, now kept by `FeedbackPrompt`). The old "3 chat answers" and "after a report" triggers no longer open it. Never on `/reports/*`.
+- Permissions: `lib/permissions-reask.ts`, a week after "Not now", on Android as well as the web.
+- `UpdatePrompt` comment text fixed (`{/* */}`).
+- Varshik launch pop-up: `components/reports/ReportLaunchModal.tsx`, `lib/launch-popup.ts`, copy in `i18n/roadmap/varshik-launch.ts` plus the eight other language files. Needs `home.varshikLaunchPopup` AND `reports.varshik_rashifal_2027`, both OFF by default. Once per user, ever: server `popupsSeen` plus a local key. Skips a new user's first visit. No push. The button goes to `/reports`, where Featured or New puts Varshik first.
+- Featured: one `reports.featured_<report key>` switch per report in Admin → Features (group Reports), all OFF. A featured report sorts above New on `/reports` and in the Home slider; several keep catalogue order.
+
+**Release list (live changes for every user)**
+1. Backend first (migration 0108 adds `users.popups_seen`; the new `/v1/me` field and `isFeatured` come with it).
+2. Frontend: the four pop-ups disappear for everyone, including the Pass launch popup and the "choose your experience" prompt for existing users who have not picked.
+3. Frontend: Rate us moves to the 3rd open (anyone past 3 opens who never saw it will get it on their next open, once).
+4. Frontend: Android Permissions asks once a week, not every launch.
+5. Frontend: Festival gift and Rate us now yield to a Varshik pop-up and to each other (one per open).
+6. Not live until the owner turns it on: the Varshik launch pop-up (`home.varshikLaunchPopup`) and every Featured switch.
+
+**Translations.** The pop-up copy is in all 14 languages, written by hand, not run through apinex. Re-run through apinex if the owner wants the rule applied.
+
 ## C5: Indian calendar correctness (from the owner's Gemini review, checked 2026-11-09). Opus 5.5, after the asset pass, before the final review
 
 Gemini's 2027 dates were checked against Swiss Ephemeris (Lahiri). All ingresses, stations and eclipses agree to within about 1–2 minutes. It found three real gaps, confirmed in our code:

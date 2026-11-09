@@ -135,13 +135,16 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
   const starRows = sheet ? [] : starLines(stars).sort((a, b) => a.date.localeCompare(b.date));
 
   // Marks stack in rows (SLOT days wide each) so two events on one date never sit on top of each other.
+  // The strip is drawn on a wider canvas in print, so it takes less height on the page (the marks keep their size).
+  const W = sheet ? 520 : 360;
   const rowEnd: number[] = [];
   const marks = sorted.map((e) => {
     const day = dayOfYear(e.date, year);
-    let r = rowEnd.findIndex((end) => day - end >= SLOT);
+    // In print the wider canvas spaces the days further apart, so 5 days already keep two marks from touching.
+    let r = rowEnd.findIndex((end) => day - end >= (sheet ? 5 : SLOT));
     if (r === -1) r = rowEnd.length;
     rowEnd[r] = day;
-    return { e, x: 8 + (day / 364) * 344, r };
+    return { e, x: 8 + (day / 364) * (W - 16), r };
   });
   const rows = Math.min(rowEnd.length, 12);
   const height = 20 + rows * 9;
@@ -149,13 +152,13 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
   return (
     <div className="flex flex-col gap-3 leading-[1.45]">
       <svg
-        viewBox={`0 0 360 ${height}`}
+        viewBox={`0 0 ${W} ${height}`}
         className="h-auto w-full"
         role="img"
         aria-label={y(t("varshik.sky.label", { defaultValue: "Sky events through 2027" }))}
       >
         {MONTH_START.map((d) => (
-          <line key={d} x1={8 + (d / 364) * 344} x2={8 + (d / 364) * 344} y1={0} y2={height} stroke="var(--border-faint)" strokeWidth={1} />
+          <line key={d} x1={8 + (d / 364) * (W - 16)} x2={8 + (d / 364) * (W - 16)} y1={0} y2={height} stroke="var(--border-faint)" strokeWidth={1} />
         ))}
         {marks
           .filter((m) => m.r < 12)
@@ -180,6 +183,11 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
           </li>
         ))}
       </ul>
+      {sheet && events.some((e) => e.moonHouse !== undefined) ? (
+        <p className="m-0 text-xs" style={{ color: "var(--text-muted)" }}>
+          {t("varshik.sky.refKey", { defaultValue: "L is the house from your Lagna, M the house from your Moon." })}
+        </p>
+      ) : null}
       {starRows.length > 0 ? (
         <p className="m-0 text-xs" style={{ color: "var(--text-muted)" }}>
           <span aria-hidden="true">✦ </span>
@@ -187,13 +195,13 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-3" data-vk-flow>
+      <div className="flex flex-col gap-3" data-vk-flow data-vk-maxcols="4">
       {Array.from({ length: 12 }, (_, m) => {
         const inMonth = sorted.filter((e) => e.month === m);
         const starsInMonth = starRows.filter((s) => s.month === m);
         if (inMonth.length === 0 && starsInMonth.length === 0) return null;
         return (
-          <section key={m} className="flex flex-col gap-1.5">
+          <section key={m} className="flex flex-col gap-1.5" data-vk-split>
             <h3 className="m-0 text-sm font-semibold" style={{ color: "var(--gold)" }}>
               {new Intl.DateTimeFormat(lang, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(year, m, 15)))}
             </h3>
@@ -212,7 +220,7 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span>
-                      {skyLabel(t, e, lang, place)}
+                      {skyLabel(t, e, lang, place, sheet)}
                       {e.eclipse ? (
                         <span
                           className="ml-1.5 inline-block rounded-full border px-1.5 text-[10px] font-normal"
@@ -222,30 +230,50 @@ export default function SkyCalendar({ events, stars, place }: { events: SkyEvent
                         </span>
                       ) : null}
                     </span>
-                    {e.eclipse && e.eclipse.class !== "not_visible" ? (
-                      <>
-                        <span className="font-normal" style={{ color: "var(--text-muted)" }}>
-                          {place?.scope === "reader"
-                            ? t("varshik.eclipse.scopeReader", { defaultValue: "Times where you live ({{place}}):", place: place.name })
-                            : t("varshik.eclipse.scopeIndia", { defaultValue: "Times across India, in IST:" })}
-                        </span>
-                        {eclipsePlaceLines(t, e).map((line, j) => (
-                          <span key={j} className="font-normal tabular-nums">
-                            {line}
-                          </span>
-                        ))}
-                        {e.eclipse.class === "grahan" ? (
-                          <span className="font-normal" style={{ color: "var(--text-muted)" }}>
-                            {t(e.kind === "eclipse-solar" ? "varshik.eclipse.sutakSolar" : "varshik.eclipse.sutakLunar", {
-                              defaultValue:
-                                e.kind === "eclipse-solar"
-                                  ? "Sutak starts 12 hours (4 prahar) before the eclipse begins where you are."
-                                  : "Sutak starts 9 hours (3 prahar) before the eclipse begins where you are.",
-                            })}
-                          </span>
-                        ) : null}
-                      </>
-                    ) : null}
+                    {e.eclipse && e.eclipse.class !== "not_visible"
+                      ? (() => {
+                          const scope =
+                            place?.scope === "reader"
+                              ? t("varshik.eclipse.scopeReader", { defaultValue: "Times where you live ({{place}}):", place: place.name })
+                              : t("varshik.eclipse.scopeIndia", { defaultValue: "Times across India, in IST:" });
+                          const lines = eclipsePlaceLines(t, e);
+                          const rule =
+                            e.eclipse.class === "grahan"
+                              ? t(e.kind === "eclipse-solar" ? "varshik.eclipse.sutakSolar" : "varshik.eclipse.sutakLunar", {
+                                  defaultValue:
+                                    e.kind === "eclipse-solar"
+                                      ? "Sutak starts 12 hours (4 prahar) before the eclipse begins where you are."
+                                      : "Sutak starts 9 hours (3 prahar) before the eclipse begins where you are.",
+                                })
+                              : null;
+                          // On the printed sheet the label, the cities and the Sutak rule run on as one paragraph.
+                          if (sheet) {
+                            return (
+                              <span className="font-normal tabular-nums" style={{ color: "var(--text-muted)" }}>
+                                {scope} <span style={{ color: "var(--foreground)" }}>{lines.join(" · ")}</span>
+                                {rule ? ` ${rule}` : ""}
+                              </span>
+                            );
+                          }
+                          return (
+                            <>
+                              <span className="font-normal" style={{ color: "var(--text-muted)" }}>
+                                {scope}
+                              </span>
+                              {lines.map((line, j) => (
+                                <span key={j} className="font-normal tabular-nums">
+                                  {line}
+                                </span>
+                              ))}
+                              {rule ? (
+                                <span className="font-normal" style={{ color: "var(--text-muted)" }}>
+                                  {rule}
+                                </span>
+                              ) : null}
+                            </>
+                          );
+                        })()
+                      : null}
                   </span>
                 </li>
               ))}

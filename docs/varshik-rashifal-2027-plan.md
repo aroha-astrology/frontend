@@ -455,6 +455,11 @@ These parts of the Varshik branch change **live** behaviour outside the report, 
 3. **Eclipse local times:** a contact below the horizon used to read as "not visible" (Madrid, 28 Aug 2026). Now the moonset or sunset time is used as the visible edge. This affects chat, Decide and every report that reads `classifyEclipse`.
 4. **Festival table:** Devuthani Ekadashi added for 2025 to 2029 (backend and web copies). The festival-alert cron will announce it.
 5. **Waiting screen:** the step count follows the API's `progress.total` (`VARSHIK_TEXT_GROUPS`, 6).
+6. **Decide screen: Venus and Jupiter Asta for a wedding come from drikpanchang's published dates** (backend `config/asta-dates.ts`, New Delhi), the same table the report uses. The fixed orb is kept only for years the table does not cover (2028 and later, until drikpanchang publishes them). `test/decide-asta.spec.ts` failed on the old code: 10 Jul and 15 Sep 2027 were marked Asta by the orb, though drikpanchang's Venus Asta runs from 21 Jul to 9 Sep. Users will see 6 to 20 Jul and 10 to 17 Sep 2027 no longer marked Asta for weddings in Decide (Decide does not apply Chaturmas; the Varshik report does).
+
+7. **Decide in a year the Asta table does not cover** (2028 on): the fallback orb, whose window contains drikpanchang's in every covered period (`test/asta-fallback.spec.ts`): Venus direct 10 deg, Venus retrograde 20 deg (drikpanchang's Oct 2026 retrograde Asta starts at 17.6 deg from the Sun, so the classical 8 deg would open 12 to 17 Oct), Jupiter 11 deg. The first lookup per year is logged once ("asta-dates: no drikpanchang Asta dates for this year").
+
+**To do in January 2027:** fill 2028 in `backend config/asta-dates.ts` from drikpanchang's Shukra and Guru Asta pages (New Delhi, `?year=2028&geoname-id=1261481`) once they publish 2028, add 2028 to `ASTA_YEARS`, and re-run `test/asta-fallback.spec.ts`. If 2028 has a retrograde Venus window, re-check the 20 deg fallback against it. Do 2029 the same way in January 2028.
 
 The backend goes first because the web reads the new `progress.total`, eclipse and decision fields. An older backend leaves those fields absent, and the web falls back to the earlier labels.
 

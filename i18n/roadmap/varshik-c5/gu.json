@@ -80,7 +80,15 @@
     "station-direct": "માર્ગી થવું",
     "combust-in": "અસ્ત થવું (સૂર્યની ખૂબ નજીક)",
     "combust-out": "ઉદય (અસ્તમાંથી બહાર)"
-   }
+   },
+   "refKey": "L એટલે લગ્નથી ભાવ, M એટલે ચંદ્રથી ભાવ."
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} રાશિમાં પ્રવેશ · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} રાશિમાં વક્રી · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} રાશિમાં માર્ગી · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} રાશિમાં અસ્ત · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} રાશિમાં ઉદય · L{{lagna}} · M{{moon}}"
   }
  }
 }

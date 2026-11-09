@@ -73,9 +73,16 @@ function listsOf(inner: HTMLElement): HTMLElement[] {
   return [...marked, ...guessed];
 }
 
+/** A child that may break across columns: a paragraph, a wrapper holding only a paragraph, or one marked data-vk-split. */
+function splits(c: HTMLElement): boolean {
+  if (c.tagName === "P" || c.hasAttribute("data-vk-split")) return true;
+  return c.children.length === 1 && c.firstElementChild?.tagName === "P";
+}
+
 function setColumns(lists: { el: HTMLElement; gap: string }[], wanted: number) {
   for (const { el, gap } of lists) {
-    const cols = Math.min(wanted, Number(el.dataset.vkMaxcols ?? 99));
+    // 3 columns at most, unless the list allows more (data-vk-maxcols, e.g. the sky calendar's short lines).
+    const cols = Math.min(wanted, Number(el.dataset.vkMaxcols ?? 3));
     el.dataset.vkCols = String(cols);
     if (cols <= 1) {
       el.style.removeProperty("display");
@@ -91,7 +98,9 @@ function setColumns(lists: { el: HTMLElement; gap: string }[], wanted: number) {
       el.style.columnGap = "18px";
       const kids = Array.from(el.children) as HTMLElement[];
       kids.forEach((c, i) => {
-        c.style.breakInside = "avoid";
+        // Prose and blocks marked data-vk-split may run on into the next column (a long paragraph would
+        // otherwise set the column height and leave the others half empty); cards and rows stay whole.
+        c.style.breakInside = splits(c) ? "auto" : "avoid";
         c.style.marginBottom = i === kids.length - 1 ? "0" : gap;
       });
     }
@@ -106,6 +115,7 @@ function fitPage(box: HTMLElement): { step: number; clipped: boolean; ratio: num
   // A second run (React strict mode runs effects twice in dev) starts from the page as built.
   setColumns(Array.from(inner.querySelectorAll<HTMLElement>("[data-vk-cols]")).map((el) => ({ el, gap: "0px" })), 1);
   inner.style.setProperty("--vk-fit", "1");
+  delete inner.dataset.dense;
   const ratio = Math.round((inner.offsetHeight / Math.max(1, body.clientHeight)) * 100) / 100;
   const lists = listsOf(inner).map((el) => ({ el, gap: getComputedStyle(el).rowGap === "normal" ? "0px" : getComputedStyle(el).rowGap }));
   let last: { step: number; cols: number; over: number } = { step: FIT_STEPS.length - 1, cols: 1, over: 0 };
@@ -118,6 +128,15 @@ function fitPage(box: HTMLElement): { step: number; clipped: boolean; ratio: num
     // The rectangle is the drawn (zoomed) height; offsetHeight would be the unzoomed one.
     const over = Math.round((inner.getBoundingClientRect().height / Math.max(1, body.clientHeight)) * 100) / 100;
     last = { ...last, over };
+    if (over <= 1.0005) return { ...last, clipped: false, ratio, over };
+  }
+  // Last resort before clipping: the same text size with tighter line spacing and gaps (varshik.css [data-dense]).
+  inner.dataset.dense = "1";
+  for (const [cols, s] of [...attempts.slice(-3), [4, 0.76], [4, 0.7]] as [number, number][]) {
+    setColumns(lists, cols);
+    inner.style.setProperty("--vk-fit", String(s));
+    const over = Math.round((inner.getBoundingClientRect().height / Math.max(1, body.clientHeight)) * 100) / 100;
+    last = { step: FIT_STEPS.indexOf(s), cols, over };
     if (over <= 1.0005) return { ...last, clipped: false, ratio, over };
   }
   return { ...last, clipped: true, ratio };

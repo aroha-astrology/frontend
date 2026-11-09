@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { switchLanguage } from "@/i18n/switch-language";
 import { useTheme } from "next-themes";
 import type { ReactNode } from "react";
@@ -75,6 +75,22 @@ function BookPreview({ data }: { data: ReportReady }) {
   );
 }
 
+/** DEV ONLY: the owner's accuracy-test report, loaded at run time from the gitignored .claude folder. */
+function OwnerView() {
+  const [data, setData] = useState<ReportReady | null>(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    fetch("/varshik-preview/owner-data", { cache: "no-store" })
+      .then((r) => (r.ok ? (r.json() as Promise<ReportReady>) : Promise.reject(new Error(String(r.status)))))
+      .then(setData)
+      .catch(() => setMissing(true));
+  }, []);
+  if (missing) return <main className="p-6">No owner report in frontend/.claude/varshik-owner-report.json.</main>;
+  if (!data) return <main className="p-6">Loading…</main>;
+  const book = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("book") === "1";
+  return book ? <BookPreview data={data} /> : <VarshikReportView data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />;
+}
+
 export default function PreviewClient() {
   const { setTheme, resolvedTheme } = useTheme();
   const lang = typeof window === "undefined" ? "en" : (new URLSearchParams(window.location.search).get("lang") ?? "en");
@@ -141,6 +157,18 @@ export default function PreviewClient() {
             Theme: {resolvedTheme}
           </button>
           <VarshikReportView data={data} reportId="0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" />
+        </main>
+      </ReportSurface>
+    );
+  }
+  if (view === "owner") {
+    return (
+      <ReportSurface page className="min-h-screen">
+        <main className="mx-auto flex max-w-[420px] flex-col gap-3 p-4">
+          <button type="button" id="theme-toggle" className="self-start rounded-full border border-[color:var(--border-faint)] px-3 py-1 text-xs" onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
+            Theme: {resolvedTheme}
+          </button>
+          <OwnerView />
         </main>
       </ReportSurface>
     );

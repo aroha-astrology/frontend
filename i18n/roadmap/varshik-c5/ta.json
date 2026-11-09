@@ -80,7 +80,15 @@
     "station-direct": "வக்கிர நிவர்த்தி",
     "combust-in": "அஸ்தங்கம் (சூரியனுக்கு மிக அருகில்)",
     "combust-out": "அஸ்தங்க நிவர்த்தி"
-   }
+   },
+   "refKey": "L என்பது லக்னத்திலிருந்து பாவம், M என்பது சந்திரனிலிருந்து பாவம்."
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} ராசியில் பிரவேசம் · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} ராசியில் வக்கிரம் · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} ராசியில் வக்கிர நிவர்த்தி · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} ராசியில் அஸ்தங்கம் · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} ராசியில் அஸ்தங்க நிவர்த்தி · L{{lagna}} · M{{moon}}"
   }
  }
 }

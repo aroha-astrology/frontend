@@ -80,7 +80,15 @@
     "station-direct": "मार्गी होणे",
     "combust-in": "अस्त होणे (सूर्याच्या खूप जवळ)",
     "combust-out": "उदय होणे (अस्तातून बाहेर)"
-   }
+   },
+   "refKey": "L म्हणजे लग्नापासूनचा भाव, M म्हणजे चंद्रापासूनचा भाव."
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} राशीत प्रवेश · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} राशीत वक्री · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} राशीत मार्गी · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} राशीत अस्त · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} राशीत उदय · L{{lagna}} · M{{moon}}"
   }
  }
 }

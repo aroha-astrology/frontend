@@ -80,7 +80,15 @@
     "station-direct": "মার্গী হওয়া",
     "combust-in": "অস্ত যাওয়া (সূর্যের খুব কাছে)",
     "combust-out": "উদয় (অস্ত থেকে বেরোনো)"
-   }
+   },
+   "refKey": "L হল লগ্ন থেকে ভাব, M হল চন্দ্র থেকে ভাব।"
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} রাশিতে প্রবেশ · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} রাশিতে বক্রী · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} রাশিতে মার্গী · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} রাশিতে অস্ত · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} রাশিতে উদয় · L{{lagna}} · M{{moon}}"
   }
  }
 }

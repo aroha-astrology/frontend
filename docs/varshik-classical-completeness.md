@@ -293,6 +293,19 @@ The marriage, commitment and move-home rows only take months with at least 7 ope
 
 **Pre-existing test failures** (they also fail on origin/main e293ea57): `test/users.spec.ts` (5) and `test/insights-birth-time.spec.ts` (4 or 5, timeouts).
 
+## S6 verified and the owner's 2026 test (2026-11-09)
+
+**S6 PDF.** The headless check (`e2e-pdf/varshik-pdf.spec.ts`) now covers 12 PDFs: two data sets (`live`, a real report saved before C5; `sample`, the current facts schema) in English, Hindi and Tamil, each with 0 and 5 question pages. Every one has exactly 59+N A4 pages, is under 15 MB (largest: Tamil with 5 questions, 13.9 MB), and has **zero clipped pages**. The owner set the clipping allowance to zero for every language. Fixes:
+- In columns, prose paragraphs and the sky calendar's month blocks may run into the next column. Cards and list rows stay whole, and a heading never ends a column on its own.
+- Cards on a printed page are tighter.
+- A last-resort "dense" step tightens the line spacing and gaps; the text size stays the same.
+- Lists that allow it (the sky calendar) may use 4 columns at that last step.
+- The printed sky calendar uses short house labels ("L9 · M5", with a key line), a wider event strip, and one paragraph per eclipse.
+
+The share cards pass (no birth details). The cover sets the name on the dashed line, including a long one. Scratch scripts `exp.mjs`, `exp2.mjs` and `lists.mjs` were removed from `e2e-pdf`.
+
+**Owner's 2026 test.** Generated with `backend-varshik/scripts/varshik-owner-test.ts 2026 <scratchpad>/owner --answers asof2026`: 39 sections, 11 model calls (5 regenerates), 5 style flags. Shown on screen at `/varshik-preview?view=owner` (dev only). The page reads `frontend/.claude/varshik-owner-report.json`, which is gitignored, through `app/varshik-preview/owner-data` (404 in production or when the file is missing). PDF: `Varshik-Rashifal-2026-<Name>.pdf`, 60 pages (59 + 1 question), 10.3 MB, nothing clipped. Every "2027" left on its pages is a real date: the second Varsha chart running to 18 Apr 2027, a Mudda period into January 2027, and relief dates in 2027. A marking sheet (month, score, first line, hit/partly/miss) sits beside the PDF in the scratchpad. **Awaiting the owner's marks.**
+
 ## PDF cover (owner, 2026-11-09). Built in S6, the art is fixed in the asset pass
 
 **Source.** `C:\Users\wookiee\Downloads\1794132680584.png`, 1696×2528 PNG (portrait, ratio 0.671; A4 is 0.707). It replaces the A1 cover for the **PDF** and is also used as the in-app cover.
@@ -310,7 +323,7 @@ The marriage, commitment and move-home rows only take months with at least 7 ope
 - **Devanagari and other scripts.** Names entered in Devanagari or another Indic script fall back to a matching serif (Noto Serif *script*), in the same gold.
 - **Colour.** A vertical gradient sampled from the lettering: top `#F2DB97` → middle `#E7C897` → bottom `#D5B790`, with a soft dark shadow like the baked text.
   - Render the name as an SVG `<text>` with an SVG `linearGradient` fill. Don't use CSS `background-clip:text`, which breaks the PDF capture (S4 rule).
-- **Show the owner** the cover with three names: short ("Subir"), long ("Venkatalakshmi Raghunathan"), and one in Devanagari.
+- **Show the owner** the cover with three names: short ("Asha"), long ("Venkatalakshmi Raghunathan"), and one in Devanagari.
 
 **Fixes before shipping:**
 1. **Gemini watermark, bottom-right.** This is the large ~96 px mark at this image size. Remove it with the same reverse-alpha method: re-measure the alpha for the 96 px mark, or scale `alpha48.npy` up and touch up with inpainting. The ornate corner border sits under it, so check at 3× zoom that no ghost remains.

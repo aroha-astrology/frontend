@@ -250,6 +250,25 @@
   flex: none;
 }
 
+/* In columns on a printed page: a heading never ends a column, a list row never splits, prose keeps 2 lines together. */
+.vk-a4 [data-vk-cols] h3 { break-after: avoid; }
+.vk-a4 [data-vk-cols] li { break-inside: avoid; }
+.vk-a4 [data-vk-cols] p { orphans: 2; widows: 2; }
+
+/* The fitter's last step before clipping: same text size, tighter lines and gaps. */
+.vk-a4-inner[data-dense] .vk-body,
+.vk-a4-inner[data-dense] p { line-height: 1.32; }
+.vk-a4-inner[data-dense] .gap-5,
+.vk-a4-inner[data-dense] .gap-4 { gap: 0.45rem; }
+.vk-a4-inner[data-dense] .gap-3 { gap: 0.35rem; }
+.vk-a4-inner[data-dense] .gap-2,
+.vk-a4-inner[data-dense] .gap-1\.5 { gap: 0.2rem; }
+
+/* Cards inside a printed page are tighter than on the phone (the page needs the room, the text keeps its size). */
+.vk-a4 .vk-a4-inner .vk-panel { padding: 0.4rem 0.55rem; }
+.vk-a4 .vk-a4-inner ul.gap-2,
+.vk-a4 .vk-a4-inner ul.gap-2\.5 { gap: 0.35rem; }
+
 /* A4 type scale and density (print-size text: body about 10 pt, captions 8 pt). */
 .vk-a4 .vk-body { font-size: 0.8125rem; line-height: 1.5; }
 .vk-a4 .vk-caption { font-size: 0.6875rem; }

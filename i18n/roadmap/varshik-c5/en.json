@@ -80,7 +80,15 @@
     "station-direct": "Turns direct",
     "combust-in": "Goes combust (too close to the Sun)",
     "combust-out": "Leaves combustion"
-   }
+   },
+   "refKey": "L is the house from your Lagna, M the house from your Moon."
+  },
+  "skyShort": {
+   "ingress": "{{planet}} enters {{sign}} · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} turns retrograde in {{sign}} · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} turns direct in {{sign}} · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} goes combust in {{sign}} · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} leaves combustion in {{sign}} · L{{lagna}} · M{{moon}}"
   }
  }
 }

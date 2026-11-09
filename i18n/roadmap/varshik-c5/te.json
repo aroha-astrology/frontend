@@ -80,7 +80,15 @@
     "station-direct": "మార్గి",
     "combust-in": "మౌఢ్యమి ప్రారంభం (సూర్యునికి చాలా దగ్గర)",
     "combust-out": "మౌఢ్యమి ముగింపు"
-   }
+   },
+   "refKey": "L అంటే లగ్నం నుండి భావం, M అంటే చంద్రుని నుండి భావం."
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} రాశిలో ప్రవేశం · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} రాశిలో వక్రి · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} రాశిలో మార్గి · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} రాశిలో మౌఢ్యమి ప్రారంభం · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} రాశిలో మౌఢ్యమి ముగింపు · L{{lagna}} · M{{moon}}"
   }
  }
 }

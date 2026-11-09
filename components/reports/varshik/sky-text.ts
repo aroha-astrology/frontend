@@ -25,6 +25,15 @@ export const SKY_REF_EN: Record<Exclude<SkyEventKind, "eclipse-solar" | "eclipse
   "combust-out": "{{planet}} leaves combustion in {{sign}} · {{lagna}} from your Lagna · {{moon}} from your Moon",
 };
 
+/** The printed sky sheet: the same sentences with the short house labels the big-moves bars use (L = Lagna, M = Moon). */
+export const SKY_SHORT_EN: Record<keyof typeof SKY_REF_EN, string> = {
+  ingress: "{{planet}} enters {{sign}} · L{{lagna}} · M{{moon}}",
+  "station-retrograde": "{{planet}} turns retrograde in {{sign}} · L{{lagna}} · M{{moon}}",
+  "station-direct": "{{planet}} turns direct in {{sign}} · L{{lagna}} · M{{moon}}",
+  "combust-in": "{{planet}} goes combust in {{sign}} · L{{lagna}} · M{{moon}}",
+  "combust-out": "{{planet}} leaves combustion in {{sign}} · L{{lagna}} · M{{moon}}",
+};
+
 /** C5 eclipse sentences, by body and class. Only a Grahan names houses; the others are plain markers. */
 export const ECLIPSE_EN = {
   "solar.grahan": "Solar eclipse in {{sign}}, seen as a Grahan · {{lagna}} from your Lagna · {{moon}} from your Moon",
@@ -52,7 +61,7 @@ export function ordinal(n: number, lang: string): string {
   return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 }
 
-export function skyLabel(t: TFunction, e: SkyEventFact, lang = "en", place?: EclipsePlace): string {
+export function skyLabel(t: TFunction, e: SkyEventFact, lang = "en", place?: EclipsePlace, short = false): string {
   const planet = t(`varshik.planet.${e.planet.toLowerCase()}`, { defaultValue: e.planet });
   const sign = signName(t, e.sign);
   const isEclipse = e.kind === "eclipse-solar" || e.kind === "eclipse-lunar";
@@ -62,6 +71,7 @@ export function skyLabel(t: TFunction, e: SkyEventFact, lang = "en", place?: Ecl
   const refs = { lagna: ordinal(e.natalHouse, lang), moon: ordinal(e.moonHouse, lang) };
   if (!isEclipse) {
     const kind = e.kind as keyof typeof SKY_REF_EN;
+    if (short) return t(`varshik.skyShort.${kind}`, { defaultValue: SKY_SHORT_EN[kind], planet, sign, lagna: e.natalHouse, moon: e.moonHouse });
     return t(`varshik.skyRef.${kind}`, { defaultValue: SKY_REF_EN[kind], planet, sign, ...refs });
   }
   const body = e.kind === "eclipse-solar" ? "solar" : "lunar";

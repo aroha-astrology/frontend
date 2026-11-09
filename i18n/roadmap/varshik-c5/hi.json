@@ -80,7 +80,15 @@
     "station-direct": "मार्गी होना",
     "combust-in": "अस्त होना (सूर्य के बहुत पास)",
     "combust-out": "उदय होना (अस्त से बाहर)"
-   }
+   },
+   "refKey": "L लग्न से भाव है और M चंद्र से भाव।"
+  },
+  "skyShort": {
+   "ingress": "{{planet}} {{sign}} में प्रवेश · L{{lagna}} · M{{moon}}",
+   "station-retrograde": "{{planet}} {{sign}} में वक्री · L{{lagna}} · M{{moon}}",
+   "station-direct": "{{planet}} {{sign}} में मार्गी · L{{lagna}} · M{{moon}}",
+   "combust-in": "{{planet}} {{sign}} में अस्त · L{{lagna}} · M{{moon}}",
+   "combust-out": "{{planet}} {{sign}} में उदय · L{{lagna}} · M{{moon}}"
   }
  }
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Hand } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Closure, ClosureReason, DecisionRow, Tier } from "./types";
 import { TIER_COLOR, TIER_GLYPH, TIER_WORD, useChartMode } from "./tiers";
@@ -37,6 +38,8 @@ const NOTE_EN: Record<"move_custom" | "sagai_custom", string> = {
   sagai_custom: "Families often choose a sagai date by the same rules as the wedding.",
 };
 
+const FTUE_KEY = "aroha.varshik.decisionFtue";
+
 const STRIPES = "repeating-linear-gradient(135deg, rgba(0,0,0,0.38) 0 3px, transparent 3px 7px)";
 
 const TIERS: Tier[] = ["dark_green", "light_green", "amber", "rust"];
@@ -53,6 +56,22 @@ export default function DecisionTable({ rows, filterable = false }: { rows: Deci
   const year = useReportYear();
   // "all" or one row's key. The reader's main decision starts selected when filtering is on.
   const [pick, setPick] = useState<string>(() => (filterable ? (rows.find((r) => r.isMain)?.key ?? "all") : "all"));
+  // First-time guide: shown once per device, gone for good after "Got it" or the first tap on a pill.
+  const [seen, setSeen] = useState(true);
+  useEffect(() => {
+    try {
+      setSeen(localStorage.getItem(FTUE_KEY) === "1");
+    } catch {
+      setSeen(false);
+    }
+  }, []);
+  const dismissFtue = () => {
+    setSeen(true);
+    try {
+      localStorage.setItem(FTUE_KEY, "1");
+    } catch {}
+  };
+  const showFtue = filterable && !seen;
   if (rows.length === 0) return null;
   const shown = pick === "all" ? rows : rows.filter((r) => r.key === pick);
   const title = (key: string) => t(`varshik.decision.${key}`, { defaultValue: spaced(key) });
@@ -64,6 +83,26 @@ export default function DecisionTable({ rows, filterable = false }: { rows: Deci
 
   return (
     <div className="flex flex-col gap-3 leading-[1.45]">
+      {showFtue ? (
+        <div
+          role="note"
+          data-testid="decision-ftue"
+          className="vk-panel flex items-start gap-3 p-3 text-xs"
+          style={{ borderColor: "var(--gold)" }}
+        >
+          <Hand size={18} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: "var(--gold)" }} />
+          <div className="flex min-w-0 flex-col gap-2">
+            <span className="break-words leading-[1.45]" style={{ color: "var(--foreground)" }}>
+              {t("varshik.decision.ftue", {
+                defaultValue: "Pick what you are planning. Tap a decision such as Marriage or Money move to see only that one, or tap All to see every decision.",
+              })}
+            </span>
+            <button type="button" onClick={dismissFtue} className="self-start rounded-full border px-3 py-1" style={{ borderColor: "var(--gold)", color: "var(--gold)" }}>
+              {t("varshik.decision.ftueOk", { defaultValue: "Got it" })}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {filterable ? (
         <div role="group" aria-label={t("varshik.decision.filter", { defaultValue: "Show one decision" })} className="flex flex-wrap gap-2">
           {[{ key: "all", label: t("varshik.decision.all", { defaultValue: "All" }) }, ...rows.map((r) => ({ key: r.key, label: title(r.key) }))].map((o) => (
@@ -71,8 +110,11 @@ export default function DecisionTable({ rows, filterable = false }: { rows: Deci
               key={o.key}
               type="button"
               aria-pressed={pick === o.key}
-              onClick={() => setPick(o.key)}
-              className="rounded-full border px-3 py-1 text-xs leading-[1.45]"
+              onClick={() => {
+                setPick(o.key);
+                dismissFtue();
+              }}
+              className={`rounded-full border px-3 py-1 text-xs leading-[1.45]${showFtue ? " animate-pulse" : ""}`}
               style={{
                 borderColor: pick === o.key ? "var(--gold)" : "var(--border-faint)",
                 color: pick === o.key ? "var(--gold)" : "var(--text-muted)",

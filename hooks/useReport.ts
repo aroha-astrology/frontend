@@ -84,6 +84,7 @@ export function useReport(id: string | null, language: string) {
     let consecutiveErrors = 0;
 
     const poll = () => {
+      timer = undefined; // a request is in flight; only a scheduled next poll may be pulled forward
       reportsApi
         .get(id, language)
         .then((res) => {
@@ -113,7 +114,7 @@ export function useReport(id: string | null, language: string) {
             cached = null;
           }
           if (!cached) setView((v) => ({ ...v, state: "generating", refreshing, reportKey: res.reportKey, progress: res.progress }));
-          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS });
+          const delay = nextPollDelay(attempt++, { baseMs: POLL_BASE_MS, capMs: 4000 });
           if (Date.now() + delay > deadline) {
             if (!cached) setView((v) => ({ ...v, state: "slow", refreshing: false }));
             return;
@@ -135,9 +136,22 @@ export function useReport(id: string | null, language: string) {
 
     poll();
 
+    // Coming back to the app (e.g. from the "your report is ready" notification): check at once
+    // instead of waiting out the rest of the backoff or a throttled background timer.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || cancelled || !timer) return;
+      clearTimeout(timer);
+      timer = undefined;
+      poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
     };
   }, [authLoading, firebaseUser, id, language, user?.id, retryCount]);
 

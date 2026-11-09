@@ -23,22 +23,16 @@ async function openVarshik(page: Page) {
   await page.waitForTimeout(400);
 }
 
-const counter = (page: Page) => page.getByTestId("varshik-report").locator("span[aria-live]");
+const pageEls = (page: Page) => page.getByTestId("varshik-report").locator('[id^="vk-page-"]');
 
-test("the report opens on the cover and has 61 pages for a reader with two questions", async ({ page }) => {
-  await openVarshik(page);
-  await expect(counter(page)).toHaveText(`Page 1 of ${TOTAL}`);
-  await expect(page.getByTestId("varshik-report").getByText("2027", { exact: true })).toBeVisible();
-});
-
-test("Next and Previous turn the pages, and the ends are disabled", async ({ page }) => {
+test("the report is one long scroll of 61 pages, with no Next or Previous buttons", async ({ page }) => {
   await openVarshik(page);
   const report = page.getByTestId("varshik-report");
-  await expect(report.getByRole("button", { name: "Previous" }).first()).toBeDisabled();
-  await report.getByRole("button", { name: "Next", exact: true }).first().click();
-  await expect(counter(page)).toHaveText(`Page 2 of ${TOTAL}`);
-  await report.getByRole("button", { name: "Previous" }).first().click();
-  await expect(counter(page)).toHaveText(`Page 1 of ${TOTAL}`);
+  await expect(pageEls(page)).toHaveCount(TOTAL);
+  await expect(report.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
+  await expect(report.getByRole("button", { name: "Previous" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Download PDF" })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Read as a book" })).toHaveCount(0);
 });
 
 test("the contents list jumps to a chapter's page, and the Timing Map tile opens that month", async ({ page }) => {
@@ -51,8 +45,21 @@ test("the contents list jumps to a chapter's page, and the Timing Map tile opens
 
   // Tapping the February tile of the Love row opens February's first page.
   await report.getByRole("button", { name: /^Love, Feb: / }).click();
-  await expect(report.getByRole("heading", { name: "February 2027" })).toBeVisible();
-  await expect(report.getByText("The month at a glance")).toBeVisible();
+  await expect(report.getByRole("heading", { name: "February 2027" }).first()).toBeVisible();
+  await expect(report.getByText("The month at a glance").first()).toBeVisible();
+});
+
+test("first-time guide on the decision pills shows once, then stays gone", async ({ page }) => {
+  await openVarshik(page);
+  const report = page.getByTestId("varshik-report");
+  await report.getByRole("button", { name: "Contents" }).click();
+  await page.getByRole("button", { name: /^When to act/ }).click();
+  await expect(report.getByTestId("decision-ftue")).toBeVisible();
+  await report.getByRole("button", { name: "Got it" }).click();
+  await expect(report.getByTestId("decision-ftue")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId("varshik-report")).toBeVisible();
+  await expect(page.getByTestId("decision-ftue")).toHaveCount(0);
 });
 
 test("the decision pills show one decision at a time", async ({ page }) => {
@@ -72,13 +79,12 @@ test("the decision pills show one decision at a time", async ({ page }) => {
 
 test("every page fits the screen: nothing is wider than the phone", async ({ page }) => {
   await openVarshik(page);
-  const report = page.getByTestId("varshik-report");
+  const els = pageEls(page);
   for (let i = 0; i < TOTAL; i++) {
+    await els.nth(i).scrollIntoViewIfNeeded();
     const widths = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
     expect(widths.sw, `page ${i + 1} is wider than the screen`).toBeLessThanOrEqual(widths.cw);
-    if (i < TOTAL - 1) await report.getByRole("button", { name: "Next", exact: true }).first().click();
   }
-  await expect(counter(page)).toHaveText(`Page ${TOTAL} of ${TOTAL}`);
 });
 
 test("the three star pages (C3) open from the contents and draw their charts", async ({ page }) => {

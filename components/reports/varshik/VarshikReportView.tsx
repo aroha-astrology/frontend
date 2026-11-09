@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, List } from "lucide-react";
+import { List } from "lucide-react";
 import BottomSheetModal from "@/components/ui/BottomSheetModal";
 import { tick } from "@/lib/haptics";
 import type { ReportReady } from "@/hooks/useReport";
@@ -18,22 +18,17 @@ import { ShareCardsButton, ShareCardsSheet } from "./ShareCards";
 import { useVarshikPdf } from "./useVarshikPdf";
 import type { PageCtx } from "./page-types";
 
-const SWIPE_PX = 70;
-
 /**
- * The Varshik Rashifal 2027 report: 56 to 61 pages in plan order, turned one at a time.
- * Swipe, use the buttons or the arrow keys; the contents list and the Timing Map open any page.
+ * The Varshik Rashifal 2027 report: 56 to 61 pages in plan order, one long scroll like every other report.
+ * The contents list and the Timing Map scroll to any page.
  * Everything on the pages is read from the frozen facts (`scores.varshik`) and the checked text.
  */
 export default function VarshikReportView({ data, reportId }: { data: ReportReady; reportId?: string }) {
   const { t, i18n } = useTranslation();
   const reduce = useReducedMotion();
-  const top = useRef<HTMLDivElement>(null);
   const read = useMemo(() => readVarshik(data), [data]);
   const lang = i18n.language;
   const pages = useMemo(() => (read ? buildPages(read.facts, read.byId, t, lang) : []), [read, t, lang]);
-  const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState(1);
   const [jump, setJump] = useState(false);
   const [share, setShare] = useState(false);
 
@@ -43,13 +38,12 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
   }, [reduce]);
 
   const goIndex = useCallback(
-    (next: number) => {
-      const clamped = Math.max(0, Math.min(pages.length - 1, next));
-      setDir(clamped >= index ? 1 : -1);
-      setIndex(clamped);
-      top.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    (i: number) => {
+      const key = pages[i]?.key;
+      if (!key) return;
+      document.getElementById(`vk-page-${key}`)?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
     },
-    [pages.length, index, reduce],
+    [pages, reduce],
   );
 
   const ctx: PageCtx | null = useMemo(() => {
@@ -78,16 +72,6 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
     title: t("varshik.cover.title", { defaultValue: "Your year ahead" }),
   });
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-      if (e.key === "ArrowRight") goIndex(index + 1);
-      if (e.key === "ArrowLeft") goIndex(index - 1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [goIndex, index]);
-
   if (!read || !ctx || pages.length === 0) {
     return (
       <p className="vk-body" role="status">
@@ -96,15 +80,11 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
     );
   }
 
-  const page = pages[index]!;
-  const Body = page.Body;
-
   return (
     <ReportYearContext.Provider value={read.facts.year ?? 2027}>
     <ReportSurface>
       <motion.div
-        ref={top}
-        className="flex min-w-0 scroll-mt-4 flex-col gap-3"
+        className="flex min-w-0 flex-col gap-3"
         data-testid="varshik-report"
         initial={{ opacity: reduce ? 1 : 0 }}
         animate={{ opacity: 1 }}
@@ -115,74 +95,23 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
             <List size={16} aria-hidden="true" style={{ color: "var(--gold)" }} />
             {t("varshik.nav.contents", { defaultValue: "Contents" })}
           </button>
-          <span className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => goIndex(index - 1)}
-              disabled={index === 0}
-              aria-label={t("varshik.nav.prev", { defaultValue: "Previous" })}
-              className="vk-panel grid h-9 w-9 place-items-center disabled:opacity-40"
-            >
-              <ChevronLeft size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
-            </button>
-            <span className="vk-caption min-w-[5.5rem] text-center tabular-nums" aria-live="polite">
-              {t("varshik.nav.page", { defaultValue: "Page {{n}} of {{total}}", n: index + 1, total: pages.length })}
-            </span>
-            <button
-              type="button"
-              onClick={() => goIndex(index + 1)}
-              disabled={index === pages.length - 1}
-              aria-label={t("varshik.nav.next", { defaultValue: "Next" })}
-              className="vk-panel grid h-9 w-9 place-items-center disabled:opacity-40"
-            >
-              <ChevronRight size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
-            </button>
-          </span>
         </nav>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={page.key}
-            initial={{ opacity: 0, x: reduce ? 0 : dir * 28 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: reduce ? 0 : dir * -28 }}
-            transition={{ duration: reduce ? 0 : 0.22, ease: "easeOut" }}
-            drag="x"
-            dragDirectionLock
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.18}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -SWIPE_PX) goIndex(index + 1);
-              else if (info.offset.x > SWIPE_PX) goIndex(index - 1);
-            }}
-            style={{ touchAction: "pan-y" }}
-          >
-            <PageFrame chapter={page.chapter} name={read.facts.reader.name} pageNo={index + 1} total={pages.length} title={page.title} eyebrow={page.eyebrow}>
-              <Body ctx={ctx} />
-            </PageFrame>
-          </motion.div>
-        </AnimatePresence>
-
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => goIndex(index - 1)}
-            disabled={index === 0}
-            className="vk-panel flex items-center gap-1.5 px-4 py-2.5 text-sm disabled:opacity-40"
-          >
-            <ChevronLeft size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
-            {t("varshik.nav.prev", { defaultValue: "Previous" })}
-          </button>
-          <button
-            type="button"
-            onClick={() => goIndex(index + 1)}
-            disabled={index === pages.length - 1}
-            className="vk-panel flex items-center gap-1.5 px-4 py-2.5 text-sm disabled:opacity-40"
-          >
-            {t("varshik.nav.next", { defaultValue: "Next" })}
-            <ChevronRight size={18} aria-hidden="true" style={{ color: "var(--gold)" }} />
-          </button>
-        </div>
+        {pages.map((page, i) => {
+          const Body = page.Body;
+          return (
+            <div
+              key={page.key}
+              id={`vk-page-${page.key}`}
+              className="scroll-mt-24"
+              style={{ contentVisibility: "auto", containIntrinsicSize: "auto 720px" }}
+            >
+              <PageFrame chapter={page.chapter} name={read.facts.reader.name} pageNo={i + 1} total={pages.length} title={page.title} eyebrow={page.eyebrow}>
+                <Body ctx={ctx} />
+              </PageFrame>
+            </div>
+          );
+        })}
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
           <PdfDownloadButton onClick={pdf.download} />
@@ -223,7 +152,7 @@ export default function VarshikReportView({ data, reportId }: { data: ReportRead
                             goIndex(i);
                           }}
                           className="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 text-left text-sm"
-                          style={{ color: i === index ? "var(--gold)" : "var(--foreground)" }}
+                          style={{ color: "var(--foreground)" }}
                         >
                           <span className="min-w-0 break-words leading-[1.45]">{p.title}</span>
                           <span className="vk-caption tabular-nums">{i + 1}</span>

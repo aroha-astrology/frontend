@@ -444,8 +444,9 @@ export default function ReportDetailPage() {
         {/* Buttons, so not part of the saved PDF. */}
         {ready && !pdf.capturing && (
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <PdfDownloadButton onClick={pdf.download} />
-            {bookEnabled && (
+            {/* Varshik has its own PDF button and no book view (its own screen shows both). */}
+            {data?.reportKey !== "varshik_rashifal_2027" && <PdfDownloadButton onClick={pdf.download} />}
+            {bookEnabled && data?.reportKey !== "varshik_rashifal_2027" && (
               <button
                 type="button"
                 onClick={() => setBookOpen(true)}

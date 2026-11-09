@@ -24,6 +24,9 @@ export interface SlotState {
 
 export function canOpenPopup(id: PopupId, state: SlotState): boolean {
   if (state.holder && state.holder !== id && !(FIRST_RUN.has(id) && FIRST_RUN.has(state.holder))) return false;
+  // The first-run pop-ups already wait on each other (the update check, then permissions, then the welcome), so
+  // none of them is held back by another that is still deciding; that would make it give up for the visit.
+  if (FIRST_RUN.has(id)) return true;
   const rank = POPUP_ORDER.indexOf(id);
   return !POPUP_ORDER.slice(0, rank).some((higher) => state.pending.has(higher));
 }

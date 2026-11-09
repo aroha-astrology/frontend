@@ -6,13 +6,18 @@ import { signIn, skipLaunchOverlays } from "./fixtures/auth";
 const justOnboarded = () => new Date(Date.now() - 60_000).toISOString();
 
 test.describe("Daily reward", () => {
-  test("the daily popup claims today's reward", async ({ page }) => {
+  test("the daily popup no longer opens on Home (removed in sprint L1); the Rewards page claims today's reward", async ({ page }) => {
     await skipLaunchOverlays(page);
     const api = await mockApi(page, {
       overrides: { "GET /v1/rewards/daily": () => ({ json: makeRewardState({ claimedToday: false, currentDay: 2 }) }) },
     });
     await signIn(page, "/");
+    await expect(page.locator("main")).toBeVisible();
+    await page.waitForTimeout(1500);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Claim ₹6/ })).toHaveCount(0);
 
+    await page.goto("/rewards");
     await page.getByRole("button", { name: /^Claim ₹6/ }).click();
     await expect.poll(() => callsTo(api, "POST /v1/rewards/daily/claim").length).toBe(1);
   });
@@ -27,7 +32,7 @@ test.describe("Daily reward", () => {
     state.todayAmountPaise = 900;
     await skipLaunchOverlays(page);
     await mockApi(page, { overrides: { "GET /v1/rewards/daily": () => ({ json: state }) } });
-    await signIn(page, "/");
+    await signIn(page, "/rewards");
 
     await expect(page.getByRole("button", { name: /^Claim ₹9/ })).toBeVisible();
     await expect(page.getByText("₹38", { exact: true })).toBeVisible();

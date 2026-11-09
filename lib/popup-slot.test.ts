@@ -30,6 +30,14 @@ describe("one pop-up per app open", () => {
     expect(canOpenPopup("welcome", { holder: "permissions", pending: none })).toBe(true);
     expect(canOpenPopup("permissions", { holder: "update", pending: none })).toBe(true);
   });
+  it("a first-run pop-up never waits on another first-run one still deciding (they sequence themselves)", () => {
+    expect(canOpenPopup("welcome", { holder: null, pending: new Set<PopupId>(["update", "permissions"]) })).toBe(true);
+    expect(canOpenPopup("permissions", { holder: null, pending: new Set<PopupId>(["update"]) })).toBe(true);
+  });
+  it("a promo still waits for every first-run pop-up that is deciding", () => {
+    expect(canOpenPopup("varshik-launch", { holder: null, pending: new Set<PopupId>(["welcome"]) })).toBe(false);
+    expect(canOpenPopup("rate-us", { holder: null, pending: new Set<PopupId>(["update"]) })).toBe(false);
+  });
   it("a first-run pop-up does not open after a promo", () => {
     expect(canOpenPopup("welcome", { holder: "rate-us", pending: none })).toBe(false);
   });

@@ -62,6 +62,10 @@ export interface BirthTimeCheck {
   appliedAt: string | null;
   createdAt: string;
   pricePaidPaise: number;
+  /** When the answer is (or was) due; null when it was shown at once. */
+  revealAt: string | null;
+  /** True while the answer is held back; the time, matches and confidence are empty until then. */
+  pending: boolean;
 }
 
 export interface BirthTimeStatus {

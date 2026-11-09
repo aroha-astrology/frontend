@@ -15,6 +15,7 @@ import { formatFiat } from "@/lib/money";
 import { shortDate } from "@/lib/calendar-format";
 import {
   passApi,
+  passOriginalPaise,
   PASS_PLAY_PRODUCT_ID,
   PLAY_SUBSCRIPTIONS_URL,
   type PassOffer,
@@ -305,6 +306,8 @@ function PassPage() {
     if (platform === "web" && offer.web) return formatFiat(offer.web.amountMinor, offer.web.currency);
     return playPrices[offer.play.basePlanId] ?? formatRupees(offer.pricePaise);
   };
+  // The crossed-out "was" price (owner, 2026-10-30) is in rupees, so it shows where the price is.
+  const showsRupees = platform === "android" || (platform === "web" && !offers.some((o) => o.web));
   const webOffers = offers.filter((o) => o.web);
   const appleOffers = offers.filter((o) => o.appStore);
   const canUpgrade = platform === "android" && build != null && build >= PLAY_PASS_UPGRADE_BUILD;
@@ -507,7 +510,15 @@ function PassPage() {
                             )}
                           </div>
                           <p className="text-2xl font-display text-foreground">
-                            {t("pass.perMonth", { price: priceOf(offer) })}
+                            {showsRupees && (
+                              <span
+                                className="mr-2 text-base text-muted line-through"
+                                data-testid={`pass-original-${offer.tier}`}
+                              >
+                                {formatRupees(passOriginalPaise(offer.pricePaise))}
+                              </span>
+                            )}
+                            <span>{t("pass.perMonth", { price: priceOf(offer) })}</span>
                           </p>
                         </div>
                         <PassBenefits benefits={offer} showMissing />

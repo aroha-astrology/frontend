@@ -68,7 +68,7 @@ test.describe("Life Timeline (roadmap step 4)", () => {
     // Every tier has the Life Timeline, so the lock names no tier and shows the cheapest one.
     await expect(lock.getByText("Life Timeline is part of Aroha Pass", { exact: true })).toBeVisible();
     await expect(lock.getByText("₹199 / 30 days · Google Play subscription")).toBeVisible();
-    await expect(lock.getByText("15 questions to Aroha every 30 days")).toBeVisible();
+    await expect(lock.getByText("30 questions to Aroha every 30 days")).toBeVisible();
     await expect(lock.getByRole("link", { name: "Get Aroha Pass" })).toHaveAttribute("href", "/pass?tier=silver");
     await expect(page.getByRole("button", { name: /Career/ })).toHaveCount(0);
     await expect(page.getByRole("button", { name: /₹/ })).toHaveCount(0);

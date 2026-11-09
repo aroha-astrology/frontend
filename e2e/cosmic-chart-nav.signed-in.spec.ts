@@ -308,7 +308,7 @@ test.describe("Modern Cosmic wording and layout on a phone", () => {
       overrides: { ...cosmicExperience(), "GET /v1/pass": () => ({ json: passStatus() }) },
     });
     await signIn(page, "/pass");
-    await expect(page.getByText("Voice call with Orion: 15 free minutes every month")).toBeVisible();
+    await expect(page.getByText("Voice call with Orion: 30 free minutes every month")).toBeVisible();
     await expect(page.getByText(/Voice call with Yogi Baba/)).toHaveCount(0);
   });
 });

@@ -10,6 +10,7 @@ import { shortDateWithYear } from "@/lib/calendar-format";
 import { insightsApi, type BirthTimeCheck, type BirthTimeStatus, type EventMatchStrength } from "@/lib/insights-api";
 import { journalApi } from "@/lib/journal-api";
 import { isPassRequired } from "@/lib/pass-api";
+import { describeBirthTime } from "@/lib/birth-time-display";
 import PassLock from "@/components/pass/PassLock";
 import LifeEventRows, { datedEvents, MIN_EVENTS } from "@/components/birth-time/LifeEventRows";
 
@@ -56,7 +57,9 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       .birthTime()
       .then((s) => {
         setStatus(s);
-        setResult((prev) => prev ?? s.latest);
+        // A held-back result is replaced by the server's copy, so it turns into
+        // the real answer once its time has passed.
+        setResult((prev) => (prev && !prev.pending ? prev : s.latest));
       })
       .catch((err: unknown) => {
         setStatus(null);
@@ -67,6 +70,23 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
   useEffect(() => {
     if (enabled) load();
   }, [enabled, load]);
+
+  // While the answer is held back, look again the moment it is due, and whenever
+  // the app comes back to the front (the push may have been tapped meanwhile).
+  const revealAt = result?.pending ? result.revealAt : null;
+  useEffect(() => {
+    if (!enabled || !revealAt) return;
+    const wait = Math.max(0, new Date(revealAt).getTime() - Date.now()) + 2000;
+    const timer = window.setTimeout(load, Math.min(wait, 2_000_000_000));
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [enabled, revealAt, load]);
 
   useEffect(() => {
     if (!formOpen || !journalOn || !ownProfile) return;
@@ -81,6 +101,12 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
 
   const usable = datedEvents(events);
   const { pct, level, basis } = status.confidence;
+  // A reader who only knew the part of the day has a stand-in time saved: say that, never print it as theirs.
+  const shown = describeBirthTime({ time: status.time, accuracy: status.accuracy });
+  const partName = (key: string) => {
+    const name = t(`onboarding.window.${key}`);
+    return i18n.language.startsWith("en") ? name.toLowerCase() : name;
+  };
 
   const newFromJournal = journalEvents.filter(
     (j) => !events.some((e) => e.date === j.date && e.domain === j.domain),
@@ -101,6 +127,11 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
     } catch (err) {
       if (isPassRequired(err)) setLocked(true);
       else if (err instanceof ApiError && err.message === "NOT_ENOUGH_EVIDENCE") setError("notEnough");
+      else if (err instanceof ApiError && err.message === "CHECK_PENDING") {
+        // An earlier check is still being worked on: show its waiting message.
+        setFormOpen(false);
+        load();
+      }
       else setError("error");
     } finally {
       setBusy(false);
@@ -137,8 +168,19 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-gold">{t("birthTime.title")}</h3>
           <p className="text-sm text-foreground">
-            {status.time ? t("birthTime.yourTime", { time: status.time.slice(0, 5) }) : t("birthTime.noTime")}
+            {shown.kind === "clock"
+              ? t("birthTime.yourTime", { time: shown.hhmm })
+              : shown.kind === "window"
+                ? t("birthTime.bornIn", { part: partName(shown.key), range: shown.range })
+                : status.time
+                  ? t("birthTime.noTimeGiven")
+                  : t("birthTime.noTime")}
           </p>
+          {shown.kind !== "clock" && status.time && (
+            <p className="mt-0.5 text-xs text-muted" data-testid="birth-time-not-exact">
+              {t("birthTime.notExact")}
+            </p>
+          )}
         </div>
       </div>
 
@@ -164,11 +206,22 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
         <p className="mt-2 text-xs text-muted">{t(`birthTime.basis.${basis}`)}</p>
       </div>
 
-      {result && (
+      {result?.pending && (
+        <div className="mt-3 rounded-2xl border border-gold/15 bg-background/40 p-3.5" data-testid="birth-time-pending">
+          <p className="flex items-center gap-2 text-base font-semibold text-foreground">
+            <Loader2 size={16} className="shrink-0 animate-spin text-gold" />
+            {t("birthTime.waitingTitle")}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-foreground/75">{t("birthTime.waiting")}</p>
+          <p className="mt-2 text-xs leading-relaxed text-gold">{t("birthTime.moreDataBetter")}</p>
+        </div>
+      )}
+
+      {result && !result.pending && (
         <div className="mt-3 rounded-2xl border border-gold/15 bg-background/40 p-3.5" data-testid="birth-time-result">
           <p className="text-base font-semibold text-foreground">
             {result.offsetMinutes === 0
-              ? t("birthTime.sameTime")
+              ? t(shown.kind === "clock" ? "birthTime.sameTime" : "birthTime.sameTimeWindow")
               : t("birthTime.suggested", { time: result.suggestedTime })}
           </p>
           <p className="mt-0.5 text-xs text-muted">
@@ -205,6 +258,9 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
               >
                 {t("birthTime.apply", { time: result.suggestedTime })}
               </button>
+              {status.accuracy === "unknown" && (
+                <p className="mt-2 text-xs leading-relaxed text-muted">{t("birthTime.applyApproximate")}</p>
+              )}
               {confirming && <p className="mt-2 text-xs leading-relaxed text-amber-400">{t("birthTime.applyConfirm")}</p>}
             </>
           ) : (
@@ -214,7 +270,7 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
         </div>
       )}
 
-      {!formOpen ? (
+      {result?.pending ? null : !formOpen ? (
         <button
           type="button"
           onClick={() => setFormOpen(true)}
@@ -225,6 +281,12 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
       ) : (
         <div className="mt-4 border-t border-gold/10 pt-4">
           <p className="text-xs leading-relaxed text-foreground/75">{t("birthTime.improveHint")}</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-gold">{t("birthTime.moreDataBetter")}</p>
+          {status.accuracy === "unknown" && (
+            <p className="mt-1.5 text-xs leading-relaxed text-foreground/75" data-testid="birth-time-wait-note">
+              {t("birthTime.waitNote")}
+            </p>
+          )}
           {newFromJournal.length > 0 && (
             <button
               type="button"

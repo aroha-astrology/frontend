@@ -61,6 +61,74 @@ test("on a 360px phone every field of an event is usable and stays inside the ca
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
 });
 
+test("with an unknown birth time the answer is held back, says why, and appears once it is due", async ({ page }) => {
+  await skipLaunchOverlays(page);
+  let asked = false;
+  const dueAt = () => new Date(Date.now() + 1500).toISOString();
+  let revealAt = "";
+  const api = await mockApi(page, {
+    user: { features: { "home.birthTimeConfidence": ON } },
+    overrides: {
+      "GET /v1/birth-time": () => ({
+        json: {
+          ...STATUS,
+          accuracy: "unknown",
+          // Once the held-back time has passed the server hands back the real answer.
+          latest: asked ? { ...CHECK, revealAt, pending: false } : null,
+        },
+      }),
+      "POST /v1/birth-time/check": () => {
+        asked = true;
+        revealAt = dueAt();
+        return {
+          json: {
+            ...CHECK,
+            suggestedTime: "",
+            offsetMinutes: 0,
+            confidence: "low",
+            confidencePct: 0,
+            eventMatches: [],
+            counts: { strong: 0, weak: 0, none: 0 },
+            canApply: false,
+            revealAt,
+            pending: true,
+          },
+        };
+      },
+    },
+  });
+  await signIn(page, "/settings");
+
+  const card = page.getByTestId("birth-time-card");
+  await card.getByRole("button", { name: "Improve birth-time accuracy" }).click();
+  // Before asking, the user is told it is not instant and that more events mean more accuracy.
+  await expect(card.getByTestId("birth-time-wait-note")).toContainText("up to an hour and a half");
+  await expect(card.getByText("The more events you give us, the more accurate your birth time will be.")).toBeVisible();
+
+  const rows = card.getByTestId("life-event-row");
+  const dates = ["2019-07-01", "2021-11-28", "2023-03-14"];
+  for (let i = 0; i < dates.length; i++) {
+    if (i > 0) await card.getByRole("button", { name: "Add another event" }).click();
+    await rows.nth(i).getByLabel("Pick the date").fill(dates[i]!);
+  }
+  await card.getByRole("button", { name: "Check my birth time" }).click();
+  await expect.poll(() => callsTo(api, "POST /v1/birth-time/check").length).toBe(1);
+
+  // Held back: a waiting message, no time, no way to apply, no second check.
+  const pending = card.getByTestId("birth-time-pending");
+  await expect(pending.getByText("We're working out your birth time")).toBeVisible();
+  await expect(pending).toContainText("send you a notification");
+  await expect(pending).toContainText("The more events you give us, the more accurate your birth time will be.");
+  await expect(card.getByTestId("birth-time-result")).toHaveCount(0);
+  await expect(card.getByText(/Suggested time/)).toHaveCount(0);
+  await expect(card.getByRole("button", { name: "Improve birth-time accuracy" })).toHaveCount(0);
+
+  // Once the time has passed the card looks again and shows the real answer.
+  const result = card.getByTestId("birth-time-result");
+  await expect(result.getByText("Suggested time: 06:52")).toBeVisible({ timeout: 15_000 });
+  await expect(card.getByTestId("birth-time-pending")).toHaveCount(0);
+});
+
 test("an empty date says what it is for, a chosen one reads as a date, and three dated events run the check", async ({ page }) => {
   await skipLaunchOverlays(page);
   const api = await mockApi(page, {

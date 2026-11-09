@@ -454,3 +454,54 @@ export function estimateLlmListPricePaise(
   const outputUsd = (usage.tokensOut / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION_TOKENS;
   return (inputUsd + outputUsd) * usdToInr * 100;
 }
+
+// ─── Cache hit rate and voice (audit Sprint 6, L10 / L9) ────────────────────
+
+/**
+ * Gemini Live audio, USD per minute: $0.005 audio in + $0.018 audio out, from Google's pricing page
+ * on 2026-11-05 (gemini-3.1-flash-live-preview and the 3.8 Live models share it). The server only
+ * knows how many minutes it minted, not how long anyone talked, so a voice figure built from this is
+ * an upper bound (both sides speaking the whole minute).
+ */
+export const GEMINI_LIVE_AUDIO_USD_PER_MINUTE = 0.005 + 0.018;
+
+/** ₹ in paise for `seconds` of minted voice audio, at {@link GEMINI_LIVE_AUDIO_USD_PER_MINUTE}. */
+export function estimateVoiceCostPaise(
+  seconds: number | undefined,
+  usdToInr: number = USD_TO_INR_RATE,
+): number {
+  if (!seconds || seconds <= 0) return 0;
+  return (seconds / 60) * GEMINI_LIVE_AUDIO_USD_PER_MINUTE * usdToInr * 100;
+}
+
+/**
+ * Share of input tokens Gemini served from its prompt cache, as a whole percent. Counted only over
+ * calls that reported a cache figure, so rows written before the column existed never drag it down.
+ * Null when nothing has reported yet (or the backend is older): shown as "–", never as 0%.
+ */
+export function cacheHitPercent(usage: {
+  cachedTokensIn?: number;
+  tokensInOfCacheReportedCalls?: number;
+  cacheReportedCalls?: number;
+}): number | null {
+  const denominator = usage.tokensInOfCacheReportedCalls ?? 0;
+  if (!usage.cacheReportedCalls || denominator <= 0) return null;
+  const pct = Math.round(((usage.cachedTokensIn ?? 0) / denominator) * 100);
+  return Math.min(100, Math.max(0, pct));
+}
+
+/** One agent row's billed cost in paise (before GST): paid-key tokens, plus paid-key voice minutes. */
+export function billedAgentCostPaise(
+  row: { paidTokensIn?: number; paidTokensOut?: number; paidAudioSeconds?: number },
+  usdToInr: number = USD_TO_INR_RATE,
+): number {
+  return estimateLlmCostPaise(row, usdToInr) + estimateVoiceCostPaise(row.paidAudioSeconds, usdToInr);
+}
+
+/** What one agent row would cost with nothing on the free tier, in paise (before GST). */
+export function listAgentCostPaise(
+  row: { tokensIn: number; tokensOut: number; audioSeconds?: number },
+  usdToInr: number = USD_TO_INR_RATE,
+): number {
+  return estimateLlmListPricePaise(row, usdToInr) + estimateVoiceCostPaise(row.audioSeconds, usdToInr);
+}

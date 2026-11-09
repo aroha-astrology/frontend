@@ -11,7 +11,8 @@ import { ApiError, type PlaceOfBirth } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
 import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
-import { birthTimeWindowFor, BIRTH_TIME_WINDOWS } from "@/lib/birth-time-window";
+import { BIRTH_TIME_WINDOWS } from "@/lib/birth-time-window";
+import { timeFieldsFor } from "@/lib/birth-time-display";
 import { formatRupees } from "@/lib/format";
 import { CHAT_PENDING_CONTEXT_KEY, type ChatPendingPayload } from "@/lib/chat-handoff";
 import BirthProfilePickerSheet from "@/components/compatibility/BirthProfilePickerSheet";
@@ -106,13 +107,9 @@ export default function CompatibilityPage() {
     const fields: PersonForm = {
       name: profile.displayName ?? "",
       dob: profile.dateOfBirth ?? "",
-      time: (profile.timeOfBirth ?? "").slice(0, 5),
       // A saved profile whose own accuracy is 'unknown' carries a window midpoint,
       // not a time its owner gave — surface it as the window here too.
-      timeWindow:
-        profile.birthTimeAccuracy === "unknown"
-          ? (birthTimeWindowFor(profile.timeOfBirth)?.key ?? "")
-          : "",
+      ...timeFieldsFor(profile.timeOfBirth, profile.birthTimeAccuracy),
       place: profile.placeOfBirth?.name ?? "",
     };
     setForm((prev) => ({ ...prev, [who]: fields }));
@@ -138,7 +135,7 @@ export default function CompatibilityPage() {
         [who]: {
           name: user.displayName ?? "",
           dob: user.dateOfBirth ?? "",
-          time: (user.timeOfBirth ?? "").slice(0, 5),
+          ...timeFieldsFor(user.timeOfBirth, user.birthTimeAccuracy),
           place: user.placeOfBirth?.name ?? "",
         },
       }));

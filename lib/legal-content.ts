@@ -31,8 +31,8 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-export const LEGAL_VERSION = "1.4.0";
-export const LEGAL_UPDATED = "7 August 2026";
+export const LEGAL_VERSION = "1.5.0";
+export const LEGAL_UPDATED = "30 October 2026";
 
 export interface LegalSection {
   heading: string;
@@ -195,9 +195,9 @@ export const PRIVACY: LegalDoc = {
     {
       heading: "5. Sharing and Data Processors",
       paragraphs: [
-        "We share personal data only with processors who operate the Service under contract and on our instructions: cloud hosting and database providers, Google Firebase (phone authentication), and AI inference providers that process chart context and chat text to generate responses. Processors are not permitted to use your data for their own purposes.",
+        "We share personal data only with processors who operate the Service under contract and on our instructions: cloud hosting and database providers, Google Firebase (phone authentication), and AI model providers that process chart context and chat text to generate responses. For part of our traffic we use a provider's free tier. Under a free tier the provider may use the content it receives to improve its own products, and its staff may review it. Paid tiers carry no such right. Please do not type anything into the chat that you would not want a provider to see.",
         "Payments are taken by the store or payment provider you pay through: Google Play, the Apple App Store, or Razorpay on our website. They handle your card, UPI or account details under their own terms. We receive only the confirmation, the amount, the currency and a transaction reference, and never your card number. We keep a record of your Aroha Coins balance, what you bought and what you spent them on, to run your account and to meet tax and accounting rules.",
-        "Two of those flows are worth stating plainly because they involve the most sensitive categories. Palm photographs are transmitted to our AI inference provider to be interpreted into a reading. Voice Chat audio is streamed to that provider in real time for the duration of a call so it can respond in speech. In both cases the provider acts on our instructions to answer your request, and is not permitted to use the images or audio for its own purposes, including model training.",
+        "Two of those flows are worth stating plainly because they involve the most sensitive categories. Palm photographs are transmitted to our AI inference provider to be interpreted into a reading. Voice Chat audio is streamed to that provider in real time for the duration of a call so it can respond in speech. In both cases the provider processes the image or audio to answer your request. Where a free tier handles the request, the provider may use the content to improve its own products.",
         "One exception is disclosed for completeness: when you grant location, your coordinates are sent to the OpenStreetMap Nominatim service to convert them into a place name for display. That is a public lookup service used without an account, not a contracted processor, and it receives coordinates only — never your identity, phone number, or birth details.",
         "Some processors may store or process data outside India. Such transfers are made in accordance with Section 16 of the DPDP Act (which permits transfers except to countries restricted by the Central Government) and with contractual safeguards.",
         "We may disclose personal data where required by Indian law or lawful government request.",

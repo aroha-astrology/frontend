@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { usePermission } from "@/providers/permission-provider";
 
 export type GeolocationStatus = "idle" | "requesting" | "granted" | "denied" | "unavailable";
 
@@ -18,10 +19,19 @@ interface GeolocationState {
  */
 export function useGeolocation() {
   const [state, setState] = useState<GeolocationState>({ status: "idle", coords: null });
+  const { ensurePermission } = usePermission();
 
-  const request = useCallback(() => {
+  /**
+   * `ask: true` is for a tap the reader made on purpose: if location is off it explains and
+   * offers the way to turn it on. The automatic request when a page opens stays silent, as before.
+   */
+  const request = useCallback(async (opts?: { ask?: boolean }) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setState({ status: "unavailable", coords: null, locationName: null });
+      return;
+    }
+    if (opts?.ask && !(await ensurePermission("location"))) {
+      setState({ status: "denied", coords: null, locationName: null });
       return;
     }
     setState((s) => ({ ...s, status: "requesting" }));
@@ -48,7 +58,7 @@ export function useGeolocation() {
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 15 * 60_000 },
     );
-  }, []);
+  }, [ensurePermission]);
 
   return { ...state, request };
 }

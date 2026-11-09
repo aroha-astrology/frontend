@@ -46,6 +46,8 @@ test.describe("Palm capture: a demo photo before every shot", () => {
     await openWizard(page);
     await page.getByTestId("palm-guide-ready").click();
     await expect(page.getByTestId("palm-step-guide")).toHaveCount(0);
+    // The camera is not allowed here, so it is asked for first (Sprint 13); saying "Not now" leaves the reader on the page.
+    await page.getByTestId("permission-sheet").getByRole("button", { name: "Not now" }).click();
     // No camera here, so the thumbnail (which only shows over a live camera) is not offered, and
     // the reader is not stuck: they can still upload a photo.
     await expect(page.getByRole("button", { name: "Upload a photo instead" })).toBeVisible();

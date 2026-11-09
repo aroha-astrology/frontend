@@ -77,6 +77,11 @@ export interface User {
   /** True while the stored time is only a part-of-day window midpoint — upgrading it to a
    *  real clock time is free and does not consume the one lifetime birth-detail edit. */
   canSetExactBirthTime: boolean;
+  /** The active profile's saved Kundli was built by an older calculation (opening Kundli rebuilds it).
+   *  Absent from an older API. */
+  kundliOutdated?: boolean;
+  /** That older Kundli is being rebuilt right now. */
+  kundliUpdating?: boolean;
   profileCompletedAt: string | null;
   /** Settings → Notifications; null until the user first changes them. */
   notificationPrefs?: NotificationPrefs | null;
@@ -265,6 +270,7 @@ export interface UpdateMeBody {
   timeOfBirth?: string; // HH:mm[:ss]
   placeOfBirth?: PlaceOfBirth | null;
   birthTimeAccuracy?: "exact" | "approximate" | "unknown";
+  birthTimeSource?: "birth_certificate" | "hospital_record" | "family_memory" | "rectified" | "unknown";
   currentLocation?: PlaceOfBirth | null;
   /** The device's IANA zone, for users who never shared a location. */
   currentTimezone?: string;
@@ -1204,6 +1210,10 @@ export const api = {
    */
   createProfile: (body: CreateProfileBody) =>
     request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
+
+  /** Change fields of an added (family) profile, e.g. its birth-time accuracy and source. Not for 'primary': use updateMe. */
+  updateBirthProfile: (id: string, body: Pick<UpdateMeBody, "birthTimeAccuracy" | "birthTimeSource">) =>
+    request<unknown>(`/v1/birth-profiles/${id}`, { method: "PATCH", body, auth: true }),
 
   /**
    * Make a profile ('primary' or a uuid) the active one for kundli/horoscope/chat/etc.

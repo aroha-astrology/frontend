@@ -9,6 +9,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { ActivityHeartbeatProvider } from "@/providers/activity-heartbeat-provider";
 import { PostHogProvider } from "@/providers/posthog-provider";
 import { PermissionsPromptProvider } from "@/providers/permissions-prompt-provider";
+import { PermissionProvider } from "@/providers/permission-provider";
 import { BackHandlerProvider } from "@/providers/back-handler-provider";
 import { TourProvider } from "@/providers/tour-provider";
 import { PopupSlotProvider } from "@/providers/popup-slot-provider";
@@ -21,6 +22,8 @@ import PageTransition from "@/components/PageTransition";
 import PermissionsPrompt from "@/components/PermissionsPrompt";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
+import BirthTimeAskPrompt from "@/components/BirthTimeAskPrompt";
+import KundliUpdatePrompt from "@/components/KundliUpdatePrompt";
 import FestivalGiftModal from "@/components/FestivalGiftModal";
 import BackButtonListener from "@/components/BackButtonListener";
 import PushNotificationListener from "@/components/PushNotificationListener";
@@ -159,6 +162,7 @@ export default function RootLayout({
               <AuthProvider>
                 <ActivityHeartbeatProvider>
                   <PermissionsPromptProvider>
+                   <PermissionProvider>
                     <BackHandlerProvider>
                       <TopBarProvider>
                         <AuthGuard>
@@ -175,6 +179,8 @@ export default function RootLayout({
                               <TourHost />
                               <UpdatePrompt />
                               <FeedbackPrompt />
+                              <BirthTimeAskPrompt />
+                              <KundliUpdatePrompt />
                               <FestivalGiftModal />
                             </PopupSlotProvider>
                           </TourProvider>
@@ -188,6 +194,7 @@ export default function RootLayout({
                       <SkinSync />
                       <GooglePlayPurchaseReconciler />
                     </BackHandlerProvider>
+                   </PermissionProvider>
                   </PermissionsPromptProvider>
                 </ActivityHeartbeatProvider>
               </AuthProvider>

@@ -71,10 +71,11 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     const silver = page.getByTestId("pass-tier-silver");
     await expect(silver.getByText("Aroha Pass Silver")).toBeVisible();
     await expect(silver.getByText("₹199 / 30 days")).toBeVisible();
+    await expect(silver.getByTestId("pass-original-silver")).toHaveText("₹299");
     await expect(included("silver")).toHaveText([
-      "15 questions to Aroha every 30 days",
-      "10% off every report",
-      "Voice call with Yogi Baba: 10 free minutes every month",
+      "30 questions to Aroha every 30 days",
+      "20% off every report",
+      "Voice call with Yogi Baba: 20 free minutes every month",
       "A full palm reading every 30 days",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
@@ -88,11 +89,12 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     const gold = page.getByTestId("pass-tier-gold");
     await expect(gold.getByText("Aroha Pass Gold")).toBeVisible();
     await expect(gold.getByText("₹299 / 30 days")).toBeVisible();
+    await expect(gold.getByTestId("pass-original-gold")).toHaveText("₹399");
     await expect(gold.getByText("Recommended")).toBeVisible();
     await expect(included("gold")).toHaveText([
-      "30 questions to Aroha every 30 days",
-      "20% off every report",
-      "Voice call with Yogi Baba: 15 free minutes every month",
+      "60 questions to Aroha every 30 days",
+      "30% off every report",
+      "Voice call with Yogi Baba: 30 free minutes every month",
       "A full palm reading every 30 days",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
@@ -104,10 +106,11 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     const platinum = page.getByTestId("pass-tier-platinum");
     await expect(platinum.getByText("Aroha Pass Platinum")).toBeVisible();
     await expect(platinum.getByText("₹399 / 30 days")).toBeVisible();
+    await expect(platinum.getByTestId("pass-original-platinum")).toHaveText("₹499");
     await expect(included("platinum")).toHaveText([
-      "60 questions to Aroha every 30 days",
-      "30% off every report",
-      "Voice call with Yogi Baba: 20 free minutes every month",
+      "120 questions to Aroha every 30 days",
+      "40% off every report",
+      "Voice call with Yogi Baba: 40 free minutes every month",
       "A full palm reading every 30 days",
       "Your whole-life Life Timeline",
       "Detailed insight for every bond",
@@ -128,8 +131,8 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
 
     const active = page.getByTestId("pass-active");
     await expect(active.getByText("Your Aroha Pass Silver is active")).toBeVisible();
-    await expect(active.getByText("9 of 15 questions left this period")).toBeVisible();
-    await expect(page.getByTestId("pass-included").getByText("10% off every report")).toBeVisible();
+    await expect(active.getByText("9 of 30 questions left this period")).toBeVisible();
+    await expect(page.getByTestId("pass-included").getByText("20% off every report")).toBeVisible();
 
     await expect(page.getByTestId("pass-tiers").getByText("Compare the Passes")).toBeVisible();
     await expect(page.getByTestId("pass-tier-silver").getByText("Your Pass")).toBeVisible();
@@ -146,7 +149,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
       overrides: {
         "GET /v1/pass": () => ({
           json: passStatus({
-            pass: { ...activePlay("platinum", 60), source: "group", variant: null, pricePaise: 0 },
+            pass: { ...activePlay("platinum", 120), source: "group", variant: null, pricePaise: 0 },
           }),
         }),
       },
@@ -155,7 +158,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
 
     const active = page.getByTestId("pass-active");
     await expect(active.getByText("Your Aroha Pass Platinum is active")).toBeVisible();
-    await expect(active.getByText("60 of 60 questions left this period")).toBeVisible();
+    await expect(active.getByText("120 of 120 questions left this period")).toBeVisible();
     await expect(active.getByText("Included with your account. Nothing to pay.")).toBeVisible();
     await expect(active.getByText(/^Until /)).toHaveCount(0);
     await expect(active.getByText(/Subscribe with Google Play/)).toHaveCount(0);
@@ -173,7 +176,7 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     const active = page.getByTestId("pass-active");
     await expect(active.getByText("Your Aroha Pass Gold is active")).toBeVisible();
     await expect(active.getByText(/^Renews on /)).toBeVisible();
-    await expect(active.getByText("27 of 30 questions left this period")).toBeVisible();
+    await expect(active.getByText("27 of 60 questions left this period")).toBeVisible();
     await expect(active.getByText(/Google Play subscription · Auto-renew is on/)).toBeVisible();
     await expect(active.getByRole("link", { name: "Manage in Google Play" })).toHaveAttribute(
       "href",
@@ -200,14 +203,14 @@ test.describe("Question Packs + Aroha Pass (roadmap step 10)", () => {
     const cardBox = await card.boundingBox();
     expect(cardBox!.y).toBeGreaterThan(packsBox!.y);
     await expect(card.getByText("From ₹199 / 30 days")).toBeVisible();
-    await expect(card.getByText(/up to 60 questions to Aroha every 30 days/)).toBeVisible();
+    await expect(card.getByText(/up to 120 questions to Aroha every 30 days/)).toBeVisible();
     await expect(card.getByText("Paid through Google Play — never from your Aroha wallet.")).toBeVisible();
     await expect(card.getByRole("link", { name: "See the Aroha Pass" })).toHaveAttribute("href", "/pass");
 
     current = passStatus({ pass: ACTIVE_PLAY });
     await page.reload();
     await expect(card.getByText("Active", { exact: true })).toBeVisible();
-    await expect(card.getByText("27 of 30 questions left this period")).toBeVisible();
+    await expect(card.getByText("27 of 60 questions left this period")).toBeVisible();
     await expect(card.getByRole("link", { name: "Manage in Google Play" })).toBeVisible();
   });
 

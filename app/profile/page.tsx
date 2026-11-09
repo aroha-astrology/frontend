@@ -14,7 +14,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { api, ApiError, type Gender, type PlaceOfBirth, type UpdateMeBody } from "@/lib/api";
 import { purgeUserCache } from "@/lib/cache";
 import { formatTimeOfBirth } from "@/lib/format";
-import { birthTimeWindowFor } from "@/lib/birth-time-window";
+import { describeBirthTime } from "@/lib/birth-time-display";
 import ShareOptionsSheet from "@/components/ShareOptionsSheet";
 import { useReferralAmounts } from "@/hooks/useReferralAmounts";
 import PassBadge from "@/components/pass/PassBadge";
@@ -75,11 +75,13 @@ export default function ProfilePage() {
   // A stored time is only a real answer when the accuracy isn't 'unknown'; otherwise
   // it's the midpoint of the part-of-day window picked during onboarding, and showing
   // that clock time back would read as the app inventing one.
-  const tobWindow =
-    user?.birthTimeAccuracy === "unknown" ? birthTimeWindowFor(user.timeOfBirth) : null;
-  const tobDisplay = tobWindow
-    ? `${t(`onboarding.window.${tobWindow.key}`)} (${tobWindow.range})`
-    : formatTimeOfBirth(user?.timeOfBirth);
+  const tobShown = describeBirthTime({ time: user?.timeOfBirth, accuracy: user?.birthTimeAccuracy });
+  const tobDisplay =
+    tobShown.kind === "window"
+      ? `${t(`onboarding.window.${tobShown.key}`)} (${tobShown.range})`
+      : tobShown.kind === "none"
+        ? "—"
+        : formatTimeOfBirth(user?.timeOfBirth);
 
   function startEdit(timeOnly = false) {
     if (!user) return;
@@ -96,7 +98,11 @@ export default function ProfilePage() {
       displayName: user.displayName ?? "",
       gender: user.gender ?? null,
       dateOfBirth: user.dateOfBirth ?? "",
-      timeOfBirth: (user.timeOfBirth ?? "").slice(0, 5),
+      // The box starts empty when only a stand-in time is saved, so the app never shows a time the reader didn't give.
+      timeOfBirth:
+        describeBirthTime({ time: user.timeOfBirth, accuracy: user.birthTimeAccuracy }).kind === "clock"
+          ? (user.timeOfBirth ?? "").slice(0, 5)
+          : "",
       placeName: user.placeOfBirth?.name ?? "",
     });
     setResolvedPlace(user.placeOfBirth ?? null);
@@ -128,7 +134,11 @@ export default function ProfilePage() {
         body.dateOfBirth = form.dateOfBirth;
         birthChanged = true;
       }
-      if (form.timeOfBirth && form.timeOfBirth !== (user.timeOfBirth ?? "").slice(0, 5)) {
+      // A stand-in time is saved but the box starts empty, so any time typed counts as new, even the same digits.
+      if (
+        form.timeOfBirth &&
+        (form.timeOfBirth !== (user.timeOfBirth ?? "").slice(0, 5) || tobShown.kind !== "clock")
+      ) {
         body.timeOfBirth = form.timeOfBirth;
         // Giving a real clock time retires the "unknown" rating — without this the
         // reading would stay locked to the Moon-sign treatment even though they've

@@ -133,12 +133,16 @@ export default function PalmCaptureWizard({ onClose }: { onClose: () => void }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
+  // The camera is switched on once the reader has dismissed the first demo photo, so the
+  // "allow the camera" sheet (when it is needed) follows the guide instead of covering it.
+  const cameraStarted = useRef(false);
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || guideOpen || cameraStarted.current) return;
+    cameraStarted.current = true;
     void camera.start();
-    return camera.stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [ready, guideOpen]);
+  useEffect(() => (ready ? camera.stop : undefined), [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Low-light sampling: a few times a second, and only while the camera is live. Every animation
   // frame redrew the 4K video into a 32 px canvas (40-70 ms each on a slow phone), which competed

@@ -250,7 +250,7 @@ test.describe("Palm Reading on the Aroha Pass", () => {
       overrides: { "GET /v1/pass": () => ({ json: passStatus() }) },
     });
     await signIn(page, "/pass");
-    await expect(page.getByTestId("pass-tier-silver").getByText("15 questions to Aroha every 30 days")).toBeVisible();
+    await expect(page.getByTestId("pass-tier-silver").getByText("30 questions to Aroha every 30 days")).toBeVisible();
     await expect(page.getByText("A full palm reading every 30 days")).toHaveCount(0);
   });
 });

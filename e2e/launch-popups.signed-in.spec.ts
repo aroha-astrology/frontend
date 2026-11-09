@@ -269,3 +269,48 @@ test.describe("Featured reports", () => {
     expect((await order(page))[0]).toBe("Varshik Rashifal 2027");
   });
 });
+
+test.describe("Admin → Features: the L1 switches", () => {
+  test("the Varshik launch pop-up switch and a report's Featured switch are on the board, off, and can be turned on", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await skipLaunchOverlays(page);
+    const row = (key: string, label: string, group: string) => ({
+      key,
+      label,
+      group,
+      enabled: false,
+      pricePaise: null,
+      originalPricePaise: null,
+      model: null,
+      modelOptions: [],
+      tag: null,
+      audience: "all",
+      defaultAudience: "all",
+    });
+    let rows = [
+      { ...row("home.varshikLaunchPopup", "Varshik Rashifal 2027 launch popup on Home (once per user; needs the report switch on too)", "home"), tag: "new" },
+      row("reports.featured_varshik_rashifal_2027", "Featured: Varshik Rashifal 2027 (sorts first on Reports and Home)", "reports"),
+    ];
+    const api = await mockApi(page, {
+      user: { isAdmin: true },
+      overrides: {
+        "GET /v1/admin/features": () => ({ json: { features: rows } }),
+        "PUT /v1/admin/features": (c) => {
+          const body = c.body as { key: string; enabled: boolean };
+          rows = rows.map((r) => (r.key === body.key ? { ...r, enabled: body.enabled } : r));
+          return { json: rows.find((r) => r.key === body.key) };
+        },
+      },
+    });
+    await signIn(page, "/admin/features");
+    await expect(page.getByText(/^Featured: Varshik Rashifal 2027/)).toBeVisible();
+    await expect(page.getByText(/^Varshik Rashifal 2027 launch popup/)).toBeVisible();
+    const featured = page.getByRole("switch", { name: /Toggle Featured: Varshik Rashifal 2027/ });
+    await expect(featured).toHaveAttribute("aria-checked", "false");
+    await featured.click();
+    await expect.poll(() => callsTo(api, "PUT /v1/admin/features").map((c) => c.body)).toContainEqual(
+      expect.objectContaining({ key: "reports.featured_varshik_rashifal_2027", enabled: true }),
+    );
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-features-l1.png` });
+  });
+});

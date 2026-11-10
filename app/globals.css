@@ -296,6 +296,19 @@ html.light[data-skin="cosmic"] {
   -webkit-text-fill-color: transparent;
 }
 
+/* Soft gold glow on the Varshik Rashifal card in the reports list. Still glow for reduced motion, pulsing otherwise. */
+.varshik-glow {
+  border-color: color-mix(in srgb, var(--gold, #dfb564) 55%, transparent);
+  box-shadow: 0 0 14px 1px color-mix(in srgb, var(--gold, #dfb564) 35%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes varshik-glow-pulse {
+    0%, 100% { box-shadow: 0 0 10px 0 color-mix(in srgb, var(--gold, #dfb564) 25%, transparent); }
+    50% { box-shadow: 0 0 22px 3px color-mix(in srgb, var(--gold, #dfb564) 55%, transparent); }
+  }
+  .varshik-glow { animation: varshik-glow-pulse 2.6s ease-in-out infinite; }
+}
+
 /* ── Cloud drift (MalaBackdrop) — gated in CSS, not just the JS reduced-motion
    hook, so the animation never even starts for a user who prefers none. ── */
 @media (prefers-reduced-motion: no-preference) {

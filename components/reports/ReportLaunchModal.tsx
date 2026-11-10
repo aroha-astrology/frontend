@@ -54,15 +54,16 @@ export default function ReportLaunchModal({ ready }: { ready: boolean }) {
     if (!claim()) return;
     setOpen(true);
     track("varshik_launch_popup_shown");
-  }, [wants, open, done, canOpen, claim]);
-
-  const close = () => {
+    // Counted as seen the moment it appears, so quitting the app with it open never brings it back.
     if (user) {
       markLaunchSeen(VARSHIK_LAUNCH_ID, user.id);
       api.updateMe({ popupSeen: VARSHIK_LAUNCH_ID }).catch(() => {
         // Offline: the local key still stops it on this phone.
       });
     }
+  }, [wants, open, done, canOpen, claim, user]);
+
+  const close = () => {
     setOpen(false);
     setDone(true);
   };

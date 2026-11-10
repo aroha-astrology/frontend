@@ -52,6 +52,16 @@ export default function BirthTimeConfidenceCard({ className = "" }: { className?
   const [confirming, setConfirming] = useState(false);
   const [applied, setApplied] = useState(false);
 
+  // Opened from a link to #birth-time (the Varshik purchase sheet's "Check my birth time"): the screen
+  // above it loads first, so the browser's own jump to the anchor lands short. Scroll once it has settled.
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#birth-time") return;
+    const timer = setTimeout(() => {
+      document.getElementById("birth-time")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   const load = useCallback(() => {
     insightsApi
       .birthTime()

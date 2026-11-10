@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -17,6 +17,7 @@ import { useFeature, resolveFeature } from "@/hooks/useFeature";
 import { useAuth } from "@/providers/auth-provider";
 import { splitReportsByType, sortUnlockedFirst, sortNewFirst, sortFeaturedFirst, sortComingSoonLast } from "@/lib/reports-logic";
 import type { ReportCatalogueEntry, PurchaseReportResultRow } from "@/lib/reports-api";
+import { takeResume } from "@/lib/varshik-birth";
 
 type Tab = "oneTime" | "monthly";
 
@@ -41,6 +42,18 @@ function ReportsCatalogue() {
 
   const isAvailable = (entry: ReportCatalogueEntry) =>
     entry.enabled && resolveFeature(user?.features, `reports.${entry.key}`).enabled;
+
+  // Back from the birth time check (VarshikBirthConfirm): reopen the sheet the reader left, which
+  // restores its own plan and answers. Once per visit, after the catalogue has loaded.
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (resumed.current || !reports || !user) return;
+    resumed.current = true;
+    const key = takeResume();
+    const entry = key ? reports.find((r) => r.key === key) : undefined;
+    if (entry && isAvailable(entry)) setPurchasingEntry(entry);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports, user]);
 
   // The full catalogue is shown here (unlike the Home teaser slider, which
   // still uses filterVisibleReports to hide anything not yet turned on) —

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import BirthTimeWindowSelect from "@/components/ui/BirthTimeWindowSelect";
 import { BIRTH_TIME_WINDOWS, birthTimeWindowFor } from "@/lib/birth-time-window";
@@ -21,6 +21,16 @@ import {
   type VarshikTierSlug,
 } from "@/lib/reports-api";
 import VarshikTierSheet from "./varshik/VarshikTierSheet";
+import VarshikBirthConfirm from "./varshik/VarshikBirthConfirm";
+import {
+  BIRTH_REFUSALS,
+  birthFieldsOf,
+  clearDraft,
+  markResume,
+  readDraft,
+  varshikBirthGaps,
+  writeDraft,
+} from "@/lib/varshik-birth";
 import { questionsFor, answeredNone, missingRequired } from "@/lib/report-questions";
 import DiscountPrice from "./DiscountPrice";
 import GeneralReportWarning from "./GeneralReportWarning";
@@ -52,11 +62,18 @@ interface ReportPurchaseDrawerProps {
  */
 export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, generatedCount }: ReportPurchaseDrawerProps) {
   const { t } = useTranslation();
-  const { user, activeProfile, refresh } = useAuth();
+  const { user, activeProfile, refresh, refreshProfiles } = useAuth();
 
   const label = t(`reports.labels.${entry.key}`, entry.label);
+  const isVarshik = entry.key === "varshik_rashifal_2027";
+  const profileId = activeProfile?.id ?? "primary";
+  // Varshik: the plan and answers are kept as they are chosen, so a reader who leaves (to check their
+  // birth time, or anything else) finds the sheet as they left it. Read once, when the sheet opens.
+  const [draft] = useState(() => (isVarshik && typeof window !== "undefined" ? readDraft(entry.key, profileId) : null));
   // Varshik Rashifal is sold in tiers: the reader picks one first, then goes through the usual questions and confirm.
-  const [tier, setTier] = useState<VarshikTierSlug | null>(null);
+  const [tier, setTier] = useState<VarshikTierSlug | null>(() =>
+    draft?.tier && entry.tiers?.some((x) => x.tierSlug === draft.tier) ? (draft.tier as VarshikTierSlug) : null,
+  );
   const chosenTier = entry.tiers?.find((x) => x.tierSlug === tier) ?? null;
   const balancePaise = user?.walletBalancePaise ?? 0;
 
@@ -124,7 +141,21 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
 
   // ── Optional pre-purchase questionnaire (see lib/report-questions.ts) ─
   const questions = questionsFor(entry.key, activeProfile?.gender ?? user?.gender);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(() => draft?.answers ?? {});
+  useEffect(() => {
+    if (isVarshik) writeDraft(entry.key, profileId, { tier, answers });
+  }, [isVarshik, entry.key, profileId, tier, answers]);
+
+  // ── Varshik: the birth details it is sold on (see VarshikBirthConfirm) ─
+  const birthGaps = isVarshik ? varshikBirthGaps(birthFieldsOf(activeProfile, user)) : [];
+  // False while a birth detail is missing or the Kundli is being rebuilt from a new one.
+  const [birthReady, setBirthReady] = useState(birthGaps.length === 0);
+  const [chartWait, setChartWait] = useState(0);
+  const birthRef = useRef<HTMLDivElement>(null);
+  const goToBirth = useCallback(() => {
+    birthRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+  const birthLocked = isVarshik && !birthReady;
   const visibleQuestions = questions.filter(
     (q) => !q.showIf || answers[q.showIf.questionId] === q.showIf.value,
   );
@@ -239,6 +270,7 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       track("report_purchase_started", { report: entry.key, costPaise });
       const res = await reportsApi.purchase(body);
       track("report_purchased", { report: entry.key, costPaise });
+      if (isVarshik) clearDraft(entry.key, profileId);
       await refresh();
       onPurchased(res.reports);
     } catch (err) {
@@ -246,6 +278,25 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
         setErrorMsg(t("reports.purchase.notEnough", { cost: formatRupees(costPaise), amount: formatRupees(balancePaise) }));
       } else if (err instanceof ApiError && err.status === 403) {
         setErrorMsg(t("reports.purchase.disabledError"));
+      } else if (isVarshik && err instanceof ApiError && err.status === 400 && err.message === "CHART_UPDATING") {
+        // The Kundli is still being rebuilt from the latest birth details: wait for it, then Buy again.
+        setErrorMsg(t("varshik.birthConfirm.chartUpdating"));
+        setChartWait((n) => n + 1);
+        goToBirth();
+      } else if (
+        isVarshik &&
+        err instanceof ApiError &&
+        err.status === 400 &&
+        (BIRTH_REFUSALS as readonly string[]).includes(err.message)
+      ) {
+        // The server sees a birth detail this screen did not (another device changed it): re-read and ask for it.
+        setErrorMsg(t("varshik.birthConfirm.refused"));
+        await Promise.all([refresh(), refreshProfiles()]).catch(() => {});
+        goToBirth();
+      } else if (isVarshik && err instanceof ApiError && err.status === 400 && err.message === "REPORT_WINDOW_CLOSED") {
+        setErrorMsg(t("varshik.birthConfirm.windowClosed"));
+      } else if (isVarshik && err instanceof ApiError && err.status === 400 && err.message.startsWith("Missing answer")) {
+        goToFirstUnanswered();
       } else {
         setErrorMsg(t("reports.purchase.unlockError"));
       }
@@ -299,6 +350,26 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
       }
     >
       <div className="flex flex-col gap-4 pb-1">
+        {isVarshik && (
+          <div ref={birthRef} className="scroll-mt-20">
+            <VarshikBirthConfirm
+              gaps={birthGaps}
+              savedTime={birthFieldsOf(activeProfile, user)?.timeOfBirth?.slice(0, 5) ?? null}
+              profileId={profileId}
+              worldwide={!user?.phoneE164}
+              waitToken={chartWait}
+              onSaved={async () => {
+                setErrorMsg(null);
+                await Promise.all([refresh(), refreshProfiles()]);
+              }}
+              onReadyChange={setBirthReady}
+              onLeaveForCheck={() => {
+                writeDraft(entry.key, profileId, { tier, answers });
+                markResume(entry.key);
+              }}
+            />
+          </div>
+        )}
 
         {/* ── Step 1: "Are you married?" — shown first for the marriage report ── */}
         {visibleQuestions.length > 0 && (
@@ -619,8 +690,12 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
               ) : (
                 <button
                   type="button"
-                  aria-disabled={unanswered.length > 0}
+                  aria-disabled={unanswered.length > 0 || birthLocked}
                   onClick={() => {
+                    if (birthLocked) {
+                      goToBirth();
+                      return;
+                    }
                     if (unanswered.length > 0) {
                       goToFirstUnanswered();
                       return;
@@ -633,10 +708,12 @@ export default function ReportPurchaseDrawer({ entry, onClose, onPurchased, gene
                     setConfirming(true);
                   }}
                   className={`w-full rounded-2xl px-4 py-3 text-sm font-bold ${
-                    unanswered.length > 0 ? "bg-gold/30 text-foreground/70" : "bg-gold text-[#1a0e00]"
+                    unanswered.length > 0 || birthLocked ? "bg-gold/30 text-foreground/70" : "bg-gold text-[#1a0e00]"
                   }`}
                 >
-                  {unanswered.length > 0
+                  {birthLocked
+                    ? t("varshik.birthConfirm.buyLocked")
+                    : unanswered.length > 0
                     ? t("reports.questions.buyLocked", { n: unanswered.length })
                     : `${t("reports.buy")} · ${formatRupees(costPaise)}`}
                 </button>

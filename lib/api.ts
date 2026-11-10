@@ -1212,7 +1212,10 @@ export const api = {
     request<Profile>("/v1/profiles", { method: "POST", body, auth: true }),
 
   /** Change fields of an added (family) profile, e.g. its birth-time accuracy and source. Not for 'primary': use updateMe. */
-  updateBirthProfile: (id: string, body: Pick<UpdateMeBody, "birthTimeAccuracy" | "birthTimeSource">) =>
+  updateBirthProfile: (
+    id: string,
+    body: Pick<UpdateMeBody, "birthTimeAccuracy" | "birthTimeSource" | "timeOfBirth"> & { placeOfBirth?: PlaceOfBirth },
+  ) =>
     request<unknown>(`/v1/birth-profiles/${id}`, { method: "PATCH", body, auth: true }),
 
   /**

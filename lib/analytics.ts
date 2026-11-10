@@ -11,6 +11,9 @@ export type AnalyticsEvent =
   | "varshik_launch_popup_shown"
   | "varshik_launch_popup_clicked"
   | "varshik_launch_popup_closed"
+  // The birth-details step of the Varshik purchase sheet (components/reports/varshik/VarshikBirthConfirm).
+  | "varshik_birth_confirmed"
+  | "varshik_birth_check_opened"
   | "daily_reward_claimed"
   | "topup_started"
   | "topup_succeeded"

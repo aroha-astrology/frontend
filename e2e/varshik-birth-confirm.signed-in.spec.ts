@@ -45,10 +45,15 @@ const VARSHIK = {
   lastSpouseDetails: null,
 };
 
-/** The profile list follows the user row, so a saved accuracy shows up on the next read, as on the server. */
+/**
+ * The profile list as the live server sent it until 2026-11-10: no birthTimeAccuracy at all. The sheet must
+ * read the owner's accuracy from the account (GET /v1/me), or "Yes, it's exact" never unlocks Buy (the bug
+ * a reader hit on launch day, which a list that did carry the field hid from these tests).
+ */
+const primaryAsServed = Object.fromEntries(Object.entries(primaryProfile).filter(([key]) => key !== "birthTimeAccuracy"));
 const handlers = (extra: Handlers = {}): Handlers => ({
   "GET /v1/reports": () => ({ json: { reports: [VARSHIK] } }),
-  "GET /v1/profiles": (_c, s) => ({ json: [{ ...primaryProfile, birthTimeAccuracy: s.user.birthTimeAccuracy }] }),
+  "GET /v1/profiles": () => ({ json: [primaryAsServed] }),
   "GET /v1/kundli": () => ({ json: { status: "ready" } }),
   "GET /v1/reports/:id": () => ({ status: 202, json: { status: "generating" } }),
   ...extra,
@@ -80,6 +85,7 @@ test("a remembered birth time is confirmed in the sheet, the Kundli is rebuilt, 
 
   await card.getByRole("button", { name: "Yes, it's exact" }).click();
   await expect(page.getByTestId("varshik-birth-ready")).toContainText("Your Kundli is up to date");
+  await expect(page.getByTestId("varshik-birth-confirm")).toHaveCount(0);
   expect(callsTo(api, "PATCH /v1/me").map((c) => c.body)).toContainEqual({ birthTimeAccuracy: "exact" });
   expect(callsTo(api, "GET /v1/kundli").length).toBeGreaterThan(0);
   await expect(page.getByRole("button", { name: "Confirm your birth details first" })).toHaveCount(0);

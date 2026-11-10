@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearDraft, markResume, placeIsUsable, readDraft, takeResume, varshikBirthGaps, writeDraft } from "./varshik-birth";
+import type { Profile, User } from "@/lib/api";
+import { birthFieldsOf, clearDraft, markResume, placeIsUsable, readDraft, takeResume, varshikBirthGaps, writeDraft } from "./varshik-birth";
 
 const place = { name: "Pune", lat: 18.52, lon: 73.86, tz: "Asia/Kolkata" };
 
@@ -57,5 +58,22 @@ describe("the half-filled purchase sheet", () => {
     markResume("varshik_rashifal_2027");
     expect(takeResume()).toBe("varshik_rashifal_2027");
     expect(takeResume()).toBeNull();
+  });
+});
+
+describe("birthFieldsOf", () => {
+  const user = { timeOfBirth: "14:10", birthTimeAccuracy: "exact", placeOfBirth: place } as unknown as User;
+
+  it("reads the account owner from the account, even when the profile list leaves the accuracy out", () => {
+    // The live profile list did not send birthTimeAccuracy (2026-11-10): "Yes, it's exact" never unlocked Buy.
+    const primary = { id: "primary", isPrimary: true, timeOfBirth: "14:10", placeOfBirth: place } as unknown as Profile;
+    expect(varshikBirthGaps(birthFieldsOf(primary, user))).toEqual([]);
+    expect(varshikBirthGaps(birthFieldsOf(null, user))).toEqual([]);
+  });
+
+  it("reads a family profile from the profile itself", () => {
+    const family = { id: "f1", isPrimary: false, timeOfBirth: "09:00", birthTimeAccuracy: "approximate", placeOfBirth: place } as unknown as Profile;
+    expect(varshikBirthGaps(birthFieldsOf(family, user))).toEqual(["time_unconfirmed"]);
+    expect(varshikBirthGaps(birthFieldsOf({ ...family, birthTimeAccuracy: "exact" }, user))).toEqual([]);
   });
 });

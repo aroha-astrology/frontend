@@ -35,10 +35,21 @@ export function varshikBirthGaps(p: BirthFields | null | undefined): BirthGap[] 
   return gaps;
 }
 
-/** The birth fields of whoever the report is for: the active profile, or the account owner. */
+/**
+ * The birth fields of whoever the report is for. The account owner's come from the account itself
+ * (GET /v1/me), which always carries birthTimeAccuracy: the profile list did not send it before
+ * 2026-11-10, so reading the owner from there kept "Yes, it's exact" looking unconfirmed and Buy shut.
+ * A family profile's come from the profile list (a missing accuracy reads as not confirmed, as on the server).
+ */
 export function birthFieldsOf(activeProfile: Profile | null, user: User | null): BirthFields | null {
-  if (activeProfile) return activeProfile;
-  if (!user) return null;
+  if (activeProfile && !activeProfile.isPrimary) {
+    return {
+      timeOfBirth: activeProfile.timeOfBirth,
+      birthTimeAccuracy: activeProfile.birthTimeAccuracy ?? null,
+      placeOfBirth: activeProfile.placeOfBirth,
+    };
+  }
+  if (!user) return activeProfile;
   return { timeOfBirth: user.timeOfBirth, birthTimeAccuracy: user.birthTimeAccuracy, placeOfBirth: user.placeOfBirth };
 }
 
